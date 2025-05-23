@@ -4,12 +4,33 @@ import { useEffect, useState } from 'react'
 export default function Explore() {
   const [posts, setPosts] = useState([])
 
+  const fetchPosts = async () => {
+    const res = await fetch('https://cybev.io/api/posts');
+    const data = await res.json();
+    setPosts(data);
+  };
+
   useEffect(() => {
-    fetch('https://cybev.io/api/posts')
-      .then(res => res.json())
-      .then(data => setPosts(data))
-      .catch(err => console.error(err))
-  }, [])
+    fetchPosts();
+  }, []);
+
+  const handleLike = async (id) => {
+    await fetch(`https://cybev.io/api/posts/${id}/like`, {
+      method: 'POST'
+    });
+    fetchPosts();
+  };
+
+  const handleBoost = async (id) => {
+    await fetch(`https://cybev.io/api/posts/${id}/boost`, {
+      method: 'POST',
+      headers: {
+        'Authorization': localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
+    fetchPosts();
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -25,6 +46,14 @@ export default function Explore() {
                 <span>👀 {post.views || 0}</span>
                 <span>❤️ {post.likes || 0}</span>
                 <span>💬 {post.comments || 0}</span>
+              </div>
+              <div className="mt-3 flex gap-3">
+                <button onClick={() => handleLike(post._id)} className="bg-pink-600 text-white px-3 py-1 rounded hover:bg-pink-700 text-sm">
+                  ❤️ Like
+                </button>
+                <button onClick={() => handleBoost(post._id)} className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 text-sm">
+                  🚀 Boost
+                </button>
               </div>
               <Link href={`/blog/${post._id}`} className="block mt-3 text-blue-600 font-medium">
                 Read More →
