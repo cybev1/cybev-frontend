@@ -1,21 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-
 export default function Dashboard() {
-  const [user, setUser] = useState(null);
-  const router = useRouter();
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return router.push('/login');
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) setUser(JSON.parse(storedUser));
-  }, []);
-
   return (
-    <div style={{ padding: '2rem' }}>
-      <h1>Dashboard</h1>
-      {user && <p>Welcome back, {user.username}!</p>}
+    <div className="min-h-screen bg-white p-8">
+      <h2 className="text-3xl font-semibold text-blue-800 mb-6">Dashboard</h2>
+      <p>Welcome back to your creator's panel. Explore your content and track your earnings.</p>
     </div>
   );
 }
