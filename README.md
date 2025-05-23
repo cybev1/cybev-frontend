@@ -1,3 +1,3 @@
 # CYBEV Frontend
 
-Frontend connected to https://cybev.io
+Frontend connected to https://app.cybev.io
