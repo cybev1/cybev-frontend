@@ -31,17 +31,26 @@ export default function Posts() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto bg-white p-6 rounded shadow">
-        <h2 className="text-2xl font-bold text-blue-800 mb-4">Your Posts</h2>
+      <div className="max-w-5xl mx-auto bg-white p-6 rounded shadow">
+        <h2 className="text-2xl font-bold text-blue-900 mb-4">Your Posts & Earnings</h2>
         {loading && <p>Loading...</p>}
         {error && <p className="text-red-500">{error}</p>}
         {posts.length > 0 ? (
-          <ul className="space-y-4">
+          <ul className="space-y-6">
             {posts.map((post, i) => (
-              <li key={i} className="p-4 border rounded shadow-sm">
-                <h3 className="font-semibold text-lg">{post.title}</h3>
-                <p className="text-sm text-gray-500">Category: {post.category}</p>
-                <p className="mt-2 text-gray-700">{post.content.slice(0, 100)}...</p>
+              <li key={i} className="p-4 border rounded shadow-sm bg-blue-50">
+                <h3 className="text-xl font-semibold text-blue-800">{post.title}</h3>
+                <p className="text-sm text-gray-600 mb-1">Category: {post.category}</p>
+                <p className="text-gray-700 mb-2">{post.content.slice(0, 120)}...</p>
+                <div className="flex justify-between items-center text-sm text-gray-600">
+                  <span>Views: {post.views || 0}</span>
+                  <span>Likes: {post.likes || 0}</span>
+                  <span>Comments: {post.comments || 0}</span>
+                  <span className="text-green-700 font-bold">Earned: ₡{(post.views || 0) * 0.5}</span>
+                </div>
+                <button className="mt-3 bg-purple-600 text-white px-4 py-1 rounded hover:bg-purple-700 text-sm">
+                  {post.isMinted ? 'Minted ✔' : 'Mint as NFT'}
+                </button>
               </li>
             ))}
           </ul>
