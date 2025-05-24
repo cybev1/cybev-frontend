@@ -32,7 +32,7 @@ export default function BlogSetup() {
     setChecking(true);
     setAvailable(null);
     setTimeout(() => {
-      setAvailable(Math.random() > 0.5); // simulate availability randomly
+      setAvailable(Math.random() > 0.5);
       setChecking(false);
     }, 1000);
   };
@@ -84,17 +84,20 @@ export default function BlogSetup() {
             />
           </div>
 
-          <select
-            name="domainType"
-            value={form.domainType}
-            onChange={handleChange}
-            className="w-full border rounded px-4 py-2"
-            required
-          >
-            <option value="subdomain">Subdomain (e.g. myblog.cybev.io)</option>
-            <option value="custom">Custom Domain</option>
-            <option value="register">Register New Domain</option>
-          </select>
+          <div>
+            <label className="block font-semibold text-sm text-gray-600 mb-1">Domain Options</label>
+            <select
+              name="domainType"
+              value={form.domainType}
+              onChange={handleChange}
+              className="w-full border rounded px-4 py-2"
+              required
+            >
+              <option value="subdomain">Subdomain (e.g. myblog.cybev.io)</option>
+              <option value="custom">Custom Domain</option>
+              <option value="register">Register New Domain</option>
+            </select>
+          </div>
 
           <div className="flex gap-2 items-center">
             <input
