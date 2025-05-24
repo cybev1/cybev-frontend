@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { EyeIcon, HeartIcon, RocketLaunchIcon } from '@heroicons/react/24/solid'
 
 export default function Explore() {
   const [posts, setPosts] = useState([])
@@ -15,9 +16,7 @@ export default function Explore() {
   }, []);
 
   const handleLike = async (id) => {
-    await fetch(`https://cybev.io/api/posts/${id}/like`, {
-      method: 'POST'
-    });
+    await fetch(`https://cybev.io/api/posts/${id}/like`, { method: 'POST' });
     fetchPosts();
   };
 
@@ -43,16 +42,16 @@ export default function Explore() {
               <p className="text-sm text-gray-500">Category: {post.category}</p>
               <p className="mt-2 text-gray-700">{post.content.slice(0, 100)}...</p>
               <div className="flex justify-between items-center text-sm text-gray-600 mt-3">
-                <span>👀 {post.views || 0}</span>
-                <span>❤️ {post.likes || 0}</span>
+                <span className="flex items-center gap-1"><EyeIcon className="h-4 w-4 text-gray-500" /> {post.views || 0}</span>
+                <span className="flex items-center gap-1"><HeartIcon className="h-4 w-4 text-red-500" /> {post.likes || 0}</span>
                 <span>💬 {post.comments || 0}</span>
               </div>
               <div className="mt-3 flex gap-3">
-                <button onClick={() => handleLike(post._id)} className="bg-pink-600 text-white px-3 py-1 rounded hover:bg-pink-700 text-sm">
-                  ❤️ Like
+                <button onClick={() => handleLike(post._id)} className="flex items-center gap-2 bg-pink-600 text-white px-3 py-1 rounded hover:bg-pink-700 text-sm">
+                  <HeartIcon className="h-4 w-4" /> Like
                 </button>
-                <button onClick={() => handleBoost(post._id)} className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 text-sm">
-                  🚀 Boost
+                <button onClick={() => handleBoost(post._id)} className="flex items-center gap-2 bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 text-sm">
+                  <RocketLaunchIcon className="h-4 w-4" /> Boost
                 </button>
               </div>
               <Link href={`/blog/${post._id}`} className="block mt-3 text-blue-600 font-medium">
