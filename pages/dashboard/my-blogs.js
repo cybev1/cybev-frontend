@@ -5,12 +5,10 @@ export default function MyBlogs() {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchBlogs = () => {
     const token = localStorage.getItem('token');
     fetch('/api/blogs/user', {
-      headers: {
-        'Authorization': token
-      }
+      headers: { 'Authorization': token }
     })
       .then(res => res.json())
       .then(data => {
@@ -19,7 +17,21 @@ export default function MyBlogs() {
       })
       .catch(() => setBlogs([]))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchBlogs();
   }, []);
+
+  const handleDelete = async (id) => {
+    if (!confirm('Are you sure you want to delete this blog?')) return;
+    const token = localStorage.getItem('token');
+    await fetch(`/api/blogs/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': token }
+    });
+    fetchBlogs();
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -32,12 +44,32 @@ export default function MyBlogs() {
         ) : (
           <ul className="space-y-4">
             {blogs.map((blog) => (
-              <li key={blog._id} className="p-4 border rounded shadow bg-white">
-                <h2 className="text-xl font-semibold text-blue-900">{blog.title}</h2>
-                <p className="text-sm text-gray-500 mb-2">{blog.description}</p>
-                <p className="text-sm mb-1">Theme: {blog.theme}</p>
-                <p className="text-sm mb-1">Category: {blog.category}</p>
-                <p className="text-sm text-gray-600">Domain: <Link href={`/site/${blog.domainValue}`} className="text-blue-600 underline">{`/site/${blog.domainValue}`}</Link></p>
+              <li key={blog._id} className="p-4 border rounded shadow bg-white space-y-2">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-xl font-semibold text-blue-900">{blog.title}</h2>
+                    <p className="text-sm text-gray-500">{blog.description}</p>
+                    <p className="text-sm">Theme: {blog.theme}</p>
+                    <p className="text-sm">Category: {blog.category}</p>
+                    <p className="text-sm text-gray-600">
+                      Domain: <Link href={`/site/${blog.domainValue}`} className="text-blue-600 underline">{`/site/${blog.domainValue}`}</Link>
+                    </p>
+                  </div>
+                  <div className="space-x-2">
+                    <button
+                      className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-sm"
+                      onClick={() => alert('Edit functionality coming soon.')}
+                    >
+                      ✏️ Edit
+                    </button>
+                    <button
+                      className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                      onClick={() => handleDelete(blog._id)}
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
+                </div>
               </li>
             ))}
           </ul>
