@@ -5,7 +5,7 @@ import { EyeIcon, HeartIcon, RocketLaunchIcon } from '@heroicons/react/24/solid'
 export default function Explore() {
   const [posts, setPosts] = useState([])
 
-  const fetchPosts = async () => {
+  const fetchPosts = async () => {l
     const res = await fetch('https://cybev.io/api/posts');
     const data = await res.json();
     setPosts(data);
