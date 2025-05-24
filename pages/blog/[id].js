@@ -12,10 +12,12 @@ export default function BlogDetail() {
 
   useEffect(() => {
     if (query.id) {
-      fetch(`https://cybev.io/api/posts/${query.id}`)
-        .then(res => res.json())
-        .then(data => setPost(data))
-        .catch(err => console.error(err))
+      // ✅ Dummy fallback content
+      setPost({
+        title: 'Sample Blog Title',
+        category: 'Inspiration',
+        content: 'This is a dummy post to simulate backend loading. Real content will be pulled from your database soon.'
+      })
     }
   }, [query.id])
 
