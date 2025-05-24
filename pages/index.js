@@ -18,7 +18,7 @@ export default function Home() {
 
       <div className="flex flex-col space-y-4 w-full max-w-sm">
         <button
-          onClick={() => router.push('/dashboard/create')}
+          onClick={() => router.push('/dashboard/setup-blog')}
           className="w-full bg-green-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition"
         >
           Create a Blog/Website
