@@ -14,5 +14,7 @@
     "postcss": "^8.4.21",
     "autoprefixer": "^10.4.13",
     "@heroicons/react": "^2.0.18"
+    "framer-motion": "^10.16.1"
+
   }
 }
