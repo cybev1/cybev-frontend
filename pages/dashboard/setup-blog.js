@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 
 export default function BlogSetup() {
   const router = useRouter();
-
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -49,24 +48,31 @@ export default function BlogSetup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please login first.');
+      return router.push('/login');
+    }
+
     setSubmitting(true);
     try {
       const res = await fetch('/api/blogs/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: localStorage.getItem('token')
+          'Authorization': token
         },
         body: JSON.stringify(form)
       });
       if (res.ok) {
-        router.push(`/dashboard/launch-blog?title=${form.title}&description=${form.description}&domainType=${form.domainType}&domainValue=${form.domainValue}&theme=${form.theme}&category=${form.category}`);
+        const blog = await res.json();
+        router.push(`/dashboard/launch-blog?title=${blog.title}&description=${blog.description}&domainType=${blog.domainType}&domainValue=${blog.domainValue}&theme=${blog.theme}&category=${blog.category}`);
       } else {
-        alert('Failed to save blog.');
+        alert('Failed to save blog. Please try again.');
       }
     } catch (err) {
       console.error(err);
-      alert('Error saving blog.');
+      alert('Error occurred while saving blog.');
     } finally {
       setSubmitting(false);
     }
