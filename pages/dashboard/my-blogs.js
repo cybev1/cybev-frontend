@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Card from '../../components/ui/Card';
 
 export default function MyBlogs() {
   const [blogs, setBlogs] = useState([]);
@@ -44,7 +45,7 @@ export default function MyBlogs() {
         ) : (
           <ul className="space-y-4">
             {blogs.map((blog) => (
-              <li key={blog._id} className="p-4 border rounded shadow bg-white space-y-2">
+              <Card key={blog._id}>
                 <div className="flex justify-between items-center">
                   <div>
                     <h2 className="text-xl font-semibold text-blue-900">{blog.title}</h2>
@@ -70,7 +71,7 @@ export default function MyBlogs() {
                     </button>
                   </div>
                 </div>
-              </li>
+              </Card>
             ))}
           </ul>
         )}
