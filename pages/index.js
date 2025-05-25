@@ -19,6 +19,7 @@ export default function Home() {
   return (
     <div>
       <Hero onGetStarted={() => router.push('/login')} />
+      <Slides />
       <PromoVideo />
       <Features />
       <Testimonials />
