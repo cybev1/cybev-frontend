@@ -16,6 +16,5 @@
     "@heroicons/react": "^2.0.18",
     "framer-motion": "^10.16.1",
     "react-quill": "^2.0.0"
-
   }
 }
