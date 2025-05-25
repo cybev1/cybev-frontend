@@ -16,8 +16,8 @@ export default function BlogPost() {
   const [blog, setBlog] = useState(null);
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [comment, setComment] = useState('');
-  const [comments, setComments] = useState([]);
+  const [minting, setMinting] = useState(false);
+  const [minted, setMinted] = useState(false);
 
   useEffect(() => {
     if (subdomain && postid) {
@@ -28,34 +28,21 @@ export default function BlogPost() {
           return fetch(`/api/posts/${postid}`);
         })
         .then(res => res.json())
-        .then(data => {
-          setPost(data);
-          return fetch(`/api/comments/${postid}`);
-        })
-        .then(res => res.json())
-        .then(data => setComments(data))
+        .then(data => setPost(data))
         .catch(() => {
           setBlog(null);
           setPost(null);
-          setComments([]);
         })
         .finally(() => setLoading(false));
     }
   }, [subdomain, postid]);
 
-  const handleCommentSubmit = async (e) => {
-    e.preventDefault();
-    if (!comment.trim()) return;
-    const res = await fetch('/api/comments', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ postId: postid, name: 'Guest', text: comment })
-    });
-    if (res.ok) {
-      const newComment = await res.json();
-      setComments([newComment, ...comments]);
-      setComment('');
-    }
+  const handleMint = () => {
+    setMinting(true);
+    setTimeout(() => {
+      setMinted(true);
+      setMinting(false);
+    }, 2000);
   };
 
   if (loading) {
@@ -94,30 +81,20 @@ export default function BlogPost() {
             className="prose max-w-none"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
-        </Card>
 
-        {/* Comments */}
-        <Card>
-          <h2 className="text-xl font-bold mb-4">💬 Comments</h2>
-          <ul className="space-y-2 mb-4">
-            {comments.map((c, i) => (
-              <li key={i} className="text-sm border-b pb-2">
-                <span className="font-medium text-blue-800">{c.name}:</span> {c.text}
-              </li>
-            ))}
-          </ul>
-          <form onSubmit={handleCommentSubmit} className="space-y-2">
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Write your comment here..."
-              className="w-full border rounded px-4 py-2"
-              rows="3"
-            />
-            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-              Submit Comment
-            </button>
-          </form>
+          <div className="mt-6">
+            {minted ? (
+              <p className="text-green-700 font-semibold">✅ This post has been minted!</p>
+            ) : (
+              <button
+                onClick={handleMint}
+                disabled={minting}
+                className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700"
+              >
+                {minting ? 'Minting...' : '🪙 Mint this Post'}
+              </button>
+            )}
+          </div>
         </Card>
       </div>
     </div>
