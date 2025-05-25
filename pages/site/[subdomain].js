@@ -13,14 +13,23 @@ const themes = {
 export default function Site() {
   const { query } = useRouter();
   const [blog, setBlog] = useState(null);
+  const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (query.subdomain) {
       fetch(`/api/blogs/${query.subdomain}`)
         .then(res => res.json())
-        .then(data => setBlog(data))
-        .catch(() => setBlog(null))
+        .then(data => {
+          setBlog(data);
+          return fetch(`/api/posts/by-blog/${data._id}`);
+        })
+        .then(res => res.json())
+        .then(data => setPosts(Array.isArray(data) ? data : []))
+        .catch(() => {
+          setBlog(null);
+          setPosts([]);
+        })
         .finally(() => setLoading(false));
     }
   }, [query.subdomain]);
@@ -47,15 +56,21 @@ export default function Site() {
           <p className="text-lg">{blog.description}</p>
         </Card>
 
-        <Card>
-          <h2 className="text-2xl font-semibold">Welcome to your blog!</h2>
-          <p className="mt-2 text-base">You can now publish content, earn tokens, and build your online presence.</p>
-        </Card>
-
-        <Card>
-          <h2 className="text-2xl font-semibold">Powered by CYBEV</h2>
-          <p className="mt-2 text-base">This blog is AI-enabled and ready for Web3 integration.</p>
-        </Card>
+        {posts.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold">Latest Posts</h2>
+            {posts.map((post) => (
+              <Card key={post._id}>
+                <h3 className="text-xl font-semibold mb-1">{post.title}</h3>
+                <p className="text-sm text-gray-500 mb-2">Posted on {new Date(post.createdAt).toLocaleDateString()}</p>
+                <div
+                  className="text-base"
+                  dangerouslySetInnerHTML={{ __html: post.content.slice(0, 300) + '...' }}
+                />
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
