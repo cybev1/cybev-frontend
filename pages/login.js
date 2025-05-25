@@ -2,37 +2,53 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 
 export default function Login() {
+  const router = useRouter();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState(null);
-  const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setError(null);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await fetch('https://cybev.io/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form)
-    });
-    const data = await res.json();
-    if (data.token) {
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      router.push('/dashboard');
-    } else {
-      setError(data.message);
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form)
+      });
+      const data = await res.json();
+      if (res.ok && data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        router.push('/dashboard/my-blogs');
+      } else {
+        setError(data.message || 'Login failed');
+      }
+    } catch (err) {
+      setError('Server error');
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-50">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-96 space-y-4">
-        <h2 className="text-2xl font-semibold text-blue-800">Login</h2>
-        <input name="email" placeholder="Email" className="w-full border px-4 py-2 rounded" onChange={handleChange} required />
-        <input name="password" type="password" placeholder="Password" className="w-full border px-4 py-2 rounded" onChange={handleChange} required />
-        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Login</button>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md w-full max-w-sm space-y-4">
+        <h2 className="text-xl font-bold text-blue-900">Welcome Back</h2>
+        <input name="email" type="email" placeholder="Email" onChange={handleChange} required className="w-full border rounded px-3 py-2" />
+        <input name="password" type="password" placeholder="Password" onChange={handleChange} required className="w-full border rounded px-3 py-2" />
         {error && <p className="text-red-600 text-sm">{error}</p>}
+        <button type="submit" disabled={submitting} className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+          {submitting ? 'Logging in...' : 'Log In'}
+        </button>
+        <p className="text-sm text-gray-500 text-center">
+          New here? <a href="/register" className="text-blue-600 hover:underline">Get started</a>
+        </p>
       </form>
     </div>
   );
