@@ -16,6 +16,11 @@ export default function BlogPost() {
   const [blog, setBlog] = useState(null);
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [comment, setComment] = useState('');
+  const [comments, setComments] = useState([
+    { name: 'Jane D.', text: 'Amazing post! 🔥' },
+    { name: 'CYBEV Bot 🤖', text: 'Thanks for publishing on the chain!' }
+  ]);
 
   useEffect(() => {
     if (subdomain && postid) {
@@ -34,6 +39,13 @@ export default function BlogPost() {
         .finally(() => setLoading(false));
     }
   }, [subdomain, postid]);
+
+  const handleCommentSubmit = (e) => {
+    e.preventDefault();
+    if (!comment.trim()) return;
+    setComments([...comments, { name: 'You', text: comment }]);
+    setComment('');
+  };
 
   if (loading) {
     return <div className="min-h-screen flex justify-center items-center">Loading post...</div>;
@@ -71,6 +83,30 @@ export default function BlogPost() {
             className="prose max-w-none"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
+        </Card>
+
+        {/* Comments */}
+        <Card>
+          <h2 className="text-xl font-bold mb-4">💬 Comments</h2>
+          <ul className="space-y-2 mb-4">
+            {comments.map((c, i) => (
+              <li key={i} className="text-sm border-b pb-2">
+                <span className="font-medium text-blue-800">{c.name}:</span> {c.text}
+              </li>
+            ))}
+          </ul>
+          <form onSubmit={handleCommentSubmit} className="space-y-2">
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Write your comment here..."
+              className="w-full border rounded px-4 py-2"
+              rows="3"
+            />
+            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+              Submit Comment
+            </button>
+          </form>
         </Card>
       </div>
     </div>
