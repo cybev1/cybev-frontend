@@ -6,6 +6,7 @@ export default function Stake() {
   const [duration, setDuration] = useState('30');
   const [result, setResult] = useState(null);
   const [myStakes, setMyStakes] = useState([]);
+  const [claimed, setClaimed] = useState({});
 
   const fetchStakes = () => {
     const token = localStorage.getItem('token');
@@ -41,6 +42,15 @@ export default function Stake() {
         setAmount('');
         fetchStakes();
       });
+  };
+
+  const handleClaim = (id) => {
+    setClaimed((prev) => ({ ...prev, [id]: true }));
+    alert('✅ Reward claimed! (simulate)');
+  };
+
+  const isUnlocked = (date) => {
+    return new Date(date) <= new Date();
   };
 
   return (
@@ -87,11 +97,26 @@ export default function Stake() {
         {myStakes.length > 0 && (
           <Card>
             <h2 className="text-xl font-bold mb-2">Your Active Stakes</h2>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-4 text-sm">
               {myStakes.map((s, i) => (
-                <li key={i} className="border-b pb-2">
-                  <strong>₡{s.amount}</strong> for {s.duration} days — Unlocks on{' '}
-                  {new Date(s.unlockDate).toLocaleDateString()}
+                <li key={i} className="border-b pb-3">
+                  <p><strong>₡{s.amount}</strong> for {s.duration} days</p>
+                  <p>Unlocks: {new Date(s.unlockDate).toLocaleDateString()}</p>
+                  <p>Reward: ₡{s.reward}</p>
+                  {isUnlocked(s.unlockDate) ? (
+                    claimed[s._id] ? (
+                      <p className="text-green-600 font-semibold">✅ Reward Claimed</p>
+                    ) : (
+                      <button
+                        onClick={() => handleClaim(s._id)}
+                        className="mt-2 bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700"
+                      >
+                        Claim Reward
+                      </button>
+                    )
+                  ) : (
+                    <p className="text-gray-500">🔒 Locked</p>
+                  )}
                 </li>
               ))}
             </ul>
