@@ -6,34 +6,39 @@ export default function Home() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) router.push('/dashboard');
+    if (token) {
+      // Auto-redirects after login if token exists
+      router.push('/dashboard');
+    }
   }, []);
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col justify-center items-center p-8 text-center">
-      <h1 className="text-5xl font-extrabold text-blue-900 mb-4">CYBEV.IO</h1>
-      <p className="text-lg text-gray-700 max-w-2xl mb-8">
-        The all-in-one AI-powered social Web3 blogging & earning ecosystem. Build, earn, own, and grow your presence online with the power of blockchain and AI.
-      </p>
+  const handleGetStarted = () => {
+    router.push('/login');
+  };
 
-      <div className="grid gap-4 w-full max-w-sm">
-        <button
-          onClick={() => router.push('/dashboard/setup-blog')}
-          className="w-full bg-green-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition"
-        >
-          Create a Blog/Website
-        </button>
-        <button
-          onClick={() => router.push('/explore')}
-          className="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition"
-        >
-          Join the Social Network
-        </button>
-        <div className="mt-6 space-x-4 text-sm text-gray-600">
-          <button onClick={() => router.push('/login')} className="text-blue-700 hover:underline">Log In</button>
-          <span>|</span>
-          <button onClick={() => router.push('/register')} className="text-blue-700 hover:underline">Register</button>
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white text-center flex flex-col items-center justify-center px-6 py-12">
+      <div className="max-w-3xl">
+        <h1 className="text-5xl font-bold text-blue-800 mb-6">Welcome to CYBEV.IO</h1>
+        <p className="text-lg text-gray-700 mb-8">
+          The all-in-one AI-powered social Web3 blogging and earning ecosystem. Create powerful blogs, publish to the world, mint content as NFTs, earn tokens, and build your online empire.
+        </p>
+        <div className="aspect-video bg-black rounded shadow-md overflow-hidden mb-8">
+          <iframe
+            className="w-full h-full"
+            src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0&mute=1"
+            title="CYBEV Promo Video"
+            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
         </div>
+        <button
+          onClick={handleGetStarted}
+          className="bg-blue-600 text-white px-8 py-3 rounded-lg text-xl font-semibold hover:bg-blue-700 transition"
+        >
+          GET STARTED
+        </button>
+        <p className="text-sm text-gray-500 mt-4">Already have an account? <a href="/login" className="text-blue-700 underline">Log in</a></p>
       </div>
     </div>
   );
