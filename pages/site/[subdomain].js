@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import Card from '../../components/ui/Card';
 
 const themes = {
   'Theme 1': 'bg-white text-gray-900',
@@ -40,20 +41,21 @@ export default function Site() {
 
   return (
     <div className={`min-h-screen p-6 ${themeStyle}`}>
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-extrabold mb-2">{blog.title}</h1>
-        <p className="text-lg mb-6">{blog.description}</p>
+      <div className="max-w-4xl mx-auto space-y-6">
+        <Card>
+          <h1 className="text-4xl font-extrabold mb-2">{blog.title}</h1>
+          <p className="text-lg">{blog.description}</p>
+        </Card>
 
-        <div className="space-y-6">
-          <div className="p-4 border rounded shadow">
-            <h2 className="text-2xl font-semibold">Welcome to your blog!</h2>
-            <p className="mt-2 text-base">You can now publish content, earn tokens, and build your online presence.</p>
-          </div>
-          <div className="p-4 border rounded shadow">
-            <h2 className="text-2xl font-semibold">Powered by CYBEV</h2>
-            <p className="mt-2 text-base">This blog is AI-enabled and ready for Web3 integration.</p>
-          </div>
-        </div>
+        <Card>
+          <h2 className="text-2xl font-semibold">Welcome to your blog!</h2>
+          <p className="mt-2 text-base">You can now publish content, earn tokens, and build your online presence.</p>
+        </Card>
+
+        <Card>
+          <h2 className="text-2xl font-semibold">Powered by CYBEV</h2>
+          <p className="mt-2 text-base">This blog is AI-enabled and ready for Web3 integration.</p>
+        </Card>
       </div>
     </div>
   );
