@@ -1,4 +1,4 @@
-import AnimateOnScroll from '../AnimateOnScroll';
+import AnimateOnScroll from './AnimateOnScroll';
 
 export default function Features() {
   const features = [
