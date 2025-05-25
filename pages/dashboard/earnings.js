@@ -7,8 +7,18 @@ export default function Earnings() {
     { title: 'Minting with AI', amount: 150, date: '2024-06-05' },
     { title: 'Best Blogging Tips', amount: 230, date: '2024-06-07' }
   ]);
+  const [referrals, setReferrals] = useState(6);
+  const [copied, setCopied] = useState(false);
 
   const total = earnings.reduce((sum, e) => sum + e.amount, 0);
+  const referralReward = referrals * 25;
+  const referralLink = typeof window !== 'undefined' ? \`\${window.location.origin}/register?ref=yourUsername\` : '';
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(referralLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="min-h-screen p-6 bg-white text-gray-800">
@@ -17,7 +27,7 @@ export default function Earnings() {
 
         <Card>
           <h2 className="text-xl font-semibold mb-2">Total Earned</h2>
-          <p className="text-2xl font-bold text-green-700">₡{total.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-green-700">₡{(total + referralReward).toLocaleString()}</p>
         </Card>
 
         <Card>
@@ -29,6 +39,26 @@ export default function Earnings() {
               </li>
             ))}
           </ul>
+        </Card>
+
+        <Card>
+          <h2 className="text-xl font-semibold mb-4">📢 Referral Rewards</h2>
+          <p>You’ve referred <strong>{referrals}</strong> users</p>
+          <p>Total earned from referrals: <strong>₡{referralReward}</strong></p>
+          <div className="mt-4 flex items-center gap-2">
+            <input
+              value={referralLink}
+              readOnly
+              className="w-full px-3 py-2 border rounded"
+            />
+            <button
+              onClick={copyLink}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              {copied ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">You earn ₡25 per referral</p>
         </Card>
       </div>
     </div>
