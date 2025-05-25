@@ -12,7 +12,9 @@ export default function Earnings() {
 
   const total = earnings.reduce((sum, e) => sum + e.amount, 0);
   const referralReward = referrals * 25;
-  const referralLink = typeof window !== 'undefined' ? \`\${window.location.origin}/register?ref=yourUsername\` : '';
+  const referralLink = typeof window !== 'undefined'
+  ? window.location.origin + '/register?ref=yourUsername'
+  : '';
 
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink);
