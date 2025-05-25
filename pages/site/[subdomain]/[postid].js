@@ -17,10 +17,7 @@ export default function BlogPost() {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [comment, setComment] = useState('');
-  const [comments, setComments] = useState([
-    { name: 'Jane D.', text: 'Amazing post! 🔥' },
-    { name: 'CYBEV Bot 🤖', text: 'Thanks for publishing on the chain!' }
-  ]);
+  const [comments, setComments] = useState([]);
 
   useEffect(() => {
     if (subdomain && postid) {
@@ -31,20 +28,34 @@ export default function BlogPost() {
           return fetch(`/api/posts/${postid}`);
         })
         .then(res => res.json())
-        .then(data => setPost(data))
+        .then(data => {
+          setPost(data);
+          return fetch(`/api/comments/${postid}`);
+        })
+        .then(res => res.json())
+        .then(data => setComments(data))
         .catch(() => {
           setBlog(null);
           setPost(null);
+          setComments([]);
         })
         .finally(() => setLoading(false));
     }
   }, [subdomain, postid]);
 
-  const handleCommentSubmit = (e) => {
+  const handleCommentSubmit = async (e) => {
     e.preventDefault();
     if (!comment.trim()) return;
-    setComments([...comments, { name: 'You', text: comment }]);
-    setComment('');
+    const res = await fetch('/api/comments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ postId: postid, name: 'Guest', text: comment })
+    });
+    if (res.ok) {
+      const newComment = await res.json();
+      setComments([newComment, ...comments]);
+      setComment('');
+    }
   };
 
   if (loading) {
