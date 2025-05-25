@@ -1,25 +1,46 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Card from '../../components/ui/Card';
 
 export default function Stake() {
   const [amount, setAmount] = useState('');
   const [duration, setDuration] = useState('30');
   const [result, setResult] = useState(null);
+  const [myStakes, setMyStakes] = useState([]);
+
+  const fetchStakes = () => {
+    const token = localStorage.getItem('token');
+    fetch('/api/stakes/user', {
+      headers: { Authorization: token }
+    })
+      .then(res => res.json())
+      .then(data => setMyStakes(Array.isArray(data) ? data : []))
+      .catch(() => setMyStakes([]));
+  };
+
+  useEffect(() => {
+    fetchStakes();
+  }, []);
 
   const handleStake = () => {
-    const rewardRate = {
-      '30': 5,
-      '60': 12,
-      '90': 20
-    }[duration];
+    const rewardRates = { 30: 5, 60: 12, 90: 20 };
+    const reward = (parseFloat(amount) * rewardRates[duration]) / 100;
+    const unlockDate = new Date(Date.now() + parseInt(duration) * 86400000).toISOString();
 
-    const reward = (parseFloat(amount) * rewardRate) / 100;
-    setResult({
-      staked: amount,
-      duration,
-      reward,
-      unlockDate: new Date(Date.now() + parseInt(duration) * 86400000).toDateString()
-    });
+    const token = localStorage.getItem('token');
+    fetch('/api/stakes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: token
+      },
+      body: JSON.stringify({ amount, duration: parseInt(duration), reward, unlockDate })
+    })
+      .then(res => res.json())
+      .then(data => {
+        setResult(data);
+        setAmount('');
+        fetchStakes();
+      });
   };
 
   return (
@@ -55,11 +76,25 @@ export default function Stake() {
 
         {result && (
           <Card>
-            <h2 className="text-xl font-bold mb-2">Stake Summary</h2>
-            <p><strong>Staked:</strong> ₡{result.staked}</p>
+            <h2 className="text-xl font-bold mb-2">Your Latest Stake</h2>
+            <p><strong>Staked:</strong> ₡{result.amount}</p>
             <p><strong>Duration:</strong> {result.duration} days</p>
             <p><strong>Estimated Reward:</strong> ₡{result.reward}</p>
-            <p><strong>Unlock Date:</strong> {result.unlockDate}</p>
+            <p><strong>Unlock Date:</strong> {new Date(result.unlockDate).toDateString()}</p>
+          </Card>
+        )}
+
+        {myStakes.length > 0 && (
+          <Card>
+            <h2 className="text-xl font-bold mb-2">Your Active Stakes</h2>
+            <ul className="space-y-2 text-sm">
+              {myStakes.map((s, i) => (
+                <li key={i} className="border-b pb-2">
+                  <strong>₡{s.amount}</strong> for {s.duration} days — Unlocks on{' '}
+                  {new Date(s.unlockDate).toLocaleDateString()}
+                </li>
+              ))}
+            </ul>
           </Card>
         )}
       </div>
