@@ -5,6 +5,8 @@ import PromoVideo from '../components/home/PromoVideo';
 import Features from '../components/home/Features';
 import Testimonials from '../components/home/Testimonials';
 import Faq from '../components/home/Faq';
+import Slides from '../components/home/Slides';
+
 
 export default function Home() {
   const router = useRouter();
