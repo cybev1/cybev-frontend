@@ -16,16 +16,18 @@ export default function Login() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
       });
+
       const data = await res.json();
+
       if (res.ok && data.token) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        router.push('/dashboard/my-blogs');
+        router.push('/dashboard/setup-blog');
       } else {
         setError(data.message || 'Login failed');
       }
@@ -39,7 +41,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md w-full max-w-sm space-y-4">
-        <h2 className="text-xl font-bold text-blue-900">Welcome Back</h2>
+        <h2 className="text-xl font-bold text-blue-900">Log In</h2>
         <input name="email" type="email" placeholder="Email" onChange={handleChange} required className="w-full border rounded px-3 py-2" />
         <input name="password" type="password" placeholder="Password" onChange={handleChange} required className="w-full border rounded px-3 py-2" />
         {error && <p className="text-red-600 text-sm">{error}</p>}
@@ -47,7 +49,7 @@ export default function Login() {
           {submitting ? 'Logging in...' : 'Log In'}
         </button>
         <p className="text-sm text-gray-500 text-center">
-          New here? <a href="/register" className="text-blue-600 hover:underline">Get started</a>
+          Don't have an account? <a href="/register" className="text-blue-600 hover:underline">Sign up</a>
         </p>
       </form>
     </div>
