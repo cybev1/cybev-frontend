@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
-function getTier(amount) {
+function getUserTier(amount) {
   if (amount >= 1000) return '💎 Diamond';
   if (amount >= 500) return '🥇 Gold';
   if (amount >= 100) return '🥈 Silver';
@@ -25,7 +25,7 @@ export default function UserBadge() {
         .then(res => res.json())
         .then(data => {
           const total = data.reduce((sum, s) => sum + s.amount, 0);
-          setTier(getTier(total));
+          setTier(getUserTier(total));
         });
     }
   }, []);
