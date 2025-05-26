@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import useLogout from '../utils/useLogout'; // ✅ NEW
 
 export default function Navbar() {
   const router = useRouter();
+  const logout = useLogout(); // ✅ Initialize logout function
   const [user, setUser] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -11,18 +13,15 @@ export default function Navbar() {
     if (stored) setUser(JSON.parse(stored));
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    router.push('/login');
-  };
-
-  const isActive = (path) => router.pathname === path ? 'text-blue-700 font-semibold' : 'text-gray-700';
+  const isActive = (path) =>
+    router.pathname === path ? 'text-blue-700 font-semibold' : 'text-gray-700';
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-        <h1 onClick={() => router.push('/')} className="text-xl font-bold text-blue-800 cursor-pointer">CYBEV.IO</h1>
+        <h1 onClick={() => router.push('/')} className="text-xl font-bold text-blue-800 cursor-pointer">
+          CYBEV.IO
+        </h1>
         <button className="md:hidden text-gray-600" onClick={() => setMobileOpen(!mobileOpen)}>
           ☰
         </button>
@@ -32,7 +31,7 @@ export default function Navbar() {
           {user ? (
             <>
               <li><a href="/dashboard" className={isActive('/dashboard')}>Dashboard</a></li>
-              <li><button onClick={handleLogout} className="text-red-600 hover:underline">Logout</button></li>
+              <li><button onClick={logout} className="text-red-600 hover:underline">Logout</button></li>
             </>
           ) : (
             <>
@@ -50,7 +49,7 @@ export default function Navbar() {
           {user ? (
             <>
               <a href="/dashboard" className={isActive('/dashboard')}>Dashboard</a>
-              <button onClick={handleLogout} className="text-red-600 hover:underline">Logout</button>
+              <button onClick={logout} className="text-red-600 hover:underline">Logout</button>
             </>
           ) : (
             <>
