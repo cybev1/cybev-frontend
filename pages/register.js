@@ -1,11 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
 export default function Register() {
   const router = useRouter();
-  const [form, setForm] = useState({ username: '', email: '', password: '' });
+  const [form, setForm] = useState({ username: '', email: '', password: '', ref: '' });
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // ⏬ Capture referral from URL ?ref=username
+  useEffect(() => {
+    if (router.query.ref) {
+      setForm((prev) => ({ ...prev, ref: router.query.ref }));
+    }
+  }, [router.query.ref]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
