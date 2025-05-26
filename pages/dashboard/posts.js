@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import MintButton from '../../components/MintButton'; // ✅ Add this import
 
 export default function Posts() {
   const [posts, setPosts] = useState([]);
@@ -8,7 +9,7 @@ export default function Posts() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await fetch('https://cybev.io/api/posts/user', {
+        const res = await fetch('https://api.cybev.io/api/posts/user', {
           headers: {
             'Authorization': localStorage.getItem('token'),
             'Content-Type': 'application/json'
@@ -29,6 +30,15 @@ export default function Posts() {
     fetchPosts();
   }, []);
 
+  const handleMint = (postId) => {
+    alert(`✅ Post ${postId} minted! (simulated)`);
+    setPosts(prev =>
+      prev.map(p =>
+        p._id === postId ? { ...p, isMinted: true } : p
+      )
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-5xl mx-auto bg-white p-6 rounded shadow">
@@ -48,9 +58,11 @@ export default function Posts() {
                   <span>Comments: {post.comments || 0}</span>
                   <span className="text-green-700 font-bold">Earned: ₡{(post.views || 0) * 0.5}</span>
                 </div>
-                <button className="mt-3 bg-purple-600 text-white px-4 py-1 rounded hover:bg-purple-700 text-sm">
-                  {post.isMinted ? 'Minted ✔' : 'Mint as NFT'}
-                </button>
+                {post.isMinted ? (
+                  <span className="inline-block mt-2 text-sm text-green-700 font-bold">✔ Minted</span>
+                ) : (
+                  <MintButton onMint={() => handleMint(post._id)} />
+                )}
               </li>
             ))}
           </ul>
