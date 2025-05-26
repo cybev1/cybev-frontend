@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import useLogout from '../utils/useLogout';
-import UserBadge from './UserBadge'; // ✅ NEW
+import UserBadge from './UserBadge';
 
 export default function Navbar() {
   const router = useRouter();
@@ -31,7 +31,7 @@ export default function Navbar() {
           <li><a href="/explore" className={isActive('/explore')}>Explore</a></li>
           {user ? (
             <>
-              <li><UserBadge /></li> {/* ✅ New tier badge and dropdown */}
+              <li><UserBadge /></li>
             </>
           ) : (
             <>
@@ -47,10 +47,9 @@ export default function Navbar() {
           <a href="/features" className={isActive('/features')}>Features</a>
           <a href="/explore" className={isActive('/explore')}>Explore</a>
           {user ? (
-            <>
-              <a href="/dashboard" className={isActive('/dashboard')}>Dashboard</a>
-              <button onClick={logout} className="text-red-600 hover:underline">Logout</button>
-            </>
+            <div className="border-t pt-2">
+              <UserBadge />
+            </div>
           ) : (
             <>
               <a href="/login" className={isActive('/login')}>Login</a>
