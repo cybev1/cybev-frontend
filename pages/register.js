@@ -16,11 +16,11 @@ export default function Register() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
-      });
+      const res = await fetch('https://your-backend-domain.com/api/auth/register', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(form)
+});
       const data = await res.json();
       if (res.ok && data.token) {
         localStorage.setItem('token', data.token);
