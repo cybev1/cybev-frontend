@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import MintButton from '../../components/MintButton'; // ✅ Add this import
+import MintButton from '../../components/MintButton';
 
 export default function Posts() {
   const [posts, setPosts] = useState([]);
@@ -31,7 +31,6 @@ export default function Posts() {
   }, []);
 
   const handleMint = (postId) => {
-    alert(`✅ Post ${postId} minted! (simulated)`);
     setPosts(prev =>
       prev.map(p =>
         p._id === postId ? { ...p, isMinted: true } : p
@@ -61,7 +60,7 @@ export default function Posts() {
                 {post.isMinted ? (
                   <span className="inline-block mt-2 text-sm text-green-700 font-bold">✔ Minted</span>
                 ) : (
-                  <MintButton onMint={() => handleMint(post._id)} />
+                  <MintButton postId={post._id} onMint={() => handleMint(post._id)} />
                 )}
               </li>
             ))}
