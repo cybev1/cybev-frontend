@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import HasTier from './HasTier';
 
-export default function MintButton({ onMint }) {
-  const [hasFreeMint, setHasFreeMint] = useState(true); // mock toggle
+export default function MintButton({ postId, onMint }) {
+  const [hasFreeMint, setHasFreeMint] = useState(true);
 
   useEffect(() => {
     const lastMint = localStorage.getItem('lastFreeMint');
@@ -12,21 +12,39 @@ export default function MintButton({ onMint }) {
     }
   }, []);
 
-  const handleMint = () => {
-    if (hasFreeMint) {
-      localStorage.setItem('lastFreeMint', new Date().toISOString());
-      alert('✅ Minted for Free! Tier Perk');
-    } else {
-      alert('🪙 Minted using tokens (₡50)');
+  const handleMint = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/posts/${postId}/mint`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token
+        }
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        if (hasFreeMint) {
+          localStorage.setItem('lastFreeMint', new Date().toISOString());
+          alert('✅ Minted for Free! Tier Perk');
+        } else {
+          alert('🪙 Minted using tokens (₡50)');
+        }
+        onMint(); // update post status
+      } else {
+        alert(data.message || 'Mint failed');
+      }
+    } catch (err) {
+      alert('Server error');
     }
-    onMint();
   };
 
   return (
-    <div className="mt-6">
+    <div className="mt-4">
       <HasTier min="Gold">
         <button onClick={handleMint} className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700">
-          {hasFreeMint ? 'Mint Free (Gold+ Tier Perk)' : 'Mint (₡50)'}
+          {hasFreeMint ? 'Mint Free (Gold+)' : 'Mint (₡50)'}
         </button>
       </HasTier>
     </div>
