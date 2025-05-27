@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Card from '../../components/ui/Card';
+import BadgeMintButton from '../../components/BadgeMintButton'; // ✅ NEW
 
 function getTier(amount) {
   if (amount >= 1000) return '💎 Diamond';
@@ -13,7 +14,7 @@ export default function ProfileSummary() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    fetch('/api/stakes/user', {
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/stakes/user`, {
       headers: { Authorization: token }
     })
       .then(res => res.json())
@@ -27,11 +28,15 @@ export default function ProfileSummary() {
     <div className="min-h-screen p-6 bg-white text-gray-800">
       <div className="max-w-xl mx-auto space-y-6">
         <h1 className="text-3xl font-bold text-blue-800 text-center">My CYBEV Profile</h1>
+
         <Card>
           <h2 className="text-xl font-semibold mb-2">Staking Tier</h2>
           <p className="text-lg">You are ranked: <strong>{getTier(totalStaked)}</strong></p>
           <p>Total Staked: ₡{totalStaked}</p>
         </Card>
+
+        {/* ✅ Tier Badge Mint Button */}
+        <BadgeMintButton />
       </div>
     </div>
   );
