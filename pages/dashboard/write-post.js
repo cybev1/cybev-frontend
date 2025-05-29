@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
@@ -13,29 +12,16 @@ export default function WritePost() {
   const [aiWords, setAiWords] = useState(700);
 
   const generateAIArticle = async () => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/ai/article`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, words: aiWords })
-      });
-      const data = await res.json();
-      if (data?.content) {
-        setContent(data.content);
-      } else {
-        alert('Failed to generate article. Please try again.');
-      }
-    } catch (err) {
-      console.error('AI generation error:', err);
-      alert('Server error while generating article.');
-    }
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/ai/article`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, words: aiWords })
+    });
+    const data = await res.json();
+    if (data?.content) setContent(data.content);
   };
 
   const handlePreview = () => {
-    if (!title.trim() || !content.trim()) {
-      alert('Please enter a title and content before previewing.');
-      return;
-    }
     localStorage.setItem('draftPost', JSON.stringify({ title, content }));
     router.push('/dashboard/preview');
   };
@@ -52,7 +38,7 @@ export default function WritePost() {
         <input
           type="number"
           value={aiWords}
-          onChange={(e) => setAiWords(Number(e.target.value))}
+          onChange={(e) => setAiWords(e.target.value)}
           className="w-24 px-2 py-1 border rounded"
         />
         <button onClick={generateAIArticle} className="bg-blue-600 text-white px-4 py-2 rounded">
