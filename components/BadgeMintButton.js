@@ -9,7 +9,7 @@ export default function BadgeMintButton({ onMint }) {
     setError(null);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(\`\${process.env.NEXT_PUBLIC_API_BASE}/api/tier/mint-badge\`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/tier/mint-badge`, {
         method: 'POST',
         headers: { Authorization: token }
       });
