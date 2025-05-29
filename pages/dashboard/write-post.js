@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import 'react-quill/dist/quill.snow.css';
@@ -24,13 +23,18 @@ export default function WritePost() {
   const [aiWords, setAiWords] = useState(700);
 
   const generateAIArticle = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/ai/article`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, words: aiWords })
-    });
-    const data = await res.json();
-    if (data?.content) setContent(data.content);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/ai/generate-post`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, words: aiWords })
+      });
+      const data = await res.json();
+      if (data?.content) setContent(data.content);
+    } catch (err) {
+      console.error('AI generation failed:', err);
+      alert('AI article generation failed.');
+    }
   };
 
   const handlePreview = () => {
@@ -48,21 +52,25 @@ export default function WritePost() {
     formData.append('isDraft', isDraft);
     formData.append('scheduleDate', scheduleDate);
     formData.append('mint', mint);
-    formData.append('share', share);
-    formData.append('pin', pin);
-    formData.append('boost', boost);
+    formData.append('shareToTimeline', share);
+    formData.append('isPinned', pin);
+    formData.append('isBoosted', boost);
     if (image) formData.append('image', image);
     if (video) formData.append('video', video);
 
     const token = localStorage.getItem('token');
 
-    await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/posts/create`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/posts/create`, {
       method: 'POST',
       headers: { Authorization: token },
       body: formData
     });
 
-    router.push('/dashboard/posts');
+    if (res.ok) {
+      router.push('/dashboard/posts');
+    } else {
+      alert('Post creation failed.');
+    }
   };
 
   return (
@@ -72,6 +80,7 @@ export default function WritePost() {
         <input type="number" value={aiWords} onChange={(e) => setAiWords(e.target.value)} className="w-24 px-2 py-1 border rounded" />
         <button onClick={generateAIArticle} className="bg-blue-600 text-white px-4 py-2 rounded">Generate AI Article</button>
       </div>
+
       <ReactQuill theme="snow" value={content} onChange={setContent} className="bg-white" />
 
       <input type="file" accept="image/*" onChange={(e) => setImage(e.target.files[0])} />
