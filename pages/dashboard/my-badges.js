@@ -7,7 +7,7 @@ export default function MyBadges() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    fetch(\`\${process.env.NEXT_PUBLIC_API_BASE}/api/tier/history\`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/tier/history`, {
       headers: { Authorization: token }
     })
       .then(res => res.json())
