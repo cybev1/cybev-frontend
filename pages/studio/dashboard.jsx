@@ -1,25 +1,59 @@
-import StudioLayout from '../../components/layout/StudioLayout';
 
+import StudioLayout from '../../components/layout/StudioLayout';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 import Head from 'next/head';
 
 const SeoHead = () => (
   <Head>
-    <title>CYBEV.IO – AI-Powered Web3 Blog & Social Platform</title>
-    <meta name="description" content="Create, blog, mint NFTs, run ads, manage communities, and earn crypto – all in one AI-powered Web3 platform." />
-    <meta property="og:title" content="CYBEV.IO – Create, Earn, Mint, Grow" />
-    <meta property="og:description" content="Your all-in-one Creator Studio powered by AI + Web3. Blog, share, mint NFTs, and earn on CYBEV.IO." />
-    <meta property="og:image" content="https://app.cybev.io/og-banner.png" />
-    <meta property="og:url" content="https://app.cybev.io" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <link rel="icon" href="/favicon.ico" />
+    <title>CYBEV.IO – Dashboard</title>
+    <meta name="description" content="Creator dashboard overview: earnings, ads, wallet, and more." />
   </Head>
 );
 
-export default function Page() {
+export default function Dashboard() {
+  const [adStats, setAdStats] = useState({ total: 0, pending: 0, approved: 0 });
+
+  const fetchAdStats = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get('/api/ads/my', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const ads = res.data || [];
+      const counts = {
+        total: ads.length,
+        pending: ads.filter(a => a.status === 'pending').length,
+        approved: ads.filter(a => a.status === 'approved').length
+      };
+      setAdStats(counts);
+    } catch (err) {
+      console.error('Failed to load ad stats', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchAdStats();
+  }, []);
+
   return (
     <StudioLayout>
       <SeoHead />
-      <h2>Dashboard</h2>
+      <h1 className="text-3xl font-bold mb-4">Creator Studio Dashboard</h1>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="p-4 bg-white dark:bg-gray-800 rounded shadow">
+          <h4 className="font-semibold">🧮 Total Ads</h4>
+          <p className="text-xl">{adStats.total}</p>
+        </div>
+        <div className="p-4 bg-yellow-100 dark:bg-yellow-900 rounded shadow">
+          <h4 className="font-semibold">⏳ Pending Ads</h4>
+          <p className="text-xl">{adStats.pending}</p>
+        </div>
+        <div className="p-4 bg-green-100 dark:bg-green-900 rounded shadow">
+          <h4 className="font-semibold">✅ Approved Ads</h4>
+          <p className="text-xl">{adStats.approved}</p>
+        </div>
+      </div>
     </StudioLayout>
   );
 }
