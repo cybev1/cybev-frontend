@@ -1,63 +1,15 @@
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import useLogout from '../utils/useLogout';
-import UserBadge from './UserBadge';
+
+import Link from 'next/link';
 
 export default function Navbar() {
-  const router = useRouter();
-  const logout = useLogout();
-  const [user, setUser] = useState(null);
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('user');
-    if (stored) setUser(JSON.parse(stored));
-  }, []);
-
-  const isActive = (path) =>
-    router.pathname === path ? 'text-blue-700 font-semibold' : 'text-gray-700';
-
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-        <h1 onClick={() => router.push('/')} className="text-xl font-bold text-blue-800 cursor-pointer">
-          CYBEV.IO
-        </h1>
-        <button className="md:hidden text-gray-600" onClick={() => setMobileOpen(!mobileOpen)}>
-          ☰
-        </button>
-        <ul className="hidden md:flex space-x-4 text-sm font-medium items-center">
-          <li><a href="/features" className={isActive('/features')}>Features</a></li>
-          <li><a href="/explore" className={isActive('/explore')}>Explore</a></li>
-          {user ? (
-            <>
-              <li><UserBadge /></li>
-            </>
-          ) : (
-            <>
-              <li><a href="/login" className={isActive('/login')}>Login</a></li>
-              <li><a href="/register" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Get Started</a></li>
-            </>
-          )}
-        </ul>
+    <nav className="w-full flex items-center justify-between px-8 py-4 bg-white/70 backdrop-blur-md shadow-sm fixed top-0 z-50">
+      <div className="text-2xl font-bold text-blue-700">CYBEV.IO</div>
+      <div className="space-x-6 hidden md:flex">
+        <Link href="/features" className="text-gray-700 hover:text-blue-700 font-medium transition">Features</Link>
+        <Link href="/explore" className="text-gray-700 hover:text-blue-700 font-medium transition">Explore</Link>
+        <Link href="/register" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Get Started</Link>
       </div>
-
-      {mobileOpen && (
-        <div className="md:hidden px-6 pb-4 space-y-2 text-sm font-medium">
-          <a href="/features" className={isActive('/features')}>Features</a>
-          <a href="/explore" className={isActive('/explore')}>Explore</a>
-          {user ? (
-            <div className="border-t pt-2">
-              <UserBadge />
-            </div>
-          ) : (
-            <>
-              <a href="/login" className={isActive('/login')}>Login</a>
-              <a href="/register" className="text-blue-600 hover:underline">Get Started</a>
-            </>
-          )}
-        </div>
-      )}
     </nav>
   );
 }
