@@ -2,12 +2,28 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
+
+const SeoHead = () => (
+  <Head>
+    <title>CYBEV.IO – Register</title>
+    <meta name="description" content="Sign up for a free CYBEV.IO account and start blogging, minting, earning, and managing your community on Web3." />
+    <meta property="og:title" content="CYBEV.IO – Register" />
+    <meta property="og:url" content="https://app.cybev.io/register" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/favicon.ico" />
+  </Head>
+);
 
 export default function Register() {
   const [form, setForm] = useState({ name: '', username: '', email: '', password: '', referralCode: '' });
+  const [error, setError] = useState(null);
   const router = useRouter();
 
-  const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = e => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setError(null);
+  };
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -16,21 +32,25 @@ export default function Register() {
       localStorage.setItem('token', res.data.token);
       router.push('/onboarding');
     } catch (err) {
-      alert('Registration failed');
+      setError('Registration failed. Please try again.');
     }
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Create CYBEV Account</h2>
-      <form onSubmit={handleSubmit}>
-        <input type="text" name="name" placeholder="Full Name" onChange={handleChange} required /><br />
-        <input type="text" name="username" placeholder="Username" onChange={handleChange} required /><br />
-        <input type="email" name="email" placeholder="Email" onChange={handleChange} required /><br />
-        <input type="password" name="password" placeholder="Password" onChange={handleChange} required /><br />
-        <input type="text" name="referralCode" placeholder="Referral Code (optional)" onChange={handleChange} /><br />
-        <button type="submit">Register</button>
-      </form>
-    </div>
+    <>
+      <SeoHead />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-white to-purple-100 dark:from-gray-900 dark:to-black p-4">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-md space-y-4">
+          <h2 className="text-2xl font-bold text-blue-700 dark:text-white text-center">Create a CYBEV Account</h2>
+          <input name="name" placeholder="Full Name" value={form.name} onChange={handleChange} required className="input" />
+          <input name="username" placeholder="Username" value={form.username} onChange={handleChange} required className="input" />
+          <input type="email" name="email" placeholder="Email" value={form.email} onChange={handleChange} required className="input" />
+          <input type="password" name="password" placeholder="Password" value={form.password} onChange={handleChange} required className="input" />
+          <input name="referralCode" placeholder="Referral Code (optional)" value={form.referralCode} onChange={handleChange} className="input" />
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          <button type="submit" className="btn-primary w-full">Register</button>
+        </form>
+      </div>
+    </>
   );
 }
