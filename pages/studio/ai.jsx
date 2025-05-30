@@ -1,41 +1,25 @@
 import StudioLayout from '../../components/layout/StudioLayout';
 
+import Head from 'next/head';
 
-import React, { useState } from 'react';
-import axios from 'axios';
+const SeoHead = () => (
+  <Head>
+    <title>CYBEV.IO – AI-Powered Web3 Blog & Social Platform</title>
+    <meta name="description" content="Create, blog, mint NFTs, run ads, manage communities, and earn crypto – all in one AI-powered Web3 platform." />
+    <meta property="og:title" content="CYBEV.IO – Create, Earn, Mint, Grow" />
+    <meta property="og:description" content="Your all-in-one Creator Studio powered by AI + Web3. Blog, share, mint NFTs, and earn on CYBEV.IO." />
+    <meta property="og:image" content="https://app.cybev.io/og-banner.png" />
+    <meta property="og:url" content="https://app.cybev.io" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/favicon.ico" />
+  </Head>
+);
 
-export default function AITools() {
-  const [prompt, setPrompt] = useState('');
-  const [result, setResult] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async e => {
-    e.preventDefault();
-    setLoading(true);
-    setResult('');
-    try {
-      const response = await new Promise(resolve => {
-        setTimeout(() => {
-          resolve({ data: { result: `Generated content for: "${prompt}"` } });
-        }, 1500);
-      });
-      setResult(response.data.result);
-    } catch {
-      setResult('AI generation failed.');
-    }
-    setLoading(false);
-  };
-
+export default function Page() {
   return (
     <StudioLayout>
-      <h2 className="text-2xl font-bold mb-4">🧠 CYBEV AI Content Generator</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <textarea value={prompt} onChange={e => setPrompt(e.target.value)} required className="input" placeholder="Enter your prompt here..." rows="4" />
-        <button type="submit" disabled={loading} className="btn-primary">
-          {loading ? 'Generating...' : 'Generate Content'}
-        </button>
-      </form>
-      {result && <div className="mt-4"><h3>AI Output</h3><p>{result}</p></div>}
+      <SeoHead />
+      <h2>Ai</h2>
     </StudioLayout>
   );
 }
