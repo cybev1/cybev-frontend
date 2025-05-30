@@ -3,14 +3,12 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import Link from 'next/link';
 
 const SeoHead = () => (
   <Head>
     <title>CYBEV.IO – Register</title>
     <meta name="description" content="Sign up for a free CYBEV.IO account and start blogging, minting, earning, and managing your community on Web3." />
-    <meta property="og:title" content="CYBEV.IO – Register" />
-    <meta property="og:url" content="https://app.cybev.io/register" />
-    <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="/favicon.ico" />
   </Head>
 );
@@ -49,6 +47,9 @@ export default function Register() {
           <input name="referralCode" placeholder="Referral Code (optional)" value={form.referralCode} onChange={handleChange} className="input" />
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <button type="submit" className="btn-primary w-full">Register</button>
+          <p className="text-sm text-center text-gray-500 dark:text-gray-300">
+            Already have an account? <Link href="/login" className="text-blue-600 hover:underline">Log in</Link>
+          </p>
         </form>
       </div>
     </>
