@@ -12,7 +12,7 @@ export default function Navbar({ theme, setTheme }) {
 
   return (
     <nav className="w-full flex items-center justify-between px-6 py-4 bg-white/70 dark:bg-gray-900/80 backdrop-blur-md shadow-sm fixed top-0 z-50 transition-colors duration-500">
-      <div className="text-2xl font-bold text-blue-700 dark:text-white">CYBEV.IO</div>
+      <Link href="/" className="text-2xl font-bold text-blue-700 dark:text-white">CYBEV.IO</Link>
 
       <div className="md:hidden">
         <button onClick={() => setMenuOpen(!menuOpen)} className="text-gray-700 dark:text-gray-300">
