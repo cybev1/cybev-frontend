@@ -6,6 +6,8 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/solid';
 
+const API_BASE = 'https://api.cybev.io';
+
 const SeoHead = () => (
   <Head>
     <title>CYBEV.IO – Login</title>
@@ -27,10 +29,8 @@ export default function Login() {
 
   const handleSubmit = async e => {
     e.preventDefault();
-    if (!form.email || !form.password) return setError('All fields are required.');
-
     try {
-      const res = await axios.post('/api/login', form);
+      const res = await axios.post(\`\${API_BASE}/api/login\`, form);
       localStorage.setItem('token', res.data.token);
       router.push('/studio/dashboard');
     } catch (err) {
@@ -45,7 +45,6 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-md space-y-4">
           <h2 className="text-2xl font-bold text-blue-700 dark:text-white text-center">Login to CYBEV</h2>
           <input name="email" placeholder="Email" value={form.email} onChange={handleChange} required className="input" />
-
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
@@ -56,14 +55,10 @@ export default function Login() {
               required
               className="input pr-10"
             />
-            <div
-              className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-600 dark:text-gray-300"
-              onClick={() => setShowPassword(!showPassword)}
-            >
+            <div className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-600 dark:text-gray-300" onClick={() => setShowPassword(!showPassword)}>
               {showPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
             </div>
           </div>
-
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <button type="submit" className="btn-primary w-full">Login</button>
           <p className="text-sm text-center text-gray-500 dark:text-gray-300">
