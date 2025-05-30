@@ -1,7 +1,22 @@
-
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import axios from 'axios';
+
+import Head from 'next/head';
+
+const SeoHead = () => (
+  <Head>
+    <title>CYBEV.IO – AI-Powered Web3 Blog & Social Platform</title>
+    <meta name="description" content="Create, blog, mint NFTs, run ads, manage communities, and earn crypto – all in one AI-powered Web3 platform." />
+    <meta property="og:title" content="CYBEV.IO – Create, Earn, Mint, Grow" />
+    <meta property="og:description" content="Your all-in-one Creator Studio powered by AI + Web3. Blog, share, mint NFTs, and earn on CYBEV.IO." />
+    <meta property="og:image" content="https://app.cybev.io/og-banner.png" />
+    <meta property="og:url" content="https://app.cybev.io" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/favicon.ico" />
+  </Head>
+);
+
 
 export default function Onboarding() {
   const router = useRouter();
@@ -14,7 +29,7 @@ export default function Onboarding() {
   const [profileImage, setProfileImage] = useState('');
 
   const toggleFeature = (feature) => {
-    setFeatures(prev => ({ ...prev, [feature]: !prev[feature] }));
+    setFeatures(prev => { ...prev, [feature]: !prev[feature] });
   };
 
   const handleSubmit = async () => {
@@ -30,34 +45,12 @@ export default function Onboarding() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      {step === 1 && (
-        <div>
-          <h3>Select Features</h3>
-          {Object.keys(features).map(key => (
-            <div key={key}>
-              <input type="checkbox" checked={features[key]} onChange={() => toggleFeature(key)} />
-              <label>{key}</label>
-            </div>
-          ))}
-          <button onClick={() => setStep(2)}>Next</button>
-        </div>
-      )}
-      {step === 2 && (
-        <div>
-          <h3>Choose Interests</h3>
-          <input type="text" placeholder="Add interests separated by commas" onChange={e => setInterests(e.target.value.split(','))} /><br />
-          <button onClick={() => setStep(3)}>Next</button>
-        </div>
-      )}
-      {step === 3 && (
-        <div>
-          <h3>Profile Setup</h3>
-          <textarea placeholder="Short Bio" onChange={e => setBio(e.target.value)} /><br />
-          <input type="text" placeholder="Profile Image URL (optional)" onChange={e => setProfileImage(e.target.value)} /><br />
-          <button onClick={handleSubmit}>Finish Onboarding</button>
-        </div>
-      )}
-    </div>
+    <>
+      <SeoHead />
+      <div style={ padding: 20 }>
+        <h3>Onboarding Steps</h3>
+        ...
+      </div>
+    </>
   );
 }
