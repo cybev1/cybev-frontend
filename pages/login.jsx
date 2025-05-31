@@ -30,7 +30,7 @@ export default function Login() {
   const handleSubmit = async e => {
     e.preventDefault();
     try {
-      const res = await axios.post(\`\${API_BASE}/api/login\`, form);
+      const res = await axios.post(`${API_BASE}/api/login`, form);
       localStorage.setItem('token', res.data.token);
       router.push('/studio/dashboard');
     } catch (err) {
