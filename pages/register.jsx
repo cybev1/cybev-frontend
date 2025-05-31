@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/solid';
 
 const API_BASE = 'https://api.cybev.io';
-const ABSTRACT_API = 'https://emailvalidation.abstractapi.com/v1/?api_key=YOUR_ABSTRACT_API_KEY'; // Replace with your key
+const ABSTRACT_API = process.env.NEXT_PUBLIC_ABSTRACT_EMAIL_API;
 
 export default function Register() {
   const router = useRouter();
