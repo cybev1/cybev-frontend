@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/solid';
 
 const API_BASE = 'https://api.cybev.io';
+const ABSTRACT_API = 'https://emailvalidation.abstractapi.com/v1/?api_key=YOUR_ABSTRACT_API_KEY'; // Replace with your key
 
 export default function Register() {
   const router = useRouter();
@@ -21,8 +22,8 @@ export default function Register() {
 
   const validateEmail = async (email) => {
     try {
-      const { data } = await axios.get(`https://www.validator.pizza/email/${email}`);
-      return data.format === true && data.mx === true && data.disposable === false;
+      const { data } = await axios.get(`${ABSTRACT_API}&email=${email}`);
+      return data.deliverability === 'DELIVERABLE' && !data.is_disposable_email && data.is_valid_format.value;
     } catch (err) {
       return false;
     }
