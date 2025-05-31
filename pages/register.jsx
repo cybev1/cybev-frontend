@@ -23,7 +23,7 @@ export default function Register() {
   const validateEmail = async (email) => {
     try {
       const { data } = await axios.get(`${ABSTRACT_API}&email=${email}`);
-      return data.deliverability === 'DELIVERABLE' && !data.is_disposable_email && data.is_valid_format.value;
+      return data.is_valid_format?.value && !data.is_disposable_email;
     } catch (err) {
       return false;
     }
