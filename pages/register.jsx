@@ -7,7 +7,6 @@ import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/solid';
 
 const API_BASE = 'https://api.cybev.io';
-const ABSTRACT_API = process.env.NEXT_PUBLIC_ABSTRACT_EMAIL_API;
 
 export default function Register() {
   const router = useRouter();
@@ -20,23 +19,11 @@ export default function Register() {
     setError(null);
   };
 
-  const validateEmail = async (email) => {
-    try {
-      const { data } = await axios.get(`${ABSTRACT_API}&email=${email}`);
-      return data.is_valid_format?.value && !data.is_disposable_email;
-    } catch (err) {
-      return false;
-    }
-  };
-
   const handleSubmit = async e => {
     e.preventDefault();
     if (!form.name || !form.username || !form.email || !form.password) {
       return setError('All fields are required.');
     }
-
-    const isValid = await validateEmail(form.email);
-    if (!isValid) return setError('Invalid or disposable email address.');
 
     try {
       const res = await axios.post(`${API_BASE}/api/auth/register`, form);
