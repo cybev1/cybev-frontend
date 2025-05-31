@@ -18,6 +18,8 @@ export default function CreateBlogPost() {
     scheduleDate: '',
   });
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiTopic, setAiTopic] = useState('');
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -51,6 +53,24 @@ export default function CreateBlogPost() {
     }
   };
 
+  const handleAIGenerate = async () => {
+    if (!aiTopic.trim()) {
+      alert('Please enter a topic for AI to generate.');
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const res = await axios.post('/api/ai/generate-article', { topic: aiTopic });
+      setForm((prev) => ({ ...prev, content: res.data.article }));
+    } catch (error) {
+      console.error(error);
+      alert('Failed to generate article');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   return (
     <div className="p-6 max-w-4xl mx-auto mt-8 bg-white dark:bg-gray-900 rounded-xl shadow-md">
       <h1 className="text-3xl font-bold mb-6 text-center">Create New Blog Post</h1>
@@ -58,6 +78,12 @@ export default function CreateBlogPost() {
         <input type="text" name="title" placeholder="Post Title" value={form.title} onChange={handleChange} className="w-full p-2 border rounded" required />
         <input type="text" name="seoTitle" placeholder="SEO Title" value={form.seoTitle} onChange={handleChange} className="w-full p-2 border rounded" />
         <textarea name="seoDescription" placeholder="SEO Description" value={form.seoDescription} onChange={handleChange} className="w-full p-2 border rounded" />
+        <div className="flex gap-2 items-center">
+          <input type="text" placeholder="AI Topic..." value={aiTopic} onChange={(e) => setAiTopic(e.target.value)} className="w-full p-2 border rounded" />
+          <button type="button" onClick={handleAIGenerate} className="bg-indigo-600 text-white px-3 py-2 rounded hover:bg-indigo-700 transition">
+            {aiLoading ? 'Generating...' : '🧠 Generate with AI'}
+          </button>
+        </div>
         <textarea name="content" placeholder="Write your article here..." rows="10" value={form.content} onChange={handleChange} className="w-full p-2 border rounded" required />
         <input type="text" name="category" placeholder="Category" value={form.category} onChange={handleChange} className="w-full p-2 border rounded" />
         <input type="text" name="tags" placeholder="Tags (comma separated)" value={form.tags} onChange={handleChange} className="w-full p-2 border rounded" />
