@@ -7,7 +7,6 @@ import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/solid';
 
 const API_BASE = 'https://api.cybev.io';
-const EMAIL_VALIDATION_API = process.env.NEXT_PUBLIC_EMAIL_VALIDATION_API;
 
 export default function Register() {
   const router = useRouter();
@@ -20,10 +19,10 @@ export default function Register() {
     setError(null);
   };
 
-  const validateEmailExternally = async (email) => {
+  const validateEmail = async (email) => {
     try {
-      const { data } = await axios.get(`${EMAIL_VALIDATION_API}&email=${email}`);
-      return data.format_valid && data.mx_found && !data.disposable;
+      const { data } = await axios.get(`https://www.validator.pizza/email/${email}`);
+      return data.format === true && data.mx === true && data.disposable === false;
     } catch (err) {
       return false;
     }
@@ -35,7 +34,7 @@ export default function Register() {
       return setError('All fields are required.');
     }
 
-    const isValid = await validateEmailExternally(form.email);
+    const isValid = await validateEmail(form.email);
     if (!isValid) return setError('Invalid or disposable email address.');
 
     try {
