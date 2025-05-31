@@ -30,7 +30,8 @@ export default function Register() {
       localStorage.setItem('token', res.data.token);
       router.push('/onboarding');
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      const message = err?.response?.data?.message || 'Registration failed. Please try again.';
+      setError(message);
     }
   };
 
