@@ -7,14 +7,7 @@ import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/solid';
 
 const API_BASE = 'https://api.cybev.io';
-
-const SeoHead = () => (
-  <Head>
-    <title>CYBEV.IO – Register</title>
-    <meta name="description" content="Sign up for CYBEV.IO to blog, mint, earn, and manage your creator experience." />
-    <link rel="icon" href="/favicon.ico" />
-  </Head>
-);
+const EMAIL_VALIDATION_API = process.env.NEXT_PUBLIC_EMAIL_VALIDATION_API;
 
 export default function Register() {
   const router = useRouter();
@@ -27,10 +20,26 @@ export default function Register() {
     setError(null);
   };
 
+  const validateEmailExternally = async (email) => {
+    try {
+      const { data } = await axios.get(`${EMAIL_VALIDATION_API}&email=${email}`);
+      return data.format_valid && data.mx_found && !data.disposable;
+    } catch (err) {
+      return false;
+    }
+  };
+
   const handleSubmit = async e => {
     e.preventDefault();
+    if (!form.name || !form.username || !form.email || !form.password) {
+      return setError('All fields are required.');
+    }
+
+    const isValid = await validateEmailExternally(form.email);
+    if (!isValid) return setError('Invalid or disposable email address.');
+
     try {
-      const res = await axios.post(\`\${API_BASE}/api/auth/register\`, form);
+      const res = await axios.post(`${API_BASE}/api/auth/register`, form);
       localStorage.setItem('token', res.data.token);
       router.push('/onboarding');
     } catch (err) {
@@ -40,8 +49,10 @@ export default function Register() {
 
   return (
     <>
-      <SeoHead />
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-white to-purple-100 dark:from-gray-900 dark:to-black p-4">
+      <Head>
+        <title>Register – CYBEV.IO</title>
+      </Head>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-900 dark:to-black p-4">
         <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-md space-y-4">
           <h2 className="text-2xl font-bold text-blue-700 dark:text-white text-center">Create a CYBEV Account</h2>
           <input name="name" placeholder="Full Name" value={form.name} onChange={handleChange} required className="input" />
