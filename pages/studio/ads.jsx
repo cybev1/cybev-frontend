@@ -1,99 +1,76 @@
-import React, { useState, useEffect } from 'react';
-import StudioLayout from '../../components/layout/StudioLayout';
-import axios from 'axios';
-import Head from 'next/head';
 
-const SeoHead = () => (
-  <Head>
-    <title>CYBEV.IO – Ads Manager</title>
-    <meta name="description" content="Launch and manage ads on the CYBEV.IO platform. Submit banners, budget and media for promotion." />
-    <meta property="og:title" content="CYBEV.IO – Ads Dashboard" />
-    <meta property="og:image" content="https://app.cybev.io/og-banner.png" />
-  </Head>
-);
+import React, { useState } from 'react';
 
 export default function AdsManager() {
   const [form, setForm] = useState({
-    title: '', description: '', mediaUrl: '', budget: ''
+    adTitle: '',
+    adType: 'image',
+    media: null,
+    targetAudience: '',
+    budget: '',
   });
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [myAds, setMyAds] = useState([]);
 
-  const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const [ads] = useState([
+    { id: 1, title: 'CYBEV Launch Promo', type: 'Image', views: 3200, clicks: 280, status: 'Active' },
+    { id: 2, title: 'Mint Your Blog Today', type: 'Video', views: 1450, clicks: 110, status: 'Paused' },
+  ]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async e => {
+  const handleFileChange = (e) => {
+    setForm((prev) => ({ ...prev, media: e.target.files[0] }));
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setSubmitting(true);
-    const token = localStorage.getItem('token');
-
-    try {
-      await axios.post('/api/ads', form, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setSubmitted(true);
-      setForm({ title: '', description: '', mediaUrl: '', budget: '' });
-      fetchMyAds();
-    } catch (err) {
-      alert('Ad submission failed');
-    } finally {
-      setSubmitting(false);
-    }
+    alert('Ad submitted (simulate backend logic)');
   };
-
-  const fetchMyAds = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get('/api/ads/my', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setMyAds(res.data || []);
-    } catch (err) {
-      console.error('Failed to fetch ads', err);
-    }
-  };
-
-  useEffect(() => {
-    fetchMyAds();
-  }, []);
 
   return (
-    <StudioLayout>
-      <SeoHead />
-      <h2 className="text-2xl font-bold mb-4">📢 CYBEV Ads Manager</h2>
+    <div className="p-6 max-w-5xl mx-auto mt-8 bg-white dark:bg-gray-900 rounded-xl shadow-md">
+      <h1 className="text-3xl font-bold mb-6 text-center">📢 Ads Manager</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input type="text" name="title" placeholder="Ad Title" value={form.title} onChange={handleChange} required className="input" />
-        <textarea name="description" placeholder="Ad Description" value={form.description} onChange={handleChange} required className="input" />
-        <input type="text" name="mediaUrl" placeholder="Media URL" value={form.mediaUrl} onChange={handleChange} required className="input" />
-        <input type="number" name="budget" placeholder="Budget in CYBEV Tokens" value={form.budget} onChange={handleChange} required className="input" />
-        <button type="submit" disabled={submitting} className="btn-primary">
-          {submitting ? 'Submitting...' : 'Create Ad'}
-        </button>
+      <form onSubmit={handleSubmit} className="space-y-4 mb-8">
+        <input type="text" name="adTitle" placeholder="Ad Title" value={form.adTitle} onChange={handleChange} className="w-full p-2 border rounded" required />
+        <select name="adType" value={form.adType} onChange={handleChange} className="w-full p-2 border rounded">
+          <option value="image">Image Ad</option>
+          <option value="video">Video Ad</option>
+          <option value="text">Text Ad</option>
+        </select>
+        <input type="file" accept="image/*,video/*" onChange={handleFileChange} className="w-full p-2 border rounded" />
+        <input type="text" name="targetAudience" placeholder="Target Audience (e.g., bloggers, crypto fans)" value={form.targetAudience} onChange={handleChange} className="w-full p-2 border rounded" required />
+        <input type="number" name="budget" placeholder="Budget (CYBEV tokens)" value={form.budget} onChange={handleChange} className="w-full p-2 border rounded" required />
+        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">Launch Ad</button>
       </form>
 
-      {submitted && (
-        <div className="mt-6 text-green-600 font-semibold">
-          ✅ Ad Submitted Successfully!
-        </div>
-      )}
-
-      {myAds.length > 0 && (
-        <div className="mt-10">
-          <h3 className="font-bold text-xl mb-2">Your Submitted Ads</h3>
-          <ul className="space-y-4">
-            {myAds.map(ad => (
-              <li key={ad._id} className="p-4 bg-white dark:bg-gray-800 rounded shadow">
-                <p><strong>Title:</strong> {ad.title}</p>
-                <p><strong>Status:</strong> <span className="capitalize">{ad.status}</span></p>
-                <p><strong>Budget:</strong> {ad.budget} CYBEV</p>
-              </li>
+      <h2 className="text-2xl font-semibold mb-4">📊 Your Ads</h2>
+      <div className="overflow-x-auto">
+        <table className="min-w-full table-auto border border-gray-300 dark:border-gray-700 rounded">
+          <thead className="bg-gray-200 dark:bg-gray-800 text-left">
+            <tr>
+              <th className="p-3">Title</th>
+              <th className="p-3">Type</th>
+              <th className="p-3">Views</th>
+              <th className="p-3">Clicks</th>
+              <th className="p-3">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ads.map((ad) => (
+              <tr key={ad.id} className="border-t border-gray-300 dark:border-gray-700">
+                <td className="p-3">{ad.title}</td>
+                <td className="p-3">{ad.type}</td>
+                <td className="p-3">{ad.views}</td>
+                <td className="p-3">{ad.clicks}</td>
+                <td className="p-3 font-medium">{ad.status}</td>
+              </tr>
             ))}
-          </ul>
-        </div>
-      )}
-    </StudioLayout>
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
