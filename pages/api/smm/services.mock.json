@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Instagram Followers",
+    "platform": "Instagram",
+    "price": 0.05
+  },
+  {
+    "name": "YouTube Views",
+    "platform": "YouTube",
+    "price": 0.03
+  },
+  {
+    "name": "Facebook Page Likes",
+    "platform": "Facebook",
+    "price": 0.04
+  },
+  {
+    "name": "Twitter Retweets",
+    "platform": "Twitter",
+    "price": 0.06
+  }
+]
