@@ -26,7 +26,6 @@ export default function BlogSetup() {
     category: '',
     niche: '',
     template: '',
-    seo: '',
     monetize: false,
     hostingPlan: null,
   });
@@ -62,10 +61,10 @@ export default function BlogSetup() {
     setForm(prev => ({ ...prev, hostingPlan: plan }));
   };
 
-  const generateSEO = () => {
+  const generateSEODescription = () => {
     const keyword = form.title || "your blog";
-    const seo = `Read inspiring content and discover valuable insights from ${keyword}. Join ${keyword}.cybev.io today!`;
-    setForm(prev => ({ ...prev, seo }));
+    const seoText = `Read inspiring content and discover valuable insights from ${keyword}. Join ${keyword}.cybev.io today!`;
+    setForm(prev => ({ ...prev, description: seoText }));
   };
 
   const handleSubmit = () => {
@@ -90,8 +89,8 @@ export default function BlogSetup() {
       <h1 className="text-3xl font-bold mb-4">Complete Blog Setup</h1>
 
       <input name="title" placeholder="Blog Title" className="border p-2 rounded w-full" onChange={handleChange} />
-      <textarea name="description" placeholder="Blog Description" className="border p-2 rounded w-full" value={form.description} onChange={handleChange} />
-      <button onClick={() => setForm(prev => ({ ...prev, description: 'Empower your vision with this inspiring blog. Start sharing today!' }))} className="bg-blue-600 text-white px-4 py-2 rounded">AI Generate Description</button>
+      <textarea name="description" placeholder="SEO Blog Description (auto-generated or editable)" className="border p-2 rounded w-full" value={form.description} onChange={handleChange} />
+      <button onClick={generateSEODescription} className="bg-indigo-600 text-white px-4 py-2 rounded">AI Generate SEO Description</button>
 
       <div className="space-y-2">
         <label className="font-medium">Domain Type</label>
@@ -131,9 +130,6 @@ export default function BlogSetup() {
         ))}
         <option value="Others">Others</option>
       </select>
-
-      <input name="seo" value={form.seo} readOnly placeholder="SEO Description (auto-generated)" className="border p-2 rounded w-full bg-gray-100" />
-      <button onClick={generateSEO} className="bg-indigo-600 text-white px-4 py-2 rounded">Generate SEO</button>
 
       <div className="space-y-2">
         <label className="font-medium">Choose Template</label>
