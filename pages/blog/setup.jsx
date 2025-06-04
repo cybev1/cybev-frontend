@@ -16,6 +16,8 @@ const categoryTemplates = {
 const templates = ['Magazine', 'Creator', 'Portfolio', 'Minimalist', 'Custom'];
 
 export default function BlogSetup() {
+  
+      <h1 className="text-3xl font-bold mb-4">Complete Blog Setup</h1>
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -84,8 +86,7 @@ export default function BlogSetup() {
     alert("Blog setup submitted! Check console log for full data.");
   };
 
-  return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+  
       <div className="space-y-2">
         <label className="font-medium">Domain Type</label>
         <select name="domainType" onChange={handleChange} className="border p-2 rounded w-full">
