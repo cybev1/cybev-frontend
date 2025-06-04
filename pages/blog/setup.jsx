@@ -95,24 +95,10 @@ export default function BlogSetup() {
           <option value="existing">Use Existing Domain</option>
           <option value="register">Register New Domain</option>
         </select>
-      </div>
-
-<h1 className="text-3xl font-bold mb-4">Complete Blog Setup</h1>
-<input name="title" placeholder="Blog Title" className="border p-2 rounded w-full mt-2" onChange={handleChange} />
-
-      <h1 className="text-3xl font-bold mb-4">Complete Blog Setup</h1>
-
-      <div className="space-y-2">
-        <label className="font-medium">Domain Type</label>
-        <select name="domainType" onChange={handleChange} className="border p-2 rounded w-full">
-          <option value="subdomain">Use Free Subdomain</option>
-          <option value="existing">Use Existing Domain</option>
-          <option value="register">Register New Domain</option>
-        </select>
 
         {form.domainType === 'subdomain' && (
           <>
-            
+            <input name="subdomain" placeholder="Enter blog subdomain (e.g., myblog)" className="border p-2 rounded w-full" onChange={handleChange} />
             {form.subdomain && <p className="text-sm text-gray-600 mt-1">Full Blog URL: <strong>{form.subdomain}.cybev.io</strong></p>}
           </>
         )}
@@ -126,27 +112,9 @@ export default function BlogSetup() {
         )}
       </div>
 
-
-      
+      <input name="title" placeholder="Blog Title" className="border p-2 rounded w-full mt-2" onChange={handleChange} />
       <textarea name="description" placeholder="SEO Blog Description (auto-generated or editable)" className="border p-2 rounded w-full" value={form.description} onChange={handleChange} />
       <button onClick={generateSEODescription} className="bg-indigo-600 text-white px-4 py-2 rounded">AI Generate SEO Description</button>
-
-      
-
-      {form.domainType === 'subdomain' && (
-        <>
-          
-          {form.subdomain && <p className="text-sm text-gray-600 mt-1">Full Blog URL: <strong>{form.subdomain}.cybev.io</strong></p>}
-        </>
-      )}
-
-      {form.domainType === 'existing' && (
-        <input name="existingDomain" placeholder="yourdomain.com" className="border p-2 rounded w-full" onChange={handleChange} />
-      )}
-
-      {form.domainType === 'register' && (
-        <input name="newDomain" placeholder="searchdomain.com" className="border p-2 rounded w-full" onChange={handleChange} />
-      )}
 
       <select name="category" onChange={handleChange} className="border p-2 rounded w-full">
         <option value="">Select Category</option>
