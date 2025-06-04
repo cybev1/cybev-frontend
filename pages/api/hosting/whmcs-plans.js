@@ -1,6 +1,6 @@
 
 export default async function handler(req, res) {
-  const WHMCS_URL = 'https://allhosters.com/billing/admin/includes/api.php';
+  const WHMCS_URL = 'https://allhosters.com/billing/includes/api.php';
   const IDENTIFIER = '5VBii5l48pBWptW76HzxHrS5kyl23a3d';
   const SECRET = 'muWQLKJER8n5utUKZ1QVluIiJTnjkblU';
 
@@ -19,8 +19,10 @@ export default async function handler(req, res) {
       body: formData.toString()
     });
 
-    const raw = await response.text(); // use text for debug visibility
-    res.status(200).send(raw);
+    const data = await response.json();
+
+    // Return raw or parsed result
+    res.status(200).json(data);
   } catch (err) {
     res.status(500).json({ error: 'Server error', details: err.message });
   }
