@@ -2,10 +2,9 @@
 import { useEffect, useState } from 'react';
 
 const categoryNiches = {
-  Christianity: ['Faith', 'Leadership', 'Prayer', 'Evangelism', 'Bible Study', 'Church Growth', 'Christian Living', 'Healing', 'End Times', 'Love', 'Grace', 'Purpose', 'Fellowship', 'Ministry', 'Youth Ministry', 'Worship', 'Miracles', 'Salvation', 'Testimonies', 'Others'],
-  Business: ['Startups', 'Marketing', 'Finance', 'Entrepreneurship', 'Investing', 'E-commerce', 'Branding', 'Sales', 'Leadership', 'Economics', 'HR', 'Strategy', 'Negotiation', 'Growth Hacking', 'Innovation', 'Analytics', 'Budgeting', 'Tax', 'Management', 'Others'],
+  Christianity: ['Faith', 'Leadership', 'Prayer', 'Evangelism', 'Bible Study', 'Church Growth', 'Christian Living', 'Healing', 'End Times', 'Love', 'Grace', 'Purpose', 'Fellowship', 'Ministry', 'Youth Ministry', 'Worship', 'Miracles', 'Salvation', 'Others'],
+  Business: ['Startups', 'Marketing', 'Finance', 'Entrepreneurship', 'Investing', 'E-commerce', 'Branding', 'Sales', 'Leadership', 'Economics', 'HR', 'Strategy', 'Negotiation', 'Growth Hacking', 'Innovation', 'Analytics', 'Budgeting', 'Tax', 'Others'],
   Technology: ['Web Development', 'AI', 'Cloud', 'Cybersecurity', 'DevOps', 'Data Science', 'Mobile Apps', 'Blockchain', 'IoT', 'AR/VR', 'Machine Learning', 'Programming', 'SaaS', 'Startups', 'UX/UI', 'Automation', 'Open Source', 'APIs', 'Networking', 'Others'],
-  // Add more categories and niches if needed
 };
 
 const categoryTemplates = {
@@ -27,9 +26,11 @@ export default function BlogSetup() {
     template: '',
     seo: '',
     monetize: false,
+    hostingPlan: null,
   });
 
-  const [availableSubdomains, setAvailableSubdomains] = useState([
+  const [hostingPlans, setHostingPlans] = useState([]);
+  const [availableSubdomains] = useState([
     'faith.cybev.io',
     'shop.cybev.io',
     'news.cybev.io',
@@ -37,6 +38,15 @@ export default function BlogSetup() {
     'church.cybev.io',
   ]);
   const [niches, setNiches] = useState([]);
+
+  useEffect(() => {
+    async function fetchHostingPlans() {
+      const res = await fetch('/api/hosting/mock-plans');
+      const data = await res.json();
+      setHostingPlans(data);
+    }
+    fetchHostingPlans();
+  }, []);
 
   useEffect(() => {
     if (form.category) {
@@ -53,17 +63,39 @@ export default function BlogSetup() {
     }));
   };
 
+  const handleSelectHosting = (plan) => {
+    setForm(prev => ({ ...prev, hostingPlan: plan }));
+  };
+
   const handleSubmit = () => {
-    console.log('Blog Setup:', form);
-    alert('Blog setup submitted! Check console log.');
+    const blogData = {
+      ...form,
+      finalDomain: form.domainType === 'subdomain'
+        ? form.subdomain
+        : form.domainType === 'existing'
+        ? form.existingDomain
+        : form.newDomain,
+      freeHosting: form.domainType === 'subdomain',
+    };
+
+    console.log('Blog Setup Submitted:', blogData);
+    alert("Blog setup submitted. Check console log for full data.");
+  };
+
+  const generateDescription = () => {
+    setForm(prev => ({
+      ...prev,
+      description: 'Empower your vision with this inspiring blog. Start sharing today!'
+    }));
   };
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
+    <div className="p-6 max-w-6xl mx-auto space-y-6">
       <h1 className="text-3xl font-bold mb-4">Complete Blog Setup</h1>
 
       <input name="title" placeholder="Blog Title" className="border p-2 rounded w-full" onChange={handleChange} />
-      <textarea name="description" placeholder="Blog Description" className="border p-2 rounded w-full" onChange={handleChange} />
+      <textarea name="description" placeholder="Blog Description" className="border p-2 rounded w-full" value={form.description} onChange={handleChange} />
+      <button onClick={generateDescription} className="bg-blue-600 text-white px-4 py-2 rounded">AI Generate Description</button>
 
       <div className="space-y-2">
         <label className="font-medium">Domain Type</label>
@@ -115,7 +147,27 @@ export default function BlogSetup() {
 
       <input name="template" value={form.template} readOnly className="border p-2 rounded w-full bg-gray-100" placeholder="Template (auto-suggested)" />
 
-      <button onClick={handleSubmit} className="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700">Submit Blog Setup</button>
+      <h2 className="text-2xl font-semibold mt-6">Select Hosting Plan</h2>
+      <div className="grid md:grid-cols-3 gap-4">
+        {hostingPlans.map((plan, i) => (
+          <div
+            key={i}
+            onClick={() => handleSelectHosting(plan)}
+            className={`cursor-pointer border p-4 rounded shadow hover:border-blue-500 ${
+              form.hostingPlan?.name === plan.name ? 'border-blue-600' : ''
+            }`}
+          >
+            <h3 className="text-xl font-bold text-blue-700">{plan.name}</h3>
+            <p className="text-sm text-gray-600">{plan.description}</p>
+            <p className="text-green-600 font-bold">{plan.price}</p>
+            <ul className="text-xs mt-2 text-gray-700 list-disc list-inside">
+              {plan.features.map((f, idx) => <li key={idx}>{f}</li>)}
+            </ul>
+          </div>
+        ))}
+      </div>
+
+      <button onClick={handleSubmit} className="mt-6 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded">Submit Blog Setup</button>
     </div>
   );
 }
