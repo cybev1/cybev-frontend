@@ -86,12 +86,6 @@ export default function BlogSetup() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold mb-4">Complete Blog Setup</h1>
-
-      <input name="title" placeholder="Blog Title" className="border p-2 rounded w-full" onChange={handleChange} />
-      <textarea name="description" placeholder="SEO Blog Description (auto-generated or editable)" className="border p-2 rounded w-full" value={form.description} onChange={handleChange} />
-      <button onClick={generateSEODescription} className="bg-indigo-600 text-white px-4 py-2 rounded">AI Generate SEO Description</button>
-
       <div className="space-y-2">
         <label className="font-medium">Domain Type</label>
         <select name="domainType" onChange={handleChange} className="border p-2 rounded w-full">
@@ -100,6 +94,14 @@ export default function BlogSetup() {
           <option value="register">Register New Domain</option>
         </select>
       </div>
+
+<h1 className="text-3xl font-bold mb-4">Complete Blog Setup</h1>
+
+      <input name="title" placeholder="Blog Title" className="border p-2 rounded w-full" onChange={handleChange} />
+      <textarea name="description" placeholder="SEO Blog Description (auto-generated or editable)" className="border p-2 rounded w-full" value={form.description} onChange={handleChange} />
+      <button onClick={generateSEODescription} className="bg-indigo-600 text-white px-4 py-2 rounded">AI Generate SEO Description</button>
+
+      
 
       {form.domainType === 'subdomain' && (
         <>
