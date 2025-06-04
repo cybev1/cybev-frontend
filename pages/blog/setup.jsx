@@ -95,7 +95,6 @@ export default function BlogSetup() {
         </select>
       </div>
 
-<h1 className="text-3xl font-bold mb-4">Complete Blog Setup</h1>
 <input name="title" placeholder="Blog Title" className="border p-2 rounded w-full mt-2" onChange={handleChange} />
 
       <div className="space-y-2">
