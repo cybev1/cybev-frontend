@@ -1,8 +1,8 @@
 
 export default async function handler(req, res) {
   const WHMCS_URL = 'https://allhosters.com/billing/admin/includes/api.php';
-  const IDENTIFIER = 'UTQ8MmuugtJ9GwTrhEWX248hatg5Ln2S';
-  const SECRET = ''; // Optional: Add your secret here securely
+  const IDENTIFIER = '0J98hOT9ympVknxAeyGaJF251dohUKkP';
+  const SECRET = ''; // Can be added later if needed
 
   const formData = new URLSearchParams();
   formData.append('action', 'GetProducts');
@@ -21,11 +21,8 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    if (data.result === 'success' && data.products && Array.isArray(data.products.product)) {
-      res.status(200).json(data.products.product);
-    } else {
-      res.status(200).json([]);
-    }
+    // Return full raw response for debugging
+    res.status(200).json(data);
   } catch (err) {
     res.status(500).json({ error: 'Server error', details: err.message });
   }
