@@ -80,7 +80,9 @@ export default function BlogSetup() {
           <div
             key={i}
             onClick={() => handleSelectHosting(plan)}
-            className={\`cursor-pointer border p-4 rounded shadow hover:border-blue-500 \${form.hostingPlan?.name === plan.name ? 'border-blue-600' : ''}\`}
+            className={`cursor-pointer border p-4 rounded shadow hover:border-blue-500 ${
+              form.hostingPlan?.name === plan.name ? 'border-blue-600' : ''
+            }`}
           >
             <h3 className="text-xl font-bold text-blue-700">{plan.name}</h3>
             <p className="text-sm text-gray-600">{plan.description}</p>
