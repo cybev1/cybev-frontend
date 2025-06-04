@@ -19,10 +19,8 @@ export default async function handler(req, res) {
       body: formData.toString()
     });
 
-    const data = await response.json();
-
-    // Return raw or parsed result
-    res.status(200).json(data);
+    const raw = await response.text(); // Get raw output
+    res.status(200).send(raw); // Return raw to browser
   } catch (err) {
     res.status(500).json({ error: 'Server error', details: err.message });
   }
