@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 const categoryNiches = {
   Christianity: ['Faith', 'Leadership', 'Prayer', 'Evangelism', 'Bible Study', 'Church Growth', 'Christian Living', 'Healing', 'End Times', 'Love', 'Grace', 'Purpose', 'Fellowship', 'Ministry', 'Youth Ministry', 'Worship', 'Miracles', 'Salvation', 'Others'],
   Business: ['Startups', 'Marketing', 'Finance', 'Entrepreneurship', 'Investing', 'E-commerce', 'Branding', 'Sales', 'Leadership', 'Economics', 'HR', 'Strategy', 'Negotiation', 'Growth Hacking', 'Innovation', 'Analytics', 'Budgeting', 'Tax', 'Others'],
-  Technology: ['Web Development', 'AI', 'Cloud', 'Cybersecurity', 'DevOps', 'Data Science', 'Mobile Apps', 'Blockchain', 'IoT', 'AR/VR', 'Machine Learning', 'Programming', 'SaaS', 'Startups', 'UX/UI', 'Automation', 'Open Source', 'APIs', 'Networking', 'Others'],
+  Technology: ['Web Development', 'AI', 'Cloud', 'Cybersecurity', 'DevOps', 'Data Science', 'Mobile Apps', 'Blockchain', 'IoT', 'AR/VR', 'Machine Learning', 'Programming', 'SaaS', 'Startups', 'UX/UI', 'Automation', 'Open Source', 'APIs', 'Others'],
 };
 
 const categoryTemplates = {
@@ -12,6 +12,8 @@ const categoryTemplates = {
   Business: 'Creator',
   Technology: 'Portfolio',
 };
+
+const templates = ['Magazine', 'Creator', 'Portfolio', 'Minimalist', 'Custom'];
 
 export default function BlogSetup() {
   const [form, setForm] = useState({
@@ -30,13 +32,6 @@ export default function BlogSetup() {
   });
 
   const [hostingPlans, setHostingPlans] = useState([]);
-  const [availableSubdomains] = useState([
-    'faith.cybev.io',
-    'shop.cybev.io',
-    'news.cybev.io',
-    'tech.cybev.io',
-    'church.cybev.io',
-  ]);
   const [niches, setNiches] = useState([]);
 
   useEffect(() => {
@@ -67,11 +62,19 @@ export default function BlogSetup() {
     setForm(prev => ({ ...prev, hostingPlan: plan }));
   };
 
+  const generateSEO = () => {
+    const keyword = form.title || "your blog";
+    const seo = `Read inspiring content and discover valuable insights from ${keyword}. Join ${keyword}.cybev.io today!`;
+    setForm(prev => ({ ...prev, seo }));
+  };
+
   const handleSubmit = () => {
+    const fullSubdomain = form.subdomain ? `${form.subdomain}.cybev.io` : '';
     const blogData = {
       ...form,
+      subdomain: fullSubdomain,
       finalDomain: form.domainType === 'subdomain'
-        ? form.subdomain
+        ? fullSubdomain
         : form.domainType === 'existing'
         ? form.existingDomain
         : form.newDomain,
@@ -79,14 +82,7 @@ export default function BlogSetup() {
     };
 
     console.log('Blog Setup Submitted:', blogData);
-    alert("Blog setup submitted. Check console log for full data.");
-  };
-
-  const generateDescription = () => {
-    setForm(prev => ({
-      ...prev,
-      description: 'Empower your vision with this inspiring blog. Start sharing today!'
-    }));
+    alert("Blog setup submitted! Check console log for full data.");
   };
 
   return (
@@ -95,7 +91,7 @@ export default function BlogSetup() {
 
       <input name="title" placeholder="Blog Title" className="border p-2 rounded w-full" onChange={handleChange} />
       <textarea name="description" placeholder="Blog Description" className="border p-2 rounded w-full" value={form.description} onChange={handleChange} />
-      <button onClick={generateDescription} className="bg-blue-600 text-white px-4 py-2 rounded">AI Generate Description</button>
+      <button onClick={() => setForm(prev => ({ ...prev, description: 'Empower your vision with this inspiring blog. Start sharing today!' }))} className="bg-blue-600 text-white px-4 py-2 rounded">AI Generate Description</button>
 
       <div className="space-y-2">
         <label className="font-medium">Domain Type</label>
@@ -107,12 +103,10 @@ export default function BlogSetup() {
       </div>
 
       {form.domainType === 'subdomain' && (
-        <select name="subdomain" onChange={handleChange} className="border p-2 rounded w-full">
-          <option value="">Select Subdomain</option>
-          {availableSubdomains.map((sd, idx) => (
-            <option key={idx} value={sd}>{sd}</option>
-          ))}
-        </select>
+        <>
+          <input name="subdomain" placeholder="Enter blog subdomain (e.g., myblog)" className="border p-2 rounded w-full" onChange={handleChange} />
+          {form.subdomain && <p className="text-sm text-gray-600 mt-1">Full Blog URL: <strong>{form.subdomain}.cybev.io</strong></p>}
+        </>
       )}
 
       {form.domainType === 'existing' && (
@@ -138,14 +132,23 @@ export default function BlogSetup() {
         <option value="Others">Others</option>
       </select>
 
-      <input name="seo" placeholder="SEO Description (optional)" className="border p-2 rounded w-full" onChange={handleChange} />
+      <input name="seo" value={form.seo} readOnly placeholder="SEO Description (auto-generated)" className="border p-2 rounded w-full bg-gray-100" />
+      <button onClick={generateSEO} className="bg-indigo-600 text-white px-4 py-2 rounded">Generate SEO</button>
+
+      <div className="space-y-2">
+        <label className="font-medium">Choose Template</label>
+        <select name="template" value={form.template} onChange={handleChange} className="border p-2 rounded w-full">
+          <option value="">Select Template</option>
+          {templates.map((tpl, idx) => (
+            <option key={idx} value={tpl}>{tpl}</option>
+          ))}
+        </select>
+      </div>
 
       <div className="flex items-center space-x-2">
         <input type="checkbox" name="monetize" onChange={handleChange} />
         <label className="text-sm">Enable Blog Monetization</label>
       </div>
-
-      <input name="template" value={form.template} readOnly className="border p-2 rounded w-full bg-gray-100" placeholder="Template (auto-suggested)" />
 
       <h2 className="text-2xl font-semibold mt-6">Select Hosting Plan</h2>
       <div className="grid md:grid-cols-3 gap-4">
