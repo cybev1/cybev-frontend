@@ -86,6 +86,8 @@ export default function BlogSetup() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
+      <h1 className="text-3xl font-bold mb-4">Complete Blog Setup</h1>
+
       <div className="space-y-2">
         <label className="font-medium">Domain Type</label>
         <select name="domainType" onChange={handleChange} className="border p-2 rounded w-full">
@@ -97,6 +99,8 @@ export default function BlogSetup() {
 
 <h1 className="text-3xl font-bold mb-4">Complete Blog Setup</h1>
 <input name="title" placeholder="Blog Title" className="border p-2 rounded w-full mt-2" onChange={handleChange} />
+
+      <h1 className="text-3xl font-bold mb-4">Complete Blog Setup</h1>
 
       <div className="space-y-2">
         <label className="font-medium">Domain Type</label>
