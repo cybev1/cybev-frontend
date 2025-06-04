@@ -4,12 +4,22 @@ import { useEffect, useState } from 'react';
 export default function HostingSelector() {
   const [plans, setPlans] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     async function fetchPlans() {
-      const res = await fetch('/api/hosting/whmcs-plans');
-      const data = await res.json();
-      setPlans(data);
+      try {
+        const res = await fetch('/api/hosting/whmcs-plans');
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setPlans(data);
+        } else {
+          throw new Error("Plans not returned as array");
+        }
+      } catch (err) {
+        setError("Failed to load plans. Please try again.");
+        console.error(err);
+      }
     }
     fetchPlans();
   }, []);
@@ -22,7 +32,8 @@ export default function HostingSelector() {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Choose a Hosting Plan (WHMCS)</h1>
-      {plans.length === 0 && <p>Loading plans...</p>}
+      {error && <p className="text-red-600 mb-4">{error}</p>}
+      {plans.length === 0 && !error && <p className="text-gray-500">Loading plans...</p>}
       <div className="grid md:grid-cols-3 gap-6">
         {plans.map((plan, i) => (
           <div key={i} className={`border p-4 rounded shadow ${selected?.pid === plan.pid ? 'border-blue-600' : ''}`}>
