@@ -182,9 +182,7 @@ export default function BlogSetup() {
           className="border p-2 rounded w-full mb-4"
         >
           <option value="">Select Hosting Plan</option>
-          <option value="Basic">🌐 Basic Hosting – $5/mo (1 Website, 10GB SSD, Email)</option>
-          <option value="Pro">🚀 Pro VPS – $10/mo (3 Websites, 50GB SSD, Daily Backup)</option>
-          <option value="Premium">💼 Premium VPS – $20/mo (Unlimited Sites, 100GB SSD, Free SSL & Support)</option>
+          <option value="Basic">Basic Plan - $5/month</option>
           <option value="Pro">Pro Plan - $10/month</option>
           <option value="Premium">Premium Plan - $20/month</option>
         </select>
@@ -263,9 +261,7 @@ export default function BlogSetup() {
           className="border p-2 rounded w-full mb-4"
         >
           <option value="">Select Hosting Plan</option>
-          <option value="Basic">🌐 Basic Hosting – $5/mo (1 Website, 10GB SSD, Email)</option>
-          <option value="Pro">🚀 Pro VPS – $10/mo (3 Websites, 50GB SSD, Daily Backup)</option>
-          <option value="Premium">💼 Premium VPS – $20/mo (Unlimited Sites, 100GB SSD, Free SSL & Support)</option>
+          <option value="Basic">Basic Plan - $5/month</option>
           <option value="Pro">Pro Plan - $10/month</option>
           <option value="Premium">Premium Plan - $20/month</option>
         </select>
