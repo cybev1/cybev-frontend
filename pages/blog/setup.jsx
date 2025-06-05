@@ -227,6 +227,10 @@ export default function BlogSetup() {
     );
   };
 
+
+  // renderStep4 injected above
+
+  const renderStep3 = () => (
     <>
       <h1 className="text-2xl font-bold mb-4">Step 3: Appearance & Hosting</h1>
       <p className="text-gray-600 mb-4">This is how your blog will look and feel.</p>
