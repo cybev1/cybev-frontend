@@ -9,12 +9,10 @@ export default function BlogSetup() {
     existingDomain: '',
     newDomain: '',
     domainAvailable: null,
-
     title: '',
     description: '',
     category: '',
     niche: '',
-
     template: '',
     logo: null,
     monetize: false,
@@ -57,17 +55,28 @@ export default function BlogSetup() {
     }, 600));
   };
 
+  const categoryNiches = {
+    Christianity: ['Faith', 'Leadership', 'Prayer'],
+    Business: ['Startups', 'Marketing'],
+    Technology: ['AI', 'Web Dev']
+  };
+
+  const [niches, setNiches] = useState([]);
+  useEffect(() => {
+    if (form.category) {
+      setNiches(categoryNiches[form.category] || []);
+    }
+  }, [form.category]);
+
   const renderStep1 = () => (
     <>
       <h1 className="text-2xl font-bold mb-4">Step 1: Choose Your Domain</h1>
       <p className="text-gray-600 mb-4">This is how people will find you online.</p>
-
       <select name="domainType" onChange={handleChange} className="border p-2 rounded w-full mb-4" value={form.domainType}>
         <option value="subdomain">Use Free Subdomain</option>
         <option value="existing">Use Existing Domain</option>
         <option value="register">Register New Domain</option>
       </select>
-
       <input
         type="text"
         placeholder={form.domainType === 'subdomain' ? "Enter subdomain (e.g., myblog)" : "Enter your domain"}
@@ -78,13 +87,11 @@ export default function BlogSetup() {
         }
         onChange={handleDomainInput}
       />
-
       {availabilityMsg && (
         <p className={`mt-2 text-sm ${availabilityMsg.includes('🎉') ? 'text-green-600' : 'text-red-600'}`}>
           {availabilityMsg}
         </p>
       )}
-
       <div className="flex justify-between mt-6">
         <span></span>
         <button onClick={goNext} className="bg-blue-600 text-white px-6 py-2 rounded">Next</button>
@@ -92,78 +99,27 @@ export default function BlogSetup() {
     </>
   );
 
-  
-  const categoryNiches = {
-    Christianity: ['Faith', 'Leadership', 'Prayer', 'Evangelism', 'Bible Study', 'Church Growth', 'Christian Living', 'Healing', 'End Times', 'Love', 'Grace', 'Purpose', 'Fellowship', 'Ministry', 'Youth Ministry', 'Worship', 'Miracles', 'Salvation', 'Others'],
-    Business: ['Startups', 'Marketing', 'Finance', 'Entrepreneurship', 'Investing', 'E-commerce', 'Branding', 'Sales', 'Leadership', 'Economics', 'HR', 'Strategy', 'Negotiation', 'Growth Hacking', 'Innovation', 'Analytics', 'Budgeting', 'Tax', 'Others'],
-    Technology: ['Web Development', 'AI', 'Cloud', 'Cybersecurity', 'DevOps', 'Data Science', 'Mobile Apps', 'Blockchain', 'IoT', 'AR/VR', 'Machine Learning', 'Programming', 'SaaS', 'Startups', 'UX/UI', 'Automation', 'Open Source', 'APIs', 'Others'],
-  };
-
-  const [niches, setNiches] = useState([]);
-
-  useEffect(() => {
-    if (form.category) {
-      setNiches(categoryNiches[form.category] || []);
-    }
-  }, [form.category]);
-
-  const generateDescription = () => {
-    const text = form.title
-      ? `Welcome to ${form.title}, your destination for engaging content and timeless insights.`
-      : 'Welcome to your new blog. Discover insightful content and share your voice with the world.';
-    setForm(prev => ({ ...prev, description: text }));
-  };
-
   const renderStep2 = () => (
     <>
       <h1 className="text-2xl font-bold mb-4">Step 2: Blog Identity</h1>
       <p className="text-gray-600 mb-4">This is your blog's name and what it will be known for.</p>
-
-      <input
-        name="title"
-        placeholder="Blog Title"
-        value={form.title}
-        className="border p-2 rounded w-full mb-3"
-        onChange={handleChange}
-      />
-
-      <textarea
-        name="description"
-        placeholder="SEO Blog Description"
-        value={form.description}
-        className="border p-2 rounded w-full mb-2"
-        onChange={handleChange}
-      />
-
-      <button onClick={generateDescription} className="bg-indigo-600 text-white px-4 py-2 rounded mb-4">
-        AI Generate Description
-      </button>
-
-      <select
-        name="category"
-        value={form.category}
-        onChange={handleChange}
-        className="border p-2 rounded w-full mb-3"
-      >
+      <input name="title" placeholder="Blog Title" value={form.title} className="border p-2 rounded w-full mb-3" onChange={handleChange} />
+      <textarea name="description" placeholder="SEO Blog Description" value={form.description} className="border p-2 rounded w-full mb-2" onChange={handleChange} />
+      <button onClick={() => {
+        const text = form.title
+          ? `Welcome to ${form.title}, your destination for engaging content and timeless insights.`
+          : 'Welcome to your new blog. Discover insightful content and share your voice with the world.';
+        setForm(prev => ({ ...prev, description: text }));
+      }} className="bg-indigo-600 text-white px-4 py-2 rounded mb-4">AI Generate Description</button>
+      <select name="category" value={form.category} onChange={handleChange} className="border p-2 rounded w-full mb-3">
         <option value="">Select Category</option>
-        {Object.keys(categoryNiches).map((cat, i) => (
-          <option key={i} value={cat}>{cat}</option>
-        ))}
+        {Object.keys(categoryNiches).map((cat, i) => <option key={i} value={cat}>{cat}</option>)}
       </select>
-
-      <select
-        name="niche"
-        value={form.niche}
-        onChange={handleChange}
-        className="border p-2 rounded w-full mb-4"
-      >
+      <select name="niche" value={form.niche} onChange={handleChange} className="border p-2 rounded w-full mb-4">
         <option value="">Select Niche</option>
-        {niches.map((niche, i) => (
-          <option key={i} value={niche}>{niche}</option>
-        ))}
+        {niches.map((niche, i) => <option key={i} value={niche}>{niche}</option>)}
         <option value="Others">Others</option>
       </select>
-
       <div className="flex justify-between mt-6">
         <button onClick={goBack} className="bg-gray-300 text-black px-6 py-2 rounded">Back</button>
         <button onClick={goNext} className="bg-blue-600 text-white px-6 py-2 rounded">Next</button>
@@ -171,17 +127,29 @@ export default function BlogSetup() {
     </>
   );
 
-
-  // NOTE: Replaced Step 2 logic above
-
-  const placeholderRenderStep2 = () => (
+  const renderStep3 = () => (
     <>
-      <h1 className="text-2xl font-bold mb-4">Step 2: Blog Identity</h1>
-      <p className="text-gray-600 mb-4">This is your blog's name and details.</p>
-
-      <input name="title" placeholder="Blog Title" className="border p-2 rounded w-full mb-2" onChange={handleChange} />
-      <textarea name="description" placeholder="SEO Blog Description" className="border p-2 rounded w-full mb-4" onChange={handleChange} />
-
+      <h1 className="text-2xl font-bold mb-4">Step 3: Appearance & Hosting</h1>
+      <p className="text-gray-600 mb-4">This is how your blog will look and feel.</p>
+      <label className="block mb-2 font-medium">Choose Template</label>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+        {['Magazine', 'Portfolio', 'Creator'].map((tpl, idx) => (
+          <div
+            key={idx}
+            onClick={() => setForm(prev => ({ ...prev, template: tpl }))}
+            className={`border rounded p-3 cursor-pointer hover:border-blue-500 ${form.template === tpl ? 'border-blue-600' : ''}`}
+          >
+            <img src={`/templates/${tpl.toLowerCase()}.jpg`} alt={tpl} className="w-full h-32 object-cover rounded mb-2" />
+            <p className="text-center font-semibold">{tpl}</p>
+          </div>
+        ))}
+      </div>
+      <label className="block mb-2 font-medium">Upload Logo (optional)</label>
+      <input type="file" accept="image/*" onChange={(e) => setForm(prev => ({ ...prev, logo: e.target.files[0] }))} className="mb-4" />
+      <div className="flex items-center mb-4 space-x-2">
+        <input type="checkbox" name="monetize" checked={form.monetize} onChange={handleChange} />
+        <label>Enable Blog Monetization (earn revenue with ads)</label>
+      </div>
       <div className="flex justify-between mt-6">
         <button onClick={goBack} className="bg-gray-300 text-black px-6 py-2 rounded">Back</button>
         <button onClick={goNext} className="bg-blue-600 text-white px-6 py-2 rounded">Next</button>
@@ -189,20 +157,68 @@ export default function BlogSetup() {
     </>
   );
 
-  
-  
   const renderStep4 = () => {
     const domain = form.domainType === 'subdomain'
       ? `${form.subdomain}.cybev.io`
       : form.domainType === 'existing'
       ? form.existingDomain
       : form.newDomain;
+    
+  const renderStep5 = () => (
+    <>
+      <h1 className="text-2xl font-bold mb-4">Step 5: Hosting & Publish</h1>
+      <p className="text-gray-600 mb-4">Choose a hosting plan or skip this step if you're using a free subdomain.</p>
 
-    return (
+      {form.domainType !== 'subdomain' && (
+        <select
+          name="hostingPlan"
+          value={form.hostingPlan || ''}
+          onChange={(e) =>
+            setForm((prev) => ({
+              ...prev,
+              hostingPlan: e.target.value
+            }))
+          }
+          className="border p-2 rounded w-full mb-4"
+        >
+          <option value="">Select Hosting Plan</option>
+          <option value="Basic">Basic Plan - $5/month</option>
+          <option value="Pro">Pro Plan - $10/month</option>
+          <option value="Premium">Premium Plan - $20/month</option>
+        </select>
+      )}
+
+      {form.domainType === 'subdomain' && (
+        <p className="text-blue-700 font-semibold mb-4 cursor-pointer underline" onClick={() => {
+          console.log('Final Blog Setup:', form);
+          alert('🎉 Blog published successfully using free hosting!');
+        }}>
+          👉 Skip this step and use free hosting
+        </p>
+      )}
+
+      <div className="flex justify-between mt-6">
+        <button onClick={goBack} className="bg-gray-300 px-6 py-2 rounded">Back</button>
+        {form.domainType !== 'subdomain' && (
+          <button
+            onClick={() => {
+              console.log('Final Blog Setup:', form);
+              alert('🎉 Blog published successfully!');
+            }}
+            className="bg-green-600 text-white px-6 py-2 rounded"
+          >
+            Publish My Blog
+          </button>
+        )}
+      </div>
+    </>
+  );
+
+
+  return (
       <>
         <h1 className="text-2xl font-bold mb-4">Step 4: Preview</h1>
         <p className="text-gray-600 mb-4">Here’s how your blog will look. You can go back to edit any part.</p>
-
         <div className="border p-4 rounded bg-gray-50 space-y-3">
           <div><strong>Domain:</strong> {domain}</div>
           <div><strong>Title:</strong> {form.title}</div>
@@ -218,7 +234,6 @@ export default function BlogSetup() {
             </div>
           )}
         </div>
-
         <div className="flex justify-between mt-6">
           <button onClick={goBack} className="bg-gray-300 text-black px-6 py-2 rounded">Back</button>
           <button onClick={goNext} className="bg-blue-600 text-white px-6 py-2 rounded">Continue</button>
@@ -227,69 +242,57 @@ export default function BlogSetup() {
     );
   };
 
-
-  // renderStep4 injected above
-
-  const renderStep3 = () => (
+  
+  const renderStep5 = () => (
     <>
-      <h1 className="text-2xl font-bold mb-4">Step 3: Appearance & Hosting</h1>
-      <p className="text-gray-600 mb-4">This is how your blog will look and feel.</p>
+      <h1 className="text-2xl font-bold mb-4">Step 5: Hosting & Publish</h1>
+      <p className="text-gray-600 mb-4">Choose a hosting plan or skip this step if you're using a free subdomain.</p>
 
-      <label className="block mb-2 font-medium">Choose Template</label>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-        {['Magazine', 'Portfolio', 'Creator'].map((tpl, idx) => (
-          <div
-            key={idx}
-            onClick={() => setForm(prev => ({ ...prev, template: tpl }))}
-            className={`border rounded p-3 cursor-pointer hover:border-blue-500 ${form.template === tpl ? 'border-blue-600' : ''}`}
+      {form.domainType !== 'subdomain' && (
+        <select
+          name="hostingPlan"
+          value={form.hostingPlan || ''}
+          onChange={(e) =>
+            setForm((prev) => ({
+              ...prev,
+              hostingPlan: e.target.value
+            }))
+          }
+          className="border p-2 rounded w-full mb-4"
+        >
+          <option value="">Select Hosting Plan</option>
+          <option value="Basic">Basic Plan - $5/month</option>
+          <option value="Pro">Pro Plan - $10/month</option>
+          <option value="Premium">Premium Plan - $20/month</option>
+        </select>
+      )}
+
+      {form.domainType === 'subdomain' && (
+        <p className="text-blue-700 font-semibold mb-4 cursor-pointer underline" onClick={() => {
+          console.log('Final Blog Setup:', form);
+          alert('🎉 Blog published successfully using free hosting!');
+        }}>
+          👉 Skip this step and use free hosting
+        </p>
+      )}
+
+      <div className="flex justify-between mt-6">
+        <button onClick={goBack} className="bg-gray-300 px-6 py-2 rounded">Back</button>
+        {form.domainType !== 'subdomain' && (
+          <button
+            onClick={() => {
+              console.log('Final Blog Setup:', form);
+              alert('🎉 Blog published successfully!');
+            }}
+            className="bg-green-600 text-white px-6 py-2 rounded"
           >
-            <img src={`/templates/\${tpl.toLowerCase()}.jpg`} alt={tpl} className="w-full h-32 object-cover rounded mb-2" />
-            <p className="text-center font-semibold">{tpl}</p>
-          </div>
-        ))}
-      </div>
-
-      <label className="block mb-2 font-medium">Upload Logo (optional)</label>
-      <input type="file" accept="image/*" onChange={(e) => setForm(prev => ({ ...prev, logo: e.target.files[0] }))} className="mb-4" />
-
-      <div className="flex items-center mb-4 space-x-2">
-        <input type="checkbox" name="monetize" checked={form.monetize} onChange={handleChange} />
-        <label>Enable Blog Monetization (earn revenue with ads)</label>
-      </div>
-
-      <div className="flex justify-between mt-6">
-        <button onClick={goBack} className="bg-gray-300 text-black px-6 py-2 rounded">Back</button>
-        <button onClick={goNext} className="bg-blue-600 text-white px-6 py-2 rounded">Next</button>
+            Publish My Blog
+          </button>
+        )}
       </div>
     </>
   );
 
-
-  // NOTE: Step 3 updated with previews and logo upload
-
-  const placeholderRenderStep3 = () => (
-    <>
-      <h1 className="text-2xl font-bold mb-4">Step 3: Appearance & Hosting</h1>
-      <p className="text-gray-600 mb-4">This is how your website will look and work.</p>
-
-      <select name="template" className="border p-2 rounded w-full mb-4" onChange={handleChange}>
-        <option value="">Select Template</option>
-        <option value="Magazine">Magazine</option>
-        <option value="Portfolio">Portfolio</option>
-        <option value="Creator">Creator</option>
-      </select>
-
-      <div className="flex items-center mb-4 space-x-2">
-        <input type="checkbox" name="monetize" onChange={handleChange} />
-        <label>Enable Blog Monetization (earn revenue with ads)</label>
-      </div>
-
-      <div className="flex justify-between mt-6">
-        <button onClick={goBack} className="bg-gray-300 text-black px-6 py-2 rounded">Back</button>
-        <button onClick={() => console.log('Submitted:', form)} className="bg-green-600 text-white px-6 py-2 rounded">Finish & Publish</button>
-      </div>
-    </>
-  );
 
   return (
     <div className="max-w-4xl mx-auto mt-10 p-4 bg-white shadow rounded">
@@ -297,6 +300,7 @@ export default function BlogSetup() {
       {step === 2 && renderStep2()}
       {step === 3 && renderStep3()}
       {step === 4 && renderStep4()}
+      {step === 5 && renderStep5()}
     </div>
   );
 }
