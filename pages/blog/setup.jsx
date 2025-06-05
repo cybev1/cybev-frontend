@@ -194,8 +194,7 @@ export default function BlogSetup() {
   const renderStep4 = () => {
     const domain = form.domainType === 'subdomain'
       ? \`\${form.subdomain}.cybev.io\`
-      : form.domainType === 'existing'
-      ? form.existingDomain
+      : form.domainType === 'existing' ? form.existingDomain
       : form.newDomain;
 
     return (
