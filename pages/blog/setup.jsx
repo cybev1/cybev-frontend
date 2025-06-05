@@ -201,7 +201,7 @@ export default function BlogSetup() {
           <div
             key={idx}
             onClick={() => setForm(prev => ({ ...prev, template: tpl }))}
-            className={\`border rounded p-3 cursor-pointer hover:border-blue-500 \${form.template === tpl ? 'border-blue-600' : ''}\`}
+            className={`border rounded p-3 cursor-pointer hover:border-blue-500 ${form.template === tpl ? 'border-blue-600' : ''}`}
           >
             <img src={`/templates/\${tpl.toLowerCase()}.jpg`} alt={tpl} className="w-full h-32 object-cover rounded mb-2" />
             <p className="text-center font-semibold">{tpl}</p>
