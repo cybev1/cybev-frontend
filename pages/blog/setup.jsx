@@ -47,7 +47,6 @@ export default function BlogSetup() {
     <>
       <h1 className="text-2xl font-bold mb-4">Step 3: Appearance</h1>
       <p className="text-gray-600 mb-4">Choose how your blog will look.</p>
-
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
         {['Magazine', 'Portfolio', 'Creator'].map((tpl, idx) => (
           <div
@@ -60,7 +59,6 @@ export default function BlogSetup() {
           </div>
         ))}
       </div>
-
       <label className="block mb-2 font-medium">Upload Logo (optional)</label>
       <input
         type="file"
@@ -68,7 +66,6 @@ export default function BlogSetup() {
         onChange={(e) => setForm(prev => ({ ...prev, logo: e.target.files[0] }))}
         className="mb-4"
       />
-
       <div className="flex justify-between mt-6">
         <button onClick={goBack} className="bg-gray-300 px-6 py-2 rounded">Back</button>
         <button onClick={goNext} className="bg-blue-600 text-white px-6 py-2 rounded">Next</button>
