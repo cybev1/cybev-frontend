@@ -193,14 +193,15 @@ export default function BlogSetup() {
   
   const renderStep4 = () => {
     const domain = form.domainType === 'subdomain'
-      ? \`\${form.subdomain}.cybev.io\`
-      : form.domainType === 'existing' ? form.existingDomain
+      ? `${form.subdomain}.cybev.io`
+      : form.domainType === 'existing'
+      ? form.existingDomain
       : form.newDomain;
 
     return (
       <>
         <h1 className="text-2xl font-bold mb-4">Step 4: Preview</h1>
-        <p className="text-gray-600 mb-4">Here’s how your blog will look. You can edit any section before publishing.</p>
+        <p className="text-gray-600 mb-4">Here’s how your blog will look. You can go back to edit any part.</p>
 
         <div className="border p-4 rounded bg-gray-50 space-y-3">
           <div><strong>Domain:</strong> {domain}</div>
@@ -212,8 +213,8 @@ export default function BlogSetup() {
           <div><strong>Monetization:</strong> {form.monetize ? 'Enabled' : 'Disabled'}</div>
           {form.logo && (
             <div>
-              <strong>Logo:</strong><br />
-              <img src={URL.createObjectURL(form.logo)} alt="Logo Preview" className="w-32 h-32 object-contain mt-2" />
+              <strong>Logo Preview:</strong><br />
+              <img src={URL.createObjectURL(form.logo)} alt="Logo" className="w-32 h-32 object-contain mt-2" />
             </div>
           )}
         </div>
@@ -227,7 +228,7 @@ export default function BlogSetup() {
   };
 
 
-  // NOTE: Step 4 preview added above
+  // NOTE: renderStep4 above. Step 3 remains:
 
   const placeholderRenderStep3 = () => (
     <>
