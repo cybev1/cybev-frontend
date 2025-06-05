@@ -190,7 +190,47 @@ export default function BlogSetup() {
   );
 
   
-  const renderStep3 = () => (
+  
+  const renderStep4 = () => {
+    const domain = form.domainType === 'subdomain'
+      ? \`\${form.subdomain}.cybev.io\`
+      : form.domainType === 'existing'
+      ? form.existingDomain
+      : form.newDomain;
+
+    return (
+      <>
+        <h1 className="text-2xl font-bold mb-4">Step 4: Preview</h1>
+        <p className="text-gray-600 mb-4">Here’s how your blog will look. You can edit any section before publishing.</p>
+
+        <div className="border p-4 rounded bg-gray-50 space-y-3">
+          <div><strong>Domain:</strong> {domain}</div>
+          <div><strong>Title:</strong> {form.title}</div>
+          <div><strong>Description:</strong> {form.description}</div>
+          <div><strong>Category:</strong> {form.category}</div>
+          <div><strong>Niche:</strong> {form.niche}</div>
+          <div><strong>Template:</strong> {form.template}</div>
+          <div><strong>Monetization:</strong> {form.monetize ? 'Enabled' : 'Disabled'}</div>
+          {form.logo && (
+            <div>
+              <strong>Logo:</strong><br />
+              <img src={URL.createObjectURL(form.logo)} alt="Logo Preview" className="w-32 h-32 object-contain mt-2" />
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-between mt-6">
+          <button onClick={goBack} className="bg-gray-300 text-black px-6 py-2 rounded">Back</button>
+          <button onClick={goNext} className="bg-blue-600 text-white px-6 py-2 rounded">Continue</button>
+        </div>
+      </>
+    );
+  };
+
+
+  // NOTE: Step 4 preview added above
+
+  const placeholderRenderStep3 = () => (
     <>
       <h1 className="text-2xl font-bold mb-4">Step 3: Appearance & Hosting</h1>
       <p className="text-gray-600 mb-4">This is how your blog will look and feel.</p>
