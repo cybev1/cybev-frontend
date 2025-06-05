@@ -191,6 +191,51 @@ export default function BlogSetup() {
 
   
   
+  
+  const renderStep5 = () => (
+    <>
+      <h1 className="text-2xl font-bold mb-4">Step 5: Hosting & Publish</h1>
+      <p className="text-gray-600 mb-4">Choose a hosting plan or skip this step if you're using a free subdomain.</p>
+
+      {form.domainType !== 'subdomain' && (
+        <select
+          name="hostingPlan"
+          value={form.hostingPlan || ''}
+          onChange={(e) =>
+            setForm((prev) => ({
+              ...prev,
+              hostingPlan: e.target.value
+            }))
+          }
+          className="border p-2 rounded w-full mb-4"
+        >
+          <option value="">Select Hosting Plan</option>
+          <option value="Basic">Basic Plan - $5/month</option>
+          <option value="Pro">Pro Plan - $10/month</option>
+          <option value="Premium">Premium Plan - $20/month</option>
+        </select>
+      )}
+
+      {form.domainType === 'subdomain' && (
+        <p className="text-green-700 font-semibold mb-4">✅ Free Hosting is automatically included for subdomains.</p>
+      )}
+
+      <div className="flex justify-between mt-6">
+        <button onClick={goBack} className="bg-gray-300 text-black px-6 py-2 rounded">Back</button>
+        <button
+          onClick={() => {
+            console.log('Final Blog Setup:', form);
+            alert('🎉 Blog published successfully!');
+          }}
+          className="bg-green-600 text-white px-6 py-2 rounded"
+        >
+          Publish My Blog
+        </button>
+      </div>
+    </>
+  );
+
+
   const renderStep4 = () => {
     const domain = form.domainType === 'subdomain'
       ? `${form.subdomain}.cybev.io`
@@ -297,6 +342,7 @@ export default function BlogSetup() {
       {step === 2 && renderStep2()}
       {step === 3 && renderStep3()}
       {step === 4 && renderStep4()}
+      {step === 5 && renderStep5()}
     </div>
   );
 }
