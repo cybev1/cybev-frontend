@@ -189,7 +189,45 @@ export default function BlogSetup() {
     </>
   );
 
+  
   const renderStep3 = () => (
+    <>
+      <h1 className="text-2xl font-bold mb-4">Step 3: Appearance & Hosting</h1>
+      <p className="text-gray-600 mb-4">This is how your blog will look and feel.</p>
+
+      <label className="block mb-2 font-medium">Choose Template</label>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+        {['Magazine', 'Portfolio', 'Creator'].map((tpl, idx) => (
+          <div
+            key={idx}
+            onClick={() => setForm(prev => ({ ...prev, template: tpl }))}
+            className={\`border rounded p-3 cursor-pointer hover:border-blue-500 \${form.template === tpl ? 'border-blue-600' : ''}\`}
+          >
+            <img src={`/templates/\${tpl.toLowerCase()}.jpg`} alt={tpl} className="w-full h-32 object-cover rounded mb-2" />
+            <p className="text-center font-semibold">{tpl}</p>
+          </div>
+        ))}
+      </div>
+
+      <label className="block mb-2 font-medium">Upload Logo (optional)</label>
+      <input type="file" accept="image/*" onChange={(e) => setForm(prev => ({ ...prev, logo: e.target.files[0] }))} className="mb-4" />
+
+      <div className="flex items-center mb-4 space-x-2">
+        <input type="checkbox" name="monetize" checked={form.monetize} onChange={handleChange} />
+        <label>Enable Blog Monetization (earn revenue with ads)</label>
+      </div>
+
+      <div className="flex justify-between mt-6">
+        <button onClick={goBack} className="bg-gray-300 text-black px-6 py-2 rounded">Back</button>
+        <button onClick={goNext} className="bg-blue-600 text-white px-6 py-2 rounded">Next</button>
+      </div>
+    </>
+  );
+
+
+  // NOTE: Step 3 updated with previews and logo upload
+
+  const placeholderRenderStep3 = () => (
     <>
       <h1 className="text-2xl font-bold mb-4">Step 3: Appearance & Hosting</h1>
       <p className="text-gray-600 mb-4">This is how your website will look and work.</p>
