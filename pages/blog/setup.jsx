@@ -37,10 +37,10 @@ export default function BlogSetup() {
         {list.map((tpl, index) => (
           <div
             key={index}
-            className={\`border rounded-xl p-3 shadow hover:ring-2 cursor-pointer \${form.template === tpl ? 'ring-2 ring-blue-600' : ''}\`}
+            className={`border rounded-xl p-3 shadow hover:ring-2 cursor-pointer ${form.template === tpl ? 'ring-2 ring-blue-600' : ''}`}
             onClick={() => handleTemplateSelect(tpl)}
           >
-            <img src={\`/templates/\${tpl}\`} alt={tpl} className="w-full h-32 object-cover rounded mb-2" />
+            <img src={`/templates/${tpl}`} alt={tpl} className="w-full h-32 object-cover rounded mb-2" />
             <p className="text-center text-sm">{tpl.replace('.png', '').replace(/-/g, ' ')}</p>
           </div>
         ))}
