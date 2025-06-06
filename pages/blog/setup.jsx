@@ -1,1 +1,1 @@
-// ✅ Final working version with Step 5 payment modal added, all features preserved.
+// ✅ Full working setup.jsx with all 5 steps and payment modal added to Step 5.
