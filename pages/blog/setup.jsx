@@ -1,107 +1,75 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export default function BlogSetup() {
-  const [step, setStep] = useState(2);
+  const [step, setStep] = useState(3);
   const [form, setForm] = useState({
-    title: '',
-    description: '',
-    category: '',
-    niche: '',
+    template: '',
+    logo: null,
+    monetize: false,
   });
 
-  const [categories, setCategories] = useState(['Christianity', 'Technology', 'Health', 'Education']);
-  const [niches, setNiches] = useState([]);
-  const [allNiches] = useState({
-    Christianity: ['Faith', 'Evangelism', 'Church Growth'],
-    Technology: ['AI', 'Web Development', 'Blockchain'],
-    Health: ['Nutrition', 'Fitness', 'Mental Health'],
-    Education: ['E-learning', 'Study Tips', 'Scholarships'],
-  });
+  const templates = [
+    { id: 'minimal', name: 'Minimalist', preview: '/templates/minimal.png' },
+    { id: 'magazine', name: 'Magazine', preview: '/templates/magazine.png' },
+    { id: 'portfolio', name: 'Portfolio', preview: '/templates/portfolio.png' }
+  ];
 
   const goNext = () => setStep(prev => prev + 1);
   const goBack = () => setStep(prev => prev - 1);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+  const handleTemplateSelect = (id) => {
+    setForm({ ...form, template: id });
+  };
 
-    if (name === 'category') {
-      setNiches(allNiches[value] || []);
+  const handleLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setForm({ ...form, logo: URL.createObjectURL(file) });
     }
   };
 
-  const handleGenerateDescription = () => {
-    setForm(prev => ({
-      ...prev,
-      description: `Welcome to ${prev.title}, your trusted destination for ${prev.category} insights and inspiration.`
-    }));
+  const handleMonetizeToggle = () => {
+    setForm(prev => ({ ...prev, monetize: !prev.monetize }));
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-4">CYBEV Blog Setup – Step {step} of 5</h1>
-      {step === 2 && (
-        <div className="bg-white rounded-2xl shadow p-6 space-y-4">
+      {step === 3 && (
+        <div className="grid gap-6 bg-white p-6 rounded-2xl shadow">
           <div>
-            <label className="block mb-1">Blog Title</label>
-            <input
-              type="text"
-              name="title"
-              value={form.title}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              placeholder="Enter your blog title"
-            />
-          </div>
-          <div>
-            <label className="block mb-1">SEO Description</label>
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              rows="3"
-              placeholder="Auto-generated or custom description"
-            />
-            <button onClick={handleGenerateDescription} className="mt-2 px-3 py-1 bg-blue-500 text-white rounded">AI Generate SEO</button>
-          </div>
-          <div>
-            <label className="block mb-1">Category</label>
-            <select
-              name="category"
-              value={form.category}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-            >
-              <option value="">Select Category</option>
-              {categories.map((cat, idx) => (
-                <option key={idx} value={cat}>{cat}</option>
+            <h2 className="font-semibold text-lg mb-2">Choose a Template</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {templates.map((tpl) => (
+                <div
+                  key={tpl.id}
+                  className={\`border rounded-xl p-2 cursor-pointer \${form.template === tpl.id ? 'border-blue-500' : 'border-gray-300'}\`}
+                  onClick={() => handleTemplateSelect(tpl.id)}
+                >
+                  <img src={tpl.preview} alt={tpl.name} className="rounded w-full h-28 object-cover" />
+                  <p className="text-center mt-2">{tpl.name}</p>
+                </div>
               ))}
-              <option value="Other">Other</option>
-            </select>
+            </div>
           </div>
+
           <div>
-            <label className="block mb-1">Niche</label>
-            <select
-              name="niche"
-              value={form.niche}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-            >
-              <option value="">Select Niche</option>
-              {niches.map((n, idx) => (
-                <option key={idx} value={n}>{n}</option>
-              ))}
-              <option value="Other">Other</option>
-            </select>
+            <h2 className="font-semibold mb-1">Upload Logo (optional)</h2>
+            <input type="file" accept="image/*" onChange={handleLogoUpload} />
+            {form.logo && <img src={form.logo} alt="Logo Preview" className="mt-2 w-32 h-32 object-contain rounded border" />}
+          </div>
+
+          <div className="flex items-center space-x-3">
+            <input type="checkbox" checked={form.monetize} onChange={handleMonetizeToggle} />
+            <label className="font-medium">Enable Monetization</label>
           </div>
         </div>
       )}
 
       <div className="flex justify-between mt-6">
-        {step > 1 && <button onClick={goBack} className="px-4 py-2 rounded bg-gray-300">Back</button>}
-        {step < 5 && <button onClick={goNext} className="px-4 py-2 rounded bg-blue-600 text-white">Next</button>}
+        <button onClick={goBack} className="px-4 py-2 bg-gray-300 rounded">Back</button>
+        <button onClick={goNext} className="px-4 py-2 bg-blue-600 text-white rounded">Next</button>
       </div>
     </div>
   );
