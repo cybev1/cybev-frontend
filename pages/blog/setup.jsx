@@ -17,6 +17,22 @@ export default function BlogSetup() {
     monetize: true
   });
 
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const generateSEO = () => {
+    const description = `Discover insights and updates on ${form.title || 'your blog'} covering topics in ${form.niche || 'your niche'}.`;
+    setForm((prev) => ({
+      ...prev,
+      description
+    }));
+  };
+
   const domain =
     form.domainType === 'subdomain' ? `${form.subdomain}.cybev.io` :
     form.domainType === 'existing' ? form.existingDomain : form.newDomain;
@@ -26,19 +42,21 @@ export default function BlogSetup() {
       return (
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Step 1: Domain Setup</h2>
-          <select className="w-full border px-3 py-2 rounded" value={form.domainType}>
+          <select name="domainType" className="w-full border px-3 py-2 rounded" value={form.domainType} onChange={handleChange}>
             <option value="subdomain">Use Free Subdomain</option>
             <option value="existing">Use Existing Domain</option>
             <option value="register">Register New Domain</option>
           </select>
           <input
             type="text"
+            name={form.domainType === 'subdomain' ? 'subdomain' : form.domainType === 'existing' ? 'existingDomain' : 'newDomain'}
             placeholder="Enter domain or subdomain"
             className="w-full border px-3 py-2 rounded"
             value={
               form.domainType === 'subdomain' ? form.subdomain :
               form.domainType === 'existing' ? form.existingDomain : form.newDomain
             }
+            onChange={handleChange}
           />
         </div>
       );
@@ -50,11 +68,13 @@ export default function BlogSetup() {
           <h2 className="text-xl font-semibold">Step 2: Blog Identity</h2>
           <input
             type="text"
+            name="title"
             placeholder="Blog Title"
             value={form.title}
+            onChange={handleChange}
             className="w-full border px-3 py-2 rounded"
           />
-          <select className="w-full border px-3 py-2 rounded" value={form.category}>
+          <select name="category" className="w-full border px-3 py-2 rounded" value={form.category} onChange={handleChange}>
             <option value="">Select Category</option>
             <option value="Christianity">Christianity</option>
             <option value="Technology">Technology</option>
@@ -62,16 +82,27 @@ export default function BlogSetup() {
           </select>
           <input
             type="text"
+            name="niche"
             placeholder="Niche"
             value={form.niche}
+            onChange={handleChange}
             className="w-full border px-3 py-2 rounded"
           />
           <textarea
+            name="description"
             rows={3}
             placeholder="SEO Description"
             value={form.description}
+            onChange={handleChange}
             className="w-full border px-3 py-2 rounded"
           />
+          <button
+            type="button"
+            onClick={generateSEO}
+            className="px-4 py-2 bg-blue-600 text-white rounded"
+          >
+            Generate SEO
+          </button>
         </div>
       );
     }
@@ -83,7 +114,7 @@ export default function BlogSetup() {
           <img src={`/templates/${form.template}`} className="w-full h-32 object-contain rounded border" alt="Template" />
           <img src={form.logoPreview} className="h-16 mt-2 rounded" alt="Logo" />
           <label className="flex items-center space-x-2">
-            <input type="checkbox" checked={form.monetize} />
+            <input type="checkbox" name="monetize" checked={form.monetize} onChange={handleChange} />
             <span>Monetize Blog</span>
           </label>
         </div>
@@ -132,15 +163,23 @@ export default function BlogSetup() {
       );
     }
 
-    return <p className="text-gray-500">Unknown step</p>;
+    return null;
   };
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
       {renderStep()}
       <div className="flex justify-between mt-6">
-        {step > 1 && <button onClick={() => setStep(step - 1)} className="px-4 py-2 bg-gray-200 rounded">Back</button>}
-        {step < 5 && <button onClick={() => setStep(step + 1)} className="px-4 py-2 bg-blue-600 text-white rounded">Next</button>}
+        {step > 1 && (
+          <button onClick={() => setStep(step - 1)} className="px-4 py-2 bg-gray-200 rounded">
+            Back
+          </button>
+        )}
+        {step < 5 && (
+          <button onClick={() => setStep(step + 1)} className="px-4 py-2 bg-blue-600 text-white rounded">
+            Next
+          </button>
+        )}
       </div>
     </div>
   );
