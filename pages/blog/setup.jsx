@@ -1,1 +1,0 @@
-// ✅ Full working setup.jsx upgraded: emojis removed, payment modal added to Step 5.
