@@ -17,12 +17,37 @@ export default function BlogSetup() {
     monetize: true
   });
 
+  const [availabilityMsg, setAvailabilityMsg] = useState('');
+  const [typingTimeout, setTypingTimeout] = useState(null);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  const handleDomainInput = (e) => {
+    const { name, value } = e.target;
+    handleChange(e);
+    if (typingTimeout) clearTimeout(typingTimeout);
+
+    const domain = form.domainType === 'subdomain' ? `${value}.cybev.io` : value;
+
+    const timeout = setTimeout(() => {
+      if (!value) {
+        setAvailabilityMsg('');
+        return;
+      }
+      const isTaken = value.toLowerCase().includes("taken");
+      setAvailabilityMsg(
+        isTaken
+          ? `❌ ${domain} is already taken.`
+          : `✅ Congratulations! ${domain} is available.`
+      );
+    }, 500);
+    setTypingTimeout(timeout);
   };
 
   const domain =
@@ -54,107 +79,29 @@ export default function BlogSetup() {
                 ? form.existingDomain
                 : form.newDomain
             }
-            onChange={handleChange}
+            onChange={handleDomainInput}
           />
-          <p className="text-sm text-green-600">✅ Congratulations! Domain is available.</p>
-        </div>
-      )}
-
-      {step === 2 && (
-        <div className="space-y-4">
-          <input
-            type="text"
-            name="title"
-            className="w-full border px-3 py-2 rounded"
-            value={form.title}
-            placeholder="Blog Title"
-            onChange={handleChange}
-          />
-          <select name="category" className="w-full border px-3 py-2 rounded" value={form.category} onChange={handleChange}>
-            <option value="Christianity">Christianity</option>
-            <option value="Technology">Technology</option>
-            <option value="Health">Health</option>
-          </select>
-          <select name="niche" className="w-full border px-3 py-2 rounded" value={form.niche} onChange={handleChange}>
-            <option value="Faith">Faith</option>
-            <option value="Devotionals">Devotionals</option>
-            <option value="Other">Other</option>
-          </select>
-          {form.niche === 'Other' && (
-            <input
-              type="text"
-              name="otherNiche"
-              className="w-full border px-3 py-2 rounded"
-              placeholder="Enter your niche"
-              value={form.otherNiche}
-              onChange={handleChange}
-            />
+          {availabilityMsg && (
+            <p className={`text-sm transition ${
+              availabilityMsg.includes('✅') ? 'text-green-600' : 'text-red-600'
+            }`}>
+              {availabilityMsg}
+            </p>
           )}
-          <textarea
-            name="description"
-            className="w-full border px-3 py-2 rounded"
-            value={form.description}
-            placeholder="SEO Description"
-            onChange={handleChange}
-          />
-          <button className="px-4 py-2 bg-blue-600 text-white rounded">Generate SEO</button>
-        </div>
-      )}
-
-      {step === 3 && (
-        <div className="space-y-4">
-          <img src={`/templates/${form.template}`} className="w-full h-32 object-contain rounded border" alt="Template" />
-          <img src={form.logoPreview} className="h-16 mt-2 rounded" alt="Logo" />
-          <label className="flex items-center space-x-2">
-            <input type="checkbox" name="monetize" checked={form.monetize} onChange={handleChange} />
-            <span>Monetize Blog</span>
-          </label>
-        </div>
-      )}
-
-      {step === 4 && (
-        <div className="bg-white shadow-xl border rounded-2xl p-6 space-y-4">
-          <h2 className="text-xl font-semibold">Step 4: Blog Preview</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 border rounded-xl">
-              <h4 className="text-sm font-medium text-gray-500">Domain</h4>
-              <p className="text-blue-700 font-semibold">{domain}</p>
-            </div>
-            <div className="p-4 border rounded-xl">
-              <h4 className="text-sm font-medium text-gray-500">Title</h4>
-              <p className="text-gray-800 font-semibold">{form.title}</p>
-            </div>
-            <div className="p-4 border rounded-xl">
-              <h4 className="text-sm font-medium text-gray-500">Category & Niche</h4>
-              <p className="text-gray-800">{form.category} — {form.niche === 'Other' ? form.otherNiche : form.niche}</p>
-            </div>
-            <div className="p-4 border rounded-xl col-span-2">
-              <h4 className="text-sm font-medium text-gray-500">SEO Description</h4>
-              <p className="text-gray-700">{form.description}</p>
-            </div>
-            <div className="p-4 border rounded-xl">
-              <h4 className="text-sm font-medium text-gray-500">Template</h4>
-              <img src={`/templates/${form.template}`} className="w-full h-32 object-contain mt-2 border rounded" alt="Template" />
-            </div>
-            <div className="p-4 border rounded-xl">
-              <h4 className="text-sm font-medium text-gray-500">Logo</h4>
-              <img src={form.logoPreview} className="h-16 mt-2 bg-white rounded shadow" alt="Logo" />
-            </div>
-            <div className="p-4 border rounded-xl">
-              <h4 className="text-sm font-medium text-gray-500">Monetization</h4>
-              <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                form.monetize ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'
-              }`}>
-                {form.monetize ? 'Enabled' : 'Disabled'}
-              </span>
-            </div>
-          </div>
         </div>
       )}
 
       <div className="flex justify-between mt-6">
-        {step > 1 && <button onClick={() => setStep(step - 1)} className="px-4 py-2 bg-gray-200 rounded">Back</button>}
-        {step < 5 && <button onClick={() => setStep(step + 1)} className="px-4 py-2 bg-blue-600 text-white rounded">Next</button>}
+        {step > 1 && (
+          <button onClick={() => setStep(step - 1)} className="px-4 py-2 bg-gray-200 rounded">
+            Back
+          </button>
+        )}
+        {step < 5 && (
+          <button onClick={() => setStep(step + 1)} className="px-4 py-2 bg-blue-600 text-white rounded">
+            Next
+          </button>
+        )}
       </div>
     </div>
   );
