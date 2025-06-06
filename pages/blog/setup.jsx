@@ -1,1 +1,1 @@
-// Fully working setup.jsx with Step 5 enhancements to be maintained.
+// Fully working setup.jsx with all 5 steps + Step 5 payment modal integrated.
