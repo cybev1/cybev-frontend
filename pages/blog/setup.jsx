@@ -37,19 +37,19 @@ export default function BlogSetup() {
       <h1 className="text-2xl font-bold mb-6">CYBEV Blog Setup – Step {step} of 5</h1>
       {step === 4 && (
         <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h2 className="text-xl font-bold mb-4 text-blue-700">🌐 Preview Your Blog</h2>
+          <h2 className="text-xl font-bold mb-4 text-blue-700">Preview Your Blog</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-3 text-sm">
-              <p><strong>🌐 Domain:</strong> {getDomain()}</p>
-              <p><strong>📝 Title:</strong> {form.title}</p>
-              <p><strong>🧠 SEO Description:</strong> {form.description}</p>
-              <p><strong>📂 Category:</strong> {form.category}</p>
-              <p><strong>🔎 Niche:</strong> {form.niche}</p>
-              <p><strong>💰 Monetization:</strong> {form.monetize ? 'Enabled' : 'Disabled'}</p>
+              <p><strong>Domain:</strong> {getDomain()}</p>
+              <p><strong>Title:</strong> {form.title}</p>
+              <p><strong>SEO Description:</strong> {form.description}</p>
+              <p><strong>Category:</strong> {form.category}</p>
+              <p><strong>Niche:</strong> {form.niche}</p>
+              <p><strong>Monetization:</strong> {form.monetize ? 'Enabled' : 'Disabled'}</p>
             </div>
             <div className="space-y-4">
               <div>
-                <p className="font-semibold mb-1">🖼️ Template Preview</p>
+                <p className="font-semibold mb-1">Template Preview</p>
                 <img
                   src={templatePreview[form.template]}
                   alt="Template Preview"
@@ -57,7 +57,7 @@ export default function BlogSetup() {
                 />
               </div>
               <div>
-                <p className="font-semibold mb-1">📛 Uploaded Logo</p>
+                <p className="font-semibold mb-1">Uploaded Logo</p>
                 {form.logo ? (
                   <img
                     src={form.logo}
