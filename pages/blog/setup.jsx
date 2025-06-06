@@ -44,7 +44,7 @@ export default function BlogSetup() {
               {templates.map((tpl) => (
                 <div
                   key={tpl.id}
-                  className={\`border rounded-xl p-2 cursor-pointer \${form.template === tpl.id ? 'border-blue-500' : 'border-gray-300'}\`}
+                  className={`border rounded-xl p-2 cursor-pointer ${form.template === tpl.id ? 'border-blue-500' : 'border-gray-300'}`}
                   onClick={() => handleTemplateSelect(tpl.id)}
                 >
                   <img src={tpl.preview} alt={tpl.name} className="rounded w-full h-28 object-cover" />
