@@ -13,7 +13,6 @@ export default function BlogSetup() {
   const [typingTimeout, setTypingTimeout] = useState(null);
 
   const checkDomainAvailability = (domain) => {
-    // Simulated check (replace with actual API call)
     if (!domain) {
       setForm(prev => ({ ...prev, domainAvailable: null }));
       setAvailabilityMsg('');
@@ -22,7 +21,7 @@ export default function BlogSetup() {
 
     setAvailabilityMsg('Checking availability...');
     setTimeout(() => {
-      const isAvailable = !domain.includes("taken"); // simulate check
+      const isAvailable = !domain.includes("taken");
       setForm(prev => ({ ...prev, domainAvailable: isAvailable }));
       setAvailabilityMsg(isAvailable
         ? `Congratulations! ${domain} is available.`
@@ -44,9 +43,11 @@ export default function BlogSetup() {
   const renderStep = () => {
     if (step === 1) {
       return (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Step 1: Domain Setup</h2>
-          <p className="text-sm text-gray-600">This is how people will find you online</p>
+        <div className="bg-white shadow-md border border-gray-200 rounded-2xl p-6 space-y-6">
+          <div>
+            <h2 className="text-2xl font-semibold mb-1">Step 1: Domain Setup</h2>
+            <p className="text-sm text-gray-600">This is how people will find you online</p>
+          </div>
 
           <div>
             <label className="block font-medium">Domain Type</label>
@@ -63,7 +64,7 @@ export default function BlogSetup() {
           </div>
 
           <div>
-            <label className="block font-medium">
+            <label className="block font-medium mb-1">
               {form.domainType === 'subdomain' ? 'Choose Subdomain' :
                 form.domainType === 'existing' ? 'Enter Your Existing Domain' : 'Search for New Domain'}
             </label>
