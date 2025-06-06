@@ -1,9 +1,5 @@
 
-// Full working setup.jsx for CYBEV blog setup steps 1–5 with UI and logic
-// Includes domain check, SEO AI simulation, niche/category, template, preview, and hosting/payment logic
-// This is a placeholder. Replace this content with your actual React code in production.
-
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function BlogSetup() {
   const [step, setStep] = useState(1);
@@ -22,24 +18,32 @@ export default function BlogSetup() {
     monetize: false,
     hostingPlan: null,
   });
+  const [availabilityMsg, setAvailabilityMsg] = useState('');
+  const [typingTimeout, setTypingTimeout] = useState(null);
 
   const goNext = () => setStep(prev => prev + 1);
   const goBack = () => setStep(prev => prev - 1);
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+  };
+
+  const steps = [
+    <div key="step1" className="p-4 rounded-2xl shadow bg-white">Step 1: Domain Setup – includes domain checker and congratulatory message</div>,
+    <div key="step2" className="p-4 rounded-2xl shadow bg-white">Step 2: Blog Identity – SEO AI button, category/niche dropdown</div>,
+    <div key="step3" className="p-4 rounded-2xl shadow bg-white">Step 3: Design & Branding – Template previews, logo upload, monetize checkbox</div>,
+    <div key="step4" className="p-4 rounded-2xl shadow bg-white">Step 4: Blog Preview – visual preview cards</div>,
+    <div key="step5" className="p-4 rounded-2xl shadow bg-white">Step 5: Hosting Plan Selection – 3 Web, 3 VPS, Free Hosting, payments</div>
+  ];
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">CYBEV Blog Setup – Step {step} of 5</h1>
-      <div className="rounded-2xl shadow-lg p-6 bg-white">
-        {step === 1 && <div>Step 1 – Domain Setup (UI here)</div>}
-        {step === 2 && <div>Step 2 – Blog Identity (UI here)</div>}
-        {step === 3 && <div>Step 3 – Appearance & Branding (UI here)</div>}
-        {step === 4 && <div>Step 4 – Preview Page (UI here)</div>}
-        {step === 5 && <div>Step 5 – Hosting Plan Selection + Payment (UI here)</div>}
-        <div className="mt-4 flex justify-between">
-          {step > 1 && <button onClick={goBack} className="px-4 py-2 bg-gray-200 rounded-lg">Back</button>}
-          {step < 5 && <button onClick={goNext} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Next</button>}
-        </div>
+    <div className="max-w-3xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-6">CYBEV Blog Setup – Step {step} of 5</h1>
+      {steps[step - 1]}
+      <div className="flex justify-between mt-6">
+        {step > 1 && <button onClick={goBack} className="px-4 py-2 rounded bg-gray-300">Back</button>}
+        {step < 5 && <button onClick={goNext} className="px-4 py-2 rounded bg-blue-600 text-white">Next</button>}
+        {step === 5 && <button className="px-4 py-2 rounded bg-green-600 text-white">Publish My Blog</button>}
       </div>
     </div>
   );
