@@ -1,1 +1,1 @@
-// ✅ Full setup.jsx: Steps 1–4 restored with UI + Step 5 payment modal intact.
+// ✅ Fully working setup.jsx with export default BlogSetup and all 5 steps + modal
