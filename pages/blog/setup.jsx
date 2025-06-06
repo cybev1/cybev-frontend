@@ -112,7 +112,7 @@ export default function BlogSetup() {
   const renderPlanCard = (plan) => (
     <div
       key={plan.id}
-      className={\`border rounded-xl shadow p-4 cursor-pointer \${form.hostingPlan === plan.id ? 'border-blue-600' : 'border-gray-300'}\`}
+      className={`border rounded-xl shadow p-4 cursor-pointer \${form.hostingPlan === plan.id ? 'border-blue-600' : 'border-gray-300'}`}
       onClick={() => handlePlanSelect(plan.id)}
     >
       <h3 className="text-lg font-bold">{plan.name}</h3>
@@ -206,7 +206,7 @@ export default function BlogSetup() {
             <h2 className="font-semibold text-lg mb-2">Choose a Template</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {Object.keys(templatePreview).map((id) => (
-                <div key={id} className={\`border rounded-xl p-2 cursor-pointer \${form.template === id ? 'border-blue-500' : 'border-gray-300'}\`} onClick={() => handleTemplateSelect(id)}>
+                <div key={id} className={`border rounded-xl p-2 cursor-pointer \${form.template === id ? 'border-blue-500' : 'border-gray-300'}`} onClick={() => handleTemplateSelect(id)}>
                   <img src={templatePreview[id]} alt={id} className="rounded w-full h-28 object-cover" />
                   <p className="text-center mt-2 capitalize">{id}</p>
                 </div>
