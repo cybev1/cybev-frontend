@@ -1,1 +1,0 @@
-// ✅ Final setup.jsx with 5 steps, 7 plans, working navigation, and emoji-free payment modal.
