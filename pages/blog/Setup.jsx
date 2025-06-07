@@ -134,7 +134,29 @@ export default function Setup() {
 
             <div className="mb-4">
               <label className="block mb-2 font-semibold text-gray-700">Niche:</label>
-              <input type="text" name="niche" placeholder="e.g. Faith & Healing" value={form.niche} onChange={handleInputChange} className="p-3 border border-gray-300 rounded-lg w-full" />
+              <select name="niche" value={form.niche} onChange={handleInputChange} className="p-3 border border-gray-300 rounded-lg w-full">
+                <option value="">Select Niche</option>
+                {form.category === "Christianity" && <>
+                  <option value="Faith & Healing">Faith & Healing</option>
+                  <option value="Daily Devotionals">Daily Devotionals</option>
+                  <option value="Christian Living">Christian Living</option>
+                </>}
+                {form.category === "Tech" && <>
+                  <option value="AI Tools">AI Tools</option>
+                  <option value="Web Development">Web Development</option>
+                  <option value="Blockchain">Blockchain</option>
+                </>}
+                {form.category === "Health" && <>
+                  <option value="Nutrition">Nutrition</option>
+                  <option value="Mental Wellness">Mental Wellness</option>
+                  <option value="Fitness Tips">Fitness Tips</option>
+                </>}
+                {form.category === "Lifestyle" && <>
+                  <option value="Travel">Travel</option>
+                  <option value="Fashion & Beauty">Fashion & Beauty</option>
+                  <option value="Home Decor">Home Decor</option>
+                </>}
+              </select>
             </div>
 
             <div className="flex justify-between mt-6">
