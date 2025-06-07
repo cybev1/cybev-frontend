@@ -276,6 +276,22 @@ export default function Setup() {
           </motion.div>
         )}
 
+
+        {step === 6 && (
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
+            <h2 className="text-3xl font-bold text-center mb-4">Step 6 – Confirm & Publish</h2>
+            <p className="text-center text-gray-600 mb-6">Everything looks good! Click below to publish your blog.</p>
+            <div className="bg-green-100 border border-green-300 rounded-xl p-6 text-center">
+              <h3 className="text-2xl font-semibold text-green-700 mb-2">🎉 Ready to Go!</h3>
+              <p className="text-gray-800 mb-4">You're all set to publish your blog to the world.</p>
+              <div className="flex justify-center gap-4">
+                <button onClick={goBack} className="px-6 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Back</button>
+                <button onClick={() => alert('🚀 Blog Published!')} className="px-8 py-2 bg-blue-600 text-white font-bold rounded hover:bg-blue-700">🚀 Publish My Blog</button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
       </div>
     </div>
   );
