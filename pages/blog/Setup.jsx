@@ -8,10 +8,15 @@ export default function Setup() {
     subdomain: '',
     existingDomain: '',
     newDomain: '',
-    domainAvailable: null
+    domainAvailable: null,
+    title: '',
+    description: '',
+    category: '',
+    niche: ''
   });
   const [availabilityMsg, setAvailabilityMsg] = useState('');
   const [typingTimeout, setTypingTimeout] = useState(null);
+  const [aiGenerating, setAiGenerating] = useState(false);
 
   const checkDomainAvailability = (domain) => {
     if (domain.length > 3) {
@@ -41,87 +46,104 @@ export default function Setup() {
   };
 
   const nextStep = () => setStep(step + 1);
+  const goBack = () => setStep(step - 1);
+
+  const handleAIGenerate = () => {
+    setAiGenerating(true);
+    setTimeout(() => {
+      setForm(prev => ({ ...prev, description: 'Welcome to a blog that inspires and informs. Discover amazing content crafted for your success.' }));
+      setAiGenerating(false);
+    }, 2000); // simulate delay
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-white text-black p-6 flex justify-center items-center">
-      {step === 1 && (
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          className="max-w-xl w-full bg-white shadow-xl rounded-2xl p-8 border border-gray-200"
-        >
-          <h2 className="text-3xl font-bold mb-2 text-center">Step 1 – Domain Setup</h2>
-          <p className="mb-6 text-gray-600 text-center">This is how people will find you online</p>
-
-          <div className="mb-4">
-            <label className="block mb-2 font-semibold text-gray-700">Choose Domain Type:</label>
-            <select 
-              name="domainType" 
-              value={form.domainType} 
-              onChange={handleDomainTypeChange} 
-              className="p-3 border border-gray-300 rounded-lg w-full"
-            >
-              <option value="subdomain">Use a free subdomain (.cybev.io)</option>
-              <option value="existingDomain">Use an existing domain</option>
-              <option value="newDomain">Register a new domain</option>
-            </select>
-          </div>
-
-          {form.domainType === 'subdomain' && (
+      <div className="max-w-xl w-full bg-white shadow-xl rounded-2xl p-8 border border-gray-200">
+        {step === 1 && (
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
+            <h2 className="text-3xl font-bold mb-2 text-center">Step 1 – Domain Setup</h2>
+            <p className="mb-6 text-gray-600 text-center">This is how people will find you online</p>
             <div className="mb-4">
-              <label className="block mb-2 font-semibold text-gray-700">Subdomain:</label>
-              <input
-                type="text"
-                name="subdomain"
-                placeholder="e.g. yourname"
-                value={form.subdomain}
-                onChange={handleInputChange}
-                className="p-3 border border-gray-300 rounded-lg w-full"
-              />
-              {availabilityMsg && <p className="mt-2 text-green-600 font-medium">{availabilityMsg}</p>}
+              <label className="block mb-2 font-semibold text-gray-700">Choose Domain Type:</label>
+              <select name="domainType" value={form.domainType} onChange={handleDomainTypeChange} className="p-3 border border-gray-300 rounded-lg w-full">
+                <option value="subdomain">Use a free subdomain (.cybev.io)</option>
+                <option value="existingDomain">Use an existing domain</option>
+                <option value="newDomain">Register a new domain</option>
+              </select>
             </div>
-          )}
 
-          {form.domainType === 'existingDomain' && (
+            {form.domainType === 'subdomain' && (
+              <div className="mb-4">
+                <label className="block mb-2 font-semibold text-gray-700">Subdomain:</label>
+                <input type="text" name="subdomain" placeholder="e.g. yourname" value={form.subdomain} onChange={handleInputChange} className="p-3 border border-gray-300 rounded-lg w-full" />
+                {availabilityMsg && <p className="mt-2 text-green-600 font-medium">{availabilityMsg}</p>}
+              </div>
+            )}
+
+            {form.domainType === 'existingDomain' && (
+              <div className="mb-4">
+                <label className="block mb-2 font-semibold text-gray-700">Your Domain:</label>
+                <input type="text" name="existingDomain" placeholder="e.g. example.com" value={form.existingDomain} onChange={handleInputChange} className="p-3 border border-gray-300 rounded-lg w-full" />
+                {availabilityMsg && <p className="mt-2 text-green-600 font-medium">{availabilityMsg}</p>}
+              </div>
+            )}
+
+            {form.domainType === 'newDomain' && (
+              <div className="mb-4">
+                <label className="block mb-2 font-semibold text-gray-700">New Domain Name:</label>
+                <input type="text" name="newDomain" placeholder="e.g. newsite.com" value={form.newDomain} onChange={handleInputChange} className="p-3 border border-gray-300 rounded-lg w-full" />
+                {availabilityMsg && <p className="mt-2 text-green-600 font-medium">{availabilityMsg}</p>}
+              </div>
+            )}
+
+            <div className="flex justify-between mt-6">
+              <div></div>
+              <button onClick={nextStep} className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-xl shadow hover:bg-blue-700 transition">Continue</button>
+            </div>
+          </motion.div>
+        )}
+
+        {step === 2 && (
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
+            <h2 className="text-3xl font-bold mb-2 text-center">Step 2 – Blog Identity</h2>
+            <p className="mb-6 text-gray-600 text-center">This is your business/brand name or what people will call your blog</p>
+
             <div className="mb-4">
-              <label className="block mb-2 font-semibold text-gray-700">Your Domain:</label>
-              <input
-                type="text"
-                name="existingDomain"
-                placeholder="e.g. example.com"
-                value={form.existingDomain}
-                onChange={handleInputChange}
-                className="p-3 border border-gray-300 rounded-lg w-full"
-              />
-              {availabilityMsg && <p className="mt-2 text-green-600 font-medium">{availabilityMsg}</p>}
+              <label className="block mb-2 font-semibold text-gray-700">Blog Title:</label>
+              <input type="text" name="title" placeholder="e.g. Tech Digest" value={form.title} onChange={handleInputChange} className="p-3 border border-gray-300 rounded-lg w-full" />
             </div>
-          )}
 
-          {form.domainType === 'newDomain' && (
             <div className="mb-4">
-              <label className="block mb-2 font-semibold text-gray-700">New Domain Name:</label>
-              <input
-                type="text"
-                name="newDomain"
-                placeholder="e.g. newsite.com"
-                value={form.newDomain}
-                onChange={handleInputChange}
-                className="p-3 border border-gray-300 rounded-lg w-full"
-              />
-              {availabilityMsg && <p className="mt-2 text-green-600 font-medium">{availabilityMsg}</p>}
+              <label className="block mb-2 font-semibold text-gray-700">SEO Description:</label>
+              <textarea name="description" placeholder="Short description for search engines..." value={form.description} onChange={handleInputChange} className="p-3 border border-gray-300 rounded-lg w-full" />
+              <button onClick={handleAIGenerate} className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+                {aiGenerating ? 'Generating...' : 'AI Generate SEO'}
+              </button>
             </div>
-          )}
 
-          <div className="flex justify-center mt-6">
-            <button 
-              onClick={nextStep} 
-              className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-xl shadow hover:bg-blue-700 transition"
-            >
-              Continue
-            </button>
-          </div>
-        </motion.div>
-      )}
+            <div className="mb-4">
+              <label className="block mb-2 font-semibold text-gray-700">Category:</label>
+              <select name="category" value={form.category} onChange={handleInputChange} className="p-3 border border-gray-300 rounded-lg w-full">
+                <option value="">Select Category</option>
+                <option value="Christianity">Christianity</option>
+                <option value="Tech">Tech</option>
+                <option value="Health">Health</option>
+                <option value="Lifestyle">Lifestyle</option>
+              </select>
+            </div>
+
+            <div className="mb-4">
+              <label className="block mb-2 font-semibold text-gray-700">Niche:</label>
+              <input type="text" name="niche" placeholder="e.g. Faith & Healing" value={form.niche} onChange={handleInputChange} className="p-3 border border-gray-300 rounded-lg w-full" />
+            </div>
+
+            <div className="flex justify-between mt-6">
+              <button onClick={goBack} className="px-6 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Back</button>
+              <button onClick={nextStep} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Continue</button>
+            </div>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 }
