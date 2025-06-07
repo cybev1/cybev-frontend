@@ -1,36 +1,63 @@
 
-// NOTE: This is a simplified structure to illustrate responsiveness
-// Real setup.jsx already includes step logic. This applies polished layouts.
+import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 
-<div className="max-w-5xl mx-auto p-4 sm:p-6">
-  <h1 className="text-2xl font-bold mb-6 text-center sm:text-left">CYBEV Blog Setup</h1>
+export default function BlogSetup() {
+  const [step, setStep] = useState(1);
 
-  <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-4 sm:p-6 space-y-6">
+  const goNext = () => setStep((prev) => prev + 1);
+  const goBack = () => setStep((prev) => prev - 1);
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div>
-        <label className="block text-sm font-medium mb-1">Blog Title</label>
-        <input type="text" className="w-full p-2 border rounded dark:bg-gray-800 dark:text-white" placeholder="Enter blog title" />
+  const steps = [
+    <div key="step1" className="space-y-4">
+      <h2 className="text-xl font-bold">Step 1: Domain Setup</h2>
+      <input className="w-full p-2 border rounded" placeholder="Enter subdomain..." />
+    </div>,
+    <div key="step2" className="space-y-4">
+      <h2 className="text-xl font-bold">Step 2: Blog Info</h2>
+      <input className="w-full p-2 border rounded" placeholder="Blog title" />
+    </div>,
+    <div key="step3" className="space-y-4">
+      <h2 className="text-xl font-bold">Step 3: Design</h2>
+      <div className="h-24 bg-gray-200 rounded" />
+    </div>,
+    <div key="step4" className="space-y-4">
+      <h2 className="text-xl font-bold">Step 4: Preview</h2>
+      <div className="p-4 border rounded bg-white">Your preview card...</div>
+    </div>,
+    <div key="step5" className="space-y-4">
+      <h2 className="text-xl font-bold">Step 5: Hosting</h2>
+      <button className="w-full bg-blue-600 text-white py-2 rounded">Publish</button>
+    </div>,
+  ];
+
+  return (
+    <div className="max-w-3xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-4 text-center">CYBEV Blog Setup – Step {step} of 5</h1>
+
+      <div className="relative min-h-[200px]">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -100 }}
+            transition={{ duration: 0.3 }}
+            className="absolute w-full"
+          >
+            {steps[step - 1]}
+          </motion.div>
+        </AnimatePresence>
       </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Subdomain</label>
-        <input type="text" className="w-full p-2 border rounded dark:bg-gray-800 dark:text-white" placeholder="yourname" />
+
+      <div className="mt-6 flex justify-between">
+        {step > 1 && (
+          <button onClick={goBack} className="px-4 py-2 bg-gray-300 rounded">Back</button>
+        )}
+        {step < 5 && (
+          <button onClick={goNext} className="px-4 py-2 bg-blue-600 text-white rounded">Next</button>
+        )}
       </div>
     </div>
-
-    <div className="grid sm:grid-cols-3 gap-4">
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="border rounded-xl p-4 dark:bg-gray-800">
-          <h3 className="text-lg font-semibold mb-2">Template {i}</h3>
-          <div className="w-full h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-        </div>
-      ))}
-    </div>
-
-    <div className="flex flex-col sm:flex-row gap-4 justify-between">
-      <button className="w-full sm:w-auto px-4 py-2 bg-gray-300 rounded">Back</button>
-      <button className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded">Next</button>
-    </div>
-
-  </div>
-</div>
+  );
+}
