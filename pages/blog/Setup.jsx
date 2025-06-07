@@ -152,7 +152,7 @@ export default function Setup() {
               </select>
             </div>
             <div className="flex justify-between mt-6">
-              <button onClick={goBack} className="px-6 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Back</button>
+              
               <button onClick={nextStep} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Continue</button>
             </div>
           </motion.div>
@@ -184,7 +184,7 @@ export default function Setup() {
               <label htmlFor="monetize" className="text-gray-700 font-medium">Enable Monetization for My Blog</label>
             </div>
             <div className="flex justify-between">
-              <button onClick={goBack} className="px-6 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Back</button>
+              
               <button onClick={nextStep} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Continue</button>
             </div>
           </motion.div>
@@ -230,7 +230,7 @@ export default function Setup() {
             </div>
 
             <div className="flex justify-between mt-8">
-              <button onClick={goBack} className="px-6 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Back</button>
+              
               <button onClick={nextStep} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Continue</button>
             </div>
           </motion.div>
@@ -270,8 +270,14 @@ export default function Setup() {
               </div>
             </div>
 
-            <div className="flex justify-start mt-8">
-              <button onClick={goBack} className="px-6 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Back</button>
+            
+            <div className="flex justify-between mt-8">
+              
+              <button onClick={nextStep} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Continue</button>
+            </div>
+            <!--
+
+              
             </div>
           </motion.div>
         )}
