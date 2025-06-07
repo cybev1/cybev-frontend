@@ -303,7 +303,6 @@ export default function Setup() {
     } else {
       alert("⚠️ Publish failed: " + (data.message || "Unknown error"));
     }
-    )
     .catch(err => alert("Something went wrong: " + err.message));
     } className="px-8 py-2 bg-blue-600 text-white font-bold rounded hover:bg-blue-700">🚀 Publish My Blog</button>
               </div>
