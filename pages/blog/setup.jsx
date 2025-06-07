@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 
-export default function BlogSetup() {
+export default function Setup() {
   const [step, setStep] = useState(1);
 
   const goNext = () => setStep((prev) => prev + 1);
