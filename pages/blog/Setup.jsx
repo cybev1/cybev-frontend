@@ -296,7 +296,7 @@ export default function Setup() {
       body: JSON.stringify(form),
     })
     .then(res => res.json())
-    .then(data => 
+    .then(data => {
     if (data.success) {
       alert("✅ Blog publish successful!");
       // You can optionally redirect: window.location.href = "/dashboard"
