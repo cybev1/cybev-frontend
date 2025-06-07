@@ -16,7 +16,7 @@ export default function Setup() {
   const checkDomainAvailability = (domain) => {
     if (domain.length > 3) {
       setForm(prev => ({ ...prev, domainAvailable: true }));
-      setAvailabilityMsg(`🎉 Congratulations! ${domain} is available`);
+      setAvailabilityMsg('🎉 Congratulations! The domain is available');
     } else {
       setForm(prev => ({ ...prev, domainAvailable: false }));
       setAvailabilityMsg('');
