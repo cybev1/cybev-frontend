@@ -238,59 +238,40 @@ export default function Setup() {
 
 
 
-        
-{step === 5 && (
-  <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
-    <h2 className="text-3xl font-bold mb-2 text-center">Step 5 – Hosting Plan</h2>
-    <p className="mb-6 text-gray-600 text-center">Choose your preferred hosting plan or skip for now</p>
-
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-      <div className="border rounded-2xl shadow p-4 text-center">
-        <h3 className="text-xl font-semibold mb-2">Starter Hosting</h3>
-        <p className="text-gray-600 mb-2">Perfect for personal blogs</p>
-        <p className="text-blue-600 font-bold text-lg mb-4">$5/mo</p>
-        <button onClick={() => alert('Pay with CYBV')} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Pay with CYBV</button>
-      </div>
-      <div className="border rounded-2xl shadow p-4 text-center">
-        <h3 className="text-xl font-semibold mb-2">Pro VPS</h3>
-        <p className="text-gray-600 mb-2">For high-traffic blogs</p>
-        <p className="text-blue-600 font-bold text-lg mb-4">$15/mo</p>
-        <button onClick={() => alert('Pay with Paystack')} className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">Pay with Paystack</button>
-      </div>
-      <div className="border rounded-2xl shadow p-4 text-center">
-        <h3 className="text-xl font-semibold mb-2">Premium VPS</h3>
-        <p className="text-gray-600 mb-2">Max performance & speed</p>
-        <p className="text-blue-600 font-bold text-lg mb-4">$25/mo</p>
-        <button onClick={() => alert('Pay with Cryptomus')} className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700">Pay with Cryptomus</button>
-      </div>
-      <div className="border rounded-2xl shadow p-4 text-center border-dashed">
-        <h3 className="text-xl font-semibold mb-2">FREE Hosting</h3>
-        <p className="text-gray-600 mb-2">Only for subdomain users</p>
-        <p className="text-green-600 font-bold text-lg mb-4">Free</p>
-        <button onClick={() => alert('Publishing with Free Hosting')} className="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-800">Skip & Use Free Hosting</button>
-      </div>
-    </div>
-
-    <div className="flex justify-between mt-8">
-      <button onClick={goBack} className="px-6 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Back</button>
-      <button onClick={nextStep} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Continue</button>
-    </div>
-  </motion.div>
-)}
-
-
-
-        {step === 6 && (
+        {step === 5 && (
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
-            <h2 className="text-3xl font-bold text-center mb-4">Step 6 – Confirm & Publish</h2>
-            <p className="text-center text-gray-600 mb-6">Everything looks good! Click below to publish your blog.</p>
-            <div className="bg-green-100 border border-green-300 rounded-xl p-6 text-center">
-              <h3 className="text-2xl font-semibold text-green-700 mb-2">🎉 Ready to Go!</h3>
-              <p className="text-gray-800 mb-4">You're all set to publish your blog to the world.</p>
-              <div className="flex justify-center gap-4">
-                <button onClick={goBack} className="px-6 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Back</button>
-                <button onClick={() => alert('🚀 Blog Published!')} className="px-8 py-2 bg-blue-600 text-white font-bold rounded hover:bg-blue-700">🚀 Publish My Blog</button>
+            <h2 className="text-3xl font-bold mb-2 text-center">Step 5 – Hosting Plan</h2>
+            <p className="mb-6 text-gray-600 text-center">Choose your preferred hosting plan or skip for now</p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="border rounded-2xl shadow p-4 text-center">
+                <h3 className="text-xl font-semibold mb-2">Starter Hosting</h3>
+                <p className="text-gray-600 mb-2">Perfect for personal blogs</p>
+                <p className="text-blue-600 font-bold text-lg mb-4">$5/mo</p>
+                <button onClick={() => alert('Pay with CYBV')} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Pay with CYBV</button>
               </div>
+              <div className="border rounded-2xl shadow p-4 text-center">
+                <h3 className="text-xl font-semibold mb-2">Pro VPS</h3>
+                <p className="text-gray-600 mb-2">For high-traffic blogs</p>
+                <p className="text-blue-600 font-bold text-lg mb-4">$15/mo</p>
+                <button onClick={() => alert('Pay with Paystack')} className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">Pay with Paystack</button>
+              </div>
+              <div className="border rounded-2xl shadow p-4 text-center">
+                <h3 className="text-xl font-semibold mb-2">Premium VPS</h3>
+                <p className="text-gray-600 mb-2">Max performance & speed</p>
+                <p className="text-blue-600 font-bold text-lg mb-4">$25/mo</p>
+                <button onClick={() => alert('Pay with Cryptomus')} className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700">Pay with Cryptomus</button>
+              </div>
+              <div className="border rounded-2xl shadow p-4 text-center border-dashed">
+                <h3 className="text-xl font-semibold mb-2">FREE Hosting</h3>
+                <p className="text-gray-600 mb-2">Only for subdomain users</p>
+                <p className="text-green-600 font-bold text-lg mb-4">Free</p>
+                <button onClick={() => alert('Publishing with Free Hosting')} className="bg-gray-700 text-white px-6 py-2 rounded hover:bg-gray-800">Skip & Use Free Hosting</button>
+              </div>
+            </div>
+
+            <div className="flex justify-start mt-8">
+              <button onClick={goBack} className="px-6 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Back</button>
             </div>
           </motion.div>
         )}
