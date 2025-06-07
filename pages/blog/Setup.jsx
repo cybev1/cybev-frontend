@@ -270,7 +270,12 @@ export default function Setup() {
               </div>
             </div>
 
-            <div className="flex justify-start mt-8">
+            
+            <div className="flex justify-between mt-8">
+              <button onClick={goBack} className="px-6 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Back</button>
+              <button onClick={nextStep} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Continue</button>
+            </div>
+    
               <button onClick={goBack} className="px-6 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Back</button>
             </div>
           </motion.div>
