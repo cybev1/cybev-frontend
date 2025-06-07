@@ -169,3 +169,58 @@ export default function Setup() {
     </div>
   );
 }
+
+        {step === 3 && (
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
+            <h2 className="text-3xl font-bold mb-2 text-center">Step 3 – Design & Branding</h2>
+            <p className="mb-6 text-gray-600 text-center">This is how your website/blog will look like</p>
+
+            <div className="mb-4">
+              <label className="block mb-2 font-semibold text-gray-700">Select a Template:</label>
+              <div className="grid grid-cols-2 gap-4">
+                <div
+                  className="border rounded-xl overflow-hidden shadow cursor-pointer hover:shadow-lg transition"
+                  onClick={() => setForm(prev => ({ ...prev, template: 'modern' }))}
+                >
+                  <img src="https://via.placeholder.com/300x150?text=Modern+Template" alt="Modern Template" />
+                  <div className="text-center py-2 bg-gray-100 font-semibold">Modern</div>
+                </div>
+                <div
+                  className="border rounded-xl overflow-hidden shadow cursor-pointer hover:shadow-lg transition"
+                  onClick={() => setForm(prev => ({ ...prev, template: 'classic' }))}
+                >
+                  <img src="https://via.placeholder.com/300x150?text=Classic+Template" alt="Classic Template" />
+                  <div className="text-center py-2 bg-gray-100 font-semibold">Classic</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="block mb-2 font-semibold text-gray-700">Upload Logo (Optional):</label>
+              <input
+                type="file"
+                accept="image/*"
+                className="w-full p-2 border border-gray-300 rounded-lg"
+                onChange={(e) => setForm(prev => ({ ...prev, logo: e.target.files[0] }))}
+              />
+            </div>
+
+            <div className="mb-6 flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="monetize"
+                checked={form.monetize}
+                onChange={(e) => setForm(prev => ({ ...prev, monetize: e.target.checked }))}
+                className="w-5 h-5"
+              />
+              <label htmlFor="monetize" className="text-gray-700 font-medium">
+                Enable Monetization for My Blog
+              </label>
+            </div>
+
+            <div className="flex justify-between">
+              <button onClick={goBack} className="px-6 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Back</button>
+              <button onClick={nextStep} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Continue</button>
+            </div>
+          </motion.div>
+        )}
