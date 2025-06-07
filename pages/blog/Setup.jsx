@@ -189,6 +189,53 @@ export default function Setup() {
             </div>
           </motion.div>
         )}
+
+
+        {step === 4 && (
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
+            <h2 className="text-3xl font-bold mb-2 text-center">Step 4 – Preview Your Blog</h2>
+            <p className="mb-6 text-gray-600 text-center">This is a preview of your blog before publishing</p>
+
+            <div className="border rounded-2xl shadow-xl p-6 bg-gray-50 space-y-4">
+              <h3 className="text-2xl font-semibold text-center">{form.title || 'Your Blog Title'}</h3>
+              <p className="text-center text-gray-700">{form.description || 'Your blog description will appear here...'}</p>
+              <div className="text-center">
+                <span className="inline-block bg-blue-100 text-blue-700 px-4 py-1 rounded-full text-sm">{form.category || 'Category'}</span>
+                {form.niche && (
+                  <span className="inline-block ml-2 bg-green-100 text-green-700 px-4 py-1 rounded-full text-sm">{form.niche}</span>
+                )}
+              </div>
+              <div className="text-center mt-4">
+                <img
+                  src={
+                    form.template === 'modern'
+                      ? 'https://via.placeholder.com/600x300?text=Modern+Template+Preview'
+                      : 'https://via.placeholder.com/600x300?text=Classic+Template+Preview'
+                  }
+                  alt="Template Preview"
+                  className="mx-auto rounded-lg shadow-lg"
+                />
+              </div>
+              {form.logo && (
+                <div className="text-center">
+                  <p className="mt-2 font-medium text-gray-700">Uploaded Logo:</p>
+                  <img src={URL.createObjectURL(form.logo)} alt="Logo Preview" className="mx-auto h-20 mt-2" />
+                </div>
+              )}
+              {form.monetize && (
+                <div className="text-center text-yellow-600 font-semibold mt-4">
+                  💰 Monetization is enabled for this blog.
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-between mt-8">
+              <button onClick={goBack} className="px-6 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Back</button>
+              <button onClick={nextStep} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Continue</button>
+            </div>
+          </motion.div>
+        )}
+
       </div>
     </div>
   );
