@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 export default function BlogExplorePage() {
   const [blogs, setBlogs] = useState([]);
@@ -27,9 +28,11 @@ export default function BlogExplorePage() {
           <p>No blogs found.</p>
         ) : (
           <div className="grid gap-6">
-            {blogs.map((blog, index) => (
-              <div key={index} className="border p-4 rounded-xl shadow bg-gray-50">
-                <h2 className="text-xl font-semibold mb-1">{blog.title}</h2>
+            {blogs.map((blog) => (
+              <div key={blog._id} className="border p-4 rounded-xl shadow bg-gray-50">
+                <Link href={`/blog/${blog._id}`}>
+                  <h2 className="text-xl font-semibold mb-1 text-blue-700 hover:underline cursor-pointer">{blog.title}</h2>
+                </Link>
                 <p className="text-gray-700 mb-2">{blog.description}</p>
                 <div className="text-sm text-gray-500">
                   {new Date(blog.createdAt).toLocaleDateString()}
