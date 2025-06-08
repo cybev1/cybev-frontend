@@ -1,4 +1,7 @@
-// /pages/api/blog/publish.js
+import { MongoClient } from 'mongodb';
+
+const uri = process.env.MONGODB_URI;
+const dbName = process.env.MONGODB_DB;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -8,14 +11,26 @@ export default async function handler(req, res) {
   try {
     const data = req.body;
 
-    // Simulate saving blog data
-    console.log("Received blog data:", data);
+    if (!data.title || !data.description || !data.domainType) {
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
 
-    // TODO: Save to database (MongoDB, PostgreSQL, etc.)
+    const client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection('blogs');
 
-    return res.status(200).json({ success: true, message: 'Blog published successfully' });
+    const result = await collection.insertOne({
+      ...data,
+      createdAt: new Date(),
+      status: 'published',
+    });
+
+    await client.close();
+
+    return res.status(200).json({ success: true, id: result.insertedId });
   } catch (error) {
-    console.error("Publish error:", error);
+    console.error("Publish Error:", error);
     return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 }
