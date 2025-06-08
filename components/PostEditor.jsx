@@ -1,94 +1,92 @@
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
+
+const RichEditor = dynamic(() => import('./RichTextEditor'), { ssr: false });
 
 export default function PostEditor({ onSubmit }) {
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [seo, setSeo] = useState('');
+  const [tags, setTags] = useState('');
+  const [location, setLocation] = useState('');
   const [content, setContent] = useState('');
-  const [featuredMedia, setFeaturedMedia] = useState(null);
-  const [wordCount, setWordCount] = useState(700);
-  const [loadingAI, setLoadingAI] = useState(false);
   const [draft, setDraft] = useState(false);
   const [scheduledAt, setScheduledAt] = useState('');
-  const [mint, setMint] = useState(false);
   const [boost, setBoost] = useState(false);
-  const [shareTimeline, setShareTimeline] = useState(true);
   const [shareExternal, setShareExternal] = useState(false);
-
-  const handleAIContent = async () => {
-    setLoadingAI(true);
-    try {
-      const res = await fetch('/api/ai/article', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: title, words: wordCount }),
-      });
-      const data = await res.json();
-      if (data?.content) setContent(data.content);
-    } catch {
-      alert('AI generation failed.');
-    }
-    setLoadingAI(false);
-  };
-
-  const handleDescriptionAI = async () => {
-    setLoadingAI(true);
-    try {
-      const res = await fetch('/api/ai/description', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: title }),
-      });
-      const data = await res.json();
-      if (data?.description) setDescription(data.description);
-    } catch {
-      alert('AI description generation failed.');
-    }
-    setLoadingAI(false);
-  };
-
-  const handleMediaUpload = (e) => {
-    setFeaturedMedia(e.target.files[0]);
-  };
+  const [shareTimeline, setShareTimeline] = useState(true);
+  const [mint, setMint] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit({
       title,
-      description,
+      description: seo,
       content,
-      featuredMedia,
+      tags,
+      location,
       draft,
       scheduledAt,
-      mint,
       boost,
-      shareTimeline,
       shareExternal,
+      shareTimeline,
+      mint,
     });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <input type="text" placeholder="Post Title" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full border p-3 rounded" required />
+    <form onSubmit={handleSubmit} className="bg-white border shadow-xl rounded-2xl p-6 max-w-4xl mx-auto space-y-6">
+      <h1 className="text-2xl font-bold text-gray-800">Create Blog Post</h1>
 
-      <div className="flex gap-2 items-center">
-        <button type="button" onClick={handleDescriptionAI} className="bg-indigo-600 text-white px-3 py-2 rounded hover:bg-indigo-700">
-          Generate Description with AI
+      <input
+        type="text"
+        placeholder="Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        className="w-full border p-3 rounded-lg"
+        required
+      />
+
+      <div className="flex gap-2">
+        <button type="button" onClick={() => alert('Call AI SEO endpoint here')} className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+          AI GENERATE SEO
         </button>
-        <textarea placeholder="Short Description" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border p-3 rounded" rows={3} required />
+        <textarea
+          placeholder="SEO Description"
+          value={seo}
+          onChange={(e) => setSeo(e.target.value)}
+          className="w-full border p-3 rounded-lg"
+          rows={3}
+          required
+        />
       </div>
 
-      <div className="flex items-center gap-2">
-        <input type="number" value={wordCount} onChange={(e) => setWordCount(Number(e.target.value))} className="w-24 border p-2 rounded" />
-        <button type="button" onClick={handleAIContent} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          Generate Full Article
-        </button>
+      <input
+        type="text"
+        placeholder="Tags (comma-separated)"
+        value={tags}
+        onChange={(e) => setTags(e.target.value)}
+        className="w-full border p-3 rounded-lg"
+      />
+
+      <input
+        type="text"
+        placeholder="Location (optional)"
+        value={location}
+        onChange={(e) => setLocation(e.target.value)}
+        className="w-full border p-3 rounded-lg"
+      />
+
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Full Article</label>
+        <RichEditor value={content} onChange={setContent} />
       </div>
 
-      <textarea placeholder="Full Content" value={content} onChange={(e) => setContent(e.target.value)} className="w-full border p-3 rounded" rows={10} required />
-
-      <input type="file" onChange={handleMediaUpload} accept="image/*,video/*" className="w-full border p-2 rounded" />
-
-      <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className="w-full border p-2 rounded" />
+      <input
+        type="datetime-local"
+        value={scheduledAt}
+        onChange={(e) => setScheduledAt(e.target.value)}
+        className="w-full border p-3 rounded-lg"
+      />
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <label className="inline-flex items-center space-x-2">
@@ -113,7 +111,7 @@ export default function PostEditor({ onSubmit }) {
         </label>
       </div>
 
-      <button type="submit" className="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700">
+      <button type="submit" className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">
         Publish Article
       </button>
     </form>
