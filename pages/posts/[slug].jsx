@@ -56,6 +56,29 @@ export default function BlogPost() {
     <div className="max-w-3xl mx-auto p-6">
       <TemplatePage post={post} />
       <div className="prose prose-lg max-w-none mt-6" dangerouslySetInnerHTML={{ __html: post.content }} />
+
+<div className="mt-10 bg-white p-4 rounded-xl shadow border">
+  <h3 className="text-lg font-semibold mb-2 text-gray-800">📈 Post Performance Summary</h3>
+  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-sm">
+    <div>
+      <p className="font-bold text-indigo-700">Views</p>
+      <p className="text-gray-700">{post.views || 0}</p>
+    </div>
+    <div>
+      <p className="font-bold text-green-700">Shares</p>
+      <p className="text-gray-700">{post.shares || 0}</p>
+    </div>
+    <div>
+      <p className="font-bold text-yellow-600">Earnings</p>
+      <p className="text-gray-700">${post.earnings?.toFixed(2) || '0.00'}</p>
+    </div>
+    <div>
+      <p className="font-bold text-gray-500">Last Viewed</p>
+      <p className="text-gray-700">{post.lastViewed ? new Date(post.lastViewed).toLocaleString() : 'N/A'}</p>
+    </div>
+  </div>
+</div>
+
     </div>
   );
 }
