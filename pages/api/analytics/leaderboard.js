@@ -1,11 +1,40 @@
-export default function handler(req, res) {
-  const leaderboard = [
-    { username: 'kingwriter', views: 1942, shares: 122, earnings: 132.40 },
-    { username: 'truthblogger', views: 1680, shares: 88, earnings: 110.15 },
-    { username: 'faithniche', views: 1321, shares: 76, earnings: 98.22 },
-    { username: 'techguru', views: 1200, shares: 90, earnings: 85.00 },
-    { username: 'visionmedia', views: 1098, shares: 64, earnings: 74.35 }
-  ];
+import clientPromise from '@/lib/mongodb';
 
-  return res.status(200).json({ success: true, data: leaderboard });
+export default async function handler(req, res) {
+  try {
+    const client = await clientPromise;
+    const db = client.db();
+
+    // Aggregate post stats grouped by author
+    const result = await db.collection('posts').aggregate([
+      {
+        $group: {
+          _id: '$author',
+          views: { $sum: '$views' },
+          shares: { $sum: '$shares' },
+          earnings: { $sum: '$earnings' },
+        }
+      },
+      {
+        $sort: { earnings: -1 }
+      },
+      {
+        $limit: 10
+      },
+      {
+        $project: {
+          username: '$_id',
+          views: 1,
+          shares: 1,
+          earnings: 1,
+          _id: 0
+        }
+      }
+    ]).toArray();
+
+    return res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    console.error('Leaderboard error:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
 }
