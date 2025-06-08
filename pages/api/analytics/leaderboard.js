@@ -1,26 +1,21 @@
-import clientPromise from '@/lib/mongodb';
+import clientPromise from '../../../lib/mongodb';
 
 export default async function handler(req, res) {
   try {
     const client = await clientPromise;
     const db = client.db();
 
-    // Aggregate post stats grouped by author
     const result = await db.collection('posts').aggregate([
       {
         $group: {
           _id: '$author',
           views: { $sum: '$views' },
           shares: { $sum: '$shares' },
-          earnings: { $sum: '$earnings' },
+          earnings: { $sum: '$earnings' }
         }
       },
-      {
-        $sort: { earnings: -1 }
-      },
-      {
-        $limit: 10
-      },
+      { $sort: { earnings: -1 } },
+      { $limit: 10 },
       {
         $project: {
           username: '$_id',
