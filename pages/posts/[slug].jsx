@@ -19,7 +19,7 @@ export default function BlogPost() {
   };
 
   useEffect(() => {
-    if (!slug) return;
+    if (!slug || !hostname) return;
 
     const fetchPost = async () => {
       const t = await getTemplateByHost(hostname);
@@ -29,6 +29,13 @@ export default function BlogPost() {
       const data = await res.json();
       if (data.success) {
         setPost(data.post);
+
+        // Track post view
+        await fetch('/api/analytics/view', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug, host: hostname }),
+        });
       }
       setLoading(false);
     };
