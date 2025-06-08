@@ -1,15 +1,29 @@
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 
 export default function BlogPostsPage() {
   const [posts, setPosts] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCat, setSelectedCat] = useState('');
+  const [template, setTemplate] = useState('modern');
   const [loading, setLoading] = useState(true);
   const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
 
+  const getTemplateByHost = async (host) => {
+    // This should fetch from DB. We use mock logic for now:
+    const map = {
+      'growth.cybev.io': 'modern',
+      'techtalks.io': 'classic',
+    };
+    return map[host] || 'modern';
+  };
+
   useEffect(() => {
-    const fetchPosts = async () => {
+    const init = async () => {
+      const t = await getTemplateByHost(hostname);
+      setTemplate(t);
+
       const res = await fetch('/api/blog/posts?host=' + hostname);
       const data = await res.json();
       if (data.success) {
@@ -21,13 +35,18 @@ export default function BlogPostsPage() {
       setLoading(false);
     };
 
-    fetchPosts();
+    init();
   }, [hostname]);
 
   const filterByCategory = (cat) => {
     setSelectedCat(cat);
     setFiltered(cat ? posts.filter(p => p.category === cat) : posts);
   };
+
+  const TemplateComponent = dynamic(() => import(`../../components/templates/${template === 'classic' ? 'ClassicPostCard' : 'ModernPostCard'}`), {
+    loading: () => <p>Loading template...</p>,
+    ssr: false,
+  });
 
   return (
     <div className="max-w-5xl mx-auto p-6">
@@ -53,14 +72,7 @@ export default function BlogPostsPage() {
       ) : (
         <div className="space-y-6">
           {filtered.map((post) => (
-            <div key={post._id} className="border p-4 rounded-lg shadow hover:shadow-md transition bg-white">
-              <h2 className="text-xl font-semibold text-blue-700">{post.title}</h2>
-              <p className="text-gray-700">{post.description}</p>
-              <div className="flex justify-between items-center mt-2 text-sm">
-                <span className="text-gray-500 italic">{post.category || 'Uncategorized'}</span>
-                <a href={`/posts/${post.slug}`} className="text-indigo-600 hover:underline">Read more</a>
-              </div>
-            </div>
+            <TemplateComponent key={post._id} post={post} />
           ))}
         </div>
       )}
