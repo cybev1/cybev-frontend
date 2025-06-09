@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import PostEditor from '../../components/PostEditor';
+import AutoMintButton from '@/components/mint/AutoMintButton';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function WriteToBlog() {
   const [blogs, setBlogs] = useState([]);
   const [selectedBlog, setSelectedBlog] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [latestForm, setLatestForm] = useState({});
 
   useEffect(() => {
     fetch('/api/blog/list')
@@ -13,6 +17,8 @@ export default function WriteToBlog() {
         setBlogs(data.blogs || []);
         setLoading(false);
       });
+
+    localStorage.setItem('wallet', '0x84E98A08aBb7378d81b2DC1b0F591e0fe5172265');
   }, []);
 
   const handlePostSubmit = async (post) => {
@@ -20,6 +26,8 @@ export default function WriteToBlog() {
       alert("Please select a blog to publish to.");
       return;
     }
+
+    setLatestForm(post); // Save for minting
 
     const body = {
       ...post,
@@ -73,6 +81,10 @@ export default function WriteToBlog() {
                   Posting to: <strong>{selectedBlog.title}</strong>
                 </p>
                 <PostEditor onSubmit={handlePostSubmit} />
+                <div className="mt-6">
+                  <AutoMintButton getData={() => latestForm} />
+                </div>
+                <ToastContainer />
               </>
             )}
           </>
