@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
 import { stakeTokens } from '@/hooks/useStake';
+import { toast } from 'react-toastify';
 
 export default function StakeForm() {
   const [amount, setAmount] = useState('');
   const [lockPeriod, setLockPeriod] = useState(7);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
+    setLoading(true);
     try {
       await stakeTokens(parseFloat(amount), parseInt(lockPeriod));
-      alert('Stake successful!');
+      toast.success('Stake successful!');
     } catch (err) {
-      alert('Error staking tokens: ' + err.message);
+      toast.error('Error staking tokens: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -34,8 +39,12 @@ export default function StakeForm() {
         <option value="30">Gold - 30 days</option>
         <option value="90">Diamond - 90 days</option>
       </select>
-      <button onClick={handleSubmit} className="bg-blue-600 text-white px-4 py-2 rounded w-full">
-        Stake Now
+      <button
+        onClick={handleSubmit}
+        disabled={loading}
+        className="bg-blue-600 text-white px-4 py-2 rounded w-full"
+      >
+        {loading ? 'Processing...' : 'Stake Now'}
       </button>
     </div>
   );

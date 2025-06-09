@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { getStakeStatus, unstakeTokens } from '@/hooks/useStake';
+import { toast } from 'react-toastify';
 
 export default function StakeDashboard() {
   const [stake, setStake] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -13,11 +15,14 @@ export default function StakeDashboard() {
   }, []);
 
   const handleUnstake = async () => {
+    setLoading(true);
     try {
       await unstakeTokens(stake._id);
-      alert('Unstaked successfully!');
+      toast.success('Unstaked successfully!');
     } catch (err) {
-      alert('Error unstaking: ' + err.message);
+      toast.error('Error unstaking: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -37,9 +42,10 @@ export default function StakeDashboard() {
       {remaining <= 0 && (
         <button
           onClick={handleUnstake}
+          disabled={loading}
           className="mt-2 bg-green-600 text-white px-4 py-2 rounded"
         >
-          Claim Rewards
+          {loading ? 'Processing...' : 'Claim Rewards'}
         </button>
       )}
     </div>
