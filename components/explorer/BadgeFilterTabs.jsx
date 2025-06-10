@@ -9,9 +9,9 @@ export default function BadgeFilterTabs({ selected, onChange }) {
         <button
           key={tier}
           onClick={() => onChange(tier)}
-          className={\`px-4 py-2 rounded-lg text-sm font-medium capitalize \${selected === tier
+          className={`px-4 py-2 rounded-lg text-sm font-medium capitalize ${selected === tier
             ? 'bg-purple-600 text-white'
-            : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}\`}
+            : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
         >
           {tier === 'all' ? 'All Users' : tier.charAt(0).toUpperCase() + tier.slice(1)}
         </button>
