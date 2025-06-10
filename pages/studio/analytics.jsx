@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+
+import { useEffect, useState } from 'react'; 
 
 export default function AnalyticsDashboard() {
   const [summary, setSummary] = useState(null);
@@ -9,7 +10,7 @@ export default function AnalyticsDashboard() {
   useEffect(() => {
     const load = async () => {
       const res1 = await fetch('/api/analytics/earnings?blogId=' + blogId);
-      const res2 = await fetch('/api/analytics/logs?blogId=' + blogId); // simulated logs endpoint
+      const res2 = await fetch('/api/analytics/logs?blogId=' + blogId);
       const json1 = await res1.json();
       const json2 = await res2.json();
       if (json1.success) setSummary(json1.earnings);
