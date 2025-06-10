@@ -1,4 +1,6 @@
+
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 export default function BlogsDashboard() {
   const [blogs, setBlogs] = useState([]);
@@ -56,7 +58,12 @@ export default function BlogsDashboard() {
                 <div className="text-sm text-gray-400 mt-2">
                   {new Date(blog.createdAt).toLocaleString()}
                 </div>
-                <div className="mt-4 flex justify-end">
+                <div className="mt-4 flex justify-end gap-3">
+                  <Link href={`/studio/analytics/post/${blog._id}`}>
+                    <button className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                      📊 View Analytics
+                    </button>
+                  </Link>
                   <button
                     onClick={() => handleDelete(blog._id)}
                     className="px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
