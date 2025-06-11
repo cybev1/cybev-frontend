@@ -9,7 +9,7 @@ export default function ReferralSettings() {
 
   useEffect(() => {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    setReferralLink(\`\${baseUrl}/register?ref=\${username}\`);
+    setReferralLink(`${baseUrl}/register?ref=${username}`);
   }, [username]);
 
   const handleCopy = () => {
