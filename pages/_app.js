@@ -1,15 +1,21 @@
+
 import '../styles/globals.css';
-import Navbar from '../components/Navbar';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
+import Layout from '../components/Layout';
 
 function MyApp({ Component, pageProps }) {
+  const useLayout = !['/login', '/register'].includes(pageProps?.route);
+
   return (
     <>
-      <Navbar />
-      <main className="pt-20 px-4 md:px-12 bg-gray-50 min-h-screen">
+      {useLayout ? (
+        <Layout>
+          <Component {...pageProps} />
+        </Layout>
+      ) : (
         <Component {...pageProps} />
-      </main>
+      )}
       <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
