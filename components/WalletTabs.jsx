@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import WalletDashboard from './WalletDashboard';
 import TransactionHistory from './TransactionHistory';
-import StakingPanel from './StakingPanel';
+import FullStakingModule from './FullStakingModule';
 
 const tabs = ['Balance', 'History', 'Staking'];
 
@@ -33,7 +33,7 @@ export default function WalletTabs() {
         { type: 'Boost Earn', amount: 12.5 },
         { type: 'Mint Reward', amount: 10 }
       ]} />}
-      {active === 'Staking' && <StakingPanel />}
+      {active === 'Staking' && <FullStakingModule />}
     </div>
   );
 }
