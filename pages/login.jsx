@@ -65,8 +65,9 @@ export default function Login() {
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <button type="submit" className="btn-primary w-full">Login</button>
           <p className="text-sm text-center text-gray-500 dark:text-gray-300">
-            Don't have an account? <Link href="/register" className="text-blue-600 hover:underline">Register</Link>
-          </p>
+  Don't have an account?{' '}
+  <Link href="/register" className="text-blue-700 font-semibold hover:underline">Register</Link>
+</p>
         </form>
       </div>
     </>

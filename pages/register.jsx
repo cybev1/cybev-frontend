@@ -73,8 +73,9 @@ export default function Register() {
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <button type="submit" className="btn-primary w-full">Register</button>
           <p className="text-sm text-center text-gray-500 dark:text-gray-300">
-            Already have an account? <Link href="/login" className="text-blue-600 hover:underline">Log in</Link>
-          </p>
+  Already have an account?{' '}
+  <Link href="/login" className="text-blue-700 font-semibold hover:underline">Log in</Link>
+</p>
         </form>
       </div>
     </>
