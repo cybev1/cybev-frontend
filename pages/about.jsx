@@ -1,9 +1,11 @@
 
 import Head from 'next/head';
+import Layout from '@/components/Layout';
+
 
 export default function About() {
   return (
-    <>
+    <Layout>
       <Head><title>About – CYBEV</title></Head>
       
 <nav className="w-full fixed top-0 left-0 z-50 flex justify-between items-center px-6 py-4 shadow-sm backdrop-blur-md bg-white/70 dark:bg-black/70">
@@ -26,6 +28,6 @@ export default function About() {
           CYBEV is an AI-powered Web3 platform that empowers creators to build blogs, mint NFTs, earn tokens, and manage communities — all in one seamless ecosystem.
         </p>
       </div>
-    </>
+    </Layout>
   );
 }

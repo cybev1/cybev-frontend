@@ -1,9 +1,11 @@
 
 import Head from 'next/head';
+import Layout from '@/components/Layout';
+
 
 export default function Contact() {
   return (
-    <>
+    <Layout>
       <Head><title>Contact – CYBEV</title></Head>
       
 <nav className="w-full fixed top-0 left-0 z-50 flex justify-between items-center px-6 py-4 shadow-sm backdrop-blur-md bg-white/70 dark:bg-black/70">
@@ -25,6 +27,6 @@ export default function Contact() {
         <p className="text-lg mb-6 max-w-2xl mx-auto">Have questions or suggestions? Reach out to our team.</p>
         <a href="mailto:support@cybev.io" className="text-blue-600 font-medium hover:underline">support@cybev.io</a>
       </div>
-    </>
+    </Layout>
   );
 }

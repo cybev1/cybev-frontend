@@ -1,9 +1,11 @@
 
 import Head from 'next/head';
+import Layout from '@/components/Layout';
+
 
 export default function Features() {
   return (
-    <>
+    <Layout>
       <Head><title>Features – CYBEV</title></Head>
       
 <nav className="w-full fixed top-0 left-0 z-50 flex justify-between items-center px-6 py-4 shadow-sm backdrop-blur-md bg-white/70 dark:bg-black/70">
@@ -31,6 +33,6 @@ export default function Features() {
           <li>✅ Web3 Wallet + Referral Rewards</li>
         </ul>
       </div>
-    </>
+    </Layout>
   );
 }

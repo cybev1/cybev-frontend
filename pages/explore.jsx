@@ -1,9 +1,11 @@
 
 import Head from 'next/head';
+import Layout from '@/components/Layout';
+
 
 export default function Explore() {
   return (
-    <>
+    <Layout>
       <Head><title>Explore – CYBEV</title></Head>
       
 <nav className="w-full fixed top-0 left-0 z-50 flex justify-between items-center px-6 py-4 shadow-sm backdrop-blur-md bg-white/70 dark:bg-black/70">
@@ -26,6 +28,6 @@ export default function Explore() {
           Browse trending blogs, top NFTs, and creator communities. Discover what’s hot in the AI + Web3 ecosystem.
         </p>
       </div>
-    </>
+    </Layout>
   );
 }
