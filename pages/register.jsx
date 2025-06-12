@@ -46,9 +46,12 @@ export default function Register() {
       <Head>
         <title>Register – CYBEV.IO</title>
       </Head>
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-900 dark:to-black p-4">
-        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-md space-y-4">
-          <h2 className="text-2xl font-bold text-blue-700 dark:text-white text-center">Create a CYBEV Account</h2>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100 dark:from-gray-900 dark:to-black p-6">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white/90 dark:bg-gray-900/80 border border-blue-200 dark:border-gray-700 backdrop-blur-md shadow-2xl p-8 rounded-2xl w-full max-w-md space-y-5"
+        >
+          <h2 className="text-2xl font-bold text-center text-blue-700 dark:text-white">Create a CYBEV Account</h2>
           <input name="name" placeholder="Full Name" value={form.name} onChange={handleChange} required className="input" />
           <input name="username" placeholder="Username" value={form.username} onChange={handleChange} required className="input" />
           <input type="email" name="email" placeholder="Email" value={form.email} onChange={handleChange} required className="input" />
