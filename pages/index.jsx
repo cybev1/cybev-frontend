@@ -38,7 +38,8 @@ export default function Home() {
     <>
       <SeoHead />
       <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-black transition duration-500 overflow-hidden">
-        <nav className="w-full flex justify-between items-center px-6 py-4 shadow-sm backdrop-blur-md bg-white/70 dark:bg-black/70 relative z-50">
+        
+<nav className="w-full fixed top-0 left-0 z-50 flex justify-between items-center px-6 py-4 shadow-sm backdrop-blur-md bg-white/70 dark:bg-black/70">
           <div className="text-xl font-bold text-blue-700 dark:text-white">CYBEV</div>
 
           <div className="md:flex hidden items-center gap-6">
@@ -76,7 +77,7 @@ export default function Home() {
           )}
         </nav>
 
-        <div className="flex flex-col justify-center items-center text-center px-6 py-28 space-y-8">
+        <div className="flex flex-col justify-center items-center text-center px-6 pt-44 pb-28 space-y-8">
           <motion.div
             initial={{ opacity: 0, y: -40 }}
             animate={{ opacity: 1, y: 0 }}
