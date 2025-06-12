@@ -8,10 +8,10 @@ import Link from 'next/link';
 
 const SeoHead = () => (
   <Head>
-    <title>CYBEV.IO – AI-Powered Web3 Blog & Social Platform</title>
+    <title>CYBEV – AI-Powered Web3 Blog & Social Platform</title>
     <meta name="description" content="Create, blog, mint NFTs, run ads, manage communities, and earn crypto – all in one AI-powered Web3 platform." />
-    <meta property="og:title" content="CYBEV.IO – Create, Earn, Mint, Grow" />
-    <meta property="og:description" content="Your all-in-one Creator Studio powered by AI + Web3. Blog, share, mint NFTs, and earn on CYBEV.IO." />
+    <meta property="og:title" content="CYBEV – Create, Earn, Mint, Grow" />
+    <meta property="og:description" content="Your all-in-one Creator Studio powered by AI + Web3. Blog, share, mint NFTs, and earn on CYBEV." />
     <meta property="og:image" content="https://app.cybev.io/og-banner.png" />
     <meta property="og:url" content="https://app.cybev.io" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -39,7 +39,7 @@ export default function Home() {
       <SeoHead />
       <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-black transition duration-500 overflow-hidden">
         <nav className="w-full flex justify-between items-center px-6 py-4 shadow-sm backdrop-blur-md bg-white/70 dark:bg-black/70 relative z-50">
-          <div className="text-xl font-bold text-blue-700 dark:text-white">CYBEV.IO</div>
+          <div className="text-xl font-bold text-blue-700 dark:text-white">CYBEV</div>
 
           <div className="md:flex hidden items-center gap-6">
             <Link href="/features" className="nav-link">Features</Link>
@@ -84,7 +84,7 @@ export default function Home() {
             className="bg-white/80 dark:bg-gray-900/70 backdrop-blur-xl px-10 py-14 rounded-3xl shadow-2xl border border-blue-200 dark:border-gray-800 max-w-2xl"
           >
             <motion.h1 className="text-5xl font-extrabold text-blue-900 dark:text-white mb-4">
-              Welcome to CYBEV.IO
+              Welcome to CYBEV
             </motion.h1>
             <motion.p className="text-lg text-gray-700 dark:text-gray-300">
               Build, blog, mint, and earn from the next-gen AI-powered Web3 platform.
