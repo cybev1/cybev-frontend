@@ -16,7 +16,7 @@ const SeoHead = () => (
   </Head>
 );
 
-export default function Home({ theme, setTheme }) {
+export default function Home() {
   const router = useRouter();
 
   const handleGetStarted = () => {
@@ -30,39 +30,40 @@ export default function Home({ theme, setTheme }) {
   return (
     <>
       <SeoHead />
-      <div className="min-h-screen bg-gradient-to-br from-white via-blue-100 to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-black transition-colors duration-500 overflow-hidden">
-        <nav className="w-full flex justify-between items-center px-8 py-4">
+      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-black transition duration-500 overflow-hidden">
+        <nav className="w-full flex justify-between items-center px-8 py-4 shadow-sm backdrop-blur-md bg-white/60 dark:bg-black/60">
           <div className="text-xl font-bold text-blue-700 dark:text-white">CYBEV.IO</div>
-          <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} className="text-sm bg-gray-200 px-4 py-1 rounded dark:bg-gray-700 dark:text-white">
-            Toggle {theme === 'light' ? 'Dark' : 'Light'} Mode
+          <button
+            onClick={handleGetStarted}
+            className="px-4 py-2 rounded-xl bg-gradient-to-tr from-blue-600 to-purple-600 text-white shadow-lg hover:scale-105 transition"
+          >
+            Get Started
           </button>
         </nav>
 
-        <div className="flex flex-col justify-center items-center text-center px-6 py-32 space-y-6">
-          <motion.h1
-            initial={{ opacity: 0, y: -20 }}
+        <div className="flex flex-col justify-center items-center text-center px-6 py-28 space-y-8">
+          <motion.div
+            initial={{ opacity: 0, y: -40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-5xl md:text-6xl font-extrabold text-blue-900 dark:text-white"
+            transition={{ duration: 0.9 }}
+            className="bg-white/80 dark:bg-gray-900/70 backdrop-blur-xl px-10 py-14 rounded-3xl shadow-2xl border border-blue-200 dark:border-gray-800 max-w-2xl"
           >
-            Welcome to CYBEV.IO
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.8 }}
-            className="text-lg md:text-xl text-gray-700 dark:text-gray-300 max-w-2xl"
-          >
-            Build, mint, blog, and earn from the AI-powered Web3 Creator Studio.
-          </motion.p>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleGetStarted}
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold shadow hover:bg-blue-700 transition"
-          >
-            Get Started
-          </motion.button>
+            <motion.h1 className="text-5xl font-extrabold text-blue-900 dark:text-white mb-4">
+              Welcome to CYBEV.IO
+            </motion.h1>
+            <motion.p className="text-lg text-gray-700 dark:text-gray-300">
+              Build, blog, mint, and earn from the next-gen AI-powered Web3 platform.
+              Unlock creative tools, manage communities, and grow your brand.
+            </motion.p>
+            <motion.button
+              onClick={handleGetStarted}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="mt-8 px-8 py-3 bg-blue-600 text-white rounded-xl text-lg font-semibold shadow-md hover:bg-blue-700 transition"
+            >
+              Create Your Account
+            </motion.button>
+          </motion.div>
         </div>
       </div>
     </>
