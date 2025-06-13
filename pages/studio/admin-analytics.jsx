@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { motion } from 'framer-motion'
+import * as XLSX from 'xlsx'
 
 function Header() {
   return (
@@ -62,6 +63,14 @@ export default function AdminAnalytics() {
     document.body.removeChild(link)
   }
 
+  // Excel Export
+  const exportExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(timeseries)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Analytics')
+    XLSX.writeFile(wb, 'admin_analytics.xlsx')
+  }
+
   return (
     <>
       <Header />
@@ -101,6 +110,12 @@ export default function AdminAnalytics() {
             >
               Export CSV
             </button>
+            <button
+              onClick={exportExcel}
+              className="mt-6 px-4 py-2 bg-indigo-600 text-white rounded-lg shadow"
+            >
+              Export Excel
+            </button>
           </div>
 
           {/* Summary cards */}
@@ -112,7 +127,7 @@ export default function AdminAnalytics() {
               { title: 'Total Boosts', value: totalBoosts },
               { title: 'Total Mints', value: totalMints },
             ].map((card) => (
-              <div key={card.title} className="rounded-2xl shadow-2xl p-4 bg-white dark:bg-gray-800">
+              <div key={card.title} className="rounded-2xl shadow-2xl p-4 bg-white dark:bg-gray-800 cursor-pointer">
                 <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">{card.title}</h3>
                 <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{card.value}</p>
               </div>
