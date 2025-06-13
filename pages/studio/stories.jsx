@@ -1,6 +1,17 @@
 import { useState, useEffect } from 'react';
-import Navbar from '../../components/Navbar';
 import { motion } from 'framer-motion';
+
+function Header() {
+  return (
+    <header className="p-4 bg-white dark:bg-gray-900 shadow">
+      <div className="container mx-auto">
+        <a href="/studio" className="text-xl font-bold text-gray-800 dark:text-gray-100">
+          CYBEV Studio
+        </a>
+      </div>
+    </header>
+  );
+}
 
 export default function Stories() {
   const [stories, setStories] = useState([]);
@@ -37,7 +48,7 @@ export default function Stories() {
 
   return (
     <>
-      <Navbar />
+      <Header />
       <main className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen space-y-6">
         {/* Greeting Card */}
         <motion.div
