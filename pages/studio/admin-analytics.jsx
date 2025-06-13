@@ -23,9 +23,9 @@ export default function AdminAnalytics() {
   const fetchData = () => {
     let url = '/api/analytics/posts-summary'
     const params = []
-    if (startDate) params.push(\`start=\${startDate}\`)
-    if (endDate) params.push(\`end=\${endDate}\`)
-    if (params.length) url += \`?\${params.join('&')}\`
+    if (startDate) params.push(`start=${startDate}`)
+    if (endDate) params.push(`end=${endDate}`)
+    if (params.length) url += `?${params.join('&')}`
     fetch(url)
       .then(res => res.json())
       .then(json => setData(json))
@@ -54,13 +54,13 @@ export default function AdminAnalytics() {
     const rows = timeseries.map(row => headers.map(h => row[h]).join(','))
     const csvContent = [headers.join(','), ...rows].join('\n')
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.setAttribute('href', url)
-    link.setAttribute('download', 'admin_analytics.csv')
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    const urlCsv = URL.createObjectURL(blob)
+    const linkCsv = document.createElement('a')
+    linkCsv.setAttribute('href', urlCsv)
+    linkCsv.setAttribute('download', 'admin_analytics.csv')
+    document.body.appendChild(linkCsv)
+    linkCsv.click()
+    document.body.removeChild(linkCsv)
   }
 
   // Excel Export
