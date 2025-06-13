@@ -6,10 +6,12 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import { motion } from 'framer-motion'
 
 export default function PostAnalytics() {
-  const { query } = useRouter()
-  const { postId } = query
+  const router = useRouter()
+  const { postId } = router.query
   const [data, setData] = useState(null)
+  const [posts, setPosts] = useState([])
 
+  // Fetch analytics data for current post
   useEffect(() => {
     if (!postId) return
     fetch(`/api/analytics/post/${postId}`)
@@ -17,6 +19,14 @@ export default function PostAnalytics() {
       .then(json => setData(json))
       .catch(console.error)
   }, [postId])
+
+  // Fetch list of user's posts for dropdown navigation
+  useEffect(() => {
+    fetch('/api/posts/my-posts')
+      .then(res => res.json())
+      .then(json => setPosts(json))
+      .catch(console.error)
+  }, [])
 
   if (!data) return <div className="p-6">Loading analytics…</div>
 
@@ -34,7 +44,20 @@ export default function PostAnalytics() {
       <Navbar />
       <main className="p-6 bg-gray-50 min-h-screen">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className="space-y-8">
-          <h1 className="text-2xl font-semibold">Analytics for Post {postId}</h1>
+          <div className="flex items-center space-x-4">
+            <h1 className="text-2xl font-semibold">Analytics for Post</h1>
+            <select
+              value={postId}
+              onChange={(e) => router.push(`/studio/post-analytics/${e.target.value}`)}
+              className="border rounded-lg p-2"
+            >
+              {posts.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.title || `Post ${p.id}`}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* Summary cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
