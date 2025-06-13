@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 function Header() {
   return (
     <header className="p-4 bg-white dark:bg-gray-900 shadow">
-      <div className="container mx-auto">
+      <div className="container mx-auto flex items-center justify-between">
         <a href="/studio" className="text-xl font-bold text-gray-800 dark:text-gray-100">
           CYBEV Studio
         </a>
@@ -16,12 +16,23 @@ function Header() {
 
 export default function AdminAnalytics() {
   const [data, setData] = useState(null)
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
 
-  useEffect(() => {
-    fetch('/api/analytics/posts-summary')
+  const fetchData = () => {
+    let url = '/api/analytics/posts-summary'
+    const params = []
+    if (startDate) params.push(`start=${startDate}`)
+    if (endDate) params.push(`end=${endDate}`)
+    if (params.length) url += `?${params.join('&')}`
+    fetch(url)
       .then(res => res.json())
       .then(json => setData(json))
       .catch(console.error)
+  }
+
+  useEffect(() => {
+    fetchData()
   }, [])
 
   if (!data) return <div className="p-6">Loading analytics…</div>
@@ -39,10 +50,40 @@ export default function AdminAnalytics() {
   return (
     <>
       <Header />
-      <main className="p-6 bg-gray-50 min-h-screen">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className="space-y-8">
-          <h1 className="text-2xl font-semibold">Admin Analytics Overview</h1>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+      <main className="p-6 bg-gray-50 min-h-screen space-y-8">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
+          <h1 className="text-2xl font-semibold mb-4">Admin Analytics Overview</h1>
+
+          {/* Date range filters */}
+          <div className="flex items-center space-x-4 mb-6">
+            <div>
+              <label className="block text-gray-700 dark:text-gray-300 text-sm">Start Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="mt-1 p-2 border rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-700 dark:text-gray-300 text-sm">End Date</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="mt-1 p-2 border rounded-lg"
+              />
+            </div>
+            <button
+              onClick={fetchData}
+              className="mt-6 px-4 py-2 bg-blue-600 text-white rounded-lg shadow"
+            >
+              Apply Filter
+            </button>
+          </div>
+
+          {/* Summary cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
             {[
               { title: 'Total Views', value: totalViews },
               { title: 'Total Shares', value: totalShares },
@@ -56,6 +97,8 @@ export default function AdminAnalytics() {
               </div>
             ))}
           </div>
+
+          {/* Metrics Over Time */}
           <div className="rounded-2xl shadow-2xl p-4 bg-white dark:bg-gray-800">
             <h3 className="text-lg font-medium text-gray-700 dark:text-gray-200 mb-4">Metrics Over Time</h3>
             <ResponsiveContainer width="100%" height={300}>
