@@ -17,6 +17,7 @@ export default function Stories() {
   const [stories, setStories] = useState([]);
   const [greeting, setGreeting] = useState('');
   const [message, setMessage] = useState('');
+  const firstName = 'Prince';
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -25,7 +26,6 @@ export default function Stories() {
     else if (hour < 18) greet = 'Good afternoon';
     else greet = 'Good evening';
 
-    const firstName = 'Prince';
     setGreeting(`${greet}, ${firstName}`);
 
     const messages = [
@@ -46,6 +46,8 @@ export default function Stories() {
       .catch(console.error);
   }, []);
 
+  const initialLetter = firstName.charAt(0);
+
   return (
     <>
       <Header />
@@ -58,7 +60,7 @@ export default function Stories() {
         >
           <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-600 rounded-lg flex items-center justify-center">
             <span className="text-white text-2xl font-bold">
-              {greeting.split(' ')[1].charAt(0)}
+              {initialLetter}
             </span>
           </div>
           <div>
