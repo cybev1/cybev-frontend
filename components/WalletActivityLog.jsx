@@ -12,7 +12,13 @@ export default function WalletActivityLog() {
 
   return (
     <div className="mt-10 bg-white dark:bg-gray-900 p-6 rounded-xl shadow">
-      <h2 className="text-lg font-semibold text-gray-600 dark:text-gray-300 mb-4">Wallet Activity</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold text-gray-600 dark:text-gray-300">Wallet Activity</h2>
+        <div className="flex gap-4 text-sm">
+          <a href="/api/wallet/export-csv" download className="text-blue-600 hover:underline">📤 CSV</a>
+          <a href="/api/wallet/export-pdf" download className="text-purple-600 hover:underline">🖨️ PDF</a>
+        </div>
+      </div>
       {logs.length === 0 ? (
         <p className="text-sm text-gray-400">No wallet activity yet.</p>
       ) : (
