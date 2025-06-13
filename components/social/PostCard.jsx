@@ -1,36 +1,25 @@
 import React from 'react';
-import AutoMintButton from '@/components/mint/AutoMintButton';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
+/** Individual post card */
 export default function PostCard({ post }) {
-  const isOwnPost = true; // Optional: replace with actual auth logic
-
   return (
-    <div className="border rounded-xl p-4 mb-4 bg-white shadow">
+    <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow mb-4">
       <div className="flex justify-between items-center mb-2">
-        <h2 className="font-semibold">{post.authorName}</h2>
-        <span className="text-sm text-gray-500">{new Date(post.createdAt).toLocaleString()}</span>
-      </div>
-
-      <p className="mb-3">{post.caption}</p>
-
-      {post.mediaUrl && (
-        <img src={post.mediaUrl} alt="media" className="w-full max-h-64 object-cover rounded mb-3" />
-      )}
-
-      {isOwnPost && (
-        <div className="mt-2">
-          <AutoMintButton
-            getData={() => ({
-              title: post.caption?.substring(0, 50) || 'Social Post',
-              description: post.caption,
-              mediaUrl: post.mediaUrl || ''
-            })}
-          />
+        <div className="flex items-center space-x-2">
+          <img src={post.avatar} alt="" className="w-8 h-8 rounded-full"/>
+          <div>
+            <div className="font-semibold">{post.userName}</div>
+            <div className="text-xs text-gray-500">{post.time}</div>
+          </div>
         </div>
-      )}
-      <ToastContainer />
+        <div>...</div>
+      </div>
+      <p className="mb-4">{post.content}</p>
+      <div className="flex justify-between text-sm text-gray-500">
+        <span>👍 {post.likes}</span>
+        <span>💬 {post.comments}</span>
+        <span>🔁 {post.shares}</span>
+      </div>
     </div>
   );
 }
