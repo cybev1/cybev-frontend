@@ -1,8 +1,19 @@
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
-import Navbar from '../../../components/Navbar'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { motion } from 'framer-motion'
+
+function Header() {
+  return (
+    <header className="p-4 bg-white dark:bg-gray-900 shadow">
+      <div className="container mx-auto">
+        <a href="/studio" className="text-xl font-bold text-gray-800 dark:text-gray-100">
+          CYBEV Studio
+        </a>
+      </div>
+    </header>
+  )
+}
 
 export default function PostAnalytics() {
   const router = useRouter()
@@ -40,7 +51,7 @@ export default function PostAnalytics() {
 
   return (
     <>
-      <Navbar />
+      <Header />
       <main className="p-6 bg-gray-50 min-h-screen">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className="space-y-8">
           <div className="flex items-center space-x-4">
