@@ -1,11 +1,11 @@
-
 import '../styles/globals.css';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import Layout from '../components/Layout';
 
-function MyApp({ Component, pageProps }) {
-  const useLayout = !['/login', '/register'].includes(pageProps?.route);
+function MyApp({ Component, pageProps, router }) {
+  const noLayoutRoutes = ['/login', '/register'];
+  const useLayout = !noLayoutRoutes.includes(router.pathname);
 
   return (
     <>
