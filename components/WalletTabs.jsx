@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import WalletDashboard from './WalletDashboard';
 import TransactionHistory from './TransactionHistory';
 import FullStakingModule from './FullStakingModule';
+import WalletActivityLog from './WalletActivityLog';
 
 const tabs = ['Balance', 'History', 'Staking'];
 
@@ -27,13 +28,28 @@ export default function WalletTabs() {
         ))}
       </div>
 
-      {active === 'Balance' && <WalletDashboard />}
-      {active === 'History' && <TransactionHistory transactions={[
-        { type: 'Referral Claim', amount: 25 },
-        { type: 'Boost Earn', amount: 12.5 },
-        { type: 'Mint Reward', amount: 10 }
-      ]} />}
-      {active === 'Staking' && <FullStakingModule />}
+      {active === 'Balance' && (
+        <>
+          <WalletDashboard />
+          <WalletActivityLog />
+        </>
+      )}
+      {active === 'History' && (
+        <>
+          <TransactionHistory transactions={[
+            { type: 'Referral Claim', amount: 25 },
+            { type: 'Boost Earn', amount: 12.5 },
+            { type: 'Mint Reward', amount: 10 }
+          ]} />
+          <WalletActivityLog />
+        </>
+      )}
+      {active === 'Staking' && (
+        <>
+          <FullStakingModule />
+          <WalletActivityLog />
+        </>
+      )}
     </div>
   );
 }
