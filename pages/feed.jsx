@@ -1,82 +1,124 @@
-import { useState, useEffect } from 'react'
-import InfiniteScroll from 'react-infinite-scroll-component'
-import { LikeIcon, CommentIcon, ShareIcon, RocketIcon, TipIcon } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import { motion } from 'framer-motion';
+import { PlusIcon } from '@heroicons/react/24/solid';
+
+const mockStories = [
+  { id: 'upload', type: 'upload' },
+  { id: 1, userName: 'Alice', avatar: '/default-avatar.png' },
+  { id: 2, userName: 'Bob', avatar: '/default-avatar.png' },
+  { id: 3, userName: 'Charlie', avatar: '/default-avatar.png' },
+  { id: 4, userName: 'Diana', avatar: '/default-avatar.png' }
+];
 
 export default function Feed() {
-  const [feed, setFeed] = useState([])
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
+  const [feed, setFeed] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
+  const [greeting, setGreeting] = useState('');
+  const [message, setMessage] = useState('');
+  const firstName = 'Prince';
+
+  useEffect(() => {
+    // Greeting logic
+    const hour = new Date().getHours();
+    let greet = 'Hello';
+    if (hour < 12) greet = 'Good morning';
+    else if (hour < 18) greet = 'Good afternoon';
+    else greet = 'Good evening';
+    setGreeting(`${greet}, ${firstName}`);
+
+    const msgs = [
+      'Today is a great day and you are winning!',
+      'Keep pushing forward—you’ve got this!',
+      'Your hard work is paying off. Stay motivated!',
+      'Believe in yourself and magic will happen!',
+      'Stay focused and never give up!'
+    ];
+    setMessage(msgs[new Date().getDate() % msgs.length]);
+  }, []);
 
   const fetchFeed = () => {
     fetch(`/api/posts/feed?page=${page}&limit=10`)
       .then(res => res.json())
       .then(data => {
-        if (data.length < 10) setHasMore(false)
-        setFeed(prev => [...prev, ...data])
-        setPage(prev => prev + 1)
+        if (data.length < 10) setHasMore(false);
+        setFeed(prev => [...prev, ...data]);
+        setPage(prev => prev + 1);
       })
-      .catch(console.error)
-  }
+      .catch(console.error);
+  };
 
   useEffect(() => {
-    fetchFeed()
-  }, [])
+    fetchFeed();
+  }, []);
 
   return (
-    <main className="max-w-2xl mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-6">Social Feed</h1>
+    <div className="max-w-2xl mx-auto space-y-6 py-6">
+
+      {/* Stories Carousel */}
+      <div className="bg-white dark:bg-gray-800 shadow rounded-2xl p-4 overflow-x-auto whitespace-nowrap">
+        <div className="flex space-x-4">
+          {mockStories.map(story => (
+            <motion.div
+              key={story.id}
+              className="inline-block text-center"
+              whileHover={{ scale: 1.05 }}
+            >
+              {story.type === 'upload' ? (
+                <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center cursor-pointer">
+                  <PlusIcon className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-blue-500 p-1 cursor-pointer">
+                  <img src={story.avatar} alt={story.userName} className="w-full h-full object-cover" />
+                </div>
+              )}
+              <p className="text-xs mt-1 text-gray-700 dark:text-gray-300">
+                {story.type === 'upload' ? 'Your Story' : story.userName}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Greeting & Post Box */}
+      <motion.div className="bg-white dark:bg-gray-800 shadow rounded-2xl p-4 space-y-2">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{greeting}</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400">{message}</p>
+        <div className="mt-2 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg cursor-text">
+          What's on your mind today?
+        </div>
+      </motion.div>
+
+      {/* Feed */}
       <InfiniteScroll
         dataLength={feed.length}
         next={fetchFeed}
         hasMore={hasMore}
-        loader={<h4 className="text-center">Loading...</h4>}
+        loader={<h4 className="text-center py-4">Loading...</h4>}
       >
         {feed.map(post => (
           <div
             key={post.id}
-            className="mb-6 p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-xl transform hover:-translate-y-2 transition-all"
+            className="mb-6 p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg transition transform hover:-translate-y-1"
           >
-            <div className="flex items-center mb-4">
-              <img
-                src={post.authorAvatar || '/default-avatar.png'}
-                alt="avatar"
-                className="w-10 h-10 rounded-full mr-3"
-              />
-              <div>
-                <div className="font-semibold text-gray-900 dark:text-gray-100">{post.authorName}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {new Date(post.createdAt).toLocaleString()}
-                </div>
-              </div>
-            </div>
-            <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-50">{post.title}</h2>
+            <h2 className="text-lg font-semibold mb-2">{post.title}</h2>
             <p className="text-gray-700 dark:text-gray-300 mb-4">{post.content}</p>
-            {post.imageUrl && (
-              <img src={post.imageUrl} alt="" className="w-full rounded-lg mb-4" />
-            )}
-            <div className="flex justify-between text-gray-600 dark:text-gray-400 text-sm mb-4">
-              <button className="flex items-center space-x-1">
-                <LikeIcon size={16} /> <span>{post.likes}</span>
-              </button>
-              <button className="flex items-center space-x-1">
-                <CommentIcon size={16} /> <span>{post.commentsCount}</span>
-              </button>
-              <button className="flex items-center space-x-1">
-                <ShareIcon size={16} /> <span>{post.shares}</span>
-              </button>
-              <button className="flex items-center space-x-1">
-                <RocketIcon size={16} /> <span>Boost</span>
-              </button>
-              <button className="flex items-center space-x-1">
-                <TipIcon size={16} /> <span>Tip</span>
-              </button>
+            <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400">
+              <span>👍 {post.likes}</span>
+              <span>💬 {post.commentsCount}</span>
+              <span>🔁 {post.shares}</span>
+              <span>🚀 Boost</span>
+              <span>💰 Tip</span>
             </div>
-            <div className="mt-2 text-gray-500 dark:text-gray-400 text-sm">
-              Earnings: {post.earnings} CYBV
+            <div className="mt-2 text-gray-600 dark:text-gray-400 text-sm">
+              Earned: {post.earnings} CYBV
             </div>
           </div>
         ))}
       </InfiniteScroll>
-    </main>
-  )
+    </div>
+  );
 }
