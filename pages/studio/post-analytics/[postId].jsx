@@ -20,7 +20,6 @@ export default function PostAnalytics() {
 
   if (!data) return <div className="p-6">Loading analytics…</div>
 
-  // Prepare time-series for chart
   const timeseries = data.history.map(item => ({
     date: item.date,
     views: item.views,
@@ -57,7 +56,7 @@ export default function PostAnalytics() {
             </Card>
           </div>
 
-          {/* Engagement over time chart */}
+          {/* Engagement Over Time */}
           <Card className="rounded-2xl shadow-2xl p-4">
             <CardHeader title="Engagement Over Time" />
             <CardContent>
@@ -69,6 +68,36 @@ export default function PostAnalytics() {
                   <Line type="monotone" dataKey="views" />
                   <Line type="monotone" dataKey="shares" />
                   <Line type="monotone" dataKey="earnings" />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Boosts Over Time */}
+          <Card className="rounded-2xl shadow-2xl p-4">
+            <CardHeader title="Boosts Over Time" />
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={timeseries}>
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="boosts" />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Mints Over Time */}
+          <Card className="rounded-2xl shadow-2xl p-4">
+            <CardHeader title="Mints Over Time" />
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={timeseries}>
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="mints" />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
