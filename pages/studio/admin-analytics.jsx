@@ -22,9 +22,9 @@ export default function AdminAnalytics() {
   const fetchData = () => {
     let url = '/api/analytics/posts-summary'
     const params = []
-    if (startDate) params.push(`start=${startDate}`)
-    if (endDate) params.push(`end=${endDate}`)
-    if (params.length) url += `?${params.join('&')}`
+    if (startDate) params.push(\`start=\${startDate}\`)
+    if (endDate) params.push(\`end=\${endDate}\`)
+    if (params.length) url += \`?\${params.join('&')}\`
     fetch(url)
       .then(res => res.json())
       .then(json => setData(json))
@@ -46,6 +46,21 @@ export default function AdminAnalytics() {
     boosts: item.boosts,
     mints: item.mints,
   }))
+
+  // CSV Export
+  const exportCsv = () => {
+    const headers = ['date', 'views', 'shares', 'earnings', 'boosts', 'mints']
+    const rows = timeseries.map(row => headers.map(h => row[h]).join(','))
+    const csvContent = [headers.join(','), ...rows].join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', 'admin_analytics.csv')
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 
   return (
     <>
@@ -79,6 +94,12 @@ export default function AdminAnalytics() {
               className="mt-6 px-4 py-2 bg-blue-600 text-white rounded-lg shadow"
             >
               Apply Filter
+            </button>
+            <button
+              onClick={exportCsv}
+              className="mt-6 px-4 py-2 bg-green-600 text-white rounded-lg shadow"
+            >
+              Export CSV
             </button>
           </div>
 
