@@ -1,7 +1,6 @@
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
-import Navbar from '@/components/Navbar'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import Navbar from '../../../components/Navbar'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { motion } from 'framer-motion'
 
@@ -59,72 +58,41 @@ export default function PostAnalytics() {
             </select>
           </div>
 
-          {/* Summary cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="rounded-2xl shadow-2xl p-4">
-              <CardHeader title="Total Views" />
-              <CardContent>{data.views}</CardContent>
-            </Card>
-            <Card className="rounded-2xl shadow-2xl p-4">
-              <CardHeader title="Total Shares" />
-              <CardContent>{data.shares}</CardContent>
-            </Card>
-            <Card className="rounded-2xl shadow-2xl p-4">
-              <CardHeader title="Total Earnings" />
-              <CardContent>${data.earnings.toFixed(2)}</CardContent>
-            </Card>
-            <Card className="rounded-2xl shadow-2xl p-4">
-              <CardHeader title="Total Boosts" />
-              <CardContent>{data.boosts}</CardContent>
-            </Card>
+            {[
+              { title: 'Total Views', value: data.views },
+              { title: 'Total Shares', value: data.shares },
+              { title: 'Total Earnings', value: `$${data.earnings.toFixed(2)}` },
+              { title: 'Total Boosts', value: data.boosts },
+            ].map((card) => (
+              <div key={card.title} className="rounded-2xl shadow-2xl p-4 bg-white dark:bg-gray-800">
+                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">{card.title}</h3>
+                <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{card.value}</p>
+              </div>
+            ))}
           </div>
 
-          {/* Engagement Over Time */}
-          <Card className="rounded-2xl shadow-2xl p-4">
-            <CardHeader title="Engagement Over Time" />
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={timeseries}>
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="views" />
-                  <Line type="monotone" dataKey="shares" />
-                  <Line type="monotone" dataKey="earnings" />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Boosts Over Time */}
-          <Card className="rounded-2xl shadow-2xl p-4">
-            <CardHeader title="Boosts Over Time" />
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={timeseries}>
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="boosts" />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Mints Over Time */}
-          <Card className="rounded-2xl shadow-2xl p-4">
-            <CardHeader title="Mints Over Time" />
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={timeseries}>
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="mints" />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          {[
+            { title: 'Engagement Over Time', keys: ['views', 'shares', 'earnings'] },
+            { title: 'Boosts Over Time', keys: ['boosts'] },
+            { title: 'Mints Over Time', keys: ['mints'] },
+          ].map(({ title, keys }) => (
+            <div key={title} className="rounded-2xl shadow-2xl p-4 bg-white dark:bg-gray-800">
+              <h3 className="text-lg font-medium text-gray-700 dark:text-gray-200">{title}</h3>
+              <div className="mt-2">
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={timeseries}>
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    {keys.map((key) => (
+                      <Line key={key} type="monotone" dataKey={key} />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          ))}
         </motion.div>
       </main>
     </>
