@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function PostCard() {
+export default function PostCard({ author, timestamp, content, earnings }) {
   return (
     <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
       {/* Header */}
@@ -8,14 +8,14 @@ export default function PostCard() {
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
           <div>
-            <p className="font-semibold">User Name</p>
-            <p className="text-xs text-gray-500">2h ago</p>
+            <p className="font-semibold">{author || 'User Name'}</p>
+            <p className="text-xs text-gray-500">{timestamp || 'Just now'}</p>
           </div>
         </div>
         <button>•••</button>
       </div>
       {/* Content */}
-      <p className="mb-2">Post content goes here...</p>
+      <p className="mb-2">{content}</p>
       {/* Footer */}
       <div className="flex justify-between text-sm text-gray-600">
         <button>👍 Like</button>
@@ -28,6 +28,12 @@ export default function PostCard() {
         <button>💰 Tip</button>
         <button>🪙 Mint/Stake</button>
       </div>
+      {/* Earnings */}
+      {earnings != null && (
+        <div className="mt-2 text-right text-sm font-medium text-green-600">
+          Earned: {earnings} CYBV
+        </div>
+      )}
     </div>
   );
 }
