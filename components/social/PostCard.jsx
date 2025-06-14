@@ -1,39 +1,10 @@
 import React from 'react';
-
-export default function PostCard({ author, timestamp, content, earnings }) {
+export default function PostCard({ post }) {
   return (
-    <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-2">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
-          <div>
-            <p className="font-semibold">{author || 'User Name'}</p>
-            <p className="text-xs text-gray-500">{timestamp || 'Just now'}</p>
-          </div>
-        </div>
-        <button>•••</button>
-      </div>
-      {/* Content */}
-      <p className="mb-2">{content}</p>
-      {/* Footer */}
-      <div className="flex justify-between text-sm text-gray-600">
-        <button>👍 Like</button>
-        <button>💬 Comment</button>
-        <button>🔁 Share</button>
-      </div>
-      {/* Actions */}
-      <div className="flex justify-around mt-2 text-sm">
-        <button>🚀 Boost</button>
-        <button>💰 Tip</button>
-        <button>🪙 Mint/Stake</button>
-      </div>
-      {/* Earnings */}
-      {earnings != null && (
-        <div className="mt-2 text-right text-sm font-medium text-green-600">
-          Earned: {earnings} CYBV
-        </div>
-      )}
+    <div className="bg-white p-4 rounded-lg shadow space-y-2">
+      <div className="font-bold">{post.author}</div>
+      <div>{post.content}</div>
+      <div className="text-gray-500 text-sm">{post.createdAt}</div>
     </div>
   );
 }
