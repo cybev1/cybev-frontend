@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function StoriesCarousel({ stories, streamStatus }) {
+export default function StoriesCarousel({ stories }) {
   return (
     <div className="flex space-x-4 p-4 overflow-x-auto bg-white dark:bg-gray-800">
       {stories.map(story => (
