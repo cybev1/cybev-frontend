@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MenuIcon, XIcon } from '@heroicons/react/24/solid';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/solid';
 
 const options = [
   { label: 'Blog', route: '/studio/create/blog' },
@@ -23,7 +23,7 @@ export default function CreateMenu() {
         onClick={() => setOpen(prev => !prev)}
         className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg"
       >
-        {open ? <XIcon className="w-5 h-5" /> : <MenuIcon className="w-5 h-5" />}
+        {open ? <XMarkIcon className="w-5 h-5" /> : <Bars3Icon className="w-5 h-5" />}
         <span className="ml-2">Create ▾</span>
       </button>
       {open && (
@@ -40,4 +40,5 @@ export default function CreateMenu() {
         </div>
       )}
     </div>
-);
+  );
+}
