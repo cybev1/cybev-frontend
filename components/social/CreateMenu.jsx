@@ -6,7 +6,7 @@ const OPTIONS = [
   'Chat/Call (Video)', 'Chat/Call (Voice)', 'Go Live'
 ];
 
-export default function CreateMenu() {
+export default function CreateMenu({ onSelect }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef();
 
@@ -22,8 +22,7 @@ export default function CreateMenu() {
 
   const handleSelect = option => {
     setOpen(false);
-    console.log('Selected:', option);
-    // TODO: trigger modal or navigation
+    if (onSelect) onSelect(option);
   };
 
   return (
