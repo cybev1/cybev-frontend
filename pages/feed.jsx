@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import LeftNav from '@/components/social/LeftNav';
 import GreetingWeatherStrip from '@/components/social/GreetingWeatherStrip';
 import StoriesCarousel from '@/components/social/StoriesCarousel';
@@ -11,34 +11,42 @@ import CyBevBot from '@/components/social/CyBevBot';
 export default function Feed() {
   const [posts, setPosts] = useState([]);
   const [stories, setStories] = useState([]);
-  const [streamStatus, setStreamStatus] = useState({});
-  const [earnings, setEarnings] = useState({ amount: 0 });
-  const [notifications, setNotifications] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const loaderRef = useRef(null);
 
   useEffect(() => {
-    fetch('/api/feed')
-      .then(res => res.json())
-      .then(data => setPosts(data));
-
+    fetchData(1);
     fetch('/api/stories')
       .then(res => res.json())
       .then(data => setStories(data));
-
-    fetch('/api/stream-status')
-      .then(res => res.json())
-      .then(data => setStreamStatus(data));
-
-    fetch('/api/earnings')
-      .then(res => res.json())
-      .then(data => setEarnings(data));
-
-    fetch('/api/notifications')
-      .then(res => res.json())
-      .then(data => setNotifications(data));
   }, []);
 
-  const handlePost = (text) => {
-    // You can POST to /api/posts here
+  useEffect(() => {
+    if (!loaderRef.current) return;
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        fetchData(page + 1);
+      }
+    }, { rootMargin: '100px' });
+    observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, [loaderRef.current, hasMore, page]);
+
+  const fetchData = nextPage => {
+    fetch(`/api/feed?page=${nextPage}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.length === 0) {
+          setHasMore(false);
+        } else {
+          setPosts(prev => [...prev, ...data]);
+          setPage(nextPage);
+        }
+      });
+  };
+
+  const handlePost = text => {
     console.log('Posting:', text);
   };
 
@@ -47,16 +55,21 @@ export default function Feed() {
       <LeftNav />
       <main className="flex-1 px-4">
         <GreetingWeatherStrip 
-          greeting="Good morning, Prince — Today is a great day!"
-          weather={{ temp: 72, icon: '☀️' }}
+          greeting="Good morning, Prince — Today is a great day!" 
+          weather={{ temp: 72, icon: '☀️' }} 
         />
-        <StoriesCarousel stories={stories} streamStatus={streamStatus} />
+        <StoriesCarousel stories={stories} />
         <PostComposer onPost={handlePost} />
         <div>
           {posts.map(post => <PostCard key={post.id} post={post} />)}
+          {hasMore && (
+            <div ref={loaderRef} className="p-4 text-center text-gray-500">
+              Loading more posts...
+            </div>
+          )}
         </div>
       </main>
-      <RightHub notifications={notifications} earnings={earnings} />
+      <RightHub notifications={[]} earnings={{ amount: 0 }} />
       <CreateMenu />
       <CyBevBot />
     </div>
