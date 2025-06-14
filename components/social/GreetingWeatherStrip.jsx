@@ -1,3 +1,4 @@
+// components/social/GreetingWeatherStrip.jsx
 import React from 'react';
 
 /**
@@ -15,3 +16,5 @@ export default function GreetingWeatherStrip({ greeting, message, weather }) {
         <div className="text-sm text-gray-500 dark:text-gray-400">{weather.icon}</div>
       </div>
     </div>
+  );
+}

@@ -1,3 +1,4 @@
+// components/social/LeftNav.jsx
 import React from 'react';
 
 /**
@@ -25,3 +26,5 @@ export default function LeftNav() {
         <button className="w-full mt-2 px-4 py-2 bg-green-600 text-white rounded-lg">Go Live</button>
       </div>
     </aside>
+  );
+}
