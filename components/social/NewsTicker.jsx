@@ -1,10 +1,10 @@
 import React from 'react';
 
-/** News ticker card */
-export default function NewsTicker({ headlines }) {
+export default function NewsTicker() {
   return (
-    <div className="p-2 bg-white dark:bg-gray-800 rounded-2xl shadow mb-4 overflow-hidden whitespace-nowrap">
-      <marquee>{headlines.join(' • ')}</marquee>
+    <div className="mb-4 p-2 bg-blue-100 dark:bg-blue-900 rounded-lg overflow-hidden whitespace-nowrap">
+      {/* TODO: animate top headlines */}
+      🗞️ Top Headline 1 • Headline 2 • Headline 3 • ...
     </div>
   );
 }

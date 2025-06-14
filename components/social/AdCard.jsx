@@ -1,11 +1,11 @@
 import React from 'react';
 
-/** Sponsored ad card */
 export default function AdCard() {
   return (
-    <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl shadow mb-4">
-      <div className="text-xs text-gray-500 mb-2">Sponsored</div>
-      <p>Your ad could appear here.</p>
+    <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg shadow text-center">
+      <p className="text-xs text-gray-500 mb-2">Sponsored</p>
+      {/* TODO: Ad content */}
+      <div className="h-32 bg-gray-200 dark:bg-gray-600 rounded"></div>
     </div>
   );
 }

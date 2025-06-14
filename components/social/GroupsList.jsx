@@ -1,13 +1,11 @@
 import React from 'react';
 
-/** List of user groups */
-export default function GroupsList({ groups }) {
+export default function GroupsList() {
   return (
-    <div className="bg-white dark:bg-gray-800 shadow rounded-2xl p-4 mb-4">
-      <h3 className="font-semibold mb-2">My Groups</h3>
-      <ul className="space-y-2">
-        {groups.map(g => <li key={g.id}>{g.name}</li>)}
-      </ul>
+    <div className="mb-4">
+      <h4 className="font-semibold mb-2">My Groups</h4>
+      {/* TODO: list groups */}
+      <div className="h-24 bg-gray-200 dark:bg-gray-600 rounded"></div>
     </div>
   );
 }

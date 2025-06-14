@@ -1,10 +1,10 @@
 import React from 'react';
 
-/** Live streaming strip */
-export default function LiveNowStrip({ stream }) {
+export default function LiveNowStrip() {
   return (
-    <div className="p-2 bg-red-500 text-white rounded mb-4 text-center">
-      🔴 Live Now: {stream.title}
+    <div className="mb-4 p-2 bg-red-100 dark:bg-red-900 rounded-lg text-center font-semibold text-red-600">
+      {/* TODO: dynamic live now content */}
+      🔴 Admin is live now! Click to watch.
     </div>
   );
 }
