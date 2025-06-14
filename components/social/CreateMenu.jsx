@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/solid';
-import Link from 'next/link';
+import { MenuIcon, XIcon } from '@heroicons/react/24/solid';
 
 const options = [
   { label: 'Blog', route: '/studio/create/blog' },
@@ -24,20 +23,21 @@ export default function CreateMenu() {
         onClick={() => setOpen(prev => !prev)}
         className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg"
       >
-        {open ? <XMarkIcon className="w-5 h-5" /> : <Bars3Icon className="w-5 h-5" />}
+        {open ? <XIcon className="w-5 h-5" /> : <MenuIcon className="w-5 h-5" />}
         <span className="ml-2">Create ▾</span>
       </button>
       {open && (
         <div className="absolute mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
           {options.map(opt => (
-            <Link key={opt.label} href={opt.route}>
-              <a className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">
-                {opt.label}
-              </a>
-            </Link>
+            <a
+              key={opt.label}
+              href={opt.route}
+              className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              {opt.label}
+            </a>
           ))}
         </div>
       )}
     </div>
 );
-}
