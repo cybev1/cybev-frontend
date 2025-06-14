@@ -1,48 +1,41 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
+import { MenuIcon, XIcon } from '@heroicons/react/24/solid';
 
-const OPTIONS = [
-  'Blog', 'Article', 'Event', 'Page', 'Group',
-  'Advertisement', 'Photo', 'NFT', 'Campaign',
-  'Chat/Call (Video)', 'Chat/Call (Voice)', 'Go Live'
+const options = [
+  { label: 'Blog', route: '/studio/create/blog' },
+  { label: 'Article', route: '/studio/create/article' },
+  { label: 'Event', route: '/studio/create/event' },
+  { label: 'Page', route: '/studio/create/page' },
+  { label: 'Group', route: '/studio/create/group' },
+  { label: 'Advertisement', route: '/studio/create/ads' },
+  { label: 'Photo', route: '/studio/create/photo' },
+  { label: 'NFT', route: '/studio/create/nft' },
+  { label: 'Campaign', route: '/studio/create/campaign' },
+  { label: 'Chat/Call', route: '/studio/create/chat' },
 ];
 
-export default function CreateMenu({ onSelect }) {
+export default function CreateMenu() {
   const [open, setOpen] = useState(false);
-  const menuRef = useRef();
-
-  useEffect(() => {
-    const handleClickOutside = e => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handleSelect = option => {
-    setOpen(false);
-    if (onSelect) onSelect(option);
-  };
 
   return (
-    <div ref={menuRef} className="fixed bottom-4 right-4">
+    <div className="relative">
       <button
         onClick={() => setOpen(prev => !prev)}
-        className="bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg"
+        className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg"
       >
-        Create ▾
+        {open ? <XIcon className="w-5 h-5" /> : <MenuIcon className="w-5 h-5" />}
+        <span className="ml-2">Create ▾</span>
       </button>
       {open && (
-        <div className="mt-2 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg w-48">
-          {OPTIONS.map(opt => (
-            <div
-              key={opt}
-              onClick={() => handleSelect(opt)}
-              className="px-2 py-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded cursor-pointer text-sm"
+        <div className="absolute mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+          {options.map(opt => (
+            <a
+              key={opt.label}
+              href={opt.route}
+              className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              {opt}
-            </div>
+              {opt.label}
+            </a>
           ))}
         </div>
       )}
