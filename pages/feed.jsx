@@ -1,4 +1,6 @@
 import React from 'react';
+import useSWR from 'swr';
+import axios from 'axios';
 import LeftNav from '../components/social/LeftNav';
 import GreetingWeatherStrip from '../components/social/GreetingWeatherStrip';
 import StoriesCarousel from '../components/social/StoriesCarousel';
@@ -16,9 +18,14 @@ import GroupsList from '../components/social/GroupsList';
 import SuggestedEvents from '../components/social/SuggestedEvents';
 import CyBevBot from '../components/social/CyBevBot';
 
-const mockPosts = Array.from({ length: 15 }, (_, i) => ({ id: i, content: `This is post #${i + 1}` }));
+const fetcher = url => axios.get(url).then(res => res.data);
 
 export default function Feed() {
+  const { data: posts, error } = useSWR('/api/posts/feed', fetcher);
+
+  if (error) return <div>Error loading feed</div>;
+  if (!posts) return <div>Loading...</div>;
+
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
       {/* Left Navigation */}
@@ -38,13 +45,18 @@ export default function Feed() {
         <SuperBloggerCard />
         <PostComposer />
 
-        {mockPosts.map((post, idx) => (
+        {posts.map((post, idx) => (
           <React.Fragment key={post.id}>
             {idx === 2 && <AdCard />}
             {idx === 5 && <LiveNowStrip />}
             {idx === 8 && <NewsTicker />}
             {idx === 10 && <SuggestionCard />}
-            <PostCard />
+            <PostCard 
+              author={post.author} 
+              timestamp={post.timestamp} 
+              content={post.content} 
+              earnings={post.earnings} 
+            />
           </React.Fragment>
         ))}
       </div>
