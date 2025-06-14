@@ -1,21 +1,23 @@
-import React from 'react';
-import useSWR from 'swr';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { CoinIcon } from 'lucide-react';
-
-const fetcher = url => axios.get(url).then(res => res.data);
+import { DollarSign } from 'lucide-react';
 
 export default function TokenBalance() {
-  const { data, error } = useSWR('/api/user/balance', fetcher);
+  const [balance, setBalance] = useState(null);
 
-  if (error) return null;
-  if (!data) return null;
+  useEffect(() => {
+    axios.get('/api/user/balance')
+      .then(res => setBalance(res.data.balance))
+      .catch(err => console.error('Error fetching balance:', err));
+  }, []);
+
+  if (balance === null) return null;
 
   return (
     <div className="flex items-center space-x-1 p-2">
-      <CoinIcon className="w-5 h-5 text-yellow-500" />
+      <DollarSign className="w-5 h-5 text-yellow-500" />
       <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
-        {data.balance} CYBV
+        {balance} CYBV
       </span>
     </div>
   );
