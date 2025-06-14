@@ -21,3 +21,5 @@ export default function LeftNav() {
         <GoLiveModal />
       </div>
     </aside>
+);
+}
