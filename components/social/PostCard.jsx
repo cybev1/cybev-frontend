@@ -1,4 +1,6 @@
+
 import React, { useState } from 'react';
+import PostEarnings from '@/components/social/PostEarnings';
 
 export default function PostCard({ post }) {
   const [likes, setLikes] = useState(post.likes || 0);
@@ -40,6 +42,9 @@ export default function PostCard({ post }) {
         <button className="px-2 py-1 bg-purple-600 text-white rounded text-sm">🪙 Mint</button>
         <button className="px-2 py-1 bg-yellow-500 text-white rounded text-sm">📈 Stake</button>
       </div>
+
+      {/* 💰 Earnings Summary */}
+      <PostEarnings views={views} reactions={Object.values(reactions).reduce((a, b) => a + b, 0)} />
     </div>
   );
 }
