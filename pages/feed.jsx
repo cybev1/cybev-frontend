@@ -1,13 +1,12 @@
-// pages/feed.jsx
 import React, { useEffect, useState } from 'react';
 import LeftNav from '../components/social/LeftNav';
 import GreetingWeatherStrip from '../components/social/GreetingWeatherStrip';
 import StoriesCarousel from '../components/social/StoriesCarousel';
+import LiveNowStrip from '../components/social/LiveNowStrip';
+import NewsTicker from '../components/social/NewsTicker';
 import PinPostCard from '../components/social/PinPostCard';
 import SuperBloggerBadge from '../components/social/SuperBloggerBadge';
 import PostComposer from '../components/social/PostComposer';
-import LiveNowStrip from '../components/social/LiveNowStrip';
-import NewsTicker from '../components/social/NewsTicker';
 import PostCard from '../components/social/PostCard';
 import AdCard from '../components/social/AdCard';
 import SuggestionCard from '../components/social/SuggestionCard';
@@ -52,9 +51,9 @@ export default function Feed() {
   }, []);
 
   return (
-    <div className="flex">
+    <div className="flex bg-gray-50 dark:bg-gray-900 min-h-screen">
       <LeftNav />
-      <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen space-y-6">
+      <main className="flex-1 p-4 space-y-6">
         <GreetingWeatherStrip greeting={greeting} message={message} weather={weather} />
         <StoriesCarousel stories={stories} />
         {liveStream && <LiveNowStrip stream={liveStream} />}
@@ -65,7 +64,7 @@ export default function Feed() {
         {feed.map(post => <PostCard key={post.id} post={post} />)}
         <AdCard />
         <SuggestionCard suggestion={{ title: 'People You May Know' }} />
-      </div>
+      </main>
       <RightHub data={rightData} />
     </div>
 );
