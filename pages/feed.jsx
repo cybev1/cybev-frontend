@@ -2,6 +2,7 @@
 import React from 'react'; 
 import PostCard from '@/components/social/PostCard';
 import CyBevBotWidget from '@/components/social/CyBevBotWidget';
+import LiveNowStrip from '@/components/social/LiveNowStrip';
 
 export default function Feed() {
   const dummyPosts = [
@@ -26,6 +27,10 @@ export default function Feed() {
   return (
     <div className="p-4 max-w-2xl mx-auto relative">
       <h1 className="text-2xl font-bold mb-4 text-center">🚀 CYBEV Feed Demo</h1>
+
+      {/* 🔴 Live Now Strip */}
+      <LiveNowStrip />
+
       {dummyPosts.map((post) => (
         <PostCard key={post.id} post={post} />
       ))}
