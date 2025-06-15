@@ -1,17 +1,17 @@
 // pages/feed.jsx
 import React, { useEffect, useState } from 'react';
-import LeftNav from '../components/social/LeftNav';
-import GreetingWeatherStrip from '../components/social/GreetingWeatherStrip';
-import StoriesCarousel from '../components/social/StoriesCarousel';
-import PinPostCard from '../components/social/PinPostCard';
-import SuperBloggerBadge from '../components/social/SuperBloggerBadge';
-import PostComposer from '../components/social/PostComposer';
-import LiveNowStrip from '../components/social/LiveNowStrip';
-import NewsTicker from '../components/social/NewsTicker';
-import PostCard from '../components/social/PostCard';
-import AdCard from '../components/social/AdCard';
-import SuggestionCard from '../components/social/SuggestionCard';
-import RightHub from '../components/social/RightHub';
+import LeftNav from '@/components/social/LeftNav';
+import GreetingWeatherStrip from '@/components/social/GreetingWeatherStrip';
+import StoriesCarousel from '@/components/social/StoriesCarousel';
+import PinPostCard from '@/components/social/PinPostCard';
+import SuperBloggerBadge from '@/components/social/SuperBloggerBadge';
+import PostComposer from '@/components/social/PostComposer';
+import LiveNowStrip from '@/components/social/LiveNowStrip';
+import NewsTicker from '@/components/social/NewsTicker';
+import PostCard from '@/components/social/PostCard';
+import AdCard from '@/components/social/AdCard';
+import SuggestionCard from '@/components/social/SuggestionCard';
+import RightHub from '@/components/social/RightHub';
 
 export default function Feed() {
   const [greeting, setGreeting] = useState('');
@@ -52,9 +52,9 @@ export default function Feed() {
   }, []);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex">
       <LeftNav />
-      <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900 space-y-6">
+      <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen space-y-6">
         <GreetingWeatherStrip greeting={greeting} message={message} weather={weather} />
         <StoriesCarousel stories={stories} />
         {liveStream && <LiveNowStrip stream={liveStream} />}
