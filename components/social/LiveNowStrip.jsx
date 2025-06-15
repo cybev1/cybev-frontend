@@ -1,9 +1,9 @@
 import React from 'react';
 
-export default function LiveNowStrip({ stream }) {
+export default function LiveNowStrip() {
   return (
-    <div className="p-4 bg-red-100 dark:bg-red-800 rounded-lg mb-4">
-      <span className="font-semibold">🔴 Live Now: {stream?.title}</span>
+    <div className="p-2 bg-green-200 rounded">
+      Live Now: Streaming Live!
     </div>
   );
 }

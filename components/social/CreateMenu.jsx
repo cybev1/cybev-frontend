@@ -1,43 +1,20 @@
 import React, { useState } from 'react';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/solid';
-
-const options = [
-  { label: 'Blog', route: '/studio/create/blog' },
-  { label: 'Article', route: '/studio/create/article' },
-  { label: 'Event', route: '/studio/create/event' },
-  { label: 'Page', route: '/studio/create/page' },
-  { label: 'Group', route: '/studio/create/group' },
-  { label: 'Advertisement', route: '/studio/create/ads' },
-  { label: 'Photo', route: '/studio/create/photo' },
-  { label: 'NFT', route: '/studio/create/nft' },
-  { label: 'Campaign', route: '/studio/create/campaign' },
-  { label: 'Chat/Call', route: '/studio/create/chat' },
-];
 
 export default function CreateMenu() {
   const [open, setOpen] = useState(false);
-
   return (
     <div className="relative">
       <button
-        onClick={() => setOpen(prev => !prev)}
-        className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg"
+        onClick={() => setOpen(!open)}
+        className="px-4 py-2 bg-blue-600 text-white rounded"
       >
-        {open ? <XMarkIcon className="w-5 h-5" /> : <Bars3Icon className="w-5 h-5" />}
-        <span className="ml-2">Create ▾</span>
+        Create ▾
       </button>
       {open && (
-        <div className="absolute mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
-          {options.map(opt => (
-            <a
-              key={opt.label}
-              href={opt.route}
-              className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              {opt.label}
-            </a>
-          ))}
-        </div>
+        <ul className="absolute mt-2 bg-white border rounded shadow">
+          <li className="px-4 py-2 hover:bg-gray-100"><a href="/studio/create/blog">Blog</a></li>
+          <li className="px-4 py-2 hover:bg-gray-100"><a href="/studio/create/article">Article</a></li>
+        </ul>
       )}
     </div>
   );
