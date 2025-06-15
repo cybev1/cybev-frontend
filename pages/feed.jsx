@@ -1,4 +1,3 @@
-
 import React from 'react';
 import PostCard from '@/components/social/PostCard';
 import CyBevBotWidget from '@/components/social/CyBevBotWidget';
@@ -6,7 +5,7 @@ import LiveNowStrip from '@/components/social/LiveNowStrip';
 import PostComposer from '@/components/social/PostComposer';
 import SuperBloggerCard from '@/components/social/SuperBloggerCard';
 import SuggestedFollowers from '@/components/social/SuggestedFollowers';
-import SponsoredAd from '@/components/social/SponsoredAd';
+import SponsoredAdCard from '@/components/social/SponsoredAdCard';
 import RightSidebarCards from '@/components/social/RightSidebarCards';
 
 export default function Feed() {
@@ -29,25 +28,25 @@ export default function Feed() {
     },
     {
       id: 3,
-      userName: 'Alex Smith',
+      userName: 'Michael Smith',
       avatar: '/default-avatar.png',
       time: '1 day ago',
-      content: 'Exploring the future of Web3 and social platforms!',
-      likes: 7,
+      content: 'Loving the CYBEV platform already!',
+      likes: 6,
     },
     {
       id: 4,
-      userName: 'Rachel Green',
+      userName: 'Esther Bright',
       avatar: '/default-avatar.png',
-      time: '3 days ago',
-      content: 'Check out my latest video on staking!',
-      likes: 5,
+      time: '2 days ago',
+      content: 'Just minted my first post!',
+      likes: 3,
     },
   ];
 
   return (
-    <div className="flex flex-col lg:flex-row lg:space-x-8 px-4">
-      <div className="lg:w-2/3 mx-auto">
+    <div className="flex flex-col lg:flex-row gap-6 p-4">
+      <div className="flex-1 lg:max-w-2xl mx-auto relative">
         <h1 className="text-2xl font-bold mb-4 text-center">🚀 CYBEV Feed Demo</h1>
         <LiveNowStrip />
         <PostComposer />
@@ -56,7 +55,7 @@ export default function Feed() {
         {dummyPosts.map((post, index) => (
           <React.Fragment key={post.id}>
             <PostCard post={post} />
-            {(index + 1) % 3 === 0 && <SponsoredAd />}
+            {(index + 1) % 3 === 0 && <SponsoredAdCard />}
           </React.Fragment>
         ))}
 
@@ -64,7 +63,8 @@ export default function Feed() {
         <CyBevBotWidget />
       </div>
 
-      <div className="lg:w-1/3 mt-8 lg:mt-0 hidden lg:block">
+      {/* Right Sidebar */}
+      <div className="hidden lg:block w-full max-w-xs">
         <RightSidebarCards />
       </div>
     </div>
