@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function PostComposer() {
+  const [text, setText] = useState('');
   return (
-    <div className="p-4 bg-white border rounded">
-      <textarea className="w-full p-2 border rounded" placeholder="What's on your mind?" />
-      <button className="mt-2 px-4 py-2 bg-blue-600 text-white rounded">Post</button>
+    <div className="border p-4 rounded space-y-2">
+      <textarea
+        value={text}
+        onChange={e => setText(e.target.value)}
+        placeholder="What's on your mind?"
+        className="w-full h-24 p-2 border rounded"
+      />
+      <button className="bg-blue-600 text-white px-4 py-2 rounded">Post</button>
     </div>
   );
 }
