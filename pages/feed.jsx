@@ -5,6 +5,7 @@ import CyBevBotWidget from '@/components/social/CyBevBotWidget';
 import LiveNowStrip from '@/components/social/LiveNowStrip';
 import PostComposer from '@/components/social/PostComposer';
 import SuperBloggerCard from '@/components/social/SuperBloggerCard';
+import SuggestedFollowers from '@/components/social/SuggestedFollowers';
 
 export default function Feed() {
   const dummyPosts = [
@@ -38,6 +39,7 @@ export default function Feed() {
         <PostCard key={post.id} post={post} />
       ))}
 
+      <SuggestedFollowers />
       <CyBevBotWidget />
     </div>
   );
