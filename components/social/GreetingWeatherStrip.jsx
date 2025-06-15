@@ -1,12 +1,11 @@
-import React from 'react';
-
-export default function GreetingWeatherStrip({ userName, weather }) {
+export default function GreetingWeatherStrip() {
+  const mockWeather = { temp: 72, icon: '☀️' };
   return (
-    <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 shadow-sm rounded-lg mb-4">
-      <div className="text-lg font-medium">Good morning, {userName}!</div>
+    <div className="flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-700">
+      <div className="text-lg">Good morning, Prince!</div>
       <div className="flex items-center space-x-2">
-        <div className="text-xl font-bold">{weather.temp}°</div>
-        <div>{weather.icon}</div>
+        <div className="text-xl font-bold">{mockWeather.temp}°</div>
+        <div className="text-sm">{mockWeather.icon}</div>
       </div>
     </div>
   );
