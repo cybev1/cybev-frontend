@@ -1,11 +1,10 @@
 import React from 'react';
 
-export default function RightHub() {
+export default function RightHub({ data }) {
   return (
-    <div className="space-y-4">
-      <div className="p-4 bg-gray-100 rounded">Friends Online</div>
-      <div className="p-4 bg-gray-100 rounded">Suggested</div>
-      <div className="p-4 bg-gray-100 rounded">News</div>
-    </div>
+    <aside className="w-80 bg-white dark:bg-gray-800 p-4 hidden xl:block">
+      <div className="font-semibold mb-2">Recommended</div>
+      <div>Right sidebar content with suggestions, groups, events...</div>
+    </aside>
   );
 }
