@@ -1,13 +1,8 @@
 import React from 'react';
-
 export default function StoriesCarousel({ stories }) {
   return (
-    <div className="flex space-x-4 overflow-x-auto p-2 bg-white dark:bg-gray-800 rounded-lg shadow">
-      {stories.map(story => (
-        <div key={story.id} className="w-20 h-32 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-          {story.userName}
-        </div>
-      ))}
+    <div className="flex space-x-2 overflow-x-auto">
+      {stories.map(s => <div key={s.id} className="w-24 h-36 bg-gray-200 rounded">{s.title}</div>)}
     </div>
-);
+  );
 }
