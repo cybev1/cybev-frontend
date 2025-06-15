@@ -1,17 +1,20 @@
-// components/social/StoriesCarousel.jsx
-import React from 'react';
-
-export default function StoriesCarousel({ stories }) {
+export default function StoriesCarousel() {
+  const stories = [
+    { id:1, name:'Alice', avatar:'/default-avatar.png' },
+    { id:2, name:'Bob', avatar:'/default-avatar.png' },
+    { id:3, name:'Carol', avatar:'/default-avatar.png' },
+    { id:4, name:'Dave', avatar:'/default-avatar.png' },
+  ];
   return (
-    <div className="flex space-x-4 overflow-x-auto">
-      {stories.map(s => (
-        <div key={s.id} className="flex-shrink-0 w-16 text-center">
-          <div className="w-16 h-16 bg-gray-300 rounded-full mx-auto">
-            {s.avatar ? <img src={s.avatar} alt={s.userName} className="w-full h-full rounded-full" /> : <span className="block p-4">+</span>}
+    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-4 overflow-x-auto">
+      <div className="flex space-x-4">
+        {stories.map(story => (
+          <div key={story.id} className="flex flex-col items-center">
+            <img src={story.avatar} alt={story.name} className="w-12 h-12 rounded-full mb-1" />
+            <span className="text-sm">{story.name}</span>
           </div>
-          <p className="text-xs mt-1">{s.userName}</p>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
-);
+  );
 }

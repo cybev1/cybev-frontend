@@ -1,17 +1,11 @@
-// components/social/GreetingWeatherStrip.jsx
-import React from 'react';
-
-export default function GreetingWeatherStrip({ greeting, message, weather }) {
+export default function GreetingWeatherStrip() {
   return (
-    <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-      <div>
-        <h1 className="text-xl font-bold">{greeting}</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400">{message}</p>
-      </div>
-      <div className="flex items-center">
-        <span className="text-2xl mr-2">{weather.icon}</span>
-        <span>{weather.temp}°F</span>
+    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow flex justify-between items-center mb-4">
+      <div className="text-lg font-semibold">Good morning, User!</div>
+      <div className="flex items-center space-x-2">
+        <span>72°F</span>
+        <span>Sunny</span>
       </div>
     </div>
-);
+  );
 }
