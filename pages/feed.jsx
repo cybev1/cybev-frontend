@@ -1,5 +1,7 @@
-import React from 'react';
+
+import React from 'react'; 
 import PostCard from '@/components/social/PostCard';
+import CyBevBotWidget from '@/components/social/CyBevBotWidget';
 
 export default function Feed() {
   const dummyPosts = [
@@ -22,11 +24,14 @@ export default function Feed() {
   ];
 
   return (
-    <div className="p-4 max-w-2xl mx-auto">
+    <div className="p-4 max-w-2xl mx-auto relative">
       <h1 className="text-2xl font-bold mb-4 text-center">🚀 CYBEV Feed Demo</h1>
       {dummyPosts.map((post) => (
         <PostCard key={post.id} post={post} />
       ))}
+
+      {/* ✅ Floating CyBev Bot Assistant */}
+      <CyBevBotWidget />
     </div>
   );
 }
