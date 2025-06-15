@@ -1,9 +1,10 @@
+// components/social/SuperBloggerBadge.jsx
 import React from 'react';
 
 export default function SuperBloggerBadge() {
   return (
-    <div className="p-2 bg-pink-100 rounded">
-      Super Blogger Badge
+    <div className="bg-blue-100 p-2 rounded-lg text-sm inline-block">
+      Super Blogger
     </div>
-  );
+);
 }

@@ -1,9 +1,10 @@
+// components/social/NewsTicker.jsx
 import React from 'react';
 
-export default function NewsTicker() {
+export default function NewsTicker({ headlines }) {
   return (
-    <div className="p-2 bg-gray-200 rounded">
-      News Ticker: Latest headlines...
-    </div>
-  );
+    <marquee className="bg-white dark:bg-gray-800 p-2 rounded-lg shadow">
+      {headlines.join(' • ')}
+    </marquee>
+);
 }

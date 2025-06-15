@@ -1,9 +1,10 @@
+// components/social/LiveNowStrip.jsx
 import React from 'react';
 
-export default function LiveNowStrip() {
+export default function LiveNowStrip({ stream }) {
   return (
-    <div className="bg-red-100 p-2 rounded">
-      <strong>Live Now:</strong> Admin is live – <a href="#" className="underline">Join Stream</a>
+    <div className="bg-red-100 p-4 rounded-lg shadow">
+      🔴 Live Now: {stream.title}
     </div>
-  );
+);
 }

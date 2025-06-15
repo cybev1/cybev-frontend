@@ -1,23 +1,22 @@
+// components/social/PostCard.jsx
 import React from 'react';
 
-export default function PostCard() {
+export default function PostCard({ post }) {
   return (
-    <div className="border p-4 rounded space-y-2">
-      <div className="flex justify-between">
-        <div className="font-bold">User Name</div>
-        <div className="text-sm text-gray-500">2h ago</div>
+    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow space-y-2">
+      <div className="flex items-center space-x-2">
+        <img src={post.avatar} alt={post.userName} className="w-8 h-8 rounded-full" />
+        <div>
+          <p className="font-semibold">{post.userName}</p>
+          <p className="text-xs text-gray-500">{post.time}</p>
+        </div>
       </div>
-      <div>This is a sample post content. It can include text, images, etc.</div>
-      <div className="flex justify-between text-sm text-gray-600">
-        <div>👍 10</div>
-        <div>💬 5</div>
-        <div>👀 20 views</div>
-      </div>
-      <div className="flex space-x-4 text-blue-600">
-        <button>Like</button>
-        <button>Comment</button>
-        <button>Share</button>
+      <p>{post.content}</p>
+      <div className="flex space-x-4 text-sm text-gray-600">
+        <span>👍 {post.likes}</span>
+        <span>💬 {post.comments}</span>
+        <span>🔄 {post.shares}</span>
       </div>
     </div>
-  );
+);
 }

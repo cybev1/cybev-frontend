@@ -1,16 +1,19 @@
+// components/social/PostComposer.jsx
 import React, { useState } from 'react';
 
 export default function PostComposer() {
   const [text, setText] = useState('');
+
   return (
-    <div className="border p-4 rounded space-y-2">
+    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
       <textarea
+        className="w-full p-2 border rounded"
+        rows={3}
+        placeholder="What's on your mind?"
         value={text}
         onChange={e => setText(e.target.value)}
-        placeholder="What's on your mind?"
-        className="w-full h-24 p-2 border rounded"
       />
-      <button className="bg-blue-600 text-white px-4 py-2 rounded">Post</button>
+      <button className="mt-2 px-4 py-2 bg-blue-600 text-white rounded">Post</button>
     </div>
-  );
+);
 }
