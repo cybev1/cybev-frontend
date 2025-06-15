@@ -3,10 +3,15 @@ import React, { useState } from 'react';
 export default function PostCard({ post }) {
   const [likes, setLikes] = useState(post.likes || 0);
   const [views, setViews] = useState(Math.floor(Math.random() * 100) + 1);
-  const [reactions, setReactions] = useState({ 👍: 2, ❤️: 1, 😂: 0, 😮: 0 });
+  const [reactions, setReactions] = useState({
+    '👍': 2,
+    '❤️': 1,
+    '😂': 0,
+    '😮': 0,
+  });
 
-  const handleReaction = emoji => {
-    setReactions(prev => ({ ...prev, [emoji]: prev[emoji] + 1 }));
+  const handleReaction = (emoji) => {
+    setReactions((prev) => ({ ...prev, [emoji]: prev[emoji] + 1 }));
   };
 
   return (
