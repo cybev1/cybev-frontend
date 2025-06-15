@@ -1,72 +1,64 @@
-// pages/feed.jsx
 import React, { useEffect, useState } from 'react';
-import LeftNav from '../components/social/LeftNav';
-import GreetingWeatherStrip from '../components/social/GreetingWeatherStrip';
-import StoriesCarousel from '../components/social/StoriesCarousel';
-import PinPostCard from '../components/social/PinPostCard';
-import SuperBloggerBadge from '../components/social/SuperBloggerBadge';
-import PostComposer from '../components/social/PostComposer';
-import LiveNowStrip from '../components/social/LiveNowStrip';
-import NewsTicker from '../components/social/NewsTicker';
-import PostCard from '../components/social/PostCard';
-import AdCard from '../components/social/AdCard';
-import SuggestionCard from '../components/social/SuggestionCard';
-import RightHub from '../components/social/RightHub';
+import LeftNav from '@/components/social/LeftNav';
+import GreetingWeatherStrip from '@/components/social/GreetingWeatherStrip';
+import StoriesCarousel from '@/components/social/StoriesCarousel';
+import PostComposer from '@/components/social/PostComposer';
+import PostCard from '@/components/social/PostCard';
+import RightHub from '@/components/social/RightHub';
+import CreateMenu from '@/components/social/CreateMenu';
+import CyBevBot from '@/components/social/CyBevBot';
 
 export default function Feed() {
-  const [greeting, setGreeting] = useState('');
-  const [message, setMessage] = useState('');
-  const [weather, setWeather] = useState({ temp: 72, icon: '☀️' });
+  const [posts, setPosts] = useState([]);
   const [stories, setStories] = useState([]);
-  const [liveStream, setLiveStream] = useState(null);
-  const [headlines, setHeadlines] = useState([]);
-  const [pinnedPost, setPinnedPost] = useState({ title: 'Welcome to CYBEV!', id: 'pin1' });
-  const [feed, setFeed] = useState([]);
-  const [rightData, setRightData] = useState({
-    followers: [{id:'u1', name:'Alice'}, {id:'u2', name:'Bob'}],
-    suggestions: [{id:'u3', name:'Charlie'}],
-    pages: [{id:'p1', name:'Tech News'}],
-    groups: [{id:'g1', name:'Developers'}],
-    events: [{id:'e1', title:'Launch Party'}]
-  });
+  const [streamStatus, setStreamStatus] = useState({});
+  const [earnings, setEarnings] = useState({ amount: 0 });
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
-    const hour = new Date().getHours();
-    let greet = 'Hello';
-    if (hour < 12) greet = 'Good morning';
-    else if (hour < 18) greet = 'Good afternoon';
-    else greet = 'Good evening';
-    setGreeting(`${greet}, Prince`);
-    setMessage('Today is a great day and you are winning!');
+    fetch('/api/feed')
+      .then(res => res.json())
+      .then(data => setPosts(data));
 
-    setStories([
-      { id: 'upload', userName: 'Your Story', avatar: null },
-      { id: 'u1', userName: 'Alice', avatar: '/default-avatar.png' }
-    ]);
-    setLiveStream({ id: 'admin', title: 'Admin Live Show' });
-    setHeadlines(['Breaking: New Feature!', 'Market Update: CYBV Up 5%']);
-    setFeed([
-      { id:'1', avatar:'/default-avatar.png', userName:'Alice', time:'1h', content:'Hello world!', likes:5, comments:2, shares:1 },
-      { id:'2', avatar:'/default-avatar.png', userName:'Bob', time:'2h', content:'Second mock post', likes:3, comments:0, shares:0 }
-    ]);
+    fetch('/api/stories')
+      .then(res => res.json())
+      .then(data => setStories(data));
+
+    fetch('/api/stream-status')
+      .then(res => res.json())
+      .then(data => setStreamStatus(data));
+
+    fetch('/api/earnings')
+      .then(res => res.json())
+      .then(data => setEarnings(data));
+
+    fetch('/api/notifications')
+      .then(res => res.json())
+      .then(data => setNotifications(data));
   }, []);
+
+  const handlePost = (text) => {
+    // You can POST to /api/posts here
+    console.log('Posting:', text);
+  };
 
   return (
     <div className="flex">
       <LeftNav />
-      <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen space-y-6">
-        <GreetingWeatherStrip greeting={greeting} message={message} weather={weather} />
-        <StoriesCarousel stories={stories} />
-        {liveStream && <LiveNowStrip stream={liveStream} />}
-        <NewsTicker headlines={headlines} />
-        <PinPostCard post={pinnedPost} />
-        <SuperBloggerBadge />
-        <PostComposer />
-        {feed.map(post => <PostCard key={post.id} post={post} />)}
-        <AdCard />
-        <SuggestionCard suggestion={{ title: 'People You May Know' }} />
-      </div>
-      <RightHub data={rightData} />
+      <main className="flex-1 px-4">
+        <GreetingWeatherStrip 
+          greeting="Good morning, Prince — Today is a great day!"
+          weather={{ temp: 72, icon: '☀️' }}
+        />
+        <StoriesCarousel stories={stories} streamStatus={streamStatus} />
+        <PostComposer onPost={handlePost} />
+        <div>
+          {posts.map(post => <PostCard key={post.id} post={post} />)}
+        </div>
+      </main>
+      <RightHub notifications={notifications} earnings={earnings} />
+      <CreateMenu />
+      <CyBevBot />
     </div>
 );
 }
