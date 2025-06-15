@@ -1,6 +1,9 @@
 import React from 'react';
 
-/** Badge for super blogger posts */
 export default function SuperBloggerBadge() {
-  return <span className="px-2 py-1 bg-purple-600 text-white text-xs rounded">Super Blogger</span>;
+  return (
+    <div className="p-2 inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full font-bold">
+      Super Blogger
+    </div>
+);
 }

@@ -1,8 +1,9 @@
 import React from 'react';
-export default function NewsTicker() {
+
+export default function NewsTicker({ headlines }) {
   return (
-    <div className="bg-gray-100 p-2 rounded-lg shadow overflow-hidden whitespace-nowrap">
-      📰 Latest: Blockchain adoption surges… 🌐 Crypto markets rebound…
+    <div className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow">
+      <marquee>{headlines.join(' • ')}</marquee>
     </div>
-  );
+);
 }

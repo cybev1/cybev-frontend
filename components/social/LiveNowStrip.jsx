@@ -1,13 +1,9 @@
 import React from 'react';
-import useSWR from 'swr';
-import axios from 'axios';
 
-const fetcher = url => axios.get(url).then(res => res.data);
-
-export default function LiveNowStrip() {
-  const { data } = useSWR('/api/live-status', fetcher);
-  if (!data || !data.isLive) return null;
+export default function LiveNowStrip({ stream }) {
   return (
-    <div className="bg-red-600 text-white text-center p-2 rounded-lg">🔴 Live Now: {data.streamTitle}</div>
-  );
+    <div className="p-2 bg-red-600 text-white rounded-lg text-center font-semibold">
+      🔴 LIVE NOW: {stream.title}
+    </div>
+);
 }

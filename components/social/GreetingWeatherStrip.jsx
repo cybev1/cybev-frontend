@@ -1,20 +1,16 @@
 import React from 'react';
-import useSWR from 'swr';
-import axios from 'axios';
 
-const fetcher = url => axios.get(url).then(res => res.data);
-
-export default function GreetingWeatherStrip() {
-  const { data, error } = useSWR('/api/weather/today', fetcher);
-
-  if (!data) return null;
+export default function GreetingWeatherStrip({ greeting, message, weather }) {
   return (
-    <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow">
-      <div className="text-lg">Good morning Prince — Today is a great day!</div>
-      <div className="flex items-center">
-        <div className="mr-2">{data.temperature}°C</div>
-        <img src={data.iconUrl} alt="weather icon" className="w-6 h-6" />
+    <div className="flex justify-between items-center p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+      <div>
+        <h2 className="text-lg font-semibold">{greeting}</h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400">{message}</p>
+      </div>
+      <div className="flex items-center space-x-2">
+        <span className="text-xl font-bold">{weather.temp}°</span>
+        <span className="text-2xl">{weather.icon}</span>
       </div>
     </div>
-  );
+);
 }

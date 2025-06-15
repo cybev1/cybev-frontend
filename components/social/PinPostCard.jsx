@@ -1,14 +1,9 @@
 import React from 'react';
-import useSWR from 'swr';
-import axios from 'axios';
-export default function PinPostCard() {
-  const fetcher = url => axios.get(url).then(res => res.data);
-  const { data } = useSWR('/api/posts/pinned', fetcher);
-  if (!data) return null;
+
+export default function PinPostCard({ post }) {
   return (
-    <div className="bg-yellow-100 p-4 rounded-lg shadow">
-      <div className="font-bold">📌 Pinned Post</div>
-      <div>{data.title}</div>
+    <div className="p-4 bg-yellow-100 dark:bg-yellow-900 rounded-lg shadow">
+      📌 {post.title}
     </div>
-  );
+);
 }
