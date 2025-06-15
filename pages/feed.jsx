@@ -1,55 +1,53 @@
-import React, { useState } from 'react';
+import React from 'react';
 import LeftNav from '../components/social/LeftNav';
 import GreetingWeatherStrip from '../components/social/GreetingWeatherStrip';
 import StoriesCarousel from '../components/social/StoriesCarousel';
-import LiveNowStrip from '../components/social/LiveNowStrip';
-import NewsTicker from '../components/social/NewsTicker';
-import PinPostCard from '../components/social/PinPostCard';
-import SuperBloggerBadge from '../components/social/SuperBloggerBadge';
-import PostComposer from '../components/social/PostComposer';
-import PostCard from '../components/social/PostCard';
-import AdCard from '../components/social/AdCard';
-import SuggestionCard from '../components/social/SuggestionCard';
-import RightHub from '../components/social/RightHub';
+import ViewsCounter from '../components/social/ViewsCounter';
+import ReactionPicker from '../components/social/ReactionPicker';
+import TokenActions from '../components/social/TokenActions';
 
-// Mock data
-const mockStories = [{ id: 1, title: 'Your Story' }, { id: 2, title: 'Friend Story' }];
-const mockFeedPosts = [
-  { id: 1, author: 'Alice', content: 'Hello world!' },
-  { id: 2, author: 'Bob', content: 'Another post.' }
+const mockStories = [{name: 'Alice'}, {name: 'Bob'}, {name: 'Carol'}];
+const mockPosts = [
+  {
+    id:1, author:'Alice', content:'Hello world!', views:123, reactions:{}, 
+  },
+  {id:2, author:'Bob', content:'Second post', views:45, reactions:{}},
 ];
-const rightHubData = {
-  friends: ['Alice', 'Bob'],
-  suggested: ['Charlie', 'Dana']
-};
 
 export default function Feed() {
-  const [greeting] = useState('Good morning, Prince');
-  const [message] = useState('Today is a great day!');
-  const [weather] = useState({ temp: 72, icon: '☀️' });
-  const [stories] = useState(mockStories);
-  const [liveStream] = useState({ title: 'Admin Live', streamer: 'Admin' });
-  const [headlines] = useState(['Breaking: CYBEV Launches New Feed!']);
-  const [pinnedPost] = useState({ id: 0, author: 'Admin', content: 'Welcome to CYBEV!' });
-  const [feed] = useState(mockFeedPosts);
-  const [rightData] = useState(rightHubData);
+  const userName = 'Prince';
+  const weather = { temp: 72, icon: '☀️' };
+
+  const handleReact = (emoji, postId) => console.log('Reacted', emoji, 'to', postId);
+  const handleMint = postId => console.log('Mint on', postId);
+  const handleStake = postId => console.log('Stake on', postId);
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen">
+    <div className="flex h-screen overflow-hidden">
       <LeftNav />
-      <div className="flex-1 p-4 overflow-y-auto space-y-4">
-        <GreetingWeatherStrip greeting={greeting} message={message} weather={weather} />
-        <StoriesCarousel stories={stories} />
-        <LiveNowStrip stream={liveStream} />
-        <NewsTicker headlines={headlines} />
-        <PinPostCard post={pinnedPost} />
-        <SuperBloggerBadge />
-        <PostComposer />
-        {feed.map(post => <PostCard key={post.id} post={post} />)}
-        <AdCard />
-        <SuggestionCard suggestion={{ title: 'People You May Know' }} />
+
+      <div className="flex-1 flex flex-col overflow-y-auto p-4">
+        <GreetingWeatherStrip userName={userName} weather={weather} />
+        <StoriesCarousel stories={mockStories} />
+
+        <div className="space-y-4">
+          {mockPosts.map(p => (
+            <div key={p.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+              <div className="flex justify-between">
+                <span className="font-semibold">{p.author}</span>
+                <ViewsCounter views={p.views} />
+              </div>
+              <div className="mt-2">{p.content}</div>
+              <div className="mt-2 flex items-center space-x-4">
+                <ReactionPicker onReact={emoji => handleReact(emoji, p.id)} />
+                <TokenActions onMint={() => handleMint(p.id)} onStake={() => handleStake(p.id)} />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-      <RightHub data={rightData} />
+
+      <div className="w-64 bg-gray-50 dark:bg-gray-900 p-4">{/* RightHub placeholder */}</div>
     </div>
-);
+  );
 }
