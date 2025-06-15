@@ -1,24 +1,48 @@
-import React from 'react';
 import LeftNav from '../components/social/LeftNav';
 import GreetingWeatherStrip from '../components/social/GreetingWeatherStrip';
-import StoriesCarousel from '../components/social/StoriesCarousel';
 import LiveNowStrip from '../components/social/LiveNowStrip';
+import StoriesCarousel from '../components/social/StoriesCarousel';
 import PostComposer from '../components/social/PostComposer';
-import PostCard from '../components/social/PostCard';
-import RightHub from '../components/social/RightHub';
+import FeedItem from '../components/social/FeedItem';
 
 export default function Feed() {
+  const dummyItems = [
+    {
+      id: 1,
+      user: { name: 'Alice', avatar: '/default-avatar.png' },
+      timestamp: '2h ago',
+      content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+      views: 120,
+      likes: 34,
+      comments: 5,
+      reactions: { '👍': 10, '❤️': 5, '😂': 3 },
+    },
+    {
+      id: 2,
+      user: { name: 'Bob', avatar: '/default-avatar.png' },
+      timestamp: '5h ago',
+      content: 'Praesent commodo cursus magna, vel scelerisque nisl consectetur.',
+      views: 89,
+      likes: 12,
+      comments: 2,
+      reactions: { '👍': 7, '🎉': 2 },
+    },
+  ];
+
   return (
-    <div className="flex flex-col md:flex-row h-screen">
-      <aside className="hidden md:block w-full md:w-1/4 border-r p-4"><LeftNav /></aside>
-      <main className="flex-1 overflow-auto p-4 space-y-4">
+    <div className="flex min-h-screen">
+      <LeftNav />
+      <main className="flex-1 bg-gray-50 dark:bg-gray-900 p-4">
         <GreetingWeatherStrip />
-        <StoriesCarousel />
         <LiveNowStrip />
+        <StoriesCarousel />
         <PostComposer />
-        {[1,2,3].map(i => <PostCard key={i} />)}
+        <div className="space-y-4 mt-4">
+          {dummyItems.map(item => (
+            <FeedItem key={item.id} {...item} />
+          ))}
+        </div>
       </main>
-      <aside className="hidden lg:block w-full lg:w-1/4 border-l p-4"><RightHub /></aside>
     </div>
   );
 }
