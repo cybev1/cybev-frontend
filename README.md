@@ -1,17 +1,8 @@
+# Phase 2 UI Stubs
 
-# Dark Mode Integration for CYBEV
+These are stub components for:
+- ReactionPicker.jsx
+- ViewsCounter.jsx
+- TokenActions.jsx
 
-## 1. Update Tailwind Config
-In `tailwind.config.js`, set:
-darkMode: 'class'
-
-## 2. Apply Conditional Class
-In `_app.js` or `index.js`, wrap layout:
-<html className={darkMode ? 'dark' : ''}>
-
-## 3. Use Toggle
-Drop this inside any layout or page:
-import ThemeToggle from '../components/ThemeToggle';
-<ThemeToggle />
-
-User preference is saved in `localStorage` and synced with system default.
+Place these under `components/social/` and integrate them in your `PostCard.jsx` or `PostComposer.jsx` as needed.
