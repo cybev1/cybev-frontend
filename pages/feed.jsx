@@ -21,6 +21,7 @@ export default function Feed() {
   const firstName = 'Prince';
 
   useEffect(() => {
+    // Greeting logic
     const hour = new Date().getHours();
     let greet = 'Hello';
     if (hour < 12) greet = 'Good morning';
@@ -55,11 +56,6 @@ export default function Feed() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 py-6">
-      {/* Greeting */}
-      <div className="p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{greeting}</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">{message}</p>
-      </div>
 
       {/* Stories Carousel */}
       <div className="bg-white dark:bg-gray-800 shadow rounded-2xl p-4 overflow-x-auto whitespace-nowrap">
@@ -71,11 +67,11 @@ export default function Feed() {
               whileHover={{ scale: 1.05 }}
             >
               {story.type === 'upload' ? (
-                <div className="w-20 h-32 bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center cursor-pointer">
+                <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center cursor-pointer">
                   <PlusIcon className="w-6 h-6 text-gray-600 dark:text-gray-300" />
                 </div>
               ) : (
-                <div className="w-20 h-32 rounded-xl overflow-hidden border-2 border-blue-500 p-1 cursor-pointer">
+                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-blue-500 p-1 cursor-pointer">
                   <img src={story.avatar} alt={story.userName} className="w-full h-full object-cover" />
                 </div>
               )}
@@ -87,14 +83,16 @@ export default function Feed() {
         </div>
       </div>
 
-      {/* Post Box */}
-      <motion.div className="bg-white dark:bg-gray-800 shadow rounded-2xl p-4">
-        <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg cursor-text">
+      {/* Greeting & Post Box */}
+      <motion.div className="bg-white dark:bg-gray-800 shadow rounded-2xl p-4 space-y-2">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{greeting}</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400">{message}</p>
+        <div className="mt-2 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg cursor-text">
           What's on your mind today?
         </div>
       </motion.div>
 
-      {/* Feed posts */}
+      {/* Feed */}
       <InfiniteScroll
         dataLength={feed.length}
         next={fetchFeed}
@@ -104,7 +102,7 @@ export default function Feed() {
         {feed.map(post => (
           <div
             key={post.id}
-            className="mb-6 p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg transform hover:-translate-y-1 transition"
+            className="mb-6 p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg transition transform hover:-translate-y-1"
           >
             <h2 className="text-lg font-semibold mb-2">{post.title}</h2>
             <p className="text-gray-700 dark:text-gray-300 mb-4">{post.content}</p>
