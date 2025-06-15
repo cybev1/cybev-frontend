@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { HeartIcon, EyeIcon, ChatIcon } from '@heroicons/react/24/outline';
+import { HeartIcon, EyeIcon } from '@heroicons/react/24/outline';
 
 export default function FeedItem({ user, timestamp, content, views, likes, comments, reactions }) {
   const [liked, setLiked] = useState(false);
@@ -19,7 +19,7 @@ export default function FeedItem({ user, timestamp, content, views, likes, comme
         <div onClick={handleLike} className="flex items-center space-x-1 cursor-pointer">
           <HeartIcon className={`w-5 h-5 ${liked ? 'text-red-500' : ''}`} /><span>{likes + (liked ? 1 : 0)}</span>
         </div>
-        <div className="flex items-center space-x-1"><ChatIcon className="w-5 h-5" /><span>{comments}</span></div>
+        <div className="flex items-center space-x-1"><span>💬</span><span>{comments}</span></div>
       </div>
       <div className="flex space-x-2">
         {Object.entries(reactions).map(([emoji, count]) => (
