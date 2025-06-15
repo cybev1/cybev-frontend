@@ -1,8 +1,10 @@
+
 import React from 'react';
 import PostCard from '@/components/social/PostCard';
 import CyBevBotWidget from '@/components/social/CyBevBotWidget';
 import LiveNowStrip from '@/components/social/LiveNowStrip';
 import PostComposer from '@/components/social/PostComposer';
+import SuperBloggerCard from '@/components/social/SuperBloggerCard';
 
 export default function Feed() {
   const dummyPosts = [
@@ -30,6 +32,7 @@ export default function Feed() {
 
       <LiveNowStrip />
       <PostComposer />
+      <SuperBloggerCard />
 
       {dummyPosts.map((post) => (
         <PostCard key={post.id} post={post} />
