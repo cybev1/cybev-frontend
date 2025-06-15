@@ -1,12 +1,13 @@
+
 import React from 'react';
 
 export default function SponsoredAdCard() {
   return (
-    <div className="bg-yellow-100 dark:bg-yellow-900 border border-yellow-300 dark:border-yellow-600 p-4 rounded-lg shadow my-4">
-      <div className="font-bold text-yellow-800 dark:text-yellow-100 mb-2">Sponsored</div>
-      <p className="text-sm text-gray-700 dark:text-gray-300">
-        Advertise your product or service here on CYBEV. Reach a vibrant community of digital creators.
-      </p>
+    <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 p-4 rounded-lg shadow-sm mb-4">
+      <div className="text-xs uppercase font-bold text-yellow-600 mb-1">Sponsored</div>
+      <div className="font-semibold text-sm mb-2">Boost Your Brand with CYBEV!</div>
+      <img src="/sample-ad-banner.jpg" alt="Ad Banner" className="w-full h-32 object-cover rounded mb-2" />
+      <a href="#" className="text-blue-600 text-sm underline hover:text-blue-800">Learn More</a>
     </div>
   );
 }
