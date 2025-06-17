@@ -1,8 +1,13 @@
 
 import React from 'react';
 import DiscoveryCards from '@/components/DiscoveryCards';
+import AnalyticsChart from '@/components/AnalyticsChart';
 
 const AnalyticsPage = () => {
+  const exportToExcel = () => {
+    window.open('/downloads/Admin_Analytics_Report.xlsx', '_blank');
+  };
+
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">📊 Admin Analytics Dashboard</h1>
@@ -10,6 +15,10 @@ const AnalyticsPage = () => {
       <section>
         <h2 className="text-xl font-semibold mb-2">Discovery Section</h2>
         <DiscoveryCards />
+      </section>
+
+      <section>
+        <AnalyticsChart />
       </section>
 
       <section className="mt-8">
@@ -33,6 +42,15 @@ const AnalyticsPage = () => {
           </div>
         </div>
       </section>
+
+      <div className="pt-4">
+        <button
+          onClick={exportToExcel}
+          className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition"
+        >
+          📤 Export Report
+        </button>
+      </div>
     </div>
   );
 };
