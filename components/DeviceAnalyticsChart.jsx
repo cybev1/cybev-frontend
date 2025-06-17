@@ -8,7 +8,7 @@ const DeviceAnalyticsChart = ({ data = [], loading }) => {
   if (loading) return <p className="text-gray-500 dark:text-gray-400">Loading device analytics...</p>;
 
   const pieData = data.map((d, i) => ({
-    name: \`\${d.platform} - \${d.browser}\`,
+    name: `${d.platform} - ${d.browser}`,
     value: d.count,
     color: COLORS[i % COLORS.length]
   }));
@@ -28,7 +28,7 @@ const DeviceAnalyticsChart = ({ data = [], loading }) => {
             label
           >
             {pieData.map((entry, index) => (
-              <Cell key={\`cell-\${index}\`} fill={entry.color} />
+              <Cell key={`cell-${index}`} fill={entry.color} />
             ))}
           </Pie>
           <Tooltip />

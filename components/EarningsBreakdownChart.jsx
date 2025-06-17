@@ -28,7 +28,7 @@ const EarningsBreakdownChart = ({ data = [], loading }) => {
             label
           >
             {pieData.map((entry, index) => (
-              <Cell key={\`cell-\${index}\`} fill={entry.color} />
+              <Cell key={`cell-${index}`} fill={entry.color} />
             ))}
           </Pie>
           <Tooltip />
