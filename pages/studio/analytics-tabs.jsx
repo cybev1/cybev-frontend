@@ -13,12 +13,12 @@ const AnalyticsTabs = () => {
   const [endDate, setEndDate] = useState('2025-06-14');
 
   const tabStyle = (tab) =>
-    \`px-4 py-2 rounded-t-lg font-medium text-sm \${activeTab === tab
+    `px-4 py-2 rounded-t-lg font-medium text-sm ${activeTab === tab
       ? 'bg-blue-600 text-white'
-      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}\`;
+      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`;
 
   const downloadReport = () => {
-    const url = \`/api/analytics/report?start=\${startDate}&end=\${endDate}\`;
+    const url = `/api/analytics/report?start=${startDate}&end=${endDate}`;
     window.open(url, '_blank');
   };
 
