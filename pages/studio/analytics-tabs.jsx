@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 
 const OverviewTab = dynamic(() => import('@/pages/studio/analytics'));
 const GeoTab = dynamic(() => import('@/pages/studio/analytics-geo'));
+const DeviceTab = dynamic(() => import('@/pages/studio/analytics-device'));
 
 const AnalyticsTabs = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -25,9 +26,7 @@ const AnalyticsTabs = () => {
       <div className="rounded-xl bg-white dark:bg-gray-900 p-4 shadow-md">
         {activeTab === 'overview' && <OverviewTab />}
         {activeTab === 'geo' && <GeoTab />}
-        {activeTab === 'device' && (
-          <p className="text-gray-600 dark:text-gray-300">Coming soon...</p>
-        )}
+        {activeTab === 'device' && <DeviceTab />}
       </div>
     </div>
   );
