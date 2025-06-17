@@ -1,19 +1,50 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import DiscoveryCards from '@/components/DiscoveryCards';
 import AnalyticsChart from '@/components/AnalyticsChart';
 
 const AnalyticsPage = () => {
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
   const exportToExcel = () => {
     window.open('/downloads/Admin_Analytics_Report.xlsx', '_blank');
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">📊 Admin Analytics Dashboard</h1>
+    <div className="p-6 space-y-6 dark:bg-black dark:text-white min-h-screen">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">📊 Admin Analytics Dashboard</h1>
+        <button
+          onClick={exportToExcel}
+          className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition"
+        >
+          📤 Export Report
+        </button>
+      </div>
+
+      <div className="flex gap-4 items-center">
+        <div>
+          <label className="block text-sm font-medium mb-1">Start Date</label>
+          <input
+            type="date"
+            className="px-3 py-2 rounded-lg border dark:border-gray-700 dark:bg-gray-900"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">End Date</label>
+          <input
+            type="date"
+            className="px-3 py-2 rounded-lg border dark:border-gray-700 dark:bg-gray-900"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+          />
+        </div>
+      </div>
 
       <section>
-        <h2 className="text-xl font-semibold mb-2">Discovery Section</h2>
         <DiscoveryCards />
       </section>
 
@@ -42,15 +73,6 @@ const AnalyticsPage = () => {
           </div>
         </div>
       </section>
-
-      <div className="pt-4">
-        <button
-          onClick={exportToExcel}
-          className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition"
-        >
-          📤 Export Report
-        </button>
-      </div>
     </div>
   );
 };
