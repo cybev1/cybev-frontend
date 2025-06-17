@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-export default function ManualReportTrigger() {
+export default function ManualReportTrigger({ userRole = 'admin' }) {
   const [loading, setLoading] = useState(false);
   const [start, setStart] = useState('2025-06-10');
   const [end, setEnd] = useState('2025-06-17');
@@ -25,9 +25,11 @@ export default function ManualReportTrigger() {
     setLoading(false);
   };
 
+  if (userRole !== 'super-admin') return null;
+
   return (
     <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md mt-6 space-y-4">
-      <h2 className="text-lg font-semibold">🚀 Manually Trigger Report</h2>
+      <h2 className="text-lg font-semibold">🚀 Manually Trigger Report (Super Admin)</h2>
       <div className="flex flex-wrap gap-3 items-center">
         <input type="date" value={start} onChange={(e) => setStart(e.target.value)}
           className="px-3 py-2 rounded border dark:bg-gray-900 dark:border-gray-700" />
