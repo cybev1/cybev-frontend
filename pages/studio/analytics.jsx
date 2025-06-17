@@ -2,10 +2,12 @@
 import React, { useState } from 'react';
 import DiscoveryCards from '@/components/DiscoveryCards';
 import AnalyticsChart from '@/components/AnalyticsChart';
+import { useAnalyticsData } from '@/hooks/useAnalyticsData';
 
 const AnalyticsPage = () => {
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState('2025-06-01');
+  const [endDate, setEndDate] = useState('2025-06-14');
+  const { data, totals, loading } = useAnalyticsData(startDate, endDate);
 
   const exportToExcel = () => {
     window.open('/downloads/Admin_Analytics_Report.xlsx', '_blank');
@@ -49,7 +51,7 @@ const AnalyticsPage = () => {
       </section>
 
       <section>
-        <AnalyticsChart />
+        <AnalyticsChart data={data} loading={loading} />
       </section>
 
       <section className="mt-8">
@@ -57,19 +59,19 @@ const AnalyticsPage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white dark:bg-gray-800 shadow-md rounded-2xl p-4">
             <p className="text-sm text-gray-500 dark:text-gray-300">New Users</p>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white">28</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">{totals.users}</h3>
           </div>
           <div className="bg-white dark:bg-gray-800 shadow-md rounded-2xl p-4">
             <p className="text-sm text-gray-500 dark:text-gray-300">Posts Created</p>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white">90</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">{totals.posts}</h3>
           </div>
           <div className="bg-white dark:bg-gray-800 shadow-md rounded-2xl p-4">
             <p className="text-sm text-gray-500 dark:text-gray-300">Earnings</p>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white">$260</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">${totals.earnings}</h3>
           </div>
           <div className="bg-white dark:bg-gray-800 shadow-md rounded-2xl p-4">
             <p className="text-sm text-gray-500 dark:text-gray-300">Total Views</p>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white">1,700</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">{totals.views}</h3>
           </div>
         </div>
       </section>
