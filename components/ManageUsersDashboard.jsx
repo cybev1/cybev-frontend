@@ -8,7 +8,6 @@ export default function ManageUsersDashboard({ userRole = 'super-admin' }) {
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
 
   useEffect(() => {
     if (userRole !== 'super-admin') return;
@@ -20,16 +19,16 @@ export default function ManageUsersDashboard({ userRole = 'super-admin' }) {
       });
   }, [userRole]);
 
-  const handleRoleChange = async (email, newRole) => {
+  const handleStatusToggle = async (email, current) => {
     try {
-      const res = await fetch('/api/users/promote-user', {
-        method: 'POST',
+      const res = await fetch('/api/users/toggle-status', {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, role: newRole }),
+        body: JSON.stringify({ email, isActive: !current }),
       });
       if (res.ok) {
         setUsers((prev) =>
-          prev.map((u) => (u.email === email ? { ...u, role: newRole } : u))
+          prev.map((u) => (u.email === email ? { ...u, isActive: !current } : u))
         );
       }
     } catch (err) {
@@ -37,10 +36,7 @@ export default function ManageUsersDashboard({ userRole = 'super-admin' }) {
     }
   };
 
-  const filtered = users
-    .filter((u) => (filter === 'all' ? true : u.role === filter))
-    .filter((u) => u.email.includes(search) || (u.username || '').includes(search));
-
+  const filtered = users.filter((u) => filter === 'all' || u.role === filter);
   const totalPages = Math.ceil(filtered.length / limit);
   const paginated = filtered.slice((page - 1) * limit, page * limit);
 
@@ -50,14 +46,7 @@ export default function ManageUsersDashboard({ userRole = 'super-admin' }) {
     <div className="mt-8 bg-white dark:bg-gray-900 rounded-xl shadow p-6">
       <h2 className="text-xl font-bold mb-4 text-purple-600">📋 Manage Users</h2>
 
-      <div className="flex flex-wrap gap-3 mb-4">
-        <input
-          type="text"
-          placeholder="Search by email or username"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
-        />
+      <div className="mb-4 flex gap-3 items-center">
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
@@ -81,8 +70,8 @@ export default function ManageUsersDashboard({ userRole = 'super-admin' }) {
                 <th className="py-2">Email</th>
                 <th>Username</th>
                 <th>Role</th>
+                <th>Status</th>
                 <th>Joined</th>
-                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -90,20 +79,20 @@ export default function ManageUsersDashboard({ userRole = 'super-admin' }) {
                 <tr key={user._id} className="border-b dark:border-gray-800">
                   <td className="py-2">{user.email}</td>
                   <td>{user.username || '—'}</td>
+                  <td><UserBadge role={user.role} /></td>
                   <td>
-                    <select
-                      value={user.role}
-                      onChange={(e) => handleRoleChange(user.email, e.target.value)}
-                      className="bg-transparent p-1 text-xs rounded border dark:border-gray-600"
+                    <button
+                      onClick={() => handleStatusToggle(user.email, user.isActive)}
+                      className={`px-2 py-1 rounded text-xs ${
+                        user.isActive
+                          ? 'bg-green-600 text-white'
+                          : 'bg-red-600 text-white'
+                      }`}
                     >
-                      <option value="user">User</option>
-                      <option value="moderator">Moderator</option>
-                      <option value="admin">Admin</option>
-                      <option value="super-admin">Super Admin</option>
-                    </select>
+                      {user.isActive ? 'Active' : 'Inactive'}
+                    </button>
                   </td>
                   <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                  <td><UserBadge role={user.role} /></td>
                 </tr>
               ))}
             </tbody>
