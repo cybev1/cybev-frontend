@@ -10,7 +10,7 @@ export default function UserBadge({ role }) {
   };
 
   return (
-    <span className={\`text-xs text-white px-2 py-1 rounded \${roleColors[role] || 'bg-gray-500'}\`}>
+    <span className={`text-xs text-white px-2 py-1 rounded ${roleColors[role] || 'bg-gray-500'}`}>
       {role}
     </span>
   );
