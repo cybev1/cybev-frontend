@@ -8,6 +8,7 @@ export default function ManageUsersDashboard({ userRole = 'super-admin' }) {
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     if (userRole !== 'super-admin') return;
@@ -19,28 +20,29 @@ export default function ManageUsersDashboard({ userRole = 'super-admin' }) {
       });
   }, [userRole]);
 
-  const filtered = filter === 'all' ? users : users.filter((u) => u.role === filter);
+  const handleRoleChange = async (email, newRole) => {
+    try {
+      const res = await fetch('/api/users/promote-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, role: newRole }),
+      });
+      if (res.ok) {
+        setUsers((prev) =>
+          prev.map((u) => (u.email === email ? { ...u, role: newRole } : u))
+        );
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const filtered = users
+    .filter((u) => (filter === 'all' ? true : u.role === filter))
+    .filter((u) => u.email.includes(search) || (u.username || '').includes(search));
+
   const totalPages = Math.ceil(filtered.length / limit);
   const paginated = filtered.slice((page - 1) * limit, page * limit);
-
-  const exportCSV = () => {
-    const header = ['Email', 'Username', 'Role', 'Joined'];
-    const rows = filtered.map((u) => [
-      u.email,
-      u.username || '',
-      u.role,
-      new Date(u.createdAt).toLocaleDateString()
-    ]);
-    const csvContent = [header, ...rows].map(e => e.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'cybev-users.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   if (userRole !== 'super-admin') return null;
 
@@ -48,7 +50,14 @@ export default function ManageUsersDashboard({ userRole = 'super-admin' }) {
     <div className="mt-8 bg-white dark:bg-gray-900 rounded-xl shadow p-6">
       <h2 className="text-xl font-bold mb-4 text-purple-600">📋 Manage Users</h2>
 
-      <div className="mb-4 flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap gap-3 mb-4">
+        <input
+          type="text"
+          placeholder="Search by email or username"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+        />
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
@@ -60,9 +69,6 @@ export default function ManageUsersDashboard({ userRole = 'super-admin' }) {
           <option value="admin">Admins</option>
           <option value="super-admin">Super Admins</option>
         </select>
-        <button onClick={exportCSV} className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
-          ⬇ Export CSV
-        </button>
       </div>
 
       {loading ? (
@@ -76,6 +82,7 @@ export default function ManageUsersDashboard({ userRole = 'super-admin' }) {
                 <th>Username</th>
                 <th>Role</th>
                 <th>Joined</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -83,8 +90,20 @@ export default function ManageUsersDashboard({ userRole = 'super-admin' }) {
                 <tr key={user._id} className="border-b dark:border-gray-800">
                   <td className="py-2">{user.email}</td>
                   <td>{user.username || '—'}</td>
-                  <td><UserBadge role={user.role} /></td>
+                  <td>
+                    <select
+                      value={user.role}
+                      onChange={(e) => handleRoleChange(user.email, e.target.value)}
+                      className="bg-transparent p-1 text-xs rounded border dark:border-gray-600"
+                    >
+                      <option value="user">User</option>
+                      <option value="moderator">Moderator</option>
+                      <option value="admin">Admin</option>
+                      <option value="super-admin">Super Admin</option>
+                    </select>
+                  </td>
                   <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                  <td><UserBadge role={user.role} /></td>
                 </tr>
               ))}
             </tbody>
