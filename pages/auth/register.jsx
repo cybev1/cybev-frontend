@@ -35,7 +35,7 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(\`\${API_BASE}/auth/register\`, form);
+      const res = await axios.post(`${API_BASE}/auth/register`, form);
       if (res.data.token) {
         localStorage.setItem('cybev_user_token', res.data.token);
         router.push('/studio/dashboard');
