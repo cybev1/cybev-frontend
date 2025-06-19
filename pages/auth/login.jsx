@@ -10,7 +10,7 @@ const API_BASE = 'https://api.cybev.io/api/auth';
 
 export default function Login() {
   const router = useRouter();
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ identifier: '', password: '' }); // Accepts email or username
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
@@ -43,7 +43,7 @@ export default function Login() {
           <h2 className="text-2xl font-bold text-center text-blue-700 dark:text-white mb-6">Login to CYBEV</h2>
           {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
           <form onSubmit={handleSubmit} className="space-y-4">
-            <input type="email" name="email" placeholder="Email" value={form.email} onChange={handleChange} required className="input" />
+            <input type="text" name="identifier" placeholder="Email or Username" value={form.identifier} onChange={handleChange} required className="input" />
             <div className="relative">
               <input type={showPassword ? "text" : "password"} name="password" placeholder="Password" value={form.password} onChange={handleChange} required className="input pr-10" />
               <span onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 cursor-pointer">
@@ -53,7 +53,7 @@ export default function Login() {
             <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">Login</button>
           </form>
           <p className="text-sm text-center text-gray-600 dark:text-gray-300 mt-4">
-            Don’t have an account? <Link href="/register" className="text-blue-600 hover:underline">Register</Link>
+            Don’t have an account? <Link href="/auth/register" className="text-blue-600 hover:underline">Register</Link>
           </p>
         </div>
       </div>

@@ -34,6 +34,15 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!form.username || form.username.length < 3) {
+      return setError("Username must be at least 3 characters long.");
+    }
+
+    if (!form.password || form.password.length < 6) {
+      return setError("Password must be at least 6 characters.");
+    }
+
     try {
       const res = await axios.post(`${API_BASE}/register`, form);
       if (res.data.token) {
@@ -69,7 +78,7 @@ export default function Register() {
             <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">Register</button>
           </form>
           <p className="text-sm text-center text-gray-600 dark:text-gray-300 mt-4">
-            Already have an account? <Link href="/login" className="text-blue-600 hover:underline">Login</Link>
+            Already have an account? <Link href="/auth/login" className="text-blue-600 hover:underline">Login</Link>
           </p>
         </div>
       </div>
