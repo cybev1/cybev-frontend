@@ -6,7 +6,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/solid';
 
-const API_BASE = 'https://api.cybev.io';
+const API_BASE = 'https://api.cybev.io/api/auth';
 
 export default function Register() {
   const router = useRouter();
@@ -35,7 +35,7 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${API_BASE}/auth/register`, form);
+      const res = await axios.post(`${API_BASE}/register`, form);
       if (res.data.token) {
         localStorage.setItem('cybev_user_token', res.data.token);
         localStorage.setItem('cybev_username', res.data.username || form.username);
