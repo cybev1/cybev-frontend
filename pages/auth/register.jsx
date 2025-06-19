@@ -38,6 +38,7 @@ export default function Register() {
       const res = await axios.post(`${API_BASE}/auth/register`, form);
       if (res.data.token) {
         localStorage.setItem('cybev_user_token', res.data.token);
+        localStorage.setItem('cybev_username', res.data.username || form.username);
         router.push('/studio/dashboard');
       }
     } catch (err) {

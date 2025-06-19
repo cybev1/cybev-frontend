@@ -25,6 +25,7 @@ export default function Login() {
       const res = await axios.post(`${API_BASE}/auth/login`, form);
       if (res.data.token) {
         localStorage.setItem('cybev_user_token', res.data.token);
+        localStorage.setItem('cybev_username', res.data.username || 'Creator');
         router.push('/studio/dashboard');
       }
     } catch (err) {
