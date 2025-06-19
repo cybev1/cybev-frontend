@@ -25,30 +25,23 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('cybev_user_token');
-    if (isLoggedIn) {
-      router.push('/studio/dashboard');
-    }
-  }, []);
-
-  useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
   const handleGetStarted = () => {
     const ref = router.query.ref;
     if (ref) localStorage.setItem('cybev_ref', ref);
-    router.push('/register');
+    router.push('/auth/register');
   };
 
   return (
     <>
       <SeoHead />
       <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-black transition duration-500 overflow-hidden">
-        
-<nav className="w-full fixed top-0 left-0 z-50 flex justify-between items-center px-6 py-4 shadow-sm backdrop-blur-md bg-white/70 dark:bg-black/70">
-          <div className="text-xl font-bold text-blue-700 dark:text-white">CYBEV</div>
-
+        <nav className="w-full fixed top-0 left-0 z-50 flex justify-between items-center px-6 py-4 shadow-sm backdrop-blur-md bg-white/70 dark:bg-black/70">
+          <Link href="/">
+            <div className="text-xl font-bold text-blue-700 dark:text-white">CYBEV.IO</div>
+          </Link>
           <div className="md:flex hidden items-center gap-6">
             <Link href="/features" className="nav-link">Features</Link>
             <Link href="/setup" className="nav-link">Create a Blog</Link>
@@ -61,7 +54,6 @@ export default function Home() {
               {theme === 'dark' ? <SunIcon className="w-5 h-5 text-yellow-400" /> : <MoonIcon className="w-5 h-5 text-gray-700" />}
             </button>
           </div>
-
           <div className="md:hidden flex items-center gap-3">
             <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
               {theme === 'dark' ? <SunIcon className="w-5 h-5 text-yellow-400" /> : <MoonIcon className="w-5 h-5 text-gray-700" />}
@@ -70,7 +62,6 @@ export default function Home() {
               {menuOpen ? <XMarkIcon className="w-6 h-6 text-gray-800 dark:text-white" /> : <Bars3Icon className="w-6 h-6 text-gray-800 dark:text-white" />}
             </button>
           </div>
-
           {menuOpen && (
             <div className="absolute top-16 left-0 w-full bg-white dark:bg-gray-900 flex flex-col items-start gap-4 p-6 shadow-lg z-40 md:hidden">
               <Link href="/features" className="nav-link">Features</Link>
@@ -83,7 +74,6 @@ export default function Home() {
             </div>
           )}
         </nav>
-
         <div className="flex flex-col justify-center items-center text-center px-6 pt-44 pb-28 space-y-8">
           <motion.div
             initial={{ opacity: 0, y: -40 }}
