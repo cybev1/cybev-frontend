@@ -5,7 +5,6 @@ export default function FollowButton({ targetUsername }) {
   const currentUser = typeof window !== 'undefined' ? localStorage.getItem('cybev_username') : null;
 
   useEffect(() => {
-    // Simulated check (could be replaced with an API check)
     fetch('/api/users/following')
       .then(res => res.json())
       .then(data => {
@@ -28,7 +27,9 @@ export default function FollowButton({ targetUsername }) {
   return (
     <button
       onClick={toggleFollow}
-      className={\`px-3 py-1 text-sm rounded-lg \${isFollowing ? 'bg-gray-300 dark:bg-gray-700' : 'bg-blue-600 text-white hover:bg-blue-700'}\`}
+      className={`px-3 py-1 text-sm rounded-lg ${
+        isFollowing ? 'bg-gray-300 dark:bg-gray-700' : 'bg-blue-600 text-white hover:bg-blue-700'
+      }`}
     >
       {isFollowing ? 'Unfollow' : 'Follow'}
     </button>
