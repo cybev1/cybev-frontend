@@ -1,24 +1,15 @@
-import React from 'react';
-import useSWR from 'swr';
-import axios from 'axios';
-import { BellIcon } from 'lucide-react';
+import { BellIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
 
-const fetcher = url => axios.get(url).then(res => res.data);
-
-export default function NotificationBell() {
-  const { data, error } = useSWR('/api/notifications/unread-count', fetcher);
-
-  if (error) return null;
-  if (!data) return null;
-
+export default function NotificationBell({ count = 0 }) {
   return (
-    <div className="relative p-2">
-      <BellIcon className="w-6 h-6 text-gray-600 dark:text-gray-300" />
-      {data.count > 0 && (
-        <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
-          {data.count}
+    <Link href="/studio/notifications" className="relative">
+      <BellIcon className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+      {count > 0 && (
+        <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+          {count}
         </span>
       )}
-    </div>
+    </Link>
   );
 }
