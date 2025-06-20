@@ -1,4 +1,4 @@
-import FollowButton from './FollowButton';
+import FollowButton from '@/components/social/FollowButton';
 
 export default function SuggestedFollowers({ users = [] }) {
   return (
