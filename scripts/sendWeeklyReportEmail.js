@@ -2,11 +2,12 @@
 const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
+const logActivity = require('../utils/logActivity');
 
 const reportPath = path.join(__dirname, '../reports/weekly-report.pdf');
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail', // Use your provider or custom SMTP settings
+  service: 'gmail',
   auth: {
     user: process.env.EMAIL_USERNAME,
     pass: process.env.EMAIL_PASSWORD
@@ -31,14 +32,19 @@ const mailOptions = {
 async function sendReport() {
   try {
     if (!fs.existsSync(reportPath)) {
+      logActivity('Report Email', '❌ Report not found');
       console.error('❌ Report not found at', reportPath);
       return;
     }
 
     const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Report email sent:', info.messageId);
+    const detail = `✅ Report email sent to: ${recipients.join(', ')} | ID: ${info.messageId}`;
+    logActivity('Report Email', detail);
+    console.log(detail);
   } catch (err) {
-    console.error('❌ Failed to send email:', err.message);
+    const errorMsg = `❌ Failed to send email: ${err.message}`;
+    logActivity('Report Email', errorMsg);
+    console.error(errorMsg);
   }
 }
 
