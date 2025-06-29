@@ -1,5 +1,5 @@
 {
-  "name": "cybev-frontend",
+  "name": "cybev-landing",
   "version": "1.0.0",
   "scripts": {
     "dev": "next dev",
@@ -7,14 +7,12 @@
     "start": "next start"
   },
   "dependencies": {
+    "autoprefixer": "^10.4.14",
+    "framer-motion": "^10.16.4",
     "next": "13.4.12",
+    "postcss": "^8.4.21",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "tailwindcss": "^3.4.1",
-    "postcss": "^8.4.21",
-    "autoprefixer": "^10.4.13",
-    "framer-motion": "^10.16.1",
-    "axios": "^1.6.0",
-    "@heroicons/react": "^2.0.18"
+    "tailwindcss": "^3.4.1"
   }
 }

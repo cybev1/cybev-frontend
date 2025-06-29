@@ -1,7 +1,16 @@
+/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./pages/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['Poppins', 'sans-serif'],
+      },
+      colors: {
+        'cybev-dark': '#0b0c2a',
+        'cybev-purple': '#6610f2',
+      },
+    },
   },
   plugins: [],
 }
