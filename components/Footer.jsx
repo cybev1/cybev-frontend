@@ -1,7 +1,6 @@
-
 export default function Footer() {
   return (
-    <footer className="text-center py-6 bg-gray-800 text-white">
+    <footer className="py-6 text-center border-t border-gray-800 text-gray-400">
       <p>© 2025 CYBEV. All rights reserved.</p>
     </footer>
   );
