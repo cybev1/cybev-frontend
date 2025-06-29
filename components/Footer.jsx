@@ -1,0 +1,1 @@
+<footer className='p-5 text-center text-sm'>© 2025 CYBEV.IO</footer>

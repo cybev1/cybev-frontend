@@ -1,0 +1,1 @@
+<nav className='p-4 bg-white shadow-md sticky top-0 z-50'>Navbar</nav>
