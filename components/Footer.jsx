@@ -1,11 +1,7 @@
-import React from 'react';
-
-function Footer() {
+export default function Footer() {
   return (
-    <footer className="text-center py-6 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 mt-10">
-      <p>&copy; {new Date().getFullYear()} CYBEV.IO. All rights reserved.</p>
+    <footer className="text-center py-8 text-sm text-gray-500 dark:text-gray-400">
+      &copy; {new Date().getFullYear()} CYBEV. All rights reserved.
     </footer>
-  );
+  )
 }
-
-export default Footer;

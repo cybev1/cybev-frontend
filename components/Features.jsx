@@ -1,25 +1,18 @@
-import React from 'react';
-
-function Features() {
-  const featureList = [
-    "🚀 AI-powered blogging & SEO",
-    "🔗 Web3 NFT minting and staking",
-    "📊 Post earnings, ads & analytics",
-    "🎥 Reels, Stories, Live, and more",
-  ];
-
+export default function Features() {
   return (
-    <section className="py-16 px-6 bg-white dark:bg-gray-900">
-      <h2 className="text-3xl font-bold text-center mb-12">Core Features</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-        {featureList.map((feature, idx) => (
-          <div key={idx} className="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg shadow-md text-lg">
-            {feature}
-          </div>
-        ))}
+    <section className="py-16 px-4 md:px-10 grid gap-10 md:grid-cols-3 bg-white dark:bg-gray-900">
+      <div className="p-6 rounded-lg shadow-lg bg-gradient-to-r from-purple-200 to-purple-100">
+        <h3 className="text-xl font-bold">Blog Builder</h3>
+        <p>Create & publish blogs with SEO tools and monetization.</p>
+      </div>
+      <div className="p-6 rounded-lg shadow-lg bg-gradient-to-r from-green-200 to-green-100">
+        <h3 className="text-xl font-bold">Mint NFTs</h3>
+        <p>Turn your posts into NFTs and earn rewards instantly.</p>
+      </div>
+      <div className="p-6 rounded-lg shadow-lg bg-gradient-to-r from-blue-200 to-blue-100">
+        <h3 className="text-xl font-bold">Creator Dashboard</h3>
+        <p>Track views, reactions, staking, and social earnings.</p>
       </div>
     </section>
-  );
+  )
 }
-
-export default Features;
