@@ -16,6 +16,6 @@
     "framer-motion": "^10.16.1",
     "axios": "^1.6.0",
     "@heroicons/react": "^2.0.18",
-    "react-speech-kit": "3.6.0"
+    "react-speech-kit": "*"
   }
 }
