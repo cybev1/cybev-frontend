@@ -1,7 +1,8 @@
+
 export default function Footer() {
   return (
-    <footer className="py-6 text-center border-t border-gray-800 text-gray-400">
-      <p>© 2025 CYBEV. All rights reserved.</p>
+    <footer className="bg-gray-900 text-center py-6 text-sm text-gray-400 mt-10">
+      © 2025 CYBEV. All rights reserved.
     </footer>
   );
 }
