@@ -1,9 +1,11 @@
+import { connectToDatabase } from '../../../lib/mongodb';
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
-  const { name, email, password } = req.body;
-  if (!name || !email || !password) return res.status(400).json({ message: 'Missing fields' });
-
-  // Simulated DB operation
-  console.log('Register:', { name, email });
-  return res.status(200).json({ message: 'Registration successful (simulated)' });
+  const { db } = await connectToDatabase();
+  if (req.method === 'POST') {
+    const { email, password } = req.body;
+    const exists = await db.collection('users').findOne({ email });
+    if (exists) return res.status(400).json({ error: 'User already exists' });
+    await db.collection('users').insertOne({ email, password, verified: false });
+    res.status(200).json({ message: 'Registered successfully. Check your email to verify.' });
+  }
 }
