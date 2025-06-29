@@ -1,24 +1,44 @@
-import Head from 'next/head'
-import Hero from '../components/Hero'
-import Features from '../components/Features'
-import CallToAction from '../components/CallToAction'
-import Footer from '../components/Footer'
+import Head from 'next/head';
+import Hero from '../components/Hero';
+import Features from '../components/Features';
+import Footer from '../components/Footer';
 
 export default function Home() {
   return (
     <>
       <Head>
-        <title>CYBEV – Create, Mint, Earn, Connect</title>
-        <meta name="description" content="All-in-one AI-powered platform for creators. Launch blogs, mint NFTs, and earn rewards." />
+        <title>CYBEV – The Future of Content Creation</title>
       </Head>
-      <main className="bg-gradient-to-br from-purple-100 via-white to-green-100 min-h-screen overflow-x-hidden relative">
-        <Hero />
-        <Features />
-        <CallToAction />
-        <Footer />
-        <div className="absolute top-[-200px] left-[-200px] w-[600px] h-[600px] bg-purple-300 opacity-30 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-        <div className="absolute top-[200px] right-[-200px] w-[500px] h-[500px] bg-green-300 opacity-30 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
-      </main>
+      <div className="live-pulse">🔥 10,328 Creators Live Now on CYBEV</div>
+      <Hero />
+      <Features />
+      <Footer />
+      <button className="sticky-cta">Join Now</button>
+      <style jsx>{`
+        .live-pulse {
+          text-align: center;
+          padding: 0.5rem;
+          background: linear-gradient(to right, #ff0080, #7928ca);
+          color: white;
+          font-weight: bold;
+          animation: pulse 1.2s infinite alternate;
+        }
+        @keyframes pulse {
+          from { opacity: 0.8; transform: scale(1); }
+          to { opacity: 1; transform: scale(1.05); }
+        }
+        .sticky-cta {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          background: #000;
+          color: #fff;
+          padding: 10px 20px;
+          border-radius: 25px;
+          z-index: 1000;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+      `}</style>
     </>
-  )
+  );
 }
