@@ -1,1 +1,0 @@
-// Landing Page index.js placeholder
