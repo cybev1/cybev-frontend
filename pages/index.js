@@ -1,17 +1,19 @@
-import Hero from '../components/Hero';
-import Features from '../components/Features';
-import CTA from '../components/CTA';
-import Footer from '../components/Footer';
-import Navbar from '../components/Navbar';
+
+import Head from 'next/head';
+import HeroSection from '../components/HeroSection';
+import FeatureGrid from '../components/FeatureGrid';
 
 export default function Home() {
   return (
-    <div className="bg-gray-50 text-gray-900 dark:bg-black dark:text-white">
-      <Navbar />
-      <Hero />
-      <Features />
-      <CTA />
-      <Footer />
-    </div>
+    <>
+      <Head>
+        <title>CYBEV.IO – AI + Web3 Social Platform</title>
+        <meta name="description" content="Launch, share, mint, and earn. Blog builder, NFT marketplace, creator tools & timeline." />
+      </Head>
+      <main className="bg-gradient-to-b from-purple-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 min-h-screen overflow-x-hidden">
+        <HeroSection />
+        <FeatureGrid />
+      </main>
+    </>
   );
 }
