@@ -1,23 +1,17 @@
-
 export default function Features() {
   return (
-    <section id="features" className="py-20 bg-gray-50 px-4">
-      <div className="max-w-5xl mx-auto text-center">
-        <h2 className="text-3xl font-bold mb-10">Core Features</h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          {[
-            ["AI Blog Generator", "Generate SEO blogs in seconds."],
-            ["NFT Minting", "Mint content as NFTs on-chain."],
-            ["Crypto Earnings", "Earn from views, likes, and shares."],
-            ["Social Media Tools", "Boost your posts with AI and crypto."]
-          ].map(([title, desc]) => (
-            <div key={title} className="p-6 bg-white rounded-2xl shadow hover:shadow-lg transition">
-              <h3 className="font-semibold text-xl mb-2">{title}</h3>
-              <p className="text-gray-600">{desc}</p>
-            </div>
-          ))}
+    <section id="features" className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 p-10">
+      {[
+        { title: "AI Blog Generator", desc: "Generate SEO blogs in seconds." },
+        { title: "NFT Minting", desc: "Mint content as NFTs on-chain." },
+        { title: "Crypto Earnings", desc: "Earn from views, likes, and shares." },
+        { title: "Social Media Tools", desc: "Boost your posts with AI and crypto." }
+      ].map((f, i) => (
+        <div key={i} className="bg-[#F0F8FF] dark:bg-gray-800 p-6 rounded-xl shadow-md">
+          <h3 className="text-xl font-bold mb-2">{f.title}</h3>
+          <p>{f.desc}</p>
         </div>
-      </div>
+      ))}
     </section>
   );
 }
