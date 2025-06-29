@@ -1,0 +1,1 @@
+<div className='text-center py-20'>Welcome to CYBEV.IO</div>
