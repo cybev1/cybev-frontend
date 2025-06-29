@@ -1,28 +1,24 @@
 import Head from 'next/head';
-import Link from 'next/link';
+import Navbar from '../components/Navbar';
+import FloatingFeatures from '../components/FloatingFeatures';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white flex flex-col items-center justify-center px-6 py-20 text-center">
+    <>
       <Head>
         <title>CYBEV – AI + Web3 for Creators</title>
+        <meta name="description" content="Build. Blog. Mint. Earn." />
       </Head>
-
-      <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-4">
-        Welcome to <span className="text-indigo-600 dark:text-cyan-400">CYBEV</span>
-      </h1>
-      <p className="text-lg md:text-xl max-w-2xl mb-6">
-        Build your blog, mint your posts, stake your influence, and earn from every view. CYBEV is the future of AI + Web3 social creation.
-      </p>
-      <Link href="/register" passHref>
-        <button className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md shadow-md text-lg transition-all">
-          Join CYBEV Now
-        </button>
-      </Link>
-
-      <footer className="absolute bottom-4 text-sm text-gray-500 dark:text-gray-400">
-        © 2025 CYBEV. All rights reserved.
-      </footer>
-    </div>
+      <Navbar />
+      <main className="bg-gradient-to-br from-purple-800 via-black to-gray-900 text-white min-h-screen">
+        <section className="text-center py-20 px-4 max-w-4xl mx-auto">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6">Welcome to CYBEV</h1>
+          <p className="text-lg md:text-xl mb-8">Build your blog, mint your posts, stake your influence, and earn from every view.</p>
+          <a href="#features" className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-full text-lg transition">Get Started</a>
+        </section>
+        <FloatingFeatures />
+      </main>
+      <footer className="text-center py-6 text-gray-400 text-sm">© 2025 CYBEV. All rights reserved.</footer>
+    </>
   );
 }
