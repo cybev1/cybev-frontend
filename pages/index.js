@@ -1,1 +1,11 @@
-// Placeholder for Landing Page React Component
+import HeroSection from "../components/HeroSection";
+import FeaturesSection from "../components/FeaturesSection";
+
+export default function Home() {
+  return (
+    <>
+      <HeroSection />
+      <FeaturesSection />
+    </>
+  );
+}
