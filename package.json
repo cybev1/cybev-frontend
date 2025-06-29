@@ -16,6 +16,6 @@
     "framer-motion": "^10.16.1",
     "axios": "^1.6.0",
     "@heroicons/react": "^2.0.18",
-    "lucide-react": "^0.285.0"
+    "lucide-react": "^0.268.0"
   }
 }
