@@ -1,1 +1,0 @@
-<section className='py-20 text-center'>Features Section</section>
