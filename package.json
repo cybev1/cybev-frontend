@@ -1,3 +1,4 @@
+
 {
   "name": "cybev-landing",
   "version": "1.0.0",
@@ -9,11 +10,11 @@
   "dependencies": {
     "next": "13.4.12",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
-  },
-  "devDependencies": {
+    "react-dom": "18.2.0",
     "tailwindcss": "^3.4.1",
+    "autoprefixer": "^10.4.13",
     "postcss": "^8.4.21",
-    "autoprefixer": "^10.4.13"
+    "framer-motion": "^10.12.16",
+    "react-speech-kit": "^3.8.0"
   }
 }
