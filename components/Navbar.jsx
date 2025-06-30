@@ -17,8 +17,8 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="bg-white dark:bg-zinc-900 shadow-md px-6 py-4 flex justify-between items-center">
-      <Link href="/" className="text-2xl font-bold text-blue-600">CYBEV</Link>
+    <nav className="bg-white dark:bg-zinc-900 border-b border-gray-300 dark:border-zinc-700 px-6 py-4 flex justify-between items-center z-50 w-full">
+      <Link href="/" className="text-2xl font-bold text-blue-600 dark:text-white">CYBEV</Link>
       <div className="hidden md:flex items-center space-x-6">
         <Link href="/studio/dashboard" className="text-sm text-gray-800 dark:text-white">Dashboard</Link>
         {user && (
