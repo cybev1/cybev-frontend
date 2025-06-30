@@ -1,19 +1,43 @@
-import Link from 'next/link';
+
+import { useState } from 'react';
+import { useRouter } from 'next/router';
 
 export default function Login() {
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('https://api.cybev.io/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem('token', data.token);
+        router.push('/studio/dashboard');
+      } else {
+        setError(data.message || 'Login failed');
+      }
+    } catch (err) {
+      setError('Network error');
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white px-4">
-      <div className="max-w-md w-full space-y-8 p-10 rounded-xl shadow-lg bg-[#F0F8FF]">
-        <h2 className="text-center text-3xl font-bold text-[#1e3a8a]">Login to CYBEV</h2>
-        <form className="mt-8 space-y-6">
-          <input type="email" placeholder="Email" required className="w-full p-3 border rounded-md" />
-          <input type="password" placeholder="Password" required className="w-full p-3 border rounded-md" />
-          <button type="submit" className="w-full bg-[#1e3a8a] text-white py-3 rounded-md">Login</button>
-        </form>
-        <p className="text-center text-sm mt-4">
-          Don't have an account? <Link href="/register" className="text-blue-600 underline">Register</Link>
-        </p>
-      </div>
+    <div className="max-w-md mx-auto mt-20 p-6 bg-white dark:bg-gray-900 rounded shadow">
+      <h1 className="text-xl mb-4">Login</h1>
+      {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+      <form onSubmit={handleLogin} className="space-y-4">
+        <input type="email" placeholder="Email" className="w-full p-2 border rounded" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <input type="password" placeholder="Password" className="w-full p-2 border rounded" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">Login</button>
+      </form>
+      <p className="mt-4 text-sm text-center">Don't have an account? <a href="/register" className="text-blue-500">Register</a></p>
     </div>
   );
 }
