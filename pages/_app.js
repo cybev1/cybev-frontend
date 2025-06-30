@@ -1,11 +1,15 @@
 import '../styles/globals.css';
-import { ToastContainer } from 'react-toastify';
+import Navbar from '../components/Navbar';
 import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
 
 function MyApp({ Component, pageProps }) {
   return (
     <>
-      <Component {...pageProps} />
+      <Navbar />
+      <main className="pt-20 px-4 md:px-12 bg-gray-50 dark:bg-black min-h-screen">
+        <Component {...pageProps} />
+      </main>
       <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
