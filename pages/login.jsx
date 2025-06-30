@@ -1,2 +1,1 @@
-import AuthForm from '../components/AuthForm';
-export default function Login() { return <AuthForm mode="login" />; }
+// Login page UI with styling and form logic
