@@ -1,62 +1,95 @@
 
-import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import { Menu, Transition } from '@headlessui/react';
+import { Fragment } from 'react';
 
 export default function Navbar() {
-  const [user, setUser] = useState(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
   const router = useRouter();
+  const [username, setUsername] = useState('Creator');
+  const [profilePic, setProfilePic] = useState('/avatar.png');
 
   useEffect(() => {
-    const token = localStorage.getItem('cybev_token');
-    if (token) {
-      fetch('https://api.cybev.io/api/auth/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(res => res.json())
-        .then(data => setUser(data))
-        .catch(() => setUser(null));
-    }
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    const name = localStorage.getItem('cybev_username');
+    const photo = localStorage.getItem('cybev_user_photo');
+    if (name) setUsername(name);
+    if (photo) setProfilePic(photo);
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('cybev_token');
+    localStorage.clear();
     router.push('/login');
   };
 
   return (
-    <nav className="w-full px-6 py-4 bg-white dark:bg-black shadow flex justify-between items-center">
-      <Link href="/" className="text-xl font-bold text-blue-600 dark:text-white">CYBEV</Link>
-      <div className="relative" ref={dropdownRef}>
-        {user ? (
-          <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center space-x-2">
-            <img src={`https://robohash.org/${user.name}.png?size=40x40`} className="w-10 h-10 rounded-full border" />
-            <span className="hidden md:inline text-sm">{user.name}</span>
-          </button>
-        ) : (
-          <Link href="/login" className="text-blue-500 text-sm">Login</Link>
-        )}
-
-        {dropdownOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-md z-50">
-            <Link href="/studio/profile" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">👤 View Profile</Link>
-            <Link href="/studio/settings" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">⚙️ Settings</Link>
-            <button onClick={handleLogout} className="w-full text-left px-4 py-2 hover:bg-red-100 dark:hover:bg-red-600 text-red-600 dark:text-red-300">🚪 Logout</button>
+    <div className="w-full bg-white dark:bg-gray-900 shadow-md fixed top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16 items-center">
+          <Link href="/">
+            <h1 className="text-xl font-bold text-blue-600 dark:text-white cursor-pointer">CYBEV</h1>
+          </Link>
+          <div className="flex items-center gap-4">
+            <span className="hidden sm:inline text-sm text-gray-700 dark:text-gray-300 font-medium">Welcome, {username}</span>
+            <Menu as="div" className="relative inline-block text-left">
+              <Menu.Button className="inline-flex justify-center w-10 h-10 rounded-full overflow-hidden border-2 border-gray-300 dark:border-gray-700">
+                <Image src={profilePic} alt="Avatar" width={40} height={40} className="rounded-full" />
+              </Menu.Button>
+              <Transition
+                as={Fragment}
+                enter="transition ease-out duration-100"
+                enterFrom="transform opacity-0 scale-95"
+                enterTo="transform opacity-100 scale-100"
+                leave="transition ease-in duration-75"
+                leaveFrom="transform opacity-100 scale-100"
+                leaveTo="transform opacity-0 scale-95"
+              >
+                <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                  <div className="py-1">
+                    <Menu.Item>
+                      {({ active }) => (
+                        <button
+                          onClick={() => router.push('/studio/profile')}
+                          className={`${
+                            active ? 'bg-gray-100 dark:bg-gray-700' : ''
+                          } block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 w-full text-left`}
+                        >
+                          👤 View Profile
+                        </button>
+                      )}
+                    </Menu.Item>
+                    <Menu.Item>
+                      {({ active }) => (
+                        <button
+                          onClick={() => router.push('/studio/settings')}
+                          className={`${
+                            active ? 'bg-gray-100 dark:bg-gray-700' : ''
+                          } block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 w-full text-left`}
+                        >
+                          ⚙️ Settings
+                        </button>
+                      )}
+                    </Menu.Item>
+                    <Menu.Item>
+                      {({ active }) => (
+                        <button
+                          onClick={handleLogout}
+                          className={`${
+                            active ? 'bg-gray-100 dark:bg-gray-700' : ''
+                          } block px-4 py-2 text-sm text-red-600 dark:text-red-400 w-full text-left`}
+                        >
+                          🚪 Logout
+                        </button>
+                      )}
+                    </Menu.Item>
+                  </div>
+                </Menu.Items>
+              </Transition>
+            </Menu>
           </div>
-        )}
+        </div>
       </div>
-    </nav>
+    </div>
   );
 }
