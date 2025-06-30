@@ -1,31 +1,46 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MoonIcon, SunIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/router';
+import { Menu, X } from 'lucide-react';
+import getUserProfile from '@/utils/getUserProfile';
+import logout from '@/utils/logout';
 
 export default function Navbar() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [user, setUser] = useState(null);
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode);
-  }, [darkMode]);
+    getUserProfile()
+      .then(setUser)
+      .catch(() => logout(router));
+  }, []);
 
   return (
-    <nav className="flex items-center justify-between px-4 py-3 shadow-md sticky top-0 z-50 bg-white dark:bg-gray-800">
-      <Link href="/" className="text-xl font-bold text-blue-900 dark:text-white">CYBEV.IO</Link>
-      <div className="md:hidden flex items-center gap-3">
-        <button onClick={() => setDarkMode(!darkMode)}>
-          {darkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
-        </button>
-        <button onClick={() => setMenuOpen(!menuOpen)}>
-          {menuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
-        </button>
+    <nav className="bg-white dark:bg-zinc-900 shadow-md px-6 py-4 flex justify-between items-center">
+      <Link href="/" className="text-2xl font-bold text-blue-600">CYBEV</Link>
+      <div className="hidden md:flex items-center space-x-6">
+        <Link href="/studio/dashboard" className="text-sm text-gray-800 dark:text-white">Dashboard</Link>
+        {user && (
+          <div className="relative group">
+            <button className="text-sm font-medium text-gray-700 dark:text-white focus:outline-none">
+              👤 {user.name}
+            </button>
+            <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-zinc-800 rounded shadow-md hidden group-hover:block z-50">
+              <Link href="/studio/profile" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-700">Profile</Link>
+              <button
+                onClick={() => logout(router)}
+                className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-zinc-700"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-      <div className={`md:flex gap-6 ${menuOpen ? 'block' : 'hidden'} md:block`}>
-        <Link href="/">Home</Link>
-        <Link href="#features">Features</Link>
-        <Link href="#contact">Contact</Link>
-      </div>
+      <button onClick={() => setOpen(!open)} className="md:hidden text-gray-700 dark:text-white">
+        {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+      </button>
     </nav>
   );
 }
