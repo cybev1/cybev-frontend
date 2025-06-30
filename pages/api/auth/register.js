@@ -3,23 +3,18 @@ import User from '@/models/user.model';
 import sendVerificationEmail from '@/lib/sendVerificationEmail';
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' });
-
-  const { email, password, username } = req.body;
-
-  if (!email || !password || !username) {
-    return res.status(400).json({ message: 'All fields are required' });
-  }
+  if (req.method !== 'POST') return res.status(405).end();
 
   await dbConnect();
+  const { email, password, username } = req.body;
 
-  const existingUser = await User.findOne({ email });
-  if (existingUser) return res.status(409).json({ message: 'Email already in use' });
+  const userExists = await User.findOne({ email });
+  if (userExists) return res.status(400).json({ message: 'User already exists' });
 
-  const newUser = new User({ email, password, username });
+  const newUser = new User({ email, password, username, verified: false });
   await newUser.save();
 
-  await sendVerificationEmail(email);
+  await sendVerificationEmail(newUser.email, newUser._id);
 
-  res.status(201).json({ message: 'User created, verification email sent' });
+  res.status(201).json({ message: 'User created, please check your email to verify' });
 }
