@@ -4,49 +4,51 @@ import { useEffect, useState } from 'react';
 export default function PublicProfile() {
   const router = useRouter();
   const { username } = router.query;
-  const [profile, setProfile] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
     if (username) {
-      setProfile({
-        name: username,
-        bio: 'Creative thinker & digital builder.',
-        location: 'Accra, Ghana',
-        followers: 1324,
-        posts: 25,
-        earnings: 823.5,
-        avatar: '/default-avatar.png'
+      // Simulate fetching user data
+      setUserData({
+        username,
+        name: username === 'prince' ? 'Prince' : 'Jane Doe',
+        avatar: '/default-avatar.png',
+        followers: 42,
+        following: 12,
+        bio: 'I create content, mint NFTs and earn crypto on CYBEV.'
       });
     }
   }, [username]);
 
-  if (!profile) return <div className="text-center py-10">Loading profile...</div>;
+  const toggleFollow = () => {
+    setIsFollowing(!isFollowing);
+    // await fetch('/api/follow', { method: 'POST', body: JSON.stringify({ username }) })
+  };
+
+  if (!userData) return <div className="p-6">Loading...</div>;
 
   return (
-    <div className="min-h-screen px-6 py-10 bg-gray-50 dark:bg-black text-gray-900 dark:text-white">
-      <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
-        <div className="flex items-center space-x-4 mb-6">
-          <img src={profile.avatar} alt="avatar" className="w-20 h-20 rounded-full" />
-          <div>
-            <h1 className="text-3xl font-bold">@{profile.name}</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-300">{profile.location}</p>
-          </div>
+    <div className="max-w-2xl mx-auto px-6 py-8 bg-white dark:bg-gray-900 rounded-2xl shadow-lg mt-10">
+      <div className="flex items-center gap-4">
+        <img src={userData.avatar} alt="avatar" className="w-20 h-20 rounded-full" />
+        <div>
+          <h1 className="text-xl font-bold">{userData.name}</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-300">@{userData.username}</p>
+          <p className="mt-2 text-gray-800 dark:text-white">{userData.bio}</p>
         </div>
-        <p className="mb-4 text-gray-700 dark:text-gray-300">{profile.bio}</p>
-        <div className="grid grid-cols-3 gap-4 text-center text-sm">
-          <div>
-            <p className="font-bold text-xl">{profile.posts}</p>
-            <p className="text-gray-500 dark:text-gray-400">Posts</p>
-          </div>
-          <div>
-            <p className="font-bold text-xl">{profile.followers}</p>
-            <p className="text-gray-500 dark:text-gray-400">Followers</p>
-          </div>
-          <div>
-            <p className="font-bold text-xl">₿ {profile.earnings.toFixed(2)}</p>
-            <p className="text-gray-500 dark:text-gray-400">Earnings</p>
-          </div>
-        </div>
+      </div>
+      <div className="flex gap-6 mt-4 text-sm text-gray-700 dark:text-gray-200">
+        <span>👥 {userData.followers} Followers</span>
+        <span>➡️ Following {userData.following}</span>
+      </div>
+      <div className="mt-4">
+        <button
+          onClick={toggleFollow}
+          className={`px-4 py-2 rounded-lg ${isFollowing ? 'bg-red-600' : 'bg-blue-600'} text-white`}
+        >
+          {isFollowing ? 'Unfollow' : 'Follow'}
+        </button>
       </div>
     </div>
   );
