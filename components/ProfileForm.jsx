@@ -12,7 +12,7 @@ export default function ProfileForm() {
   }, []);
 
   const handleSave = () => {
-    alert('✅ Profile saved (mock). Connect to backend API here.');
+    alert('Profile saved (mock). Future implementation will use real API.');
   };
 
   return (

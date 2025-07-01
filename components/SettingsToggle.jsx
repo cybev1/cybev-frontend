@@ -22,7 +22,7 @@ export default function SettingsToggle() {
         <label className="inline-flex items-center cursor-pointer">
           <input type="checkbox" checked={darkMode} onChange={toggleDarkMode} className="sr-only" />
           <div className="w-11 h-6 bg-gray-200 rounded-full shadow-inner dark:bg-gray-600">
-            <div className={\`w-5 h-5 bg-white rounded-full shadow transform transition-transform \${darkMode ? 'translate-x-5' : ''}\`}></div>
+            <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${darkMode ? 'translate-x-5' : ''}`}></div>
           </div>
         </label>
       </div>
