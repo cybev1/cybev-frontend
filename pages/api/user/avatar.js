@@ -1,7 +1,5 @@
-// pages/api/user/avatar.js
+
 import formidable from 'formidable';
-import fs from 'fs';
-import path from 'path';
 
 export const config = {
   api: {
@@ -10,21 +8,12 @@ export const config = {
 };
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const form = new formidable.IncomingForm({
-    uploadDir: path.join(process.cwd(), 'public/uploads'),
-    keepExtensions: true,
-  });
-
+  const form = new formidable.IncomingForm();
   form.parse(req, (err, fields, files) => {
     if (err) {
-      return res.status(500).json({ error: 'Error uploading file' });
+      res.status(500).json({ error: 'File upload failed' });
+      return;
     }
-    const file = files.avatar[0];
-    const fileUrl = `/uploads/${path.basename(file.filepath)}`;
-    return res.status(200).json({ url: fileUrl });
+    res.status(200).json({ fields, files });
   });
 }
