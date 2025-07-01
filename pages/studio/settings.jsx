@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react';
 
 export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(false);
-  const [emailNotif, setEmailNotif] = useState(true);
-  const [language, setLanguage] = useState('English');
 
   useEffect(() => {
     const mode = localStorage.getItem('theme') === 'dark';
@@ -20,8 +18,8 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen px-6 py-8 bg-gray-50 dark:bg-black text-gray-900 dark:text-white">
       <h1 className="text-3xl font-bold mb-4">⚙️ Settings</h1>
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md max-w-xl space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md max-w-xl">
+        <div className="flex items-center justify-between mb-4">
           <span className="text-sm font-medium">Enable Dark Mode</span>
           <label className="inline-flex items-center cursor-pointer">
             <input type="checkbox" checked={darkMode} onChange={toggleDarkMode} className="sr-only" />
@@ -29,19 +27,6 @@ export default function SettingsPage() {
               <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${darkMode ? 'translate-x-5' : ''}`}></div>
             </div>
           </label>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Email Notifications</span>
-          <input type="checkbox" checked={emailNotif} onChange={() => setEmailNotif(!emailNotif)} />
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Language</span>
-          <select value={language} onChange={(e) => setLanguage(e.target.value)} className="bg-gray-100 dark:bg-gray-700 p-2 rounded">
-            <option>English</option>
-            <option>French</option>
-            <option>Spanish</option>
-            <option>Swahili</option>
-          </select>
         </div>
       </div>
     </div>
