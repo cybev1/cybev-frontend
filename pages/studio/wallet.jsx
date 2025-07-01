@@ -1,9 +1,17 @@
 import DashboardLayout from '@/components/DashboardLayout';
+import WalletSummary from '@/components/WalletSummary';
 
-export default function Wallet() {
+export default function WalletPage() {
+  const wallet = {
+    balance: 248.76,
+    earned: 582.30,
+    staked: 120.00,
+    lastUpdated: 'Today, 5:40 PM',
+  };
+
   return (
     <DashboardLayout title="Wallet & Earnings">
-      <p className="p-4">Your wallet data and earnings insights will load here.</p>
+      <WalletSummary data={wallet} />
     </DashboardLayout>
   );
 }
