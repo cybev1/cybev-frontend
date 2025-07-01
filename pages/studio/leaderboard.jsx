@@ -1,29 +1,20 @@
-import { useEffect, useState } from 'react';
+import DashboardLayout from '@/components/DashboardLayout';
+import LeaderboardCard from '@/components/LeaderboardCard';
 
 export default function LeaderboardPage() {
-  const [leaders, setLeaders] = useState([]);
-
-  useEffect(() => {
-    setLeaders([
-      { username: 'Prince', earnings: 120.50 },
-      { username: 'Deborah', earnings: 98.75 },
-      { username: 'JohnDoe', earnings: 87.00 },
-    ]);
-  }, []);
+  const topUsers = [
+    { username: 'prince', earnings: 523.50, minted: 12, rank: 1 },
+    { username: 'jane_doe', earnings: 420.75, minted: 9, rank: 2 },
+    { username: 'soulwinner', earnings: 318.00, minted: 7, rank: 3 },
+  ];
 
   return (
-    <div className="min-h-screen px-6 py-8 bg-gray-50 dark:bg-black text-gray-900 dark:text-white">
-      <h1 className="text-3xl font-bold mb-4">🏆 Leaderboard</h1>
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md max-w-2xl">
-        <ul className="divide-y divide-gray-300 dark:divide-gray-700">
-          {leaders.map((user, i) => (
-            <li key={user.username} className="py-3 flex justify-between">
-              <span className="font-medium">{i + 1}. {user.username}</span>
-              <span className="text-green-600 dark:text-green-400">₿ {user.earnings.toFixed(2)} CYBV</span>
-            </li>
-          ))}
-        </ul>
+    <DashboardLayout title="Leaderboard">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {topUsers.map(user => (
+          <LeaderboardCard key={user.username} user={user} />
+        ))}
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
