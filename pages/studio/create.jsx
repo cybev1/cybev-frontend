@@ -1,9 +1,12 @@
 import DashboardLayout from '@/components/DashboardLayout';
+import dynamic from 'next/dynamic';
 
-export default function CreatePost() {
+const PostEditor = dynamic(() => import('@/components/PostEditor'), { ssr: false });
+
+export default function CreatePostPage() {
   return (
-    <DashboardLayout title="Create Post">
-      <p className="p-4">Post creation interface coming soon.</p>
+    <DashboardLayout title="Create New Post">
+      <PostEditor />
     </DashboardLayout>
   );
 }
