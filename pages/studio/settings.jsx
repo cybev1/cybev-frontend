@@ -1,4 +1,7 @@
+
 import { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
+import axios from 'axios';
 
 export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(false);
@@ -8,11 +11,18 @@ export default function SettingsPage() {
     setDarkMode(mode);
   }, []);
 
-  const toggleDarkMode = () => {
+  const toggleDarkMode = async () => {
     const newMode = !darkMode;
     setDarkMode(newMode);
     localStorage.setItem('theme', newMode ? 'dark' : 'light');
     document.documentElement.classList.toggle('dark', newMode);
+    
+    try {
+      await axios.post('/api/user/settings', { darkMode: newMode });
+      toast.success("Settings updated!");
+    } catch {
+      toast.error("Failed to update settings.");
+    }
   };
 
   return (
@@ -24,7 +34,7 @@ export default function SettingsPage() {
           <label className="inline-flex items-center cursor-pointer">
             <input type="checkbox" checked={darkMode} onChange={toggleDarkMode} className="sr-only" />
             <div className="w-11 h-6 bg-gray-200 rounded-full shadow-inner dark:bg-gray-600">
-              <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${darkMode ? 'translate-x-5' : ''}`}></div>
+              <div className={\`w-5 h-5 bg-white rounded-full shadow transform transition-transform \${darkMode ? 'translate-x-5' : ''}\`}></div>
             </div>
           </label>
         </div>
