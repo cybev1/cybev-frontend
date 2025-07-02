@@ -1,11 +1,12 @@
+
 import React from 'react';
 
-export default function ReactionBar({ views, reactions, earnings }) {
+export default function ReactionBar({ postId }) {
   return (
-    <div className="mt-3 text-sm text-gray-600 dark:text-gray-300 border-t pt-2 flex justify-between">
-      <span>👁 {views} views</span>
-      <span>❤️ {reactions} reactions</span>
-      <span>🪙 ${earnings.toFixed(2)}</span>
+    <div className="flex space-x-4 mt-2">
+      <button>👍 Like</button>
+      <button>💬 Comment</button>
+      <button>🔁 Share</button>
     </div>
   );
 }
