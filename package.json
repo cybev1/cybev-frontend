@@ -21,6 +21,7 @@
     "@headlessui/react": "^1.7.15",
     "react-quill": "^2.0.0",
     "ethers": "^6.7.0",
-    "formidable": "^3.5.0"
+    "formidable": "^3.5.0",
+    "ipfs-http-client": "^56.0.3"
   }
 }
