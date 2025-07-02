@@ -1,7 +1,6 @@
 import formidable from 'formidable';
 import fs from 'fs';
 import path from 'path';
-import { create } from 'ipfs-http-client';
 import { ethers } from 'ethers';
 import axios from 'axios';
 
