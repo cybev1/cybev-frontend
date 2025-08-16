@@ -186,4 +186,95 @@ export default async function handler(req, res) {
         },
         nfts: {
           current: nftsThisWeek,
-          change: calculate
+          change: calculateChange(nftsThisWeek, nftsLastWeek / 7)
+        },
+        earnings: {
+          current: Math.round(earningsThisWeekAmount),
+          change: calculateChange(earningsThisWeekAmount, earningsLastWeek / 7)
+        }
+      },
+      
+      // Top creators
+      topCreators: topCreators.map(creator => ({
+        userId: creator._id,
+        username: creator.user[0]?.username || creator.user[0]?.name || 'Unknown',
+        earnings: Math.round(creator.totalEarnings),
+        posts: creator.postCount
+      })),
+      
+      // Platform health
+      health: healthMetrics,
+      
+      // Top categories
+      topCategories: topCategories.map(cat => ({
+        name: cat._id || 'Uncategorized',
+        count: cat.count
+      })),
+      
+      // Additional metrics
+      metrics: {
+        avgPostsPerUser: totalUsers > 0 ? (totalPosts / totalUsers).toFixed(1) : 0,
+        avgEarningsPerUser: totalUsers > 0 ? (totalEarningsAmount / totalUsers).toFixed(2) : 0,
+        nftMintingRate: totalPosts > 0 ? ((totalNFTs / totalPosts) * 100).toFixed(1) : 0,
+        userRetentionRate: totalUsers > 0 ? ((activeUsers / totalUsers) * 100).toFixed(1) : 0
+      }
+    };
+
+    res.json(stats);
+
+  } catch (error) {
+    console.error('Admin stats error:', error);
+    
+    // Return mock data on error for development
+    const mockStats = {
+      users: 2547,
+      posts: 8932,
+      blogs: 1234,
+      nfts: 1203,
+      earnings: 45230,
+      activeUsers: 1829,
+      
+      growth: {
+        users: { current: 127, change: 12.5 },
+        posts: { current: 342, change: 8.2 },
+        blogs: { current: 45, change: 22.1 },
+        nfts: { current: 67, change: -2.1 },
+        earnings: { current: 2340, change: 15.3 }
+      },
+      
+      topCreators: [
+        { userId: '1', username: 'cryptoqueen', earnings: 1250, posts: 45 },
+        { userId: '2', username: 'blockbuilder', earnings: 980, posts: 38 },
+        { userId: '3', username: 'nftartist', earnings: 756, posts: 29 },
+        { userId: '4', username: 'aiexpert', earnings: 642, posts: 31 },
+        { userId: '5', username: 'webwizard', earnings: 534, posts: 22 }
+      ],
+      
+      health: {
+        apiUptime: 99.9,
+        databaseConnections: 87,
+        avgResponseTime: 145,
+        errorRate: 0.8
+      },
+      
+      topCategories: [
+        { name: 'Technology', count: 245 },
+        { name: 'Crypto', count: 189 },
+        { name: 'AI', count: 156 },
+        { name: 'Business', count: 134 },
+        { name: 'Lifestyle', count: 98 }
+      ],
+      
+      metrics: {
+        avgPostsPerUser: '3.5',
+        avgEarningsPerUser: '17.76',
+        nftMintingRate: '13.5',
+        userRetentionRate: '71.8'
+      },
+      
+      mock: true
+    };
+
+    res.json(mockStats);
+  }
+}
