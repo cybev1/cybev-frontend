@@ -4,7 +4,7 @@ const webpack = require('webpack');
 const nextConfig = {
   reactStrictMode: true,
 
-  // ✅ Proxy any frontend call to /api/* → your backend API
+  // Proxy /api/* → your backend
   async rewrites() {
     return [
       {
@@ -14,9 +14,8 @@ const nextConfig = {
     ];
   },
 
-  // ✅ Keep your current webpack customization (formidable external on server)
-  // ➕ Add browser polyfills so ipfs-http-client bundles on Next 13
   webpack: (config, { isServer }) => {
+    // Polyfills/fallbacks for browser bundles (ipfs-http-client, ethers, etc.)
     if (!isServer) {
       config.resolve.fallback = {
         ...(config.resolve.fallback || {}),
@@ -24,22 +23,29 @@ const nextConfig = {
         stream: require.resolve('stream-browserify'),
         util: require.resolve('util/'),
         crypto: require.resolve('crypto-browserify'),
-        process: require.resolve('process/browser')
+        process: require.resolve('process/browser'),
+        // Silence “Module not found” for Node-only modules in client
+        fs: false,
+        path: false,
+        os: false,
+        zlib: false,
+        http: false,
+        https: false,
+        net: false,
+        tls: false,
       };
       config.plugins = config.plugins || [];
       config.plugins.push(
         new webpack.ProvidePlugin({
           Buffer: ['buffer', 'Buffer'],
-          process: ['process']
+          process: ['process'],
         })
       );
     }
 
-    // Ensure externals array exists before pushing
-    if (isServer) {
-      config.externals = config.externals || [];
-      config.externals.push('formidable');
-    }
+    // Keep formidable server-only
+    config.externals = config.externals || [];
+    if (isServer) config.externals.push('formidable');
 
     return config;
   },
