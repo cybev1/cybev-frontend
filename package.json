@@ -9,8 +9,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "postinstall": "next telemetry disable",
-    "preinstall": "npx only-allow npm"
+    "postinstall": "next telemetry disable"
   },
   "dependencies": {
     "next": "13.4.12",
