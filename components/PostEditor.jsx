@@ -2,6 +2,7 @@ import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 
+// Load ReactQuill only in the browser (no SSR)
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
 export default function PostEditor() {
@@ -11,16 +12,18 @@ export default function PostEditor() {
   const [aiLoading, setAiLoading] = useState(false);
 
   const generateSEO = async () => {
-    setAiLoading(true);
-    // TODO: call real OpenAI backend endpoint
-    const response = await fetch('/api/ai/seo', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, content })
-    });
-    const data = await response.json();
-    setSeoDescription(data.description || '');
-    setAiLoading(false);
+    try {
+      setAiLoading(true);
+      const res = await fetch('/api/ai/seo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, content }),
+      });
+      const data = await res.json();
+      setSeoDescription(data?.description || '');
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const saveDraft = () => {
@@ -43,17 +46,20 @@ export default function PostEditor() {
         type="text"
         placeholder="Post title"
         value={title}
-        onChange={e => setTitle(e.target.value)}
+        onChange={(e) => setTitle(e.target.value)}
         className="w-full text-2xl font-semibold p-2 border-b border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none"
       />
 
-      <ReactQuill theme="snow" value={content} onChange={setContent} className="h-64" />
+      {/* Quill editor (client-only) */}
+      <div className="h-64">
+        <ReactQuill theme="snow" value={content} onChange={setContent} className="h-full" />
+      </div>
 
       <div className="flex flex-col gap-2">
         <label className="font-medium">SEO Description</label>
         <textarea
           value={seoDescription}
-          onChange={e => setSeoDescription(e.target.value)}
+          onChange={(e) => setSeoDescription(e.target.value)}
           className="w-full p-2 border rounded-md dark:bg-gray-700"
           rows={3}
         />
@@ -67,8 +73,12 @@ export default function PostEditor() {
       </div>
 
       <div className="flex gap-4">
-        <button onClick={saveDraft} className="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded-lg">Save Draft</button>
-        <button onClick={publishPost} className="px-4 py-2 bg-green-600 text-white rounded-lg">Publish</button>
+        <button onClick={saveDraft} className="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded-lg">
+          Save Draft
+        </button>
+        <button onClick={publishPost} className="px-4 py-2 bg-green-600 text-white rounded-lg">
+          Publish
+        </button>
       </div>
     </motion.div>
   );
