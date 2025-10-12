@@ -1,7 +1,8 @@
-
+import 'react-quill/dist/quill.snow.css';      // Quill theme (global CSS)
 import '../styles/globals.css';
-import Navbar from '../components/Navbar';
 import 'react-toastify/dist/ReactToastify.css';
+
+import Navbar from '../components/Navbar';
 import { ToastContainer } from 'react-toastify';
 
 function MyApp({ Component, pageProps }) {
