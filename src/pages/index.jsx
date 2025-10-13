@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRouter } from 'next/router';
-import TopNavbar from '@/components/TopNavbar';
+import TopNavbar from '../components/TopNavbar';
 
 const LandingPage = () => {
   const router = useRouter();
