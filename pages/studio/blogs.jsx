@@ -1,5 +1,5 @@
-import DashboardLayout from '@/components/DashboardLayout';
-import BlogCard from '@/components/BlogCard';
+import DashboardLayout from '../../components/DashboardLayout';
+import BlogCard from '../../components/BlogCard';
 
 export default function MyBlogsPage() {
   const myBlogs = [
