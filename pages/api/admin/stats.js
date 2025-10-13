@@ -1,5 +1,5 @@
 // pages/api/admin/stats.js
-import clientPromise from '../../../lib/mongodb';
+import { getDb } from '../../../lib/mongodb';
 import { ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
 
@@ -7,15 +7,12 @@ export const config = { api: { bodyParser: true } };
 
 async function checkAdminAccess(token) {
   if (!token) return false;
-
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.id || decoded.userId;
     if (!userId) return false;
 
-    const client = await clientPromise;
-    const db = client.db(process.env.MONGODB_DB || 'cybev');
-
+    const db = await getDb();
     const user = await db
       .collection('users')
       .findOne({ _id: new ObjectId(userId) }, { projection: { role: 1 } });
@@ -36,26 +33,17 @@ export default async function handler(req, res) {
     const isAdmin = await checkAdminAccess(token);
     if (!isAdmin) return res.status(403).json({ error: 'Admin access required' });
 
-    const client = await clientPromise;
-    const db = client.db(process.env.MONGODB_DB || 'cybev');
+    const db = await getDb();
 
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
     const [
-      totalUsers,
-      totalPosts,
-      totalBlogs,
-      totalNFTs,
-      usersThisWeek,
-      postsThisWeek,
-      blogsThisWeek,
-      nftsThisWeek,
-      totalEarnings,
-      earningsThisWeek,
-      activeUsers,
-      topCreators
+      totalUsers, totalPosts, totalBlogs, totalNFTs,
+      usersThisWeek, postsThisWeek, blogsThisWeek, nftsThisWeek,
+      totalEarnings, earningsThisWeek,
+      activeUsers, topCreators
     ] = await Promise.all([
       db.collection('users').countDocuments({ isActive: { $ne: false } }),
       db.collection('posts').countDocuments(),
@@ -85,10 +73,7 @@ export default async function handler(req, res) {
       ]).toArray()
     ]);
 
-    const pct = (cur, prev) => {
-      if (prev === 0) return cur > 0 ? 100 : 0;
-      return Number((((cur - prev) / prev) * 100).toFixed(1));
-    };
+    const pct = (cur, prev) => (prev === 0 ? (cur > 0 ? 100 : 0) : Number((((cur - prev) / prev) * 100).toFixed(1)));
 
     const usersLastWeek = Math.max(0, totalUsers - usersThisWeek);
     const postsLastWeek = Math.max(0, totalPosts - postsThisWeek);
@@ -105,14 +90,13 @@ export default async function handler(req, res) {
       { $limit: 5 }
     ]).toArray();
 
-    const stats = {
+    return res.json({
       users: totalUsers,
       posts: totalPosts,
       blogs: totalBlogs,
       nfts: totalNFTs,
       earnings: Math.round(totalEarningsAmount),
       activeUsers,
-
       growth: {
         users: { current: usersThisWeek, change: pct(usersThisWeek, usersLastWeek / 7) },
         posts: { current: postsThisWeek, change: pct(postsThisWeek, postsLastWeek / 7) },
@@ -120,48 +104,33 @@ export default async function handler(req, res) {
         nfts: { current: nftsThisWeek, change: pct(nftsThisWeek, nftsLastWeek / 7) },
         earnings: { current: Math.round(earningsThisWeekAmount), change: pct(earningsThisWeekAmount, earningsLastWeek / 7) }
       },
-
       topCreators: topCreators.map(c => ({
         userId: c._id,
         username: c.user?.[0]?.username || c.user?.[0]?.name || 'Unknown',
         earnings: Math.round(c.totalEarnings),
         posts: c.postCount
       })),
-
       health: {
         apiUptime: 99.9,
         databaseConnections: Math.floor(Math.random() * 100) + 50,
         avgResponseTime: Math.floor(Math.random() * 50) + 100,
         errorRate: Number((Math.random() * 2).toFixed(2))
       },
-
       topCategories: topCategories.map(cat => ({ name: cat._id || 'Uncategorized', count: cat.count })),
-
       metrics: {
         avgPostsPerUser: totalUsers > 0 ? (totalPosts / totalUsers).toFixed(1) : 0,
         avgEarningsPerUser: totalUsers > 0 ? (totalEarningsAmount / totalUsers).toFixed(2) : 0,
         nftMintingRate: totalPosts > 0 ? ((totalNFTs / totalPosts) * 100).toFixed(1) : 0,
         userRetentionRate: totalUsers > 0 ? ((activeUsers / totalUsers) * 100).toFixed(1) : 0
       }
-    };
-
-    return res.json(stats);
+    });
   } catch (error) {
     console.error('Admin stats error:', error);
-
-    // Fallback mock (dev)
     return res.json({
-      users: 2547,
-      posts: 8932,
-      blogs: 1234,
-      nfts: 1203,
-      earnings: 45230,
-      activeUsers: 1829,
+      users: 2547, posts: 8932, blogs: 1234, nfts: 1203, earnings: 45230, activeUsers: 1829,
       growth: {
-        users: { current: 127, change: 12.5 },
-        posts: { current: 342, change: 8.2 },
-        blogs: { current: 45, change: 22.1 },
-        nfts: { current: 67, change: -2.1 },
+        users: { current: 127, change: 12.5 }, posts: { current: 342, change: 8.2 },
+        blogs: { current: 45, change: 22.1 }, nfts: { current: 67, change: -2.1 },
         earnings: { current: 2340, change: 15.3 }
       },
       topCreators: [
