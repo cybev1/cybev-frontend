@@ -1,0 +1,1 @@
+<section className='py-10 bg-indigo-600 text-white text-center'>Call to Action</section>
