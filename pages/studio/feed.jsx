@@ -1,7 +1,6 @@
-
 import React from 'react';
-import PostCard from '@/components/PostCard';
-import RightSidebarCards from '@/components/RightSidebarCards';
+import PostCard from '../../components/PostCard';
+import RightSidebarCards from '../../components/RightSidebarCards';
 
 const samplePosts = [
   {
