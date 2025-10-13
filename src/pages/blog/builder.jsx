@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import DashboardLayout from '../../components/DashboardLayout';
+import { useRouter } from 'next/router';
 
 const BlogBuilder = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [blogData, setBlogData] = useState({
     topic: '',
@@ -33,8 +32,11 @@ const BlogBuilder = () => {
     if (step < 3) {
       setStep(step + 1);
     } else {
-      // Navigate to voice recording
-      navigate('/studio/voice-record', { state: { blogData } });
+      // Navigate to voice recording with blog data
+      router.push({
+        pathname: '/studio/voice-record',
+        query: { blogData: JSON.stringify(blogData) }
+      });
     }
   };
 
@@ -43,7 +45,7 @@ const BlogBuilder = () => {
   };
 
   return (
-    <DashboardLayout>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
       <div className="max-w-4xl mx-auto py-12 px-6">
         {/* Progress Bar */}
         <div className="mb-12">
@@ -245,7 +247,7 @@ const BlogBuilder = () => {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import axios from 'axios';
 
 const Signup = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -46,7 +46,7 @@ const Signup = () => {
       localStorage.setItem('token', response.data.token);
       
       // Redirect to onboarding
-      navigate('/onboarding');
+      router.push('/onboarding');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
@@ -59,7 +59,7 @@ const Signup = () => {
       <div className="max-w-md w-full">
         {/* Back Button */}
         <button
-          onClick={() => navigate('/auth/choice')}
+          onClick={() => router.push('/auth/choice')}
           className="mb-8 text-gray-600 hover:text-gray-800 flex items-center gap-2"
         >
           ← Back
@@ -156,7 +156,7 @@ const Signup = () => {
           <p className="text-center mt-6 text-gray-600">
             Already have an account?{' '}
             <button
-              onClick={() => navigate('/auth/login')}
+              onClick={() => router.push('/auth/login')}
               className="text-purple-600 font-semibold hover:underline"
             >
               Sign In

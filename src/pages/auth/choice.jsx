@@ -1,8 +1,8 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
 
 const AuthChoice = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleGoogleAuth = () => {
     // TODO: Implement Google OAuth
@@ -14,7 +14,7 @@ const AuthChoice = () => {
       <div className="max-w-md w-full">
         {/* Logo/Back */}
         <button
-          onClick={() => navigate('/')}
+          onClick={() => router.push('/')}
           className="mb-8 text-gray-600 hover:text-gray-800 flex items-center gap-2"
         >
           ← Back to Home
@@ -23,7 +23,7 @@ const AuthChoice = () => {
         {/* Card */}
         <div className="bg-white rounded-3xl shadow-2xl p-8">
           <h1 className="text-3xl font-bold text-center mb-2 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-            Welcome to AudioPost
+            Welcome to CYBEV
           </h1>
           <p className="text-gray-600 text-center mb-8">
             Choose how you'd like to continue
@@ -52,7 +52,7 @@ const AuthChoice = () => {
 
           {/* Email Button */}
           <button
-            onClick={() => navigate('/auth/signup')}
+            onClick={() => router.push('/auth/signup')}
             className="w-full py-4 px-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold hover:shadow-xl transition-all"
           >
             Continue with Email
@@ -62,7 +62,7 @@ const AuthChoice = () => {
           <p className="text-center mt-6 text-gray-600">
             Already have an account?{' '}
             <button
-              onClick={() => navigate('/auth/login')}
+              onClick={() => router.push('/auth/login')}
               className="text-purple-600 font-semibold hover:underline"
             >
               Sign In

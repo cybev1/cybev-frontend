@@ -1,9 +1,9 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import TopNavbar from '../components/TopNavbar';
 
 const LandingPage = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
@@ -22,13 +22,13 @@ const LandingPage = () => {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
-              onClick={() => navigate('/auth/choice')}
+              onClick={() => router.push('/auth/choice')}
               className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full font-semibold text-lg hover:shadow-2xl transform hover:scale-105 transition-all"
             >
               Get Started Free
             </button>
             <button
-              onClick={() => navigate('/auth/login')}
+              onClick={() => router.push('/auth/login')}
               className="px-8 py-4 bg-white text-purple-600 rounded-full font-semibold text-lg border-2 border-purple-200 hover:border-purple-400 transition-all"
             >
               Sign In
@@ -116,7 +116,7 @@ const LandingPage = () => {
             Join thousands of creators who've amplified their voice
           </p>
           <button
-            onClick={() => navigate('/auth/choice')}
+            onClick={() => router.push('/auth/choice')}
             className="px-10 py-5 bg-white text-purple-600 rounded-full font-bold text-lg hover:shadow-2xl transform hover:scale-105 transition-all"
           >
             Start Creating Now
@@ -126,7 +126,7 @@ const LandingPage = () => {
 
       {/* Footer */}
       <footer className="py-12 px-6 bg-gray-900 text-gray-400 text-center">
-        <p>&copy; 2025 AudioPost. Built for creators who speak their mind.</p>
+        <p>&copy; 2025 CYBEV. Built for creators who speak their mind.</p>
       </footer>
     </div>
   );

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import axios from 'axios';
 
 const Login = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -33,9 +33,9 @@ const Login = () => {
       });
 
       if (profileResponse.data.hasCompletedOnboarding) {
-        navigate('/studio');
+        router.push('/studio');
       } else {
-        navigate('/onboarding');
+        router.push('/onboarding');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
@@ -53,7 +53,7 @@ const Login = () => {
       <div className="max-w-md w-full">
         {/* Back Button */}
         <button
-          onClick={() => navigate('/')}
+          onClick={() => router.push('/')}
           className="mb-8 text-gray-600 hover:text-gray-800 flex items-center gap-2"
         >
           ← Back to Home
@@ -151,7 +151,7 @@ const Login = () => {
           <p className="text-center mt-6 text-gray-600">
             Don't have an account?{' '}
             <button
-              onClick={() => navigate('/auth/signup')}
+              onClick={() => router.push('/auth/signup')}
               className="text-purple-600 font-semibold hover:underline"
             >
               Sign Up

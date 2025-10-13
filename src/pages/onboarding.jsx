@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import axios from 'axios';
 
 const Onboarding = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [selectedType, setSelectedType] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -24,16 +24,16 @@ const Onboarding = () => {
 
       // Navigate based on selection
       if (selectedType === 'blog') {
-        navigate('/blog/builder');
+        router.push('/blog/builder');
       } else if (selectedType === 'social') {
-        navigate('/studio/social');
+        router.push('/studio/social');
       } else {
-        navigate('/studio');
+        router.push('/studio');
       }
     } catch (err) {
       console.error('Onboarding error:', err);
       // Continue anyway
-      navigate('/studio');
+      router.push('/studio');
     } finally {
       setLoading(false);
     }
@@ -149,7 +149,7 @@ const Onboarding = () => {
         {/* Skip Option */}
         <div className="text-center mt-6">
           <button
-            onClick={() => navigate('/studio')}
+            onClick={() => router.push('/studio')}
             className="text-gray-500 hover:text-gray-700 text-sm"
           >
             Skip for now
