@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
-import EnhancedSocialFeed from '@/components/social/EnhancedSocialFeed';
-import DashboardLayout from '@/components/DashboardLayout';
+import EnhancedSocialFeed from '../../components/social/EnhancedSocialFeed';
+import DashboardLayout from '../../components/DashboardLayout';
 
 export default function SocialFeedPage() {
   const [user, setUser] = useState(null);
