@@ -1,5 +1,5 @@
-import DashboardLayout from '@/components/DashboardLayout';
-import LeaderboardCard from '@/components/LeaderboardCard';
+import DashboardLayout from '../../components/DashboardLayout';
+import LeaderboardCard from '../../components/LeaderboardCard';
 
 export default function LeaderboardPage() {
   const topUsers = [
