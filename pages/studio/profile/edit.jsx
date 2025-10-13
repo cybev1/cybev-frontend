@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import withAuth from '@/utils/withAuth';
-import getUserProfile from '@/utils/getUserProfile';
+import withAuth from '../../utils/withAuth';
+import getUserProfile from '../../utils/getUserProfile';
 import { toast } from 'react-toastify';
 
 function EditProfile() {
