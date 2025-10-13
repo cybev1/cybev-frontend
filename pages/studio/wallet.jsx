@@ -1,5 +1,5 @@
-import DashboardLayout from '@/components/DashboardLayout';
-import WalletSummary from '@/components/WalletSummary';
+import DashboardLayout from '../../components/DashboardLayout';
+import WalletSummary from '../../components/WalletSummary';
 
 export default function WalletPage() {
   const wallet = {
