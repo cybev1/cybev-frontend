@@ -12,7 +12,9 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "baseUrl": ".",
-    "paths": { "@/*": ["*"] }
+    "paths": { "@/*": ["*"] },
+    "downlevelIteration": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
   "exclude": ["node_modules"]
