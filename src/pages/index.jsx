@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 
 export default function CYBEVLanding() {
-  const router = useRouter();
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
@@ -65,16 +63,10 @@ export default function CYBEVLanding() {
           </div>
 
           <div className="flex gap-2 sm:gap-3">
-            <button 
-              onClick={() => router.push('/auth/login')}
-              className="px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-sm sm:text-base text-gray-700 hover:bg-blue-50 transition font-medium"
-            >
+            <button className="px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-sm sm:text-base text-gray-700 hover:bg-blue-50 transition font-medium">
               Sign In
             </button>
-            <button 
-              onClick={() => router.push('/auth/choice')}
-              className="px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white transition font-semibold shadow-lg text-sm sm:text-base"
-            >
+            <button className="px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white transition font-semibold shadow-lg text-sm sm:text-base">
               Start Free
             </button>
           </div>
@@ -103,10 +95,7 @@ export default function CYBEVLanding() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-12 sm:mb-20 px-4">
-            <button 
-              onClick={() => router.push('/auth/choice')}
-              className="w-full sm:w-auto px-6 py-3.5 sm:px-8 sm:py-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white transition font-bold text-base sm:text-lg shadow-2xl shadow-blue-200 active:scale-95"
-            >
+            <button className="w-full sm:w-auto px-6 py-3.5 sm:px-8 sm:py-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white transition font-bold text-base sm:text-lg shadow-2xl shadow-blue-200 active:scale-95">
               🚀 Start Building Free
             </button>
             <button className="w-full sm:w-auto px-6 py-3.5 sm:px-8 sm:py-4 rounded-xl bg-white border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50 text-gray-700 transition font-bold text-base sm:text-lg active:scale-95">
@@ -128,7 +117,7 @@ export default function CYBEVLanding() {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Features Section - Swipeable on Mobile */}
       <section id="features" className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 bg-gradient-to-br from-white via-blue-50 to-cyan-50 relative">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8 sm:mb-12 md:mb-16 px-4">
@@ -138,6 +127,7 @@ export default function CYBEVLanding() {
             <p className="text-base sm:text-lg md:text-xl text-gray-600">One platform. Infinite possibilities.</p>
           </div>
 
+          {/* Mobile: Stack, Desktop: Grid */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
             {features.map((feature, i) => (
               <div
@@ -155,7 +145,7 @@ export default function CYBEVLanding() {
         </div>
       </section>
 
-      {/* How It Works */}
+      {/* How It Works - Mobile Friendly */}
       <section id="how-it-works" className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8 sm:mb-12 md:mb-16 px-4">
@@ -191,7 +181,7 @@ export default function CYBEVLanding() {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Testimonials - Mobile Swipe */}
       <section className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 bg-gradient-to-br from-white via-cyan-50 to-blue-50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8 sm:mb-12 md:mb-16 px-4">
@@ -204,7 +194,7 @@ export default function CYBEVLanding() {
             {[
               { name: 'Sarah Chen', role: 'Creator', text: 'Made $5K in my first month! 🔥', avatar: '👩🏻‍💻' },
               { name: 'Marcus J', role: 'NFT Artist', text: 'Sold 200+ NFTs. Game changer!', avatar: '🎨' },
-              { name: 'Emma Rose', role: 'Blogger', text: 'AI tools are incredible 💌', avatar: '✨' }
+              { name: 'Emma Rose', role: 'Blogger', text: 'AI tools are incredible 👌', avatar: '✨' }
             ].map((testimonial, i) => (
               <div key={i} className="p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl bg-white/90 backdrop-blur-sm border border-blue-100 hover:border-blue-300 hover:shadow-2xl transition-all duration-300 active:scale-95">
                 <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
@@ -223,7 +213,7 @@ export default function CYBEVLanding() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* CTA - Mobile Optimized */}
       <section className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 bg-gradient-to-br from-slate-50 to-indigo-50">
         <div className="max-w-4xl mx-auto">
           <div className="p-8 sm:p-10 md:p-12 rounded-3xl bg-gradient-to-br from-blue-600 via-cyan-500 to-indigo-600 text-white shadow-2xl">
@@ -233,17 +223,14 @@ export default function CYBEVLanding() {
             <p className="text-base sm:text-lg md:text-xl text-blue-50 mb-6 sm:mb-8">
               Join 10,000+ creators earning and owning their future
             </p>
-            <button 
-              onClick={() => router.push('/auth/choice')}
-              className="w-full sm:w-auto px-8 py-4 sm:px-10 sm:py-5 rounded-xl bg-white text-blue-600 hover:bg-blue-50 transition font-bold text-base sm:text-lg md:text-xl shadow-2xl active:scale-95"
-            >
+            <button className="w-full sm:w-auto px-8 py-4 sm:px-10 sm:py-5 rounded-xl bg-white text-blue-600 hover:bg-blue-50 transition font-bold text-base sm:text-lg md:text-xl shadow-2xl active:scale-95">
               🚀 Get Started Free
             </button>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
+      {/* Footer - Mobile Friendly */}
       <footer className="py-8 sm:py-12 px-4 sm:px-6 border-t border-blue-100 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 mb-8">
@@ -283,6 +270,31 @@ export default function CYBEVLanding() {
           </div>
         </div>
       </footer>
+
+      {/* Mobile Bottom Nav (Optional) */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-blue-100 px-4 py-3 z-40 shadow-2xl">
+        <div className="flex justify-around items-center max-w-md mx-auto">
+          <button className="flex flex-col items-center gap-1 text-blue-600">
+            <span className="text-xl">🏠</span>
+            <span className="text-xs font-medium">Home</span>
+          </button>
+          <button className="flex flex-col items-center gap-1 text-gray-500">
+            <span className="text-xl">🔍</span>
+            <span className="text-xs font-medium">Explore</span>
+          </button>
+          <button className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 flex items-center justify-center text-white text-2xl shadow-xl -mt-6">
+            +
+          </button>
+          <button className="flex flex-col items-center gap-1 text-gray-500">
+            <span className="text-xl">💰</span>
+            <span className="text-xs font-medium">Wallet</span>
+          </button>
+          <button className="flex flex-col items-center gap-1 text-gray-500">
+            <span className="text-xl">👤</span>
+            <span className="text-xs font-medium">Profile</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
