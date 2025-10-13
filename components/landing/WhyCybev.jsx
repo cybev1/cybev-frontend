@@ -1,1 +1,0 @@
-// WhyCybev component
