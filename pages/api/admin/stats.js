@@ -6,16 +6,17 @@ import jwt from 'jsonwebtoken';
 export const config = { api: { bodyParser: true } };
 
 async function checkAdminAccess(token) {
-  if (!token) return false;
+  if (!token || !process.env.JWT_SECRET) return false;
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.id || decoded.userId;
     if (!userId) return false;
 
     const db = await getDb();
+    const _id = ObjectId.isValid(userId) ? new ObjectId(userId) : userId;
     const user = await db
       .collection('users')
-      .findOne({ _id: new ObjectId(userId) }, { projection: { role: 1 } });
+      .findOne({ _id }, { projection: { role: 1 } });
 
     return user?.role === 'admin' || user?.role === 'super-admin';
   } catch {
@@ -42,8 +43,8 @@ export default async function handler(req, res) {
     const [
       totalUsers, totalPosts, totalBlogs, totalNFTs,
       usersThisWeek, postsThisWeek, blogsThisWeek, nftsThisWeek,
-      totalEarnings, earningsThisWeek,
-      activeUsers, topCreators
+      totalEarningsAgg, earningsThisWeekAgg,
+      activeUsers, topCreatorsAgg, topCategoriesAgg
     ] = await Promise.all([
       db.collection('users').countDocuments({ isActive: { $ne: false } }),
       db.collection('posts').countDocuments(),
@@ -64,12 +65,29 @@ export default async function handler(req, res) {
 
       db.collection('users').countDocuments({ lastLogin: { $gte: weekAgo } }),
 
+      // Normalize userId -> ObjectId when possible, then lookup
       db.collection('earnings').aggregate([
         { $match: { timestamp: { $gte: monthAgo }, amount: { $gt: 0 } } },
-        { $group: { _id: '$userId', totalEarnings: { $sum: '$amount' }, postCount: { $sum: 1 } } },
+        {
+          $addFields: {
+            userIdObj: {
+              $cond: [{ $eq: [{ $type: '$userId' }, 'string'] },
+                { $cond: [{ $regexMatch: { input: '$userId', regex: /^[0-9a-fA-F]{24}$/ } }, { $toObjectId: '$userId' }, '$userId'] },
+                '$userId'
+              ]
+            }
+          }
+        },
+        { $group: { _id: '$userIdObj', totalEarnings: { $sum: '$amount' }, postCount: { $sum: 1 } } },
         { $sort: { totalEarnings: -1 } },
         { $limit: 5 },
         { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } }
+      ]).toArray(),
+
+      db.collection('blogs').aggregate([
+        { $group: { _id: '$niche', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 }
       ]).toArray()
     ]);
 
@@ -80,15 +98,9 @@ export default async function handler(req, res) {
     const blogsLastWeek = Math.max(0, totalBlogs - blogsThisWeek);
     const nftsLastWeek = Math.max(0, totalNFTs - nftsThisWeek);
 
-    const totalEarningsAmount = totalEarnings[0]?.total || 0;
-    const earningsThisWeekAmount = earningsThisWeek[0]?.total || 0;
+    const totalEarningsAmount = totalEarningsAgg[0]?.total || 0;
+    const earningsThisWeekAmount = earningsThisWeekAgg[0]?.total || 0;
     const earningsLastWeek = Math.max(0, totalEarningsAmount - earningsThisWeekAmount);
-
-    const topCategories = await db.collection('blogs').aggregate([
-      { $group: { _id: '$niche', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $limit: 5 }
-    ]).toArray();
 
     return res.json({
       users: totalUsers,
@@ -104,7 +116,7 @@ export default async function handler(req, res) {
         nfts: { current: nftsThisWeek, change: pct(nftsThisWeek, nftsLastWeek / 7) },
         earnings: { current: Math.round(earningsThisWeekAmount), change: pct(earningsThisWeekAmount, earningsLastWeek / 7) }
       },
-      topCreators: topCreators.map(c => ({
+      topCreators: topCreatorsAgg.map(c => ({
         userId: c._id,
         username: c.user?.[0]?.username || c.user?.[0]?.name || 'Unknown',
         earnings: Math.round(c.totalEarnings),
@@ -116,7 +128,7 @@ export default async function handler(req, res) {
         avgResponseTime: Math.floor(Math.random() * 50) + 100,
         errorRate: Number((Math.random() * 2).toFixed(2))
       },
-      topCategories: topCategories.map(cat => ({ name: cat._id || 'Uncategorized', count: cat.count })),
+      topCategories: topCategoriesAgg.map(cat => ({ name: cat._id || 'Uncategorized', count: cat.count })),
       metrics: {
         avgPostsPerUser: totalUsers > 0 ? (totalPosts / totalUsers).toFixed(1) : 0,
         avgEarningsPerUser: totalUsers > 0 ? (totalEarningsAmount / totalUsers).toFixed(2) : 0,
@@ -126,6 +138,7 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('Admin stats error:', error);
+    // Your mock fallback:
     return res.json({
       users: 2547, posts: 8932, blogs: 1234, nfts: 1203, earnings: 45230, activeUsers: 1829,
       growth: {
