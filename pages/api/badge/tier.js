@@ -1,5 +1,4 @@
-
-import clientPromise from '@/lib/mongodb';
+import { getMongoClient } from '../../../lib/mongodb';
 
 export default async function handler(req, res) {
   const { wallet } = req.query;
@@ -9,7 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const client = await clientPromise;
+    const client = await getMongoClient();
     const db = client.db();
     const badge = await db.collection('badges').findOne({ wallet });
 
