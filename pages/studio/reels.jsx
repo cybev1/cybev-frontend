@@ -1,5 +1,5 @@
-import DashboardLayout from '@/components/DashboardLayout';
-import ReelsPreview from '@/components/ReelsPreview';
+import DashboardLayout from '../../components/DashboardLayout';
+import ReelsPreview from '../../components/ReelsPreview';
 
 export default function ReelsPage() {
   return (
