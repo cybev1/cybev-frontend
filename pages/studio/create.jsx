@@ -1,7 +1,7 @@
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '../../components/DashboardLayout';
 import dynamic from 'next/dynamic';
 
-const PostEditor = dynamic(() => import('@/components/PostEditor'), { ssr: false });
+const PostEditor = dynamic(() => import('../../components/PostEditor'), { ssr: false });
 
 export default function CreatePostPage() {
   return (
