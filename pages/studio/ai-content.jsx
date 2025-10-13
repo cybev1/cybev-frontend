@@ -3,7 +3,7 @@ import Head from 'next/head';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import DashboardLayout from '@/components/DashboardLayout';
+import DashboardLayout from '../../components/DashboardLayout';
 
 export default function AIContentPage() {
   const [activeTab, setActiveTab] = useState('blog_post');
@@ -377,7 +377,7 @@ export default function AIContentPage() {
                 </div>
               </div>
 
-              {/* Generated Content - FIXED: Removed duplicate opening div */}
+              {/* Generated Content */}
               {generatedContent && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
