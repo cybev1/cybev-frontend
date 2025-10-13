@@ -1,7 +1,6 @@
-
 import dynamic from 'next/dynamic';
 
-const StakeCard = dynamic(() => import('@/components/StakeCard'), { ssr: false });
+const StakeCard = dynamic(() => import('../../components/StakeCard'), { ssr: false });
 
 export default function StakePage() {
   return (
