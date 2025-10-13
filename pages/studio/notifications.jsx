@@ -1,5 +1,5 @@
-import DashboardLayout from '@/components/DashboardLayout';
-import NotificationPanel from '@/components/NotificationPanel';
+import DashboardLayout from '../../components/DashboardLayout';
+import NotificationPanel from '../../components/NotificationPanel';
 
 export default function NotificationsPage() {
   return (
