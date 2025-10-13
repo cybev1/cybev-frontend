@@ -377,14 +377,13 @@ export default function AIContentPage() {
                 </div>
               </div>
 
-              {/* Generated Content */}
+              {/* Generated Content - FIXED: Removed duplicate opening div */}
               {generatedContent && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg"
                 >
-                  <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Generated Content</h3>
                     <div className="flex gap-2">
