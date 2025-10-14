@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 
-const BlogBuilder = () => {
+export default function BlogBuilder() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [blogData, setBlogData] = useState({
@@ -32,7 +32,6 @@ const BlogBuilder = () => {
     if (step < 3) {
       setStep(step + 1);
     } else {
-      // Navigate to voice recording with blog data
       router.push({
         pathname: '/studio/voice-record',
         query: { blogData: JSON.stringify(blogData) }
@@ -40,34 +39,30 @@ const BlogBuilder = () => {
     }
   };
 
-  const handleBack = () => {
-    if (step > 1) setStep(step - 1);
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-      <div className="max-w-4xl mx-auto py-12 px-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 px-4">
+      <div className="max-w-4xl mx-auto">
         {/* Progress Bar */}
         <div className="mb-12">
           <div className="flex items-center justify-between mb-4">
             {[1, 2, 3].map((num) => (
-              <React.Fragment key={num}>
-                <div className={`flex items-center justify-center w-12 h-12 rounded-full font-bold ${
+              <div key={num} className="flex items-center flex-1">
+                <div className={`flex items-center justify-center w-12 h-12 rounded-full font-bold transition-all ${
                   step >= num
-                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+                    ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg scale-110'
                     : 'bg-gray-200 text-gray-500'
                 }`}>
                   {num}
                 </div>
                 {num < 3 && (
-                  <div className={`flex-1 h-1 mx-4 ${
-                    step > num ? 'bg-gradient-to-r from-purple-600 to-blue-600' : 'bg-gray-200'
+                  <div className={`flex-1 h-1 mx-4 transition-all ${
+                    step > num ? 'bg-gradient-to-r from-blue-600 to-cyan-500' : 'bg-gray-200'
                   }`} />
                 )}
-              </React.Fragment>
+              </div>
             ))}
           </div>
-          <div className="flex justify-between text-sm text-gray-600">
+          <div className="flex justify-between text-sm text-gray-600 px-2">
             <span>Topic</span>
             <span>Style</span>
             <span>Details</span>
@@ -76,8 +71,8 @@ const BlogBuilder = () => {
 
         {/* Step 1: Topic */}
         {step === 1 && (
-          <div className="bg-white rounded-3xl shadow-xl p-8">
-            <h2 className="text-3xl font-bold mb-4 text-gray-800">
+          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-blue-100">
+            <h2 className="text-3xl font-bold mb-4 text-gray-900">
               What's your blog post about?
             </h2>
             <p className="text-gray-600 mb-8">
@@ -88,14 +83,14 @@ const BlogBuilder = () => {
               value={blogData.topic}
               onChange={(e) => setBlogData({ ...blogData, topic: e.target.value })}
               placeholder="e.g., 'The future of AI in healthcare' or 'My journey learning to code'"
-              className="w-full h-40 px-6 py-4 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none text-lg resize-none"
+              className="w-full h-40 px-6 py-4 border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:outline-none text-lg resize-none transition"
               autoFocus
             />
 
             <div className="mt-8 flex justify-end">
               <button
                 onClick={handleNext}
-                className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full font-semibold hover:shadow-xl transition-all"
+                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white rounded-xl font-semibold hover:shadow-xl transition-all active:scale-95"
               >
                 Next →
               </button>
@@ -105,15 +100,14 @@ const BlogBuilder = () => {
 
         {/* Step 2: Tone & Length */}
         {step === 2 && (
-          <div className="bg-white rounded-3xl shadow-xl p-8">
-            <h2 className="text-3xl font-bold mb-2 text-gray-800">
+          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-blue-100">
+            <h2 className="text-3xl font-bold mb-2 text-gray-900">
               Choose your style
             </h2>
             <p className="text-gray-600 mb-8">
               Select the tone and length that fits your content
             </p>
 
-            {/* Tone Selection */}
             <div className="mb-10">
               <h3 className="text-xl font-semibold mb-4 text-gray-700">Tone</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -121,10 +115,10 @@ const BlogBuilder = () => {
                   <button
                     key={tone.id}
                     onClick={() => setBlogData({ ...blogData, tone: tone.id })}
-                    className={`p-4 rounded-xl border-2 transition-all text-center ${
+                    className={`p-4 rounded-xl border-2 transition-all text-center active:scale-95 ${
                       blogData.tone === tone.id
-                        ? 'border-purple-500 bg-purple-50'
-                        : 'border-gray-200 hover:border-purple-300'
+                        ? 'border-blue-500 bg-blue-50 shadow-lg'
+                        : 'border-gray-200 hover:border-blue-300'
                     }`}
                   >
                     <div className="text-3xl mb-2">{tone.icon}</div>
@@ -135,7 +129,6 @@ const BlogBuilder = () => {
               </div>
             </div>
 
-            {/* Length Selection */}
             <div className="mb-8">
               <h3 className="text-xl font-semibold mb-4 text-gray-700">Length</h3>
               <div className="grid grid-cols-3 gap-4">
@@ -143,10 +136,10 @@ const BlogBuilder = () => {
                   <button
                     key={length.id}
                     onClick={() => setBlogData({ ...blogData, length: length.id })}
-                    className={`p-6 rounded-xl border-2 transition-all text-center ${
+                    className={`p-6 rounded-xl border-2 transition-all text-center active:scale-95 ${
                       blogData.length === length.id
-                        ? 'border-purple-500 bg-purple-50'
-                        : 'border-gray-200 hover:border-purple-300'
+                        ? 'border-blue-500 bg-blue-50 shadow-lg'
+                        : 'border-gray-200 hover:border-blue-300'
                     }`}
                   >
                     <div className="font-bold text-lg text-gray-800 mb-1">{length.label}</div>
@@ -159,14 +152,14 @@ const BlogBuilder = () => {
 
             <div className="flex justify-between">
               <button
-                onClick={handleBack}
-                className="px-8 py-4 bg-gray-100 text-gray-700 rounded-full font-semibold hover:bg-gray-200 transition-all"
+                onClick={() => setStep(1)}
+                className="px-8 py-4 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-all active:scale-95"
               >
                 ← Back
               </button>
               <button
                 onClick={handleNext}
-                className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full font-semibold hover:shadow-xl transition-all"
+                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white rounded-xl font-semibold hover:shadow-xl transition-all active:scale-95"
               >
                 Next →
               </button>
@@ -174,10 +167,10 @@ const BlogBuilder = () => {
           </div>
         )}
 
-        {/* Step 3: Keywords (Optional) */}
+        {/* Step 3: Keywords */}
         {step === 3 && (
-          <div className="bg-white rounded-3xl shadow-xl p-8">
-            <h2 className="text-3xl font-bold mb-2 text-gray-800">
+          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-blue-100">
+            <h2 className="text-3xl font-bold mb-2 text-gray-900">
               Add keywords (optional)
             </h2>
             <p className="text-gray-600 mb-8">
@@ -187,7 +180,7 @@ const BlogBuilder = () => {
             <input
               type="text"
               placeholder="Press Enter to add keywords (e.g., AI, healthcare, innovation)"
-              className="w-full px-6 py-4 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none text-lg mb-4"
+              className="w-full px-6 py-4 border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:outline-none text-lg mb-4 transition"
               onKeyPress={(e) => {
                 if (e.key === 'Enter' && e.target.value.trim()) {
                   setBlogData({
@@ -199,13 +192,12 @@ const BlogBuilder = () => {
               }}
             />
 
-            {/* Keyword Tags */}
             {blogData.keywords.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-6">
                 {blogData.keywords.map((keyword, idx) => (
                   <span
                     key={idx}
-                    className="px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium flex items-center gap-2"
+                    className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium flex items-center gap-2"
                   >
                     {keyword}
                     <button
@@ -215,7 +207,7 @@ const BlogBuilder = () => {
                           keywords: blogData.keywords.filter((_, i) => i !== idx)
                         });
                       }}
-                      className="hover:text-purple-900"
+                      className="hover:text-blue-900 text-lg"
                     >
                       ×
                     </button>
@@ -232,14 +224,14 @@ const BlogBuilder = () => {
 
             <div className="flex justify-between">
               <button
-                onClick={handleBack}
-                className="px-8 py-4 bg-gray-100 text-gray-700 rounded-full font-semibold hover:bg-gray-200 transition-all"
+                onClick={() => setStep(2)}
+                className="px-8 py-4 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-all active:scale-95"
               >
                 ← Back
               </button>
               <button
                 onClick={handleNext}
-                className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full font-semibold hover:shadow-xl transition-all"
+                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white rounded-xl font-semibold hover:shadow-xl transition-all active:scale-95"
               >
                 Start Creating →
               </button>
@@ -249,6 +241,4 @@ const BlogBuilder = () => {
       </div>
     </div>
   );
-};
-
-export default BlogBuilder;
+}
