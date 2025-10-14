@@ -7,6 +7,8 @@ export default function Onboarding() {
   const [selectedType, setSelectedType] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
   const handleContinue = async () => {
     if (!selectedType) return;
     
@@ -15,11 +17,15 @@ export default function Onboarding() {
     try {
       const token = localStorage.getItem('token');
       
+      console.log('📤 Sending onboarding to:', `${API_URL}/auth/onboarding`);
+      
       await axios.post(
-        'http://localhost:5000/api/auth/onboarding',
+        `${API_URL}/auth/onboarding`,
         { contentType: selectedType },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      console.log('✅ Onboarding completed');
 
       if (selectedType === 'blog') {
         router.push('/blog/builder');
@@ -29,7 +35,7 @@ export default function Onboarding() {
         router.push('/studio');
       }
     } catch (err) {
-      console.error('Onboarding error:', err);
+      console.error('❌ Onboarding error:', err.response?.data || err.message);
       router.push('/studio');
     } finally {
       setLoading(false);
