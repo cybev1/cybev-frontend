@@ -13,17 +13,24 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
+    console.log('📤 Sending registration to:', `${API_URL}/auth/register`);
+
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/register', formData);
+      const response = await axios.post(`${API_URL}/auth/register`, formData);
+      console.log('✅ Registration successful:', response.data);
+      
       localStorage.setItem('token', response.data.token);
       router.push('/onboarding');
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      console.error('❌ Registration error:', err.response?.data || err.message);
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
