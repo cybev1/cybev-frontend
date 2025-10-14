@@ -11,22 +11,22 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    console.log('📤 Sending login to:', `${API_URL}/auth/login`);
+    console.log('📤 Sending login to:', `${API_URL}/api/auth/login`);
 
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, formData);
+      const response = await axios.post(`${API_URL}/api/auth/login`, formData);
       console.log('✅ Login successful:', response.data);
       
       localStorage.setItem('token', response.data.token);
       
-      const profileResponse = await axios.get(`${API_URL}/auth/profile`, {
+      const profileResponse = await axios.get(`${API_URL}/api/auth/profile`, {
         headers: { Authorization: `Bearer ${response.data.token}` }
       });
 
