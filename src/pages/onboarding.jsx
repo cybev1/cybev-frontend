@@ -27,8 +27,20 @@ export default function Onboarding() {
 
       console.log('✅ Onboarding completed');
 
+      // Award CYBEV tokens for completing onboarding
+      try {
+        await axios.post(
+          `${API_URL}/api/rewards/award`,
+          { action: 'onboarding_complete', amount: 50 },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        console.log('🎉 Awarded 50 CYBEV tokens for completing onboarding!');
+      } catch (err) {
+        console.log('Token reward pending:', err);
+      }
+
       if (selectedType === 'blog') {
-        router.push('/blog/builder');
+        router.push('/blog/templates');
       } else if (selectedType === 'social') {
         router.push('/studio/social');
       } else {
@@ -45,6 +57,12 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center px-4 py-8">
       <div className="max-w-4xl w-full">
+        {/* Reward Banner */}
+        <div className="mb-8 p-4 bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl text-white text-center shadow-xl">
+          <p className="font-bold text-lg">🎉 Earn 50 CYBEV Tokens by Completing Setup!</p>
+          <p className="text-sm opacity-90">Start earning rewards for every action on the platform</p>
+        </div>
+
         <div className="text-center mb-12">
           <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl">
             <span className="text-3xl font-bold text-white">C</span>
@@ -79,6 +97,13 @@ export default function Onboarding() {
                 </span>
               ))}
             </div>
+            
+            {/* Reward Badge */}
+            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+              <p className="text-sm text-amber-800 font-semibold">
+                🪙 Earn CYBEV tokens for every blog post!
+              </p>
+            </div>
           </button>
 
           {/* Social Feed Option */}
@@ -104,6 +129,13 @@ export default function Onboarding() {
                 </span>
               ))}
             </div>
+
+            {/* Reward Badge */}
+            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+              <p className="text-sm text-amber-800 font-semibold">
+                🪙 Earn tokens for likes, comments & shares!
+              </p>
+            </div>
           </button>
         </div>
 
@@ -114,7 +146,7 @@ export default function Onboarding() {
               disabled={loading}
               className="px-10 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-bold text-lg shadow-2xl transition-all duration-300 active:scale-95 disabled:opacity-50"
             >
-              {loading ? 'Setting up...' : `Continue to ${selectedType === 'blog' ? 'Blog Builder' : 'Social Feed'} →`}
+              {loading ? 'Setting up...' : `Continue to ${selectedType === 'blog' ? 'Templates' : 'Social Feed'} →`}
             </button>
             <p className="mt-4 text-sm text-gray-600">
               You can always switch between blog and social features anytime!
