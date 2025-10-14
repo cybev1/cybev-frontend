@@ -7,7 +7,7 @@ export default function Onboarding() {
   const [selectedType, setSelectedType] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
   const handleContinue = async () => {
     if (!selectedType) return;
@@ -17,10 +17,10 @@ export default function Onboarding() {
     try {
       const token = localStorage.getItem('token');
       
-      console.log('📤 Sending onboarding to:', `${API_URL}/auth/onboarding`);
+      console.log('📤 Sending onboarding to:', `${API_URL}/api/auth/onboarding`);
       
       await axios.post(
-        `${API_URL}/auth/onboarding`,
+        `${API_URL}/api/auth/onboarding`,
         { contentType: selectedType },
         { headers: { Authorization: `Bearer ${token}` } }
       );
