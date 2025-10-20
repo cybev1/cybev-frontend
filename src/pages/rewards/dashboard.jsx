@@ -347,5 +347,6 @@ export default function RewardsDashboard() {
         </div>
       </div>
     </div>
+    </AppLayout>
   );
 }
