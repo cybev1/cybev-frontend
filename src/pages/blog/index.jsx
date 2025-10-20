@@ -168,6 +168,7 @@ export default function BlogFeed() {
   );
 
   return (
+    <AppLayout>
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
       {/* Header */}
       <div className="bg-black/30 backdrop-blur-lg border-b border-white/10">
@@ -298,5 +299,6 @@ export default function BlogFeed() {
         )}
       </div>
     </div>
+    </AppLayout>
   );
 }
