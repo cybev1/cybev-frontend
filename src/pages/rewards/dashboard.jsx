@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import AppLayout from '@/components/Layout/AppLayout';
 import { rewardAPI } from '@/lib/api';
 import { toast } from 'react-toastify';
 import {
