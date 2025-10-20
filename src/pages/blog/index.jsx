@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import AppLayout from '@/components/Layout/AppLayout';
 import { blogAPI } from '@/lib/api';
 import { toast } from 'react-toastify';
 import { 
