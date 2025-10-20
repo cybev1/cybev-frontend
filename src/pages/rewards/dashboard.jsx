@@ -5,7 +5,7 @@ import { rewardAPI } from '@/lib/api';
 import { toast } from 'react-toastify';
 import {
   Coins, TrendingUp, Award, Zap, Gift, Calendar,
-  Trophy, Target, Flame, Clock, ArrowUp, Check
+  Trophy, Target, Flame, Clock, ArrowUp, Check, Heart, Globe, PenTool
 } from 'lucide-react';
 
 export default function RewardsDashboard() {
@@ -57,7 +57,7 @@ export default function RewardsDashboard() {
       const response = await rewardAPI.claimDailyBonus();
       if (response.data.ok) {
         toast.success(`🎉 ${response.data.message}`);
-        fetchData(); // Refresh data
+        fetchData();
       }
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to claim bonus');
@@ -68,27 +68,29 @@ export default function RewardsDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
-      </div>
+      <AppLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+        </div>
+      </AppLayout>
     );
   }
 
   const StatCard = ({ icon: Icon, label, value, color, trend }) => (
-    <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl p-6 hover:bg-white/15 transition-all">
+    <div className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-all">
       <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 bg-${color}-500/20 rounded-lg`}>
-          <Icon className={`w-6 h-6 text-${color}-400`} />
+        <div className={`p-3 bg-${color}-100 rounded-lg`}>
+          <Icon className={`w-6 h-6 text-${color}-600`} />
         </div>
         {trend && (
-          <div className="flex items-center gap-1 text-green-400 text-sm">
+          <div className="flex items-center gap-1 text-green-600 text-sm">
             <ArrowUp className="w-4 h-4" />
             {trend}
           </div>
         )}
       </div>
-      <h3 className="text-gray-400 text-sm mb-1">{label}</h3>
-      <p className="text-3xl font-bold text-white">{value}</p>
+      <h3 className="text-gray-500 text-sm mb-1">{label}</h3>
+      <p className="text-3xl font-bold text-gray-900">{value}</p>
     </div>
   );
 
@@ -102,58 +104,58 @@ export default function RewardsDashboard() {
     const Icon = icons[transaction.type] || Coins;
 
     return (
-      <div className="flex items-center justify-between py-3 border-b border-white/10 last:border-0">
+      <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-purple-500/20 rounded-lg">
-            <Icon className="w-4 h-4 text-purple-400" />
+          <div className="p-2 bg-purple-100 rounded-lg">
+            <Icon className="w-4 h-4 text-purple-600" />
           </div>
           <div>
-            <p className="text-white text-sm font-medium">{transaction.description}</p>
-            <p className="text-gray-400 text-xs">
+            <p className="text-gray-900 text-sm font-medium">{transaction.description}</p>
+            <p className="text-gray-500 text-xs">
               {new Date(transaction.timestamp).toLocaleDateString()}
             </p>
           </div>
         </div>
-        <div className="text-green-400 font-semibold">
-          +{transaction.amount} tokens
+        <div className="text-green-600 font-semibold">
+          +{transaction.amount}
         </div>
       </div>
     );
   };
 
   const AchievementCard = ({ achievement }) => (
-    <div className={`bg-white/10 backdrop-blur-lg border ${achievement.unlocked ? 'border-yellow-500/50' : 'border-white/20'} rounded-xl p-4 hover:bg-white/15 transition-all ${!achievement.unlocked && 'opacity-50'}`}>
+    <div className={`bg-white rounded-xl p-4 border ${achievement.unlocked ? 'border-yellow-400 shadow-md' : 'border-gray-200'} hover:shadow-lg transition-all ${!achievement.unlocked && 'opacity-50'}`}>
       <div className="flex items-start justify-between mb-3">
-        <div className={`p-3 ${achievement.unlocked ? 'bg-yellow-500/20' : 'bg-white/10'} rounded-lg`}>
-          <Award className={`w-6 h-6 ${achievement.unlocked ? 'text-yellow-400' : 'text-gray-400'}`} />
+        <div className={`p-3 ${achievement.unlocked ? 'bg-yellow-100' : 'bg-gray-100'} rounded-lg`}>
+          <Award className={`w-6 h-6 ${achievement.unlocked ? 'text-yellow-600' : 'text-gray-400'}`} />
         </div>
         {achievement.unlocked && (
-          <div className="p-1 bg-green-500/20 rounded-full">
-            <Check className="w-4 h-4 text-green-400" />
+          <div className="p-1 bg-green-100 rounded-full">
+            <Check className="w-4 h-4 text-green-600" />
           </div>
         )}
       </div>
-      <h4 className="text-white font-semibold mb-1">{achievement.name}</h4>
-      <p className="text-gray-400 text-sm mb-2">{achievement.description}</p>
+      <h4 className="text-gray-900 font-semibold mb-1">{achievement.name}</h4>
+      <p className="text-gray-600 text-sm mb-2">{achievement.description}</p>
       <div className="flex items-center gap-2">
-        <Coins className="w-4 h-4 text-yellow-400" />
-        <span className="text-yellow-400 text-sm font-medium">{achievement.reward} tokens</span>
+        <Coins className="w-4 h-4 text-yellow-600" />
+        <span className="text-yellow-600 text-sm font-medium">{achievement.reward} tokens</span>
       </div>
     </div>
   );
 
   const LeaderboardItem = ({ user, rank, tokens }) => (
-    <div className="flex items-center justify-between py-3 border-b border-white/10 last:border-0">
+    <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
       <div className="flex items-center gap-3">
-        <div className={`w-8 h-8 flex items-center justify-center rounded-full ${rank <= 3 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-white/10'} font-bold text-white text-sm`}>
+        <div className={`w-8 h-8 flex items-center justify-center rounded-full ${rank <= 3 ? 'bg-gradient-to-r from-yellow-400 to-orange-400' : 'bg-gray-200'} font-bold text-white text-sm`}>
           {rank}
         </div>
         <div>
-          <p className="text-white font-medium">{user?.name || 'Anonymous'}</p>
-          <p className="text-gray-400 text-xs">{user?.email}</p>
+          <p className="text-gray-900 font-medium">{user?.name || 'Anonymous'}</p>
+          <p className="text-gray-500 text-xs">{user?.email}</p>
         </div>
       </div>
-      <div className="flex items-center gap-1 text-yellow-400 font-semibold">
+      <div className="flex items-center gap-1 text-yellow-600 font-semibold">
         <Coins className="w-4 h-4" />
         {tokens}
       </div>
@@ -161,192 +163,193 @@ export default function RewardsDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-      {/* Header */}
-      <div className="bg-black/30 backdrop-blur-lg border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Rewards Dashboard</h1>
-              <p className="text-gray-400">Track your earnings and achievements</p>
-            </div>
-            <div className="p-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-xl border border-yellow-500/30">
-              <div className="flex items-center gap-2 mb-1">
-                <Coins className="w-6 h-6 text-yellow-400" />
-                <span className="text-gray-400 text-sm">Total Balance</span>
+    <AppLayout>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-blue-50 pb-20">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-bold text-gray-900 mb-2">Rewards Dashboard</h1>
+                <p className="text-gray-600">Track your earnings and achievements</p>
               </div>
-              <p className="text-4xl font-bold text-white">{wallet?.balance || 0}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Daily Bonus Banner */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-xl p-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Gift className="w-12 h-12 text-purple-400" />
-            <div>
-              <h3 className="text-white font-semibold text-lg">Daily Bonus Available!</h3>
-              <p className="text-gray-300">Claim your free 10 tokens today</p>
-            </div>
-          </div>
-          <button
-            onClick={handleClaimBonus}
-            disabled={claiming}
-            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
-          >
-            {claiming ? 'Claiming...' : 'Claim Now'}
-          </button>
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
-            icon={TrendingUp}
-            label="Total Earned"
-            value={stats?.totalEarned || 0}
-            color="green"
-            trend="+12%"
-          />
-          <StatCard
-            icon={Target}
-            label="Blogs Published"
-            value={stats?.blogCount || 0}
-            color="blue"
-          />
-          <StatCard
-            icon={Flame}
-            label="Current Streak"
-            value={`${stats?.currentStreak || 0} days`}
-            color="orange"
-          />
-          <StatCard
-            icon={Trophy}
-            label="Achievements"
-            value={`${achievements.filter(a => a.unlocked).length}/${achievements.length}`}
-            color="yellow"
-          />
-        </div>
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 pb-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Transactions & Achievements */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Recent Transactions */}
-            <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Recent Transactions</h2>
-                <Clock className="w-5 h-5 text-gray-400" />
-              </div>
-              {transactions.length === 0 ? (
-                <div className="text-center py-8">
-                  <Coins className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-400">No transactions yet</p>
+              <div className="p-4 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl border border-yellow-200">
+                <div className="flex items-center gap-2 mb-1">
+                  <Coins className="w-6 h-6 text-yellow-600" />
+                  <span className="text-gray-600 text-sm">Total Balance</span>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {transactions.map((transaction, idx) => (
-                    <TransactionItem key={idx} transaction={transaction} />
+                <p className="text-4xl font-bold text-gray-900">{wallet?.balance || 0}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Daily Bonus Banner */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+          <div className="bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-200 rounded-xl p-6 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Gift className="w-12 h-12 text-purple-600" />
+              <div>
+                <h3 className="text-gray-900 font-semibold text-lg">Daily Bonus Available!</h3>
+                <p className="text-gray-700">Claim your free 10 tokens today</p>
+              </div>
+            </div>
+            <button
+              onClick={handleClaimBonus}
+              disabled={claiming}
+              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+            >
+              {claiming ? 'Claiming...' : 'Claim Now'}
+            </button>
+          </div>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard
+              icon={TrendingUp}
+              label="Total Earned"
+              value={stats?.totalEarned || 0}
+              color="green"
+              trend="+12%"
+            />
+            <StatCard
+              icon={Target}
+              label="Blogs Published"
+              value={stats?.blogCount || 0}
+              color="blue"
+            />
+            <StatCard
+              icon={Flame}
+              label="Current Streak"
+              value={`${stats?.currentStreak || 0} days`}
+              color="orange"
+            />
+            <StatCard
+              icon={Trophy}
+              label="Achievements"
+              value={`${achievements.filter(a => a.unlocked).length}/${achievements.length}`}
+              color="yellow"
+            />
+          </div>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* Recent Transactions */}
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-900">Recent Transactions</h2>
+                  <Clock className="w-5 h-5 text-gray-400" />
+                </div>
+                {transactions.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Coins className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500">No transactions yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {transactions.map((transaction, idx) => (
+                      <TransactionItem key={idx} transaction={transaction} />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Achievements */}
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-900">Achievements</h2>
+                  <Award className="w-5 h-5 text-yellow-600" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {achievements.map((achievement, idx) => (
+                    <AchievementCard key={idx} achievement={achievement} />
                   ))}
                 </div>
-              )}
-            </div>
-
-            {/* Achievements */}
-            <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Achievements</h2>
-                <Award className="w-5 h-5 text-yellow-400" />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {achievements.map((achievement, idx) => (
-                  <AchievementCard key={idx} achievement={achievement} />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Stats & Leaderboard */}
-          <div className="space-y-8">
-            {/* Quick Stats */}
-            <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl p-6">
-              <h2 className="text-xl font-bold text-white mb-6">Your Stats</h2>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between py-3 border-b border-white/10">
-                  <span className="text-gray-400">Total Views</span>
-                  <span className="text-white font-semibold">{stats?.totalViews || 0}</span>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b border-white/10">
-                  <span className="text-gray-400">Total Likes</span>
-                  <span className="text-white font-semibold">{stats?.totalLikes || 0}</span>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b border-white/10">
-                  <span className="text-gray-400">Longest Streak</span>
-                  <span className="text-white font-semibold">{stats?.longestStreak || 0} days</span>
-                </div>
-                <div className="flex items-center justify-between py-3">
-                  <span className="text-gray-400">Tokens Earned</span>
-                  <span className="text-yellow-400 font-semibold">{stats?.totalEarned || 0}</span>
-                </div>
               </div>
             </div>
 
-            {/* Leaderboard */}
-            <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Top Earners</h2>
-                <Trophy className="w-5 h-5 text-yellow-400" />
+            {/* Right Column */}
+            <div className="space-y-8">
+              {/* Quick Stats */}
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Your Stats</h2>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                    <span className="text-gray-600">Total Views</span>
+                    <span className="text-gray-900 font-semibold">{stats?.totalViews || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                    <span className="text-gray-600">Total Likes</span>
+                    <span className="text-gray-900 font-semibold">{stats?.totalLikes || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                    <span className="text-gray-600">Longest Streak</span>
+                    <span className="text-gray-900 font-semibold">{stats?.longestStreak || 0} days</span>
+                  </div>
+                  <div className="flex items-center justify-between py-3">
+                    <span className="text-gray-600">Tokens Earned</span>
+                    <span className="text-yellow-600 font-semibold">{stats?.totalEarned || 0}</span>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                {leaderboard.slice(0, 5).map((item, idx) => (
-                  <LeaderboardItem
-                    key={idx}
-                    user={item.user}
-                    rank={idx + 1}
-                    tokens={item.totalEarned}
-                  />
-                ))}
-              </div>
-            </div>
 
-            {/* Earning Tips */}
-            <div className="bg-gradient-to-br from-green-500/20 to-blue-500/20 border border-green-500/30 rounded-xl p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Zap className="w-5 h-5 text-green-400" />
-                <h3 className="text-white font-semibold">Earning Tips</h3>
+              {/* Leaderboard */}
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-900">Top Earners</h2>
+                  <Trophy className="w-5 h-5 text-yellow-600" />
+                </div>
+                <div className="space-y-2">
+                  {leaderboard.slice(0, 5).map((item, idx) => (
+                    <LeaderboardItem
+                      key={idx}
+                      user={item.user}
+                      rank={idx + 1}
+                      tokens={item.totalEarned}
+                    />
+                  ))}
+                </div>
               </div>
-              <ul className="space-y-2 text-gray-300 text-sm">
-                <li className="flex items-start gap-2">
-                  <span className="text-green-400">•</span>
-                  <span>Publish blogs to earn 50 tokens each</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-400">•</span>
-                  <span>Get 5 tokens for each like on your posts</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-400">•</span>
-                  <span>Maintain daily posting streak for bonuses</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-400">•</span>
-                  <span>Unlock achievements for extra rewards</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-400">•</span>
-                  <span>Connect custom domain for 200 tokens</span>
-                </li>
-              </ul>
+
+              {/* Earning Tips */}
+              <div className="bg-gradient-to-br from-green-100 to-blue-100 border border-green-200 rounded-xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Zap className="w-5 h-5 text-green-600" />
+                  <h3 className="text-gray-900 font-semibold">Earning Tips</h3>
+                </div>
+                <ul className="space-y-2 text-gray-700 text-sm">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600">•</span>
+                    <span>Publish blogs to earn 50 tokens each</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600">•</span>
+                    <span>Get 5 tokens for each like on your posts</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600">•</span>
+                    <span>Maintain daily posting streak for bonuses</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600">•</span>
+                    <span>Unlock achievements for extra rewards</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600">•</span>
+                    <span>Connect custom domain for 200 tokens</span>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
     </AppLayout>
   );
 }
