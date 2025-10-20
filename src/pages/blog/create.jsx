@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
+import AppLayout from '@/components/Layout/AppLayout';
 import { blogAPI } from '@/lib/api';
 import { toast } from 'react-toastify';
 import { PenTool, Save, Eye, Sparkles, TrendingUp } from 'lucide-react';
