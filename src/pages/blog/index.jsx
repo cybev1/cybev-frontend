@@ -1,7 +1,13 @@
-import { useState, useEffect } from 'react';
+{/* Search and Filter */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <AdvancedSearch 
+          onSearch={(filters) => {
+            setSearchQuery(filters.search);
+            setSelectedCategory(filtersimport { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import AppLayout from '@/components/Layout/AppLayout';
+import AdvancedSearch from '@/components/AdvancedSearch';
 import { blogAPI } from '@/lib/api';
 import { toast } from 'react-toastify';
 import { 
@@ -166,6 +172,7 @@ export default function BlogFeed() {
       </div>
     </Link>
   );
+};
 
   return (
     <AppLayout>
