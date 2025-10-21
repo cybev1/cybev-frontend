@@ -11,7 +11,9 @@ import {
 
 export default function BlogDetail() {
   const router = useRouter();
-  const { id } = router.query;
+  const { id: blogId } = router.query; // Changed from 'id' to handle both [id] and [username]
+  const id = blogId;
+
   const [blog, setBlog] = useState(null);
   const [relatedBlogs, setRelatedBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -241,7 +243,7 @@ export default function BlogDetail() {
                 <p className="text-gray-600 mb-4">
                   Content creator sharing insights and experiences.
                 </p>
-                <Link href={`/profile/${blog.author}`}>
+                <Link href={`/profile/${blog.authorName || blog.author}`}>
                   <button className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-900 rounded-lg transition-all border border-gray-200 font-medium">
                     View Profile
                   </button>
