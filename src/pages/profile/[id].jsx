@@ -91,7 +91,17 @@ export default function UserProfile() {
               {/* Info */}
               <div className="flex-1 text-center md:text-left">
                 <h1 className="text-4xl font-bold mb-2">{author}</h1>
-                <p className="text-purple-100 mb-4">Content Creator & Writer</p>
+                <p className="text-purple-100 mb-2">Content Creator & Writer</p>
+                
+                {/* Badge Tier */}
+                {badge && (
+                  <div className="inline-block px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg mb-4">
+                    <div className="flex items-center gap-2">
+                      <Award className="w-4 h-4" />
+                      <span className="font-semibold">Badge Tier: {badge}</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Stats */}
                 <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm">
