@@ -1,0 +1,15 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow admin and private pages
+Disallow: /api/
+Disallow: /auth/
+Disallow: /settings/
+Disallow: /dashboard
+
+# Sitemap location
+Sitemap: https://cybev.io/sitemap.xml
+
+# Crawl delay (be nice to servers)
+Crawl-delay: 1
