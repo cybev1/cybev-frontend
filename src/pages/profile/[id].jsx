@@ -11,8 +11,9 @@ import {
 
 export default function UserProfile() {
   const router = useRouter();
-  const { id } = router.query;
+  const { username } = router.query; // Changed from 'id' to 'username'
   const [blogs, setBlogs] = useState([]);
+  const [badge, setBadge] = useState(null);
   const [stats, setStats] = useState({
     totalBlogs: 0,
     totalViews: 0,
@@ -21,15 +22,27 @@ export default function UserProfile() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
+    if (username) {
       fetchUserBlogs();
+      fetchBadgeTier();
     }
-  }, [id]);
+  }, [username]);
+
+  const fetchBadgeTier = async () => {
+    try {
+      const response = await fetch(`/api/badge/tier?wallet=${username}`);
+      const data = await response.json();
+      setBadge(data.tier || 'Unranked');
+    } catch (error) {
+      console.error('Failed to load badge tier');
+    }
+  };
 
   const fetchUserBlogs = async () => {
     setLoading(true);
     try {
-      const response = await blogAPI.getBlogs({ author: id });
+      // Try to fetch blogs by author username/id
+      const response = await blogAPI.getBlogs({ author: username });
       if (response.data.ok) {
         const userBlogs = response.data.blogs;
         setBlogs(userBlogs);
