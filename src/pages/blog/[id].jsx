@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import AppLayout from '@/components/Layout/AppLayout';
+import SEO from '@/components/SEO';
+import SocialShare from '@/components/SocialShare';
+import Comments from '@/components/Comments';
 import { blogAPI } from '@/lib/api';
 import { toast } from 'react-toastify';
 import {
