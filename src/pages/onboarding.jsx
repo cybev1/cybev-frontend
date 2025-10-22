@@ -39,16 +39,17 @@ export default function Onboarding() {
         console.log('Token reward pending:', err);
       }
 
+      // ✅ FIXED REDIRECTS - Now uses /dashboard instead of /studio
       if (selectedType === 'blog') {
         router.push('/blog/templates');
       } else if (selectedType === 'social') {
-        router.push('/studio/social');
+        router.push('/dashboard');  // ✅ Changed from /studio/social
       } else {
-        router.push('/studio');
+        router.push('/dashboard');  // ✅ Changed from /studio
       }
     } catch (err) {
       console.error('❌ Onboarding error:', err.response?.data || err.message);
-      router.push('/studio');
+      router.push('/dashboard');  // ✅ Changed from /studio
     } finally {
       setLoading(false);
     }
@@ -146,7 +147,7 @@ export default function Onboarding() {
               disabled={loading}
               className="px-10 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-bold text-lg shadow-2xl transition-all duration-300 active:scale-95 disabled:opacity-50"
             >
-              {loading ? 'Setting up...' : `Continue to ${selectedType === 'blog' ? 'Templates' : 'Social Feed'} →`}
+              {loading ? 'Setting up...' : `Continue to ${selectedType === 'blog' ? 'Templates' : 'Dashboard'} →`}
             </button>
             <p className="mt-4 text-sm text-gray-600">
               You can always switch between blog and social features anytime!
