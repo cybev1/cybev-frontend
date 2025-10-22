@@ -22,11 +22,13 @@ export default function BlogDetail() {
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [bookmarked, setBookmarked] = useState(false);
 
   useEffect(() => {
     if (id) {
       fetchBlog();
       fetchRelatedBlogs();
+      checkBookmark();
     }
   }, [id]);
 
@@ -134,6 +136,15 @@ export default function BlogDetail() {
 
   return (
     <AppLayout>
+      <SEO
+        title={blog.title}
+        description={blog.content.replace(/<[^>]*>/g, '').substring(0, 160)}
+        type="article"
+        author={blog.authorName}
+        publishedTime={blog.createdAt}
+        modifiedTime={blog.updatedAt}
+        keywords={blog.tags?.join(', ')}
+      />
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-blue-50 pb-20">
         {/* Header */}
         <div className="bg-white border-b border-gray-200">
@@ -180,7 +191,7 @@ export default function BlogDetail() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <button
                 onClick={handleLike}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
@@ -193,13 +204,13 @@ export default function BlogDetail() {
                 <span className="font-medium">{likeCount}</span>
               </button>
 
-              <button
-                onClick={handleShare}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-all border border-gray-200"
-              >
-                <Share2 className="w-4 h-4" />
-                <span className="font-medium">Share</span>
-              </button>
+              <SocialShare
+                url={typeof window !== 'undefined' ? window.location.href : ''}
+                title={blog.title}
+                description={blog.content.replace(/<[^>]*>/g, '').substring(0, 160)}
+                hashtags={blog.tags || []}
+                compact={true}
+              />
 
               <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-all border border-gray-200">
                 <Bookmark className="w-4 h-4" />
@@ -254,6 +265,9 @@ export default function BlogDetail() {
               </div>
             </div>
           </div>
+
+          {/* Comments Section */}
+          <Comments blogId={id} />
 
           {/* Related Blogs */}
           {relatedBlogs.length > 0 && (
