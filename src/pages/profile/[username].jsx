@@ -1,40 +1,85 @@
+// ============================================
+// FILE: src/pages/profile/[username].jsx
+// ============================================
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import AppLayout from '@/components/Layout/AppLayout';
-import { blogAPI } from '@/lib/api';
+import { blogAPI, followAPI } from '@/lib/api';
 import { toast } from 'react-toastify';
 import {
-  User, MapPin, Calendar, Link as LinkIcon,
-  Heart, Eye, BookOpen, Award, TrendingUp
+  User, Eye, BookOpen, Heart, TrendingUp, Users, UserPlus, UserCheck
 } from 'lucide-react';
 
 export default function UserProfile() {
   const router = useRouter();
   const { username } = router.query;
   const [blogs, setBlogs] = useState([]);
-  const [badge, setBadge] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const [stats, setStats] = useState({
     totalBlogs: 0,
     totalViews: 0,
-    totalLikes: 0
+    totalLikes: 0,
+    followers: 0,
+    following: 0
   });
   const [loading, setLoading] = useState(true);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        setCurrentUser(JSON.parse(userData));
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (username) {
       fetchUserBlogs();
-      fetchBadgeTier();
     }
   }, [username]);
 
-  const fetchBadgeTier = async () => {
+  useEffect(() => {
+    if (userProfile && currentUser && userProfile._id !== currentUser._id) {
+      checkFollowStatus();
+    }
+  }, [userProfile, currentUser]);
+
+  const checkFollowStatus = async () => {
     try {
-      const response = await fetch(`/api/badge/tier?wallet=${username}`);
-      const data = await response.json();
-      setBadge(data.tier || 'Unranked');
+      const response = await followAPI.checkFollowing(userProfile._id);
+      if (response.data.ok) {
+        setIsFollowing(response.data.isFollowing);
+      }
     } catch (error) {
-      console.error('Failed to load badge tier');
+      console.error('Failed to check follow status');
+    }
+  };
+
+  const handleFollowToggle = async () => {
+    if (!currentUser) {
+      toast.error('Please login to follow users');
+      router.push('/auth/login');
+      return;
+    }
+
+    try {
+      if (isFollowing) {
+        await followAPI.unfollowUser(userProfile._id);
+        setIsFollowing(false);
+        setStats(prev => ({ ...prev, followers: prev.followers - 1 }));
+        toast.success(`Unfollowed ${username}`);
+      } else {
+        await followAPI.followUser(userProfile._id);
+        setIsFollowing(true);
+        setStats(prev => ({ ...prev, followers: prev.followers + 1 }));
+        toast.success(`Following ${username}`);
+      }
+    } catch (error) {
+      toast.error('Failed to update follow status');
     }
   };
 
@@ -46,13 +91,19 @@ export default function UserProfile() {
         const userBlogs = response.data.blogs;
         setBlogs(userBlogs);
 
+        if (userBlogs.length > 0 && userBlogs[0].author) {
+          setUserProfile(userBlogs[0].author);
+        }
+
         const totalViews = userBlogs.reduce((sum, blog) => sum + blog.views, 0);
         const totalLikes = userBlogs.reduce((sum, blog) => sum + (blog.likes?.length || 0), 0);
 
         setStats({
           totalBlogs: userBlogs.length,
           totalViews,
-          totalLikes
+          totalLikes,
+          followers: userBlogs[0]?.author?.followerCount || 0,
+          following: userBlogs[0]?.author?.followingCount || 0
         });
       }
     } catch (error) {
@@ -72,7 +123,8 @@ export default function UserProfile() {
     );
   }
 
-  const author = blogs[0]?.authorName || username || 'User';
+  const displayName = userProfile?.name || username || 'User';
+  const isOwnProfile = currentUser && userProfile && currentUser._id === userProfile._id;
 
   return (
     <AppLayout>
@@ -81,21 +133,37 @@ export default function UserProfile() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="flex flex-col md:flex-row items-center gap-8">
               <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center text-purple-600 text-5xl font-bold shadow-xl">
-                {author.charAt(0)}
+                {displayName.charAt(0).toUpperCase()}
               </div>
 
               <div className="flex-1 text-center md:text-left">
-                <h1 className="text-4xl font-bold mb-2">{author}</h1>
-                <p className="text-purple-100 mb-2">Content Creator & Writer</p>
-                
-                {badge && (
-                  <div className="inline-block px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg mb-4">
-                    <div className="flex items-center gap-2">
-                      <Award className="w-4 h-4" />
-                      <span className="font-semibold">Badge Tier: {badge}</span>
-                    </div>
-                  </div>
-                )}
+                <div className="flex items-center justify-center md:justify-start gap-4 mb-2">
+                  <h1 className="text-4xl font-bold">{displayName}</h1>
+                  {!isOwnProfile && currentUser && (
+                    <button
+                      onClick={handleFollowToggle}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                        isFollowing
+                          ? 'bg-white/20 hover:bg-white/30'
+                          : 'bg-white text-purple-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      {isFollowing ? (
+                        <>
+                          <UserCheck className="w-4 h-4" />
+                          Following
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="w-4 h-4" />
+                          Follow
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+                <p className="text-purple-100 mb-4">@{username}</p>
+                <p className="text-purple-100 mb-4">{userProfile?.bio || 'Content Creator & Writer'}</p>
 
                 <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm">
                   <div className="flex items-center gap-2">
@@ -109,6 +177,14 @@ export default function UserProfile() {
                   <div className="flex items-center gap-2">
                     <Heart className="w-4 h-4" />
                     <span>{stats.totalLikes} likes</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    <span>{stats.followers} followers</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    <span>{stats.following} following</span>
                   </div>
                 </div>
               </div>
