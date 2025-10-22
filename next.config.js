@@ -14,6 +14,33 @@ const nextConfig = {
     ];
   },
 
+  // Fix CSP issues for React Quill and Socket.io
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://cdnjs.cloudflare.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com data:",
+              "img-src 'self' data: https: blob:",
+              "connect-src 'self' https://*.railway.app https://*.vercel.app https://cybev.io wss://*.railway.app ws://localhost:* http://localhost:*",
+              "frame-src 'self'",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'none'"
+            ].join('; ')
+          }
+        ]
+      }
+    ];
+  },
+
   // TEMP: don't block builds on TS or ESLint while we stabilize
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
@@ -51,6 +78,16 @@ const nextConfig = {
     if (isServer) config.externals.push('formidable');
 
     return config;
+  },
+
+  // Image domains
+  images: {
+    domains: [
+      'localhost',
+      'cybev.io',
+      'railway.app',
+      'vercel.app'
+    ],
   },
 };
 
