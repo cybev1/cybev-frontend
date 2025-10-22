@@ -1,8 +1,11 @@
+// ============================================
+// FILE: src/pages/dashboard.jsx
+// ============================================
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import AppLayout from '@/components/Layout/AppLayout';
-import { PenTool, TrendingUp, Coins, Sparkles } from 'lucide-react';
+import { PenTool, TrendingUp, Coins, Sparkles, Users } from 'lucide-react';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -45,7 +48,6 @@ export default function Dashboard() {
     <AppLayout>
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Welcome Section */}
           <div className="mb-12">
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
               Welcome Back! 👋
@@ -55,7 +57,6 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             {quickActions.map((action, idx) => {
               const Icon = action.icon;
@@ -77,7 +78,6 @@ export default function Dashboard() {
             })}
           </div>
 
-          {/* Feature Highlights */}
           <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-2xl p-8">
             <div className="flex items-center gap-3 mb-6">
               <Sparkles className="w-8 h-8 text-purple-400" />
@@ -89,35 +89,35 @@ export default function Dashboard() {
                   ✨
                 </div>
                 <div>
-                  <h4 className="font-semibold text-white mb-1">Token Rewards</h4>
-                  <p className="text-sm">Earn tokens for every blog you publish and like you receive</p>
+                  <h4 className="font-semibold text-white mb-1">Comments & Discussions</h4>
+                  <p className="text-sm">Engage with readers through threaded comments</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                  🏆
+                  🔖
                 </div>
                 <div>
-                  <h4 className="font-semibold text-white mb-1">Achievements</h4>
-                  <p className="text-sm">Unlock special achievements and earn bonus tokens</p>
+                  <h4 className="font-semibold text-white mb-1">Bookmarks</h4>
+                  <p className="text-sm">Save your favorite posts for later reading</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                  🔥
+                  👥
                 </div>
                 <div>
-                  <h4 className="font-semibold text-white mb-1">Streak System</h4>
-                  <p className="text-sm">Post daily to maintain your streak and earn bonuses</p>
+                  <h4 className="font-semibold text-white mb-1">Follow System</h4>
+                  <p className="text-sm">Connect with writers and build your network</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                  🌐
+                  🔔
                 </div>
                 <div>
-                  <h4 className="font-semibold text-white mb-1">Custom Domains</h4>
-                  <p className="text-sm">Connect your own domain and earn 200 tokens</p>
+                  <h4 className="font-semibold text-white mb-1">Real-time Notifications</h4>
+                  <p className="text-sm">Stay updated with likes, comments, and followers</p>
                 </div>
               </div>
             </div>
