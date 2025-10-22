@@ -14,7 +14,7 @@ const nextConfig = {
     ];
   },
 
-  // Fix CSP issues for React Quill and Socket.io
+  // Simplified CSP for production
   async headers() {
     return [
       {
@@ -24,17 +24,30 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://cdnjs.cloudflare.com",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://cdnjs.cloudflare.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: https: blob:",
-              "connect-src 'self' https://*.railway.app https://*.vercel.app https://cybev.io wss://*.railway.app ws://localhost:* http://localhost:* https://www.google-analytics.com https://analytics.google.com https://*.google-analytics.com https://*.analytics.google.com",
-              "frame-src 'self'",
+              "connect-src 'self' https: wss: ws: http://localhost:* https://www.google-analytics.com https://analytics.google.com https://*.google-analytics.com",
+              "frame-src 'self' https:",
+              "media-src 'self' data: blob:",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
-              "frame-ancestors 'none'"
+              "frame-ancestors 'self'"
             ].join('; ')
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
           }
         ]
       }
