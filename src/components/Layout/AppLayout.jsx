@@ -41,6 +41,7 @@ export default function AppLayout({ children }) {
     { href: '/dashboard', label: 'Dashboard', icon: Home },
     { href: '/blog', label: 'Blog Feed', icon: TrendingUp },
     { href: '/blog/create', label: 'Write Blog', icon: PenTool },
+    { href: '/bookmarks', label: 'Saved', icon: Sparkles },
     { href: '/rewards/dashboard', label: 'Rewards', icon: Coins },
   ];
 
