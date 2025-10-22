@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="letterGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e0e7ff;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Glow effect -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Rounded square background -->
+  <rect width="512" height="512" rx="100" fill="url(#bgGradient)"/>
+  
+  <!-- Cyber grid pattern -->
+  <g opacity="0.1">
+    <line x1="0" y1="128" x2="512" y2="128" stroke="#fff" stroke-width="1"/>
+    <line x1="0" y1="256" x2="512" y2="256" stroke="#fff" stroke-width="1"/>
+    <line x1="0" y1="384" x2="512" y2="384" stroke="#fff" stroke-width="1"/>
+    <line x1="128" y1="0" x2="128" y2="512" stroke="#fff" stroke-width="1"/>
+    <line x1="256" y1="0" x2="256" y2="512" stroke="#fff" stroke-width="1"/>
+    <line x1="384" y1="0" x2="384" y2="512" stroke="#fff" stroke-width="1"/>
+  </g>
+  
+  <!-- Decorative hexagon behind C -->
+  <g opacity="0.3">
+    <polygon points="256,80 356,140 356,260 256,320 156,260 156,140" 
+             fill="none" stroke="#fff" stroke-width="3"/>
+  </g>
+  
+  <!-- Letter C with modern styling -->
+  <g filter="url(#glow)">
+    <path d="M 340 180 
+             C 340 130, 310 100, 260 100
+             C 210 100, 170 130, 170 180
+             L 170 332
+             C 170 382, 210 412, 260 412
+             C 310 412, 340 382, 340 332
+             L 340 300
+             L 290 300
+             L 290 332
+             C 290 355, 280 365, 260 365
+             C 240 365, 220 355, 220 332
+             L 220 180
+             C 220 157, 240 147, 260 147
+             C 280 147, 290 157, 290 180
+             L 290 210
+             L 340 210
+             Z" 
+          fill="url(#letterGradient)" 
+          stroke="#fff" 
+          stroke-width="2"/>
+  </g>
+  
+  <!-- Small accent dots for tech feel -->
+  <circle cx="410" cy="100" r="8" fill="#fff" opacity="0.6"/>
+  <circle cx="100" cy="410" r="8" fill="#fff" opacity="0.6"/>
+  <circle cx="410" cy="410" r="6" fill="#fff" opacity="0.4"/>
+  
+  <!-- Subtle binary code pattern -->
+  <g opacity="0.15" font-family="monospace" font-size="14" fill="#fff">
+    <text x="30" y="480">01001100</text>
+    <text x="390" y="40">11010011</text>
+  </g>
+</svg>
