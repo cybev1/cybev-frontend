@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 export default function BlogSetup() {
   const router = useRouter();
@@ -21,11 +22,13 @@ export default function BlogSetup() {
     denomination: '',
     location: '',
     // Domain
-    domainType: 'subdomain', // subdomain or custom
+    domainType: 'subdomain', // subdomain, custom, or skip
     subdomain: '',
     customDomain: '',
     domainAvailable: false
   });
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
   const categories = [
     // Ministry Categories
@@ -59,16 +62,21 @@ export default function BlogSetup() {
     setDomainChecking(true);
     
     try {
-      // DomainNameAPI check
-      const response = await axios.post('/api/domains/check', {
-        domain: blogData.domainType === 'subdomain' ? `${domain}.cybev.io` : domain
-      });
+      const fullDomain = blogData.domainType === 'subdomain' ? `${domain}.cybev.io` : domain;
       
-      setDomainAvailable(response.data.available);
-      setBlogData({ ...blogData, domainAvailable: response.data.available });
+      const response = await axios.post('/api/domains/check', { domain: fullDomain });
+      
+      if (response.data.ok) {
+        setDomainAvailable(response.data.available);
+        setBlogData({ ...blogData, domainAvailable: response.data.available });
+      } else {
+        setDomainAvailable(false);
+      }
     } catch (err) {
       console.error('Domain check error:', err);
-      setDomainAvailable(false);
+      // If API check fails, assume available (will be validated on backend)
+      setDomainAvailable(true);
+      toast.info('Domain check unavailable, will be verified during creation');
     } finally {
       setDomainChecking(false);
     }
@@ -76,11 +84,11 @@ export default function BlogSetup() {
 
   const handleNext = () => {
     if (step === 1 && !blogData.name) {
-      alert('Please enter a blog name');
+      toast.error('Please enter a blog name');
       return;
     }
     if (step === 2 && !blogData.category) {
-      alert('Please select a category');
+      toast.error('Please select a category');
       return;
     }
     if (step < 3) {
@@ -95,33 +103,74 @@ export default function BlogSetup() {
     
     try {
       const token = localStorage.getItem('token');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
       
+      if (!token) {
+        toast.error('Please login to continue');
+        router.push('/auth/login');
+        return;
+      }
+
+      // Prepare blog data
+      const blogPayload = {
+        title: blogData.name,
+        tagline: blogData.tagline,
+        category: blogData.category,
+        template: template || 'default',
+        domainType: blogData.domainType,
+        subdomain: blogData.subdomain,
+        customDomain: blogData.customDomain,
+        isMinistry: blogData.isMinistry,
+        churchName: blogData.churchName,
+        denomination: blogData.denomination,
+        location: blogData.location
+      };
+
+      console.log('Creating blog with:', blogPayload);
+
       // Create blog
       const response = await axios.post(
-        `${API_URL}/api/blogs/create`,
-        { ...blogData, template },
+        `${API_URL}/api/blogs`,
+        blogPayload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Award CYBEV tokens for creating blog
-      try {
-        await axios.post(
-          `${API_URL}/api/rewards/award`,
-          { action: 'blog_created', amount: 100 },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-      } catch (err) {
-        console.log('Token reward pending');
-      }
+      if (response.data.ok) {
+        toast.success('🎉 Blog created successfully!');
 
-      router.push(`/blog/editor?id=${response.data.blogId}`);
+        // Award CYBEV tokens for creating blog
+        try {
+          await axios.post(
+            `${API_URL}/api/rewards/award`,
+            { action: 'blog_created', amount: 100 },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          toast.success('🪙 Earned 100 CYBEV tokens!');
+        } catch (err) {
+          console.log('Token reward pending');
+        }
+
+        // Redirect to blog management or editor
+        router.push(`/blog/${response.data.blog._id || response.data.blogId}`);
+      } else {
+        toast.error(response.data.error || 'Failed to create blog');
+      }
     } catch (err) {
       console.error('Blog creation error:', err);
-      alert('Failed to create blog. Please try again.');
+      toast.error(err.response?.data?.error || 'Failed to create blog. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSkipDomain = () => {
+    // Skip domain setup and create blog with auto-generated subdomain
+    setBlogData({ 
+      ...blogData, 
+      domainType: 'subdomain',
+      subdomain: `blog-${Date.now()}`,
+      domainAvailable: true 
+    });
+    setTimeout(handleComplete, 100);
   };
 
   return (
@@ -170,6 +219,20 @@ export default function BlogSetup() {
             </p>
 
             <div className="space-y-4">
+              {/* Ministry Toggle */}
+              <div className="flex items-center gap-3 mb-4">
+                <input
+                  type="checkbox"
+                  id="isMinistry"
+                  checked={blogData.isMinistry}
+                  onChange={(e) => setBlogData({ ...blogData, isMinistry: e.target.checked })}
+                  className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <label htmlFor="isMinistry" className="text-sm font-medium text-gray-700">
+                  This is a ministry or church website
+                </label>
+              </div>
+
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   {blogData.isMinistry ? 'Ministry/Church Name' : 'Blog Name'} *
@@ -193,29 +256,13 @@ export default function BlogSetup() {
                   value={blogData.tagline}
                   onChange={(e) => setBlogData({ ...blogData, tagline: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition"
-                  placeholder={blogData.isMinistry ? 'e.g., Spreading the Gospel in Our Community' : 'e.g., Exploring the Future of Technology'}
+                  placeholder={blogData.isMinistry ? 'e.g., Sharing God\'s Love' : 'e.g., Insights on Tech & Innovation'}
                 />
               </div>
 
-              {/* Ministry Toggle */}
-              <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={blogData.isMinistry}
-                    onChange={(e) => setBlogData({ ...blogData, isMinistry: e.target.checked })}
-                    className="w-5 h-5 rounded"
-                  />
-                  <div>
-                    <p className="font-semibold text-gray-900">This is a ministry/church website</p>
-                    <p className="text-sm text-gray-600">Get access to ministry-specific features</p>
-                  </div>
-                </label>
-              </div>
-
-              {/* Ministry Fields */}
+              {/* Ministry-specific fields */}
               {blogData.isMinistry && (
-                <div className="space-y-4 p-6 bg-purple-50 rounded-2xl border border-purple-200">
+                <>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Denomination (Optional)
@@ -224,24 +271,24 @@ export default function BlogSetup() {
                       type="text"
                       value={blogData.denomination}
                       onChange={(e) => setBlogData({ ...blogData, denomination: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none transition"
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition"
                       placeholder="e.g., Baptist, Methodist, Non-denominational"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Location
+                      Location (Optional)
                     </label>
                     <input
                       type="text"
                       value={blogData.location}
                       onChange={(e) => setBlogData({ ...blogData, location: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none transition"
-                      placeholder="e.g., Chicago, IL"
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition"
+                      placeholder="e.g., New York, NY"
                     />
                   </div>
-                </div>
+                </>
               )}
             </div>
 
@@ -359,7 +406,7 @@ export default function BlogSetup() {
                       checkDomainAvailability(value);
                     }}
                     className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition"
-                    placeholder="mychurch"
+                    placeholder="myblog"
                   />
                   <span className="text-gray-600 font-medium">.cybev.io</span>
                 </div>
@@ -371,11 +418,11 @@ export default function BlogSetup() {
                       <p className="text-gray-600">🔍 Checking availability...</p>
                     ) : domainAvailable === true ? (
                       <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
-                        <p className="text-green-700 font-bold">🎉 Congratulations! {blogData.subdomain}.cybev.io is available!</p>
+                        <p className="text-green-700 font-bold">✅ {blogData.subdomain}.cybev.io is available!</p>
                       </div>
                     ) : domainAvailable === false ? (
                       <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
-                        <p className="text-red-700 font-bold">❌ Sorry, this subdomain is taken. Try another one.</p>
+                        <p className="text-red-700 font-bold">❌ This subdomain is taken. Try another one.</p>
                       </div>
                     ) : null}
                   </div>
@@ -397,23 +444,17 @@ export default function BlogSetup() {
                   placeholder="yourdomain.com"
                 />
                 
-                {/* Availability Status */}
-                {blogData.customDomain.length >= 5 && (
-                  <div className="mt-4">
-                    {domainChecking ? (
-                      <p className="text-gray-600">🔍 Checking availability...</p>
-                    ) : domainAvailable === true ? (
-                      <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
-                        <p className="text-green-700 font-bold">🎉 {blogData.customDomain} is available for purchase!</p>
-                        <p className="text-sm text-gray-600 mt-2">Cost: 20 CYBEV tokens/year</p>
-                      </div>
-                    ) : domainAvailable === false ? (
-                      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-                        <p className="text-yellow-700 font-bold">This domain is already registered. You can connect it if you own it.</p>
-                      </div>
-                    ) : null}
-                  </div>
-                )}
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                  <p className="text-blue-700 font-semibold">💡 Custom Domain Setup</p>
+                  <p className="text-sm text-gray-600 mt-2">
+                    After creating your blog, you'll need to:
+                  </p>
+                  <ol className="text-sm text-gray-600 mt-2 ml-4 list-decimal">
+                    <li>Point your domain's DNS to our servers</li>
+                    <li>Verify domain ownership</li>
+                    <li>SSL certificate will be automatically configured</li>
+                  </ol>
+                </div>
               </div>
             )}
 
@@ -424,13 +465,22 @@ export default function BlogSetup() {
               >
                 ← Back
               </button>
-              <button
-                onClick={handleComplete}
-                disabled={loading || (blogData.subdomain.length >= 3 && !domainAvailable)}
-                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white rounded-xl font-semibold shadow-xl transition-all active:scale-95 disabled:opacity-50"
-              >
-                {loading ? 'Creating Blog...' : 'Complete Setup 🚀'}
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleSkipDomain}
+                  disabled={loading}
+                  className="px-6 py-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-semibold transition-all active:scale-95 disabled:opacity-50"
+                >
+                  Skip for Now
+                </button>
+                <button
+                  onClick={handleComplete}
+                  disabled={loading}
+                  className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white rounded-xl font-semibold shadow-xl transition-all active:scale-95 disabled:opacity-50"
+                >
+                  {loading ? 'Creating Blog...' : 'Complete Setup 🚀'}
+                </button>
+              </div>
             </div>
           </div>
         )}
