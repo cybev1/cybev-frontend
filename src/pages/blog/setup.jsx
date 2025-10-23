@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -11,18 +11,17 @@ export default function BlogSetup() {
   const [loading, setLoading] = useState(false);
   const [domainChecking, setDomainChecking] = useState(false);
   const [domainAvailable, setDomainAvailable] = useState(null);
+  const [checkTimeout, setCheckTimeout] = useState(null);
   
   const [blogData, setBlogData] = useState({
     name: '',
     tagline: '',
     category: '',
     isMinistry: false,
-    // Ministry specific
     churchName: '',
     denomination: '',
     location: '',
-    // Domain
-    domainType: 'subdomain', // subdomain, custom, or skip
+    domainType: 'subdomain',
     subdomain: '',
     customDomain: '',
     domainAvailable: false
@@ -31,7 +30,6 @@ export default function BlogSetup() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
   const categories = [
-    // Ministry Categories
     { id: 'christianity', label: '✝️ Christianity', type: 'ministry' },
     { id: 'theology', label: '📖 Theology', type: 'ministry' },
     { id: 'missions', label: '🌍 Missions', type: 'ministry' },
@@ -39,8 +37,6 @@ export default function BlogSetup() {
     { id: 'bible-study', label: '📚 Bible Study', type: 'ministry' },
     { id: 'youth-ministry', label: '👥 Youth Ministry', type: 'ministry' },
     { id: 'church-leadership', label: '⛪ Church Leadership', type: 'ministry' },
-    
-    // General Categories
     { id: 'technology', label: '💻 Technology', type: 'general' },
     { id: 'ai', label: '🤖 AI & Machine Learning', type: 'general' },
     { id: 'web3', label: '🌐 Web3 & Crypto', type: 'general' },
@@ -53,34 +49,43 @@ export default function BlogSetup() {
     { id: 'photography', label: '📷 Photography', type: 'general' }
   ];
 
-  const checkDomainAvailability = async (domain) => {
+  // Debounced domain check
+  const checkDomainAvailability = useCallback(async (domain) => {
     if (!domain || domain.length < 3) {
       setDomainAvailable(null);
       return;
     }
 
-    setDomainChecking(true);
-    
-    try {
-      const fullDomain = blogData.domainType === 'subdomain' ? `${domain}.cybev.io` : domain;
-      
-      const response = await axios.post('/api/domains/check', { domain: fullDomain });
-      
-      if (response.data.ok) {
-        setDomainAvailable(response.data.available);
-        setBlogData({ ...blogData, domainAvailable: response.data.available });
-      } else {
-        setDomainAvailable(false);
-      }
-    } catch (err) {
-      console.error('Domain check error:', err);
-      // If API check fails, assume available (will be validated on backend)
-      setDomainAvailable(true);
-      toast.info('Domain check unavailable, will be verified during creation');
-    } finally {
-      setDomainChecking(false);
+    // Clear existing timeout
+    if (checkTimeout) {
+      clearTimeout(checkTimeout);
     }
-  };
+
+    // Set new timeout for debouncing
+    const newTimeout = setTimeout(async () => {
+      setDomainChecking(true);
+      
+      try {
+        const fullDomain = blogData.domainType === 'subdomain' ? `${domain}.cybev.io` : domain;
+        
+        const response = await axios.post('/api/domains/check', { domain: fullDomain });
+        
+        if (response.data.ok) {
+          setDomainAvailable(response.data.available);
+        } else {
+          setDomainAvailable(false);
+        }
+      } catch (err) {
+        console.error('Domain check error:', err);
+        setDomainAvailable(true);
+        toast.info('Domain check unavailable, will be verified during creation');
+      } finally {
+        setDomainChecking(false);
+      }
+    }, 500); // Wait 500ms after user stops typing
+
+    setCheckTimeout(newTimeout);
+  }, [blogData.domainType, checkTimeout]);
 
   const handleNext = () => {
     if (step === 1 && !blogData.name) {
@@ -110,7 +115,6 @@ export default function BlogSetup() {
         return;
       }
 
-      // Prepare blog data
       const blogPayload = {
         title: blogData.name,
         tagline: blogData.tagline,
@@ -127,7 +131,6 @@ export default function BlogSetup() {
 
       console.log('Creating blog with:', blogPayload);
 
-      // Create blog
       const response = await axios.post(
         `${API_URL}/api/blogs`,
         blogPayload,
@@ -137,7 +140,7 @@ export default function BlogSetup() {
       if (response.data.ok) {
         toast.success('🎉 Blog created successfully!');
 
-        // Award CYBEV tokens for creating blog
+        // Try to award tokens (don't block if it fails)
         try {
           await axios.post(
             `${API_URL}/api/rewards/award`,
@@ -146,10 +149,9 @@ export default function BlogSetup() {
           );
           toast.success('🪙 Earned 100 CYBEV tokens!');
         } catch (err) {
-          console.log('Token reward pending');
+          console.log('Token reward pending - endpoint may not be implemented yet');
         }
 
-        // Redirect to blog management or editor
         router.push(`/blog/${response.data.blog._id || response.data.blogId}`);
       } else {
         toast.error(response.data.error || 'Failed to create blog');
@@ -163,7 +165,6 @@ export default function BlogSetup() {
   };
 
   const handleSkipDomain = () => {
-    // Skip domain setup and create blog with auto-generated subdomain
     setBlogData({ 
       ...blogData, 
       domainType: 'subdomain',
@@ -171,6 +172,20 @@ export default function BlogSetup() {
       domainAvailable: true 
     });
     setTimeout(handleComplete, 100);
+  };
+
+  // Handle subdomain input change
+  const handleSubdomainChange = (e) => {
+    const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+    setBlogData(prev => ({ ...prev, subdomain: value }));
+    checkDomainAvailability(value);
+  };
+
+  // Handle custom domain input change
+  const handleCustomDomainChange = (e) => {
+    const value = e.target.value.toLowerCase().trim();
+    setBlogData(prev => ({ ...prev, customDomain: value }));
+    checkDomainAvailability(value);
   };
 
   return (
@@ -219,7 +234,6 @@ export default function BlogSetup() {
             </p>
 
             <div className="space-y-4">
-              {/* Ministry Toggle */}
               <div className="flex items-center gap-3 mb-4">
                 <input
                   type="checkbox"
@@ -260,7 +274,6 @@ export default function BlogSetup() {
                 />
               </div>
 
-              {/* Ministry-specific fields */}
               {blogData.isMinistry && (
                 <>
                   <div>
@@ -363,7 +376,6 @@ export default function BlogSetup() {
               Select a subdomain or connect your custom domain
             </p>
 
-            {/* Domain Type Toggle */}
             <div className="flex gap-4 mb-6">
               <button
                 onClick={() => setBlogData({ ...blogData, domainType: 'subdomain' })}
@@ -390,7 +402,6 @@ export default function BlogSetup() {
               </button>
             </div>
 
-            {/* Domain Input */}
             {blogData.domainType === 'subdomain' ? (
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -400,18 +411,14 @@ export default function BlogSetup() {
                   <input
                     type="text"
                     value={blogData.subdomain}
-                    onChange={(e) => {
-                      const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
-                      setBlogData({ ...blogData, subdomain: value });
-                      checkDomainAvailability(value);
-                    }}
+                    onChange={handleSubdomainChange}
                     className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition"
                     placeholder="myblog"
+                    maxLength={63}
                   />
                   <span className="text-gray-600 font-medium">.cybev.io</span>
                 </div>
                 
-                {/* Availability Status */}
                 {blogData.subdomain.length >= 3 && (
                   <div className="mt-4">
                     {domainChecking ? (
@@ -436,12 +443,10 @@ export default function BlogSetup() {
                 <input
                   type="text"
                   value={blogData.customDomain}
-                  onChange={(e) => {
-                    setBlogData({ ...blogData, customDomain: e.target.value });
-                    checkDomainAvailability(e.target.value);
-                  }}
+                  onChange={handleCustomDomainChange}
                   className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition"
                   placeholder="yourdomain.com"
+                  maxLength={253}
                 />
                 
                 <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
