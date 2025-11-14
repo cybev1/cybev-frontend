@@ -55,26 +55,111 @@ export default function TemplateSelector() {
 
     
     {
-      id: 'news_blog_cnn',
-      name: 'News Blog (CNN Style)',
+      id: 'arts_creativity',
+      name: 'Arts & Creativity Blog',
       category: 'general',
-      icon: '🗞️',
-      description: 'Ideal for breaking news, global updates, and multiple categories',
-      features: ['Breaking Banner', 'Multi-Categories', 'Live Updates', 'Sidebar Trends'],
-      preview: '/templates/news-blog-preview.jpg',
-      color: 'from-red-600 to-gray-800',
-      badge: 'General'
+      icon: '🎨',
+      description: 'Showcase your creative talents — from visual arts to performance, DIY, and literature.',
+      features: ['Featured Posts', 'Category Sections', 'Image Grids', 'Author Highlights'],
+      preview: '/templates/arts_creativity-preview.jpg',
+      color: 'from-pink-500 to-yellow-500',
+      badge: 'Creative'
     },
+
     {
-      id: 'tv_blog_bloomberg',
-      name: 'Online TV Blog (Bloomberg Style)',
+      id: 'business_career',
+      name: 'Business & Career Blog',
       category: 'general',
-      icon: '📺',
-      description: 'Video-first news platform with live stream and embedded TV segments',
-      features: ['Video Player', 'Live Stream', 'Ticker', 'Trending Topics'],
-      preview: '/templates/tv-blog-preview.jpg',
-      color: 'from-gray-700 to-black',
-      badge: 'General'
+      icon: '💼',
+      description: 'Professional insights, entrepreneurship journeys, and corporate strategies.',
+      features: ['Featured Posts', 'Category Sections', 'Image Grids', 'Author Highlights'],
+      preview: '/templates/business_career-preview.jpg',
+      color: 'from-gray-600 to-blue-900',
+      badge: 'Business'
+    },
+
+    {
+      id: 'education_learning',
+      name: 'Education & Learning Blog',
+      category: 'general',
+      icon: '📚',
+      description: 'For educators, learners, and knowledge seekers — tutorials, ideas, and guides.',
+      features: ['Featured Posts', 'Category Sections', 'Image Grids', 'Author Highlights'],
+      preview: '/templates/education_learning-preview.jpg',
+      color: 'from-green-600 to-cyan-600',
+      badge: 'Education'
+    },
+
+    {
+      id: 'entertainment_pop',
+      name: 'Entertainment & Pop Culture Blog',
+      category: 'general',
+      icon: '🎬',
+      description: 'Cover trending shows, celebrity updates, music, and fan theories.',
+      features: ['Featured Posts', 'Category Sections', 'Image Grids', 'Author Highlights'],
+      preview: '/templates/entertainment_pop-preview.jpg',
+      color: 'from-purple-700 to-indigo-800',
+      badge: 'Entertainment'
+    },
+
+    {
+      id: 'health_wellness',
+      name: 'Health & Wellness Blog',
+      category: 'general',
+      icon: '💪',
+      description: 'Promote fitness, mental clarity, and holistic self-care.',
+      features: ['Featured Posts', 'Category Sections', 'Image Grids', 'Author Highlights'],
+      preview: '/templates/health_wellness-preview.jpg',
+      color: 'from-emerald-600 to-lime-600',
+      badge: 'Health'
+    },
+
+    {
+      id: 'lifestyle_personal_dev',
+      name: 'Lifestyle & Personal Growth Blog',
+      category: 'general',
+      icon: '🌱',
+      description: 'Inspire others with habits, routines, travel logs, and relationship tips.',
+      features: ['Featured Posts', 'Category Sections', 'Image Grids', 'Author Highlights'],
+      preview: '/templates/lifestyle_personal_dev-preview.jpg',
+      color: 'from-orange-600 to-pink-600',
+      badge: 'Lifestyle'
+    },
+
+    {
+      id: 'science_tech',
+      name: 'Science & Tech Blog',
+      category: 'general',
+      icon: '🧪',
+      description: 'Explore AI, space, robotics, physics, and modern discoveries.',
+      features: ['Featured Posts', 'Category Sections', 'Image Grids', 'Author Highlights'],
+      preview: '/templates/science_tech-preview.jpg',
+      color: 'from-sky-500 to-violet-800',
+      badge: 'Tech'
+    },
+
+    {
+      id: 'society_worldview',
+      name: 'Society & Worldview Blog',
+      category: 'general',
+      icon: '🌍',
+      description: 'Dive into culture, politics, religion, and social transformation.',
+      features: ['Featured Posts', 'Category Sections', 'Image Grids', 'Author Highlights'],
+      preview: '/templates/society_worldview-preview.jpg',
+      color: 'from-stone-600 to-zinc-800',
+      badge: 'Society'
+    },
+
+    {
+      id: 'practical_living',
+      name: 'Practical Living Blog',
+      category: 'general',
+      icon: '🛠️',
+      description: 'Finance, food, gardening, fashion — real life, real skills.',
+      features: ['Featured Posts', 'Category Sections', 'Image Grids', 'Author Highlights'],
+      preview: '/templates/practical_living-preview.jpg',
+      color: 'from-yellow-600 to-amber-800',
+      badge: 'Practical'
     },
 // General Templates
     {
