@@ -1,317 +1,472 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { motion } from 'framer-motion';
+import { 
+  Sparkles, 
+  Zap, 
+  Globe, 
+  Coins, 
+  TrendingUp, 
+  Users, 
+  Rocket,
+  ArrowRight,
+  Star,
+  Heart,
+  MessageCircle,
+  Share2,
+  Edit3,
+  Layers,
+  Award
+} from 'lucide-react';
 
-export default function CYBEVLanding() {
+export default function LandingPage() {
   const router = useRouter();
-  const [scrollY, setScrollY] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    setIsVisible(true);
   }, []);
 
   const features = [
     {
-      icon: '🎨',
-      title: 'Build Your Empire',
-      desc: 'Create stunning blogs & websites with AI',
-      gradient: 'from-blue-500 to-cyan-400'
+      icon: Edit3,
+      title: "AI-Powered Blogging",
+      description: "Write stunning articles with AI assistance",
+      color: "from-purple-500 to-pink-500",
+      gradient: "bg-gradient-to-br from-purple-50 to-pink-50"
     },
     {
-      icon: '🚀',
-      title: 'Social + Web3',
-      desc: 'Connect, create, own your content as NFTs',
-      gradient: 'from-indigo-500 to-blue-400'
+      icon: Coins,
+      title: "Earn CYBEV Coins",
+      description: "Get rewarded for every post and interaction",
+      color: "from-yellow-500 to-orange-500",
+      gradient: "bg-gradient-to-br from-yellow-50 to-orange-50"
     },
     {
-      icon: '💰',
-      title: 'Earn & Grow',
-      desc: 'Get paid for engagement, stake, trade',
-      gradient: 'from-blue-600 to-sky-400'
+      icon: Globe,
+      title: "Web3 Publishing",
+      description: "Decentralized content on the blockchain",
+      color: "from-cyan-500 to-blue-500",
+      gradient: "bg-gradient-to-br from-cyan-50 to-blue-50"
     },
     {
-      icon: '🤖',
-      title: 'AI Powers',
-      desc: 'Generate content, images with AI magic',
-      gradient: 'from-cyan-500 to-blue-500'
+      icon: Layers,
+      title: "NFT Minting",
+      description: "Turn your best content into valuable NFTs",
+      color: "from-green-500 to-emerald-500",
+      gradient: "bg-gradient-to-br from-green-50 to-emerald-50"
+    },
+    {
+      icon: Users,
+      title: "Social Feed",
+      description: "Connect with creators and grow your audience",
+      color: "from-pink-500 to-rose-500",
+      gradient: "bg-gradient-to-br from-pink-50 to-rose-50"
+    },
+    {
+      icon: TrendingUp,
+      title: "Go Viral",
+      description: "Built-in discovery helps your content reach millions",
+      color: "from-indigo-500 to-purple-500",
+      gradient: "bg-gradient-to-br from-indigo-50 to-purple-50"
     }
   ];
 
   const stats = [
-    { number: '10K+', label: 'Creators' },
-    { number: '$2M+', label: 'Earned' },
-    { number: '50K+', label: 'NFTs' },
-    { number: '100+', label: 'Communities' }
+    { label: "Active Creators", value: "10K+", icon: Users },
+    { label: "Posts Published", value: "50K+", icon: Edit3 },
+    { label: "CYBEV Earned", value: "1M+", icon: Coins },
+    { label: "NFTs Minted", value: "5K+", icon: Award }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 text-gray-900">
-      {/* Mobile-First Navbar */}
-      <nav className={`fixed w-full z-50 transition-all duration-300 ${scrollY > 20 ? 'bg-white/90 backdrop-blur-xl border-b border-blue-100 shadow-lg' : 'bg-white/80 backdrop-blur-md'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center font-bold text-lg sm:text-xl text-white shadow-lg">
-              C
-            </div>
-            <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-              CYBEV
-            </span>
-          </div>
-          
-          <div className="hidden sm:flex gap-6 lg:gap-8 text-gray-600 text-sm lg:text-base">
-            <a href="#features" className="hover:text-blue-600 transition font-medium">Features</a>
-            <a href="#how-it-works" className="hover:text-blue-600 transition font-medium">How it Works</a>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 relative overflow-hidden">
+      {/* Animated Background Orbs */}
+      <motion.div
+        animate={{
+          scale: [1, 1.2, 1],
+          rotate: [0, 90, 0],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: "linear"
+        }}
+        className="absolute top-0 -left-48 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl"
+      />
+      <motion.div
+        animate={{
+          scale: [1.2, 1, 1.2],
+          rotate: [90, 0, 90],
+        }}
+        transition={{
+          duration: 25,
+          repeat: Infinity,
+          ease: "linear"
+        }}
+        className="absolute bottom-0 -right-48 w-96 h-96 bg-blue-300/20 rounded-full blur-3xl"
+      />
+      <motion.div
+        animate={{
+          scale: [1, 1.3, 1],
+          rotate: [45, 135, 45],
+        }}
+        transition={{
+          duration: 30,
+          repeat: Infinity,
+          ease: "linear"
+        }}
+        className="absolute top-1/2 left-1/2 w-96 h-96 bg-pink-300/20 rounded-full blur-3xl"
+      />
 
-          <div className="flex gap-2 sm:gap-3">
-            <button 
-              onClick={() => router.push('/auth/login')}
-              className="px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-sm sm:text-base text-gray-700 hover:bg-blue-50 transition font-medium"
+      {/* Navigation */}
+      <nav className="relative z-10 bg-white/80 backdrop-blur-md border-b border-purple-100 sticky top-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex items-center gap-3"
             >
-              Sign In
-            </button>
-            <button 
-              onClick={() => router.push('/auth/choice')}
-              className="px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white transition font-semibold shadow-lg text-sm sm:text-base"
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <span className="text-2xl font-bold text-white">C</span>
+              </div>
+              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                CYBEV
+              </span>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex items-center gap-3"
             >
-              Start Free
-            </button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => router.push('/auth/login')}
+                className="px-6 py-2.5 rounded-xl text-gray-700 font-semibold hover:bg-purple-50 transition-all"
+              >
+                Sign In
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => router.push('/auth/choice')}
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+              >
+                Get Started
+                <ArrowRight className="w-4 h-4" />
+              </motion.button>
+            </motion.div>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section - Mobile Optimized */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 pt-20 sm:pt-24 pb-8 sm:pb-12">
-        <div className="max-w-6xl mx-auto text-center z-10 w-full">
-          <div className="mb-6 sm:mb-8 inline-block">
-            <span className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-gradient-to-r from-blue-100 to-cyan-100 border border-blue-200 text-blue-700 text-xs sm:text-sm font-semibold">
-              ✨ The Future of Social Web3
+      {/* Hero Section */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-16"
+        >
+          {/* Floating Badge */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border-2 border-purple-200 shadow-lg mb-8"
+          >
+            <Sparkles className="w-4 h-4 text-yellow-500" />
+            <span className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              100% Powered by AI • Web3 Ready
             </span>
-          </div>
+            <Zap className="w-4 h-4 text-orange-500" />
+          </motion.div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-tight text-gray-900 px-2">
-            Create. <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Connect.</span>
+          {/* Main Headline */}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-5xl sm:text-6xl lg:text-7xl font-black mb-6 leading-tight"
+          >
+            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Create. Earn. Own.
+            </span>
             <br />
-            <span className="bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent">
-              Own Everything.
+            <span className="text-gray-800">
+              The Future of Blogging
             </span>
-          </h1>
+          </motion.h1>
 
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed px-4">
-            Build your blog, join the social network, mint NFTs, and earn crypto. All powered by AI.
-          </p>
+          {/* Subheadline */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-xl sm:text-2xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed"
+          >
+            Write with AI, earn CYBEV coins, mint NFTs, and build your empire in the world's first 
+            <span className="font-bold text-purple-600"> decentralized blogging platform</span>
+          </motion.p>
 
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-12 sm:mb-20 px-4">
-            <button 
+          {/* CTA Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="flex flex-wrap items-center justify-center gap-4"
+          >
+            <motion.button
+              whileHover={{ scale: 1.05, y: -5 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => router.push('/auth/choice')}
-              className="w-full sm:w-auto px-6 py-3.5 sm:px-8 sm:py-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white transition font-bold text-base sm:text-lg shadow-2xl shadow-blue-200 active:scale-95"
+              className="px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold text-lg shadow-2xl hover:shadow-purple-300 transition-all flex items-center gap-3"
             >
-              🚀 Start Building Free
-            </button>
-            <button className="w-full sm:w-auto px-6 py-3.5 sm:px-8 sm:py-4 rounded-xl bg-white border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50 text-gray-700 transition font-bold text-base sm:text-lg active:scale-95">
-              👀 Watch Demo
-            </button>
-          </div>
+              <Rocket className="w-6 h-6" />
+              Start Creating Now
+              <ArrowRight className="w-5 h-5" />
+            </motion.button>
+            
+            <motion.button
+              whileHover={{ scale: 1.05, y: -5 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => alert('Demo coming soon!')}
+              className="px-8 py-4 rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-purple-200 text-gray-700 font-bold text-lg shadow-xl hover:shadow-2xl hover:border-purple-400 transition-all flex items-center gap-3"
+            >
+              <Globe className="w-6 h-6" />
+              Watch Demo
+            </motion.button>
+          </motion.div>
 
-          {/* Stats - Mobile Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 max-w-5xl mx-auto px-4">
-            {stats.map((stat, i) => (
-              <div key={i} className="p-4 sm:p-6 rounded-2xl bg-white/80 backdrop-blur-sm border border-blue-100 hover:border-blue-300 hover:shadow-xl transition-all duration-300 active:scale-95">
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                  {stat.number}
-                </div>
-                <div className="text-gray-600 text-xs sm:text-sm mt-1 sm:mt-2 font-medium">{stat.label}</div>
+          {/* Social Proof */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="mt-12 flex items-center justify-center gap-2 text-sm text-gray-600"
+          >
+            <div className="flex -space-x-2">
+              {[1,2,3,4,5].map((i) => (
+                <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 border-2 border-white" />
+              ))}
+            </div>
+            <span className="font-semibold">10,000+ creators already earning</span>
+            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+          </motion.div>
+        </motion.div>
+
+        {/* Stats Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-20"
+        >
+          {stats.map((stat, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.8 + index * 0.1 }}
+              whileHover={{ y: -5, scale: 1.05 }}
+              className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border-2 border-purple-100 shadow-xl hover:shadow-2xl hover:border-purple-300 transition-all"
+            >
+              <stat.icon className="w-8 h-8 text-purple-600 mb-3" />
+              <div className="text-3xl font-black bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-1">
+                {stat.value}
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+              <div className="text-sm font-semibold text-gray-600">{stat.label}</div>
+            </motion.div>
+          ))}
+        </motion.div>
 
-      {/* Features Section - Swipeable on Mobile */}
-      <section id="features" className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 bg-gradient-to-br from-white via-blue-50 to-cyan-50 relative">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8 sm:mb-12 md:mb-16 px-4">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 text-gray-900">
-              Everything You Need
-            </h2>
-            <p className="text-base sm:text-lg md:text-xl text-gray-600">One platform. Infinite possibilities.</p>
-          </div>
-
-          {/* Mobile: Stack, Desktop: Grid */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
-            {features.map((feature, i) => (
-              <div
-                key={i}
-                className="p-6 sm:p-7 md:p-8 rounded-2xl sm:rounded-3xl bg-white/90 backdrop-blur-sm border border-blue-100 hover:border-blue-300 hover:shadow-2xl transition-all duration-300 active:scale-95"
-              >
-                <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center text-2xl sm:text-3xl mb-4 sm:mb-6 shadow-lg`}>
-                  {feature.icon}
-                </div>
-                <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-gray-900">{feature.title}</h3>
-                <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{feature.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works - Mobile Friendly */}
-      <section id="how-it-works" className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8 sm:mb-12 md:mb-16 px-4">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 text-gray-900">
-              Super <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Easy</span>
-            </h2>
-            <p className="text-base sm:text-lg text-gray-600">Get started in 3 simple steps</p>
-          </div>
-
-          <div className="space-y-6 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-6 md:gap-8">
-            {[
-              { step: '01', title: 'Sign Up', desc: 'Create account in 30 seconds', icon: '👤', color: 'from-blue-600 to-blue-500' },
-              { step: '02', title: 'Build & Create', desc: 'Launch blog or start posting', icon: '✨', color: 'from-cyan-600 to-cyan-500' },
-              { step: '03', title: 'Earn & Own', desc: 'Get paid, mint NFTs, stake', icon: '💰', color: 'from-indigo-600 to-indigo-500' }
-            ].map((item, i) => (
-              <div key={i} className="relative">
-                <div className="hidden sm:block text-7xl md:text-8xl font-bold text-blue-100 absolute -top-4 md:-top-6 -left-2 md:-left-4">
-                  {item.step}
-                </div>
-                <div className="relative p-6 sm:p-7 md:p-8 rounded-2xl sm:rounded-3xl bg-white/90 backdrop-blur-sm border border-blue-100 hover:border-blue-300 hover:shadow-2xl transition-all duration-300 active:scale-95">
-                  <div className="flex items-center gap-4 mb-4 sm:mb-6">
-                    <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center text-2xl sm:text-3xl shadow-xl`}>
-                      {item.icon}
-                    </div>
-                    <span className="sm:hidden text-3xl font-bold text-blue-200">{item.step}</span>
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 text-gray-900">{item.title}</h3>
-                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials - Mobile Swipe */}
-      <section className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 bg-gradient-to-br from-white via-cyan-50 to-blue-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8 sm:mb-12 md:mb-16 px-4">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 text-gray-900">
-              Loved by <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Creators</span>
-            </h2>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
-            {[
-              { name: 'Sarah Chen', role: 'Creator', text: 'Made $5K in my first month! 🔥', avatar: '👩🏻‍💻' },
-              { name: 'Marcus J', role: 'NFT Artist', text: 'Sold 200+ NFTs. Game changer!', avatar: '🎨' },
-              { name: 'Emma Rose', role: 'Blogger', text: 'AI tools are incredible 💌', avatar: '✨' }
-            ].map((testimonial, i) => (
-              <div key={i} className="p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl bg-white/90 backdrop-blur-sm border border-blue-100 hover:border-blue-300 hover:shadow-2xl transition-all duration-300 active:scale-95">
-                <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-xl sm:text-2xl shadow-lg flex-shrink-0">
-                    {testimonial.avatar}
-                  </div>
-                  <div>
-                    <div className="font-bold text-gray-900 text-sm sm:text-base">{testimonial.name}</div>
-                    <div className="text-xs sm:text-sm text-gray-600">{testimonial.role}</div>
-                  </div>
-                </div>
-                <p className="text-sm sm:text-base text-gray-700 leading-relaxed">"{testimonial.text}"</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA - Mobile Optimized */}
-      <section className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 bg-gradient-to-br from-slate-50 to-indigo-50">
-        <div className="max-w-4xl mx-auto">
-          <div className="p-8 sm:p-10 md:p-12 rounded-3xl bg-gradient-to-br from-blue-600 via-cyan-500 to-indigo-600 text-white shadow-2xl">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 leading-tight">
-              Ready to Build Your Empire?
-            </h2>
-            <p className="text-base sm:text-lg md:text-xl text-blue-50 mb-6 sm:mb-8">
-              Join 10,000+ creators earning and owning their future
+        {/* Features Grid */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9 }}
+          className="mb-20"
+        >
+          <div className="text-center mb-12">
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-4xl sm:text-5xl font-black mb-4"
+            >
+              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Everything You Need
+              </span>
+              <br />
+              <span className="text-gray-800">to Build Your Empire</span>
+            </motion.h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              From AI-powered writing to Web3 monetization, we've built the complete creator platform
             </p>
-            <button 
-              onClick={() => router.push('/auth/choice')}
-              className="w-full sm:w-auto px-8 py-4 sm:px-10 sm:py-5 rounded-xl bg-white text-blue-600 hover:bg-blue-50 transition font-bold text-base sm:text-lg md:text-xl shadow-2xl active:scale-95"
-            >
-              🚀 Get Started Free
-            </button>
           </div>
-        </div>
-      </section>
 
-      {/* Footer - Mobile Friendly */}
-      <footer className="py-8 sm:py-12 px-4 sm:px-6 border-t border-blue-100 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 mb-8">
-            <div className="col-span-2 sm:col-span-1">
-              <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg shadow-lg"></div>
-                <span className="text-lg sm:text-xl font-bold text-gray-900">CYBEV</span>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1 + index * 0.1 }}
+                whileHover={{ y: -8, scale: 1.02 }}
+                className={`${feature.gradient} rounded-3xl p-8 border-2 border-white/50 shadow-xl hover:shadow-2xl transition-all duration-300`}
+              >
+                <motion.div
+                  whileHover={{ rotate: 360, scale: 1.1 }}
+                  transition={{ duration: 0.6 }}
+                  className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6 shadow-lg`}
+                >
+                  <feature.icon className="w-8 h-8 text-white" strokeWidth={2.5} />
+                </motion.div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">{feature.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* How It Works */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5 }}
+          className="mb-20"
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-4xl sm:text-5xl font-black mb-4">
+              <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                Start Earning
+              </span>
+              <br />
+              <span className="text-gray-800">in 3 Simple Steps</span>
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { step: "1", title: "Create Your Profile", desc: "Sign up in seconds and customize your creator space", icon: Users },
+              { step: "2", title: "Write & Publish", desc: "Use AI tools to craft amazing content that resonates", icon: Edit3 },
+              { step: "3", title: "Earn & Grow", desc: "Get CYBEV coins, mint NFTs, and build your audience", icon: TrendingUp }
+            ].map((item, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1.6 + index * 0.2 }}
+                whileHover={{ y: -5 }}
+                className="relative"
+              >
+                <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border-2 border-blue-100 shadow-xl hover:shadow-2xl hover:border-blue-300 transition-all">
+                  <div className="absolute -top-6 -left-6 w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-3xl font-black text-white shadow-xl">
+                    {item.step}
+                  </div>
+                  <item.icon className="w-12 h-12 text-blue-600 mb-4 mt-4" />
+                  <h3 className="text-2xl font-bold text-gray-800 mb-3">{item.title}</h3>
+                  <p className="text-gray-600">{item.desc}</p>
+                </div>
+                {index < 2 && (
+                  <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2">
+                    <ArrowRight className="w-8 h-8 text-blue-300" />
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Final CTA */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 2 }}
+          className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-3xl p-12 text-center shadow-2xl"
+        >
+          <motion.div
+            animate={{
+              scale: [1, 1.1, 1],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+            }}
+          >
+            <Sparkles className="w-16 h-16 text-yellow-300 mx-auto mb-6" />
+          </motion.div>
+          <h2 className="text-4xl sm:text-5xl font-black text-white mb-4">
+            Ready to Lead the Creator Revolution?
+          </h2>
+          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            Join thousands of creators earning while they create. Your empire awaits! 🚀
+          </p>
+          <motion.button
+            whileHover={{ scale: 1.05, y: -5 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => router.push('/auth/choice')}
+            className="px-10 py-5 rounded-2xl bg-white text-purple-600 font-black text-xl shadow-2xl hover:shadow-white/50 transition-all flex items-center gap-3 mx-auto"
+          >
+            <Rocket className="w-6 h-6" />
+            Start Your Journey Now
+            <ArrowRight className="w-6 h-6" />
+          </motion.button>
+        </motion.div>
+      </div>
+
+      {/* Footer */}
+      <footer className="relative z-10 bg-white/80 backdrop-blur-md border-t border-purple-100 mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
+                  <span className="text-xl font-bold text-white">C</span>
+                </div>
+                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  CYBEV
+                </span>
               </div>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                The future of creator economy
+              <p className="text-gray-600 text-sm">
+                The future of blogging, powered by AI and Web3
               </p>
             </div>
-
-            {[
-              { title: 'Platform', links: ['Blog Builder', 'Social Feed', 'NFT Market', 'Staking'] },
-              { title: 'Resources', links: ['Docs', 'API', 'Support', 'Roadmap'] },
-              { title: 'Community', links: ['Discord', 'Twitter', 'Telegram', 'Blog'] }
-            ].map((col, i) => (
-              <div key={i}>
-                <h4 className="font-bold mb-3 sm:mb-4 text-gray-900 text-sm sm:text-base">{col.title}</h4>
-                <ul className="space-y-2 text-gray-600 text-xs sm:text-sm">
-                  {col.links.map((link, j) => (
-                    <li key={j}><a href="#" className="hover:text-blue-600 transition">{link}</a></li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-
-          <div className="pt-6 sm:pt-8 border-t border-blue-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
-            <p className="text-gray-600 text-xs sm:text-sm">© 2025 CYBEV. All rights reserved.</p>
-            <div className="flex gap-4 sm:gap-6 text-xs sm:text-sm text-gray-600">
-              <a href="#" className="hover:text-blue-600 transition">Privacy</a>
-              <a href="#" className="hover:text-blue-600 transition">Terms</a>
-              <a href="#" className="hover:text-blue-600 transition">Cookies</a>
+            <div>
+              <h4 className="font-bold text-gray-800 mb-4">Platform</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li><a href="#" className="hover:text-purple-600">Features</a></li>
+                <li><a href="#" className="hover:text-purple-600">Pricing</a></li>
+                <li><a href="#" className="hover:text-purple-600">NFT Marketplace</a></li>
+                <li><a href="#" className="hover:text-purple-600">Staking</a></li>
+              </ul>
             </div>
+            <div>
+              <h4 className="font-bold text-gray-800 mb-4">Resources</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li><a href="#" className="hover:text-purple-600">Documentation</a></li>
+                <li><a href="#" className="hover:text-purple-600">Help Center</a></li>
+                <li><a href="#" className="hover:text-purple-600">Community</a></li>
+                <li><a href="#" className="hover:text-purple-600">Blog</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-gray-800 mb-4">Company</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li><a href="#" className="hover:text-purple-600">About</a></li>
+                <li><a href="#" className="hover:text-purple-600">Careers</a></li>
+                <li><a href="#" className="hover:text-purple-600">Privacy</a></li>
+                <li><a href="#" className="hover:text-purple-600">Terms</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-purple-100 mt-8 pt-8 text-center text-sm text-gray-600">
+            <p>© 2024 CYBEV. Powered by AI. Built for Creators. 💜</p>
           </div>
         </div>
       </footer>
-
-      {/* Mobile Bottom Nav (Optional) */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-blue-100 px-4 py-3 z-40 shadow-2xl">
-        <div className="flex justify-around items-center max-w-md mx-auto">
-          <button className="flex flex-col items-center gap-1 text-blue-600">
-            <span className="text-xl">🏠</span>
-            <span className="text-xs font-medium">Home</span>
-          </button>
-          <button className="flex flex-col items-center gap-1 text-gray-500">
-            <span className="text-xl">🔍</span>
-            <span className="text-xs font-medium">Explore</span>
-          </button>
-          <button 
-            onClick={() => router.push('/auth/choice')}
-            className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 flex items-center justify-center text-white text-2xl shadow-xl -mt-6"
-          >
-            +
-          </button>
-          <button className="flex flex-col items-center gap-1 text-gray-500">
-            <span className="text-xl">💰</span>
-            <span className="text-xs font-medium">Wallet</span>
-          </button>
-          <button className="flex flex-col items-center gap-1 text-gray-500">
-            <span className="text-xl">👤</span>
-            <span className="text-xs font-medium">Profile</span>
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
