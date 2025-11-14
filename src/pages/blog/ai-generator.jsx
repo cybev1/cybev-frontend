@@ -1,715 +1,536 @@
-// 🎨 ULTRA-MODERN AI TEMPLATE GENERATOR
-// Squarespace-inspired design with stunning visuals and smooth animations
-// Fully mobile-responsive for web, iOS, and Android
-// File path: pages/blog/ai-generator.jsx
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Sparkles, ChevronRight, Check, Wand2, Palette, 
-  Layout, Zap, ArrowLeft, Eye, Download 
+import AppLayout from '@/components/Layout/AppLayout';
+import {
+  Wand2,
+  Sparkles,
+  Brain,
+  Zap,
+  Globe,
+  Palette,
+  Code,
+  Layout,
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  Loader2,
+  Rocket,
+  Crown,
+  Star
 } from 'lucide-react';
 
-export default function AITemplateGenerator() {
+export default function AIGenerator() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [generating, setGenerating] = useState(false);
-  const [userInput, setUserInput] = useState({
-    industry: '',
-    style: '',
-    colorScheme: '',
-    features: []
+  const [formData, setFormData] = useState({
+    websiteType: '',
+    businessName: '',
+    description: '',
+    style: 'modern',
+    colors: 'vibrant',
+    aiModel: 'deepseek'
   });
 
-  // 🎨 Industries with beautiful Unsplash images
-  const industries = [
-    {
-      id: 'tech',
-      name: 'Tech & SaaS',
-      icon: '💻',
-      description: 'Modern platforms for software, apps, and digital products',
-      image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c',
-      gradient: 'from-blue-600 to-cyan-500',
-      color: '#3B82F6'
-    },
-    {
-      id: 'ministry',
-      name: 'Ministry & Church',
-      icon: '⛪',
-      description: 'Welcoming designs for churches and faith communities',
-      image: 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3',
-      gradient: 'from-purple-600 to-pink-500',
-      color: '#9333EA'
-    },
-    {
-      id: 'news',
-      name: 'News & Media',
-      icon: '📰',
-      description: 'Professional layouts for journalism and publications',
-      image: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c',
-      gradient: 'from-gray-800 to-gray-600',
-      color: '#1F2937'
-    },
-    {
-      id: 'business',
-      name: 'Business & Corporate',
-      icon: '💼',
-      description: 'Elegant solutions for B2B and enterprise',
-      image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40',
-      gradient: 'from-indigo-600 to-blue-600',
-      color: '#4F46E5'
-    },
-    {
-      id: 'creative',
-      name: 'Creative Portfolio',
-      icon: '🎨',
-      description: 'Stunning showcases for artists and designers',
-      image: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f',
-      gradient: 'from-pink-600 to-purple-600',
-      color: '#DB2777'
-    },
-    {
-      id: 'ecommerce',
-      name: 'E-commerce',
-      icon: '🛍️',
-      description: 'Beautiful stores that convert browsers to buyers',
-      image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8',
-      gradient: 'from-green-600 to-emerald-500',
-      color: '#059669'
-    },
-    {
-      id: 'education',
-      name: 'Education & Learning',
-      icon: '📚',
-      description: 'Engaging platforms for courses and knowledge sharing',
-      image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b',
-      gradient: 'from-orange-600 to-yellow-500',
-      color: '#EA580C'
-    },
-    {
-      id: 'health',
-      name: 'Health & Wellness',
-      icon: '💪',
-      description: 'Clean designs for fitness and wellbeing brands',
-      image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b',
-      gradient: 'from-teal-600 to-cyan-500',
-      color: '#0D9488'
-    },
-    {
-      id: 'food',
-      name: 'Food & Restaurant',
-      icon: '🍽️',
-      description: 'Appetizing layouts for culinary businesses',
-      image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0',
-      gradient: 'from-red-600 to-orange-500',
-      color: '#DC2626'
-    },
-    {
-      id: 'realestate',
-      name: 'Real Estate',
-      icon: '🏠',
-      description: 'Professional sites for property and listings',
-      image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa',
-      gradient: 'from-slate-700 to-gray-600',
-      color: '#334155'
-    }
+  const websiteTypes = [
+    { id: 'blog', label: 'Blog/Magazine', icon: '📰', desc: 'News, articles & stories' },
+    { id: 'portfolio', label: 'Portfolio', icon: '💼', desc: 'Showcase your work' },
+    { id: 'business', label: 'Business', icon: '🏢', desc: 'Company website' },
+    { id: 'ecommerce', label: 'E-commerce', icon: '🛍️', desc: 'Online store' },
+    { id: 'landing', label: 'Landing Page', icon: '🚀', desc: 'Product launch' },
+    { id: 'saas', label: 'SaaS', icon: '💻', desc: 'Software platform' },
+    { id: 'restaurant', label: 'Restaurant', icon: '🍽️', desc: 'Menu & reservations' },
+    { id: 'education', label: 'Education', icon: '📚', desc: 'Courses & learning' }
   ];
 
-  // 🎭 Styles with visual previews
   const styles = [
-    {
-      id: 'modern',
-      name: 'Modern & Minimal',
-      description: 'Clean lines, spacious layouts, timeless elegance',
-      image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe',
-      features: ['Ample whitespace', 'Simple typography', 'Subtle animations'],
-      color: '#6366F1'
-    },
-    {
-      id: 'bold',
-      name: 'Bold & Vibrant',
-      description: 'Eye-catching colors, dynamic layouts, high energy',
-      image: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab',
-      features: ['Bright colors', 'Large typography', 'Strong contrast'],
-      color: '#F59E0B'
-    },
-    {
-      id: 'professional',
-      name: 'Professional & Corporate',
-      description: 'Trustworthy, refined, business-appropriate',
-      image: 'https://images.unsplash.com/photo-1497366216548-37526070297c',
-      features: ['Conservative palette', 'Structured layout', 'Formal tone'],
-      color: '#1E40AF'
-    },
-    {
-      id: 'creative',
-      name: 'Creative & Artistic',
-      description: 'Unique, expressive, boundary-pushing design',
-      image: 'https://images.unsplash.com/photo-1550859492-d5da9d8e45f3',
-      features: ['Asymmetric layouts', 'Custom elements', 'Artistic flair'],
-      color: '#EC4899'
-    },
-    {
-      id: 'dark',
-      name: 'Dark & Sleek',
-      description: 'Sophisticated, modern, premium aesthetic',
-      image: 'https://images.unsplash.com/photo-1557683316-973673baf926',
-      features: ['Dark backgrounds', 'Neon accents', 'Premium feel'],
-      color: '#0F172A'
-    }
+    { id: 'modern', label: 'Modern', preview: 'Clean lines, minimalist' },
+    { id: 'classic', label: 'Classic', preview: 'Traditional, elegant' },
+    { id: 'bold', label: 'Bold', preview: 'Eye-catching, dynamic' },
+    { id: 'minimal', label: 'Minimal', preview: 'Simple, focused' }
   ];
 
-  // 🌈 Color schemes with beautiful palettes
   const colorSchemes = [
+    { id: 'vibrant', label: 'Vibrant', colors: ['#FF6B6B', '#4ECDC4', '#45B7D1'] },
+    { id: 'professional', label: 'Professional', colors: ['#2C3E50', '#3498DB', '#ECF0F1'] },
+    { id: 'warm', label: 'Warm', colors: ['#E74C3C', '#F39C12', '#F1C40F'] },
+    { id: 'cool', label: 'Cool', colors: ['#3498DB', '#9B59B6', '#1ABC9C'] },
+    { id: 'monochrome', label: 'Monochrome', colors: ['#2C3E50', '#95A5A6', '#ECF0F1'] }
+  ];
+
+  const aiModels = [
     {
-      id: 'ocean',
-      name: 'Ocean Blue',
-      colors: ['#1E40AF', '#3B82F6', '#60A5FA', '#DBEAFE'],
-      description: 'Calm, trustworthy, professional'
+      id: 'deepseek',
+      name: 'DeepSeek',
+      description: 'Lightning-fast & cost-effective',
+      icon: Zap,
+      badge: 'Recommended',
+      color: 'yellow'
     },
     {
-      id: 'forest',
-      name: 'Forest Green',
-      colors: ['#065F46', '#059669', '#10B981', '#D1FAE5'],
-      description: 'Natural, growth-focused, sustainable'
+      id: 'claude',
+      name: 'Claude',
+      description: 'Best for creative & detailed content',
+      icon: Brain,
+      badge: 'Best Quality',
+      color: 'purple'
     },
     {
-      id: 'sunset',
-      name: 'Sunset Orange',
-      colors: ['#C2410C', '#EA580C', '#F97316', '#FFEDD5'],
-      description: 'Warm, energetic, inviting'
-    },
-    {
-      id: 'royal',
-      name: 'Royal Purple',
-      colors: ['#6B21A8', '#9333EA', '#A855F7', '#F3E8FF'],
-      description: 'Luxurious, creative, innovative'
-    },
-    {
-      id: 'midnight',
-      name: 'Midnight Dark',
-      colors: ['#0F172A', '#1E293B', '#334155', '#CBD5E1'],
-      description: 'Sophisticated, modern, premium'
-    },
-    {
-      id: 'rose',
-      name: 'Rose Pink',
-      colors: ['#BE123C', '#E11D48', '#F43F5E', '#FFE4E6'],
-      description: 'Romantic, elegant, memorable'
+      id: 'openai',
+      name: 'OpenAI GPT-4',
+      description: 'Most versatile & powerful',
+      icon: Sparkles,
+      badge: 'Most Popular',
+      color: 'green'
     }
   ];
 
-  // ✨ Features
-  const features = [
-    'Blog System', 'Contact Form', 'Newsletter Signup',
-    'Social Media Links', 'Image Gallery', 'Video Embed',
-    'Testimonials', 'FAQ Section', 'Team Page',
-    'Pricing Tables', 'Search Bar', 'Live Chat'
-  ];
-
-  const handleNext = () => {
-    if (step === 1 && !userInput.industry) {
-      alert('Please select an industry');
+  const handleGenerate = async () => {
+    if (!formData.websiteType || !formData.businessName || !formData.description) {
+      alert('Please fill in all required fields');
       return;
     }
-    if (step === 2 && !userInput.style) {
-      alert('Please select a style');
-      return;
-    }
-    if (step < 3) {
-      setStep(step + 1);
-    } else {
-      handleGenerate();
-    }
-  };
 
-  const handleGenerate = () => {
     setGenerating(true);
-    setStep(4);
-    
+
     // Simulate AI generation
     setTimeout(() => {
       setGenerating(false);
-    }, 3000);
+      router.push({
+        pathname: '/studio/builder',
+        query: {
+          generated: 'true',
+          type: formData.websiteType,
+          name: formData.businessName,
+          style: formData.style,
+          colors: formData.colors,
+          ai: formData.aiModel
+        }
+      });
+    }, 5000);
   };
 
-  const toggleFeature = (feature) => {
-    setUserInput(prev => ({
-      ...prev,
-      features: prev.features.includes(feature)
-        ? prev.features.filter(f => f !== feature)
-        : [...prev.features, feature]
-    }));
-  };
+  const StepIndicator = () => (
+    <div className="flex items-center justify-center gap-3 mb-8">
+      {[1, 2, 3, 4].map((num) => (
+        <div key={num} className="flex items-center">
+          <motion.div
+            animate={{
+              scale: step >= num ? 1.2 : 1,
+              backgroundColor: step >= num ? '#A855F7' : '#374151'
+            }}
+            className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white transition-all ${
+              step === num ? 'ring-4 ring-purple-500/30' : ''
+            }`}
+          >
+            {step > num ? <Check className="w-6 h-6" /> : num}
+          </motion.div>
+          {num < 4 && (
+            <div className={`w-16 h-1 mx-2 transition-all ${
+              step > num ? 'bg-purple-500' : 'bg-gray-700'
+            }`} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
-      {/* ✨ Header */}
-      <motion.header 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center">
-                <Wand2 className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-gray-900">AI Template Generator</h1>
-                <p className="text-xs text-gray-500">Powered by CYBEV.io</p>
-              </div>
-            </div>
-            <div className="text-sm text-gray-600">
-              Step {step} of 3
-            </div>
-          </div>
-        </div>
+    <AppLayout>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-12 px-4 relative overflow-hidden">
+        {/* Animated Background */}
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 180, 0],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+          }}
+          className="absolute top-1/4 -left-48 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{
+            scale: [1.2, 1, 1.2],
+            rotate: [180, 0, 180],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+          }}
+          className="absolute bottom-1/4 -right-48 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl"
+        />
 
-        {/* Progress Bar */}
-        <div className="h-1 bg-gray-100">
+        <div className="max-w-4xl mx-auto relative z-10">
+          {/* Header */}
           <motion.div
-            initial={{ width: '0%' }}
-            animate={{ width: `${(step / 3) * 100}%` }}
-            transition={{ duration: 0.3 }}
-            className="h-full bg-gradient-to-r from-purple-600 to-blue-500"
-          />
-        </div>
-      </motion.header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        <AnimatePresence mode="wait">
-          {/* 🎯 STEP 1: Industry Selection */}
-          {step === 1 && (
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-12"
+          >
             <motion.div
-              key="step1"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
+              animate={{
+                rotate: [0, 360],
+                scale: [1, 1.1, 1]
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="inline-block mb-4"
             >
-              <div className="text-center mb-8 md:mb-12">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: 'spring' }}
-                  className="inline-block mb-4"
-                >
-                  <Sparkles className="w-12 h-12 md:w-16 md:h-16 text-purple-600" />
-                </motion.div>
-                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
-                  What's your website about?
-                </h2>
-                <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
-                  Choose your industry and our AI will generate a perfect design
-                </p>
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-3xl flex items-center justify-center shadow-2xl">
+                <Wand2 className="w-10 h-10 text-white" />
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                {industries.map((industry, index) => (
-                  <motion.div
-                    key={industry.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    whileHover={{ y: -4 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setUserInput({ ...userInput, industry: industry.id })}
-                    className={`relative group cursor-pointer rounded-2xl overflow-hidden transition-all duration-300 ${
-                      userInput.industry === industry.id
-                        ? 'ring-4 ring-purple-500 shadow-2xl shadow-purple-200'
-                        : 'hover:shadow-xl'
-                    }`}
-                  >
-                    {/* Image Background */}
-                    <div className="relative h-40 md:h-48 overflow-hidden">
-                      <Image
-                        src={`${industry.image}?w=600&h=400&fit=crop`}
-                        alt={industry.name}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                      <div className={`absolute inset-0 bg-gradient-to-t ${industry.gradient} opacity-60 group-hover:opacity-70 transition-opacity`} />
-                      
-                      {/* Icon */}
-                      <div className="absolute top-4 left-4 w-12 h-12 md:w-14 md:h-14 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl md:text-3xl border border-white/30">
-                        {industry.icon}
-                      </div>
-
-                      {/* Selected Badge */}
-                      {userInput.industry === industry.id && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-lg"
-                        >
-                          <Check className="w-5 h-5 text-purple-600" />
-                        </motion.div>
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-4 md:p-5 bg-white">
-                      <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
-                        {industry.name}
-                      </h3>
-                      <p className="text-sm text-gray-600 leading-relaxed">
-                        {industry.description}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
+            </motion.div>
+            
+            <h1 className="text-4xl md:text-6xl font-black mb-4 bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
+              AI Website Generator
+            </h1>
+            <p className="text-purple-200 text-lg max-w-2xl mx-auto">
+              Generate complete, professional websites in seconds with AI
+            </p>
+            
+            <div className="flex items-center justify-center gap-4 mt-6 flex-wrap">
+              <div className="flex items-center gap-2 bg-purple-500/20 border border-purple-500/30 px-4 py-2 rounded-full">
+                <Zap className="w-4 h-4 text-yellow-400" />
+                <span className="text-white text-sm font-semibold">Powered by DeepSeek</span>
               </div>
+              <div className="flex items-center gap-2 bg-pink-500/20 border border-pink-500/30 px-4 py-2 rounded-full">
+                <Brain className="w-4 h-4 text-pink-400" />
+                <span className="text-white text-sm font-semibold">& Claude AI</span>
+              </div>
+              <div className="flex items-center gap-2 bg-green-500/20 border border-green-500/30 px-4 py-2 rounded-full">
+                <Sparkles className="w-4 h-4 text-green-400" />
+                <span className="text-white text-sm font-semibold">& OpenAI GPT-4</span>
+              </div>
+            </div>
+          </motion.div>
 
-              {/* Continue Button */}
-              {userInput.industry && (
+          {/* Progress */}
+          <StepIndicator />
+
+          {/* Main Card */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white/10 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/20 p-8 md:p-12"
+          >
+            <AnimatePresence mode="wait">
+              {/* Step 1: Website Type */}
+              {step === 1 && (
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="fixed bottom-0 left-0 right-0 p-4 md:p-6 bg-white/95 backdrop-blur-xl border-t border-gray-200 shadow-2xl z-40"
+                  key="step1"
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
                 >
-                  <div className="max-w-7xl mx-auto flex justify-end">
-                    <button
-                      onClick={handleNext}
-                      className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
-                    >
-                      Continue
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
+                  <h2 className="text-3xl font-bold text-white mb-3">What type of website?</h2>
+                  <p className="text-purple-200 mb-8">Choose the type that best fits your needs</p>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {websiteTypes.map((type) => (
+                      <motion.button
+                        key={type.id}
+                        whileHover={{ scale: 1.05, y: -5 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setFormData({ ...formData, websiteType: type.id })}
+                        className={`p-6 rounded-2xl border-2 transition-all text-center ${
+                          formData.websiteType === type.id
+                            ? 'border-purple-500 bg-purple-500/20 shadow-lg shadow-purple-500/30'
+                            : 'border-white/20 bg-white/5 hover:border-purple-500/50'
+                        }`}
+                      >
+                        <div className="text-4xl mb-3">{type.icon}</div>
+                        <div className="text-white font-bold mb-1">{type.label}</div>
+                        <div className="text-purple-200 text-xs">{type.desc}</div>
+                      </motion.button>
+                    ))}
                   </div>
                 </motion.div>
               )}
-            </motion.div>
-          )}
 
-          {/* 🎨 STEP 2: Style Selection */}
-          {step === 2 && (
-            <motion.div
-              key="step2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="text-center mb-8 md:mb-12">
+              {/* Step 2: Business Details */}
+              {step === 2 && (
                 <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: 'spring' }}
-                  className="inline-block mb-4"
+                  key="step2"
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
                 >
-                  <Palette className="w-12 h-12 md:w-16 md:h-16 text-purple-600" />
-                </motion.div>
-                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
-                  Choose your style
-                </h2>
-                <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
-                  Select the aesthetic that represents your brand
-                </p>
-              </div>
+                  <h2 className="text-3xl font-bold text-white mb-3">Tell us about your project</h2>
+                  <p className="text-purple-200 mb-8">Help AI understand what you're building</p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-20">
-                {styles.map((style, index) => (
-                  <motion.div
-                    key={style.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ y: -4 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setUserInput({ ...userInput, style: style.id })}
-                    className={`relative group cursor-pointer rounded-2xl overflow-hidden transition-all duration-300 ${
-                      userInput.style === style.id
-                        ? 'ring-4 ring-purple-500 shadow-2xl shadow-purple-200'
-                        : 'hover:shadow-xl'
-                    }`}
-                  >
-                    {/* Image */}
-                    <div className="relative h-56 md:h-64 overflow-hidden">
-                      <Image
-                        src={`${style.image}?w=800&h=600&fit=crop`}
-                        alt={style.name}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-white font-semibold mb-2">
+                        Business/Project Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.businessName}
+                        onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+                        placeholder="e.g., TechStartup Inc."
+                        className="w-full px-6 py-4 bg-white/10 border-2 border-white/20 rounded-2xl text-white placeholder-purple-300 focus:border-purple-500 focus:outline-none transition-all"
+                        autoFocus
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-
-                      {/* Selected Badge */}
-                      {userInput.style === style.id && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-lg"
-                        >
-                          <Check className="w-6 h-6 text-purple-600" />
-                        </motion.div>
-                      )}
-
-                      {/* Content Overlay */}
-                      <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                        <h3 className="text-xl md:text-2xl font-bold mb-2">
-                          {style.name}
-                        </h3>
-                        <p className="text-sm text-white/90 mb-4">
-                          {style.description}
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {style.features.map((feature, idx) => (
-                            <span
-                              key={idx}
-                              className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-xs font-medium border border-white/30"
-                            >
-                              {feature}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
 
-              {/* Navigation Buttons */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="fixed bottom-0 left-0 right-0 p-4 md:p-6 bg-white/95 backdrop-blur-xl border-t border-gray-200 shadow-2xl z-40"
-              >
-                <div className="max-w-7xl mx-auto flex justify-between">
-                  <button
-                    onClick={() => setStep(1)}
-                    className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-all flex items-center gap-2"
-                  >
-                    <ArrowLeft className="w-5 h-5" />
-                    Back
-                  </button>
-                  {userInput.style && (
-                    <button
-                      onClick={handleNext}
-                      className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
-                    >
-                      Continue
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
-                  )}
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
+                    <div>
+                      <label className="block text-white font-semibold mb-2">
+                        Description *
+                      </label>
+                      <textarea
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        placeholder="Describe what your website is about, what it offers, and who it's for..."
+                        className="w-full h-32 px-6 py-4 bg-white/10 border-2 border-white/20 rounded-2xl text-white placeholder-purple-300 focus:border-purple-500 focus:outline-none transition-all resize-none"
+                      />
+                    </div>
 
-          {/* 🌈 STEP 3: Customization */}
-          {step === 3 && (
-            <motion.div
-              key="step3"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="pb-32"
-            >
-              <div className="text-center mb-8 md:mb-12">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: 'spring' }}
-                  className="inline-block mb-4"
-                >
-                  <Layout className="w-12 h-12 md:w-16 md:h-16 text-purple-600" />
+                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
+                      <p className="text-blue-200 text-sm">
+                        💡 <strong>Pro tip:</strong> Be specific! The more details you provide, the better AI can tailor your website.
+                      </p>
+                    </div>
+                  </div>
                 </motion.div>
-                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
-                  Customize your site
-                </h2>
-                <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
-                  Choose colors and features that make it yours
-                </p>
-              </div>
+              )}
 
-              {/* Color Schemes */}
-              <div className="mb-12">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">Color Scheme</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                  {colorSchemes.map((scheme, index) => (
-                    <motion.div
-                      key={scheme.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      whileHover={{ y: -2 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setUserInput({ ...userInput, colorScheme: scheme.id })}
-                      className={`p-6 rounded-2xl border-2 cursor-pointer transition-all ${
-                        userInput.colorScheme === scheme.id
-                          ? 'border-purple-500 bg-purple-50 shadow-lg'
-                          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'
-                      }`}
-                    >
-                      <div className="flex gap-2 mb-4">
-                        {scheme.colors.map((color, idx) => (
-                          <div
-                            key={idx}
-                            className="w-12 h-12 rounded-lg shadow-sm"
-                            style={{ backgroundColor: color }}
-                          />
+              {/* Step 3: Style & Colors */}
+              {step === 3 && (
+                <motion.div
+                  key="step3"
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
+                >
+                  <h2 className="text-3xl font-bold text-white mb-3">Choose your style</h2>
+                  <p className="text-purple-200 mb-8">Select design style and color scheme</p>
+
+                  <div className="space-y-8">
+                    {/* Style */}
+                    <div>
+                      <h3 className="text-white font-semibold mb-4">Design Style</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {styles.map((style) => (
+                          <motion.button
+                            key={style.id}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setFormData({ ...formData, style: style.id })}
+                            className={`p-4 rounded-xl border-2 transition-all ${
+                              formData.style === style.id
+                                ? 'border-purple-500 bg-purple-500/20'
+                                : 'border-white/20 bg-white/5 hover:border-purple-500/50'
+                            }`}
+                          >
+                            <div className="text-white font-bold mb-1">{style.label}</div>
+                            <div className="text-purple-200 text-xs">{style.preview}</div>
+                          </motion.button>
                         ))}
                       </div>
-                      <h4 className="text-lg font-bold text-gray-900 mb-1">
-                        {scheme.name}
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        {scheme.description}
-                      </p>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
+                    </div>
 
-              {/* Features */}
-              <div className="mb-12">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">Features (Select all that apply)</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-                  {features.map((feature, index) => (
-                    <motion.button
-                      key={feature}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: index * 0.03 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => toggleFeature(feature)}
-                      className={`p-4 rounded-xl font-semibold text-sm transition-all ${
-                        userInput.features.includes(feature)
-                          ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
-                          : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-300'
-                      }`}
-                    >
-                      {userInput.features.includes(feature) && (
-                        <Check className="w-4 h-4 inline mr-1" />
-                      )}
-                      {feature}
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
+                    {/* Colors */}
+                    <div>
+                      <h3 className="text-white font-semibold mb-4">Color Scheme</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {colorSchemes.map((scheme) => (
+                          <motion.button
+                            key={scheme.id}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setFormData({ ...formData, colors: scheme.id })}
+                            className={`p-4 rounded-xl border-2 transition-all ${
+                              formData.colors === scheme.id
+                                ? 'border-purple-500 bg-purple-500/20'
+                                : 'border-white/20 bg-white/5 hover:border-purple-500/50'
+                            }`}
+                          >
+                            <div className="flex gap-2 mb-2">
+                              {scheme.colors.map((color, idx) => (
+                                <div
+                                  key={idx}
+                                  className="w-8 h-8 rounded-lg"
+                                  style={{ backgroundColor: color }}
+                                />
+                              ))}
+                            </div>
+                            <div className="text-white font-semibold">{scheme.label}</div>
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
 
-              {/* Navigation Buttons */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="fixed bottom-0 left-0 right-0 p-4 md:p-6 bg-white/95 backdrop-blur-xl border-t border-gray-200 shadow-2xl z-40"
-              >
-                <div className="max-w-7xl mx-auto flex justify-between">
-                  <button
-                    onClick={() => setStep(2)}
-                    className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-all flex items-center gap-2"
-                  >
-                    <ArrowLeft className="w-5 h-5" />
-                    Back
-                  </button>
-                  {userInput.colorScheme && (
-                    <button
-                      onClick={handleNext}
-                      className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
-                    >
-                      <Zap className="w-5 h-5" />
-                      Generate My Site
-                    </button>
+              {/* Step 4: AI Model Selection */}
+              {step === 4 && (
+                <motion.div
+                  key="step4"
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
+                >
+                  <h2 className="text-3xl font-bold text-white mb-3">Choose your AI model</h2>
+                  <p className="text-purple-200 mb-8">Each model has unique strengths</p>
+
+                  <div className="space-y-4">
+                    {aiModels.map((model) => (
+                      <motion.button
+                        key={model.id}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setFormData({ ...formData, aiModel: model.id })}
+                        className={`w-full p-6 rounded-2xl border-2 transition-all text-left relative overflow-hidden ${
+                          formData.aiModel === model.id
+                            ? 'border-purple-500 bg-purple-500/20'
+                            : 'border-white/20 bg-white/5 hover:border-purple-500/50'
+                        }`}
+                      >
+                        {model.badge && (
+                          <div className={`absolute top-4 right-4 bg-${model.color}-500 text-${model.color}-900 text-xs font-bold px-3 py-1 rounded-full`}>
+                            {model.badge}
+                          </div>
+                        )}
+                        
+                        <div className="flex items-start gap-4">
+                          <div className={`w-12 h-12 bg-${model.color}-500/20 rounded-xl flex items-center justify-center flex-shrink-0`}>
+                            <model.icon className={`w-6 h-6 text-${model.color}-400`} />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-xl font-bold text-white mb-1">{model.name}</h3>
+                            <p className="text-purple-200">{model.description}</p>
+                          </div>
+                        </div>
+                      </motion.button>
+                    ))}
+                  </div>
+
+                  <div className="mt-8 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl p-6">
+                    <div className="flex items-start gap-4">
+                      <Crown className="w-8 h-8 text-yellow-400 flex-shrink-0" />
+                      <div>
+                        <h4 className="text-white font-bold mb-2">Earn 100 Coins!</h4>
+                        <p className="text-green-200 text-sm">
+                          Generate your website and earn rewards. Plus, earn more for every view and interaction!
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Navigation */}
+            <div className="flex justify-between mt-10">
+              {step > 1 && (
+                <motion.button
+                  whileHover={{ scale: 1.05, x: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setStep(step - 1)}
+                  className="flex items-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold transition-all"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  Back
+                </motion.button>
+              )}
+
+              {step < 4 ? (
+                <motion.button
+                  whileHover={{ scale: 1.05, x: 5 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setStep(step + 1)}
+                  disabled={
+                    (step === 1 && !formData.websiteType) ||
+                    (step === 2 && (!formData.businessName || !formData.description))
+                  }
+                  className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+                >
+                  Next
+                  <ArrowRight className="w-5 h-5" />
+                </motion.button>
+              ) : (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleGenerate}
+                  disabled={generating}
+                  className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ml-auto shadow-2xl"
+                >
+                  {generating ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Rocket className="w-5 h-5" />
+                      Generate Website
+                    </>
                   )}
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
+                </motion.button>
+              )}
+            </div>
+          </motion.div>
 
-          {/* ⚡ STEP 4: Generation & Result */}
-          {step === 4 && (
-            <motion.div
-              key="step4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="min-h-[80vh] flex items-center justify-center"
-            >
-              {generating ? (
-                <div className="text-center">
+          {/* Generating Modal */}
+          <AnimatePresence>
+            {generating && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50"
+              >
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.8, opacity: 0 }}
+                  className="bg-gradient-to-br from-purple-600/20 to-pink-600/20 backdrop-blur-xl rounded-3xl p-12 border border-purple-500/30 text-center max-w-md"
+                >
                   <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                    className="inline-block mb-6"
+                    animate={{
+                      rotate: 360,
+                      scale: [1, 1.2, 1]
+                    }}
+                    transition={{
+                      rotate: { duration: 2, repeat: Infinity, ease: "linear" },
+                      scale: { duration: 1, repeat: Infinity }
+                    }}
+                    className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center"
                   >
-                    <Wand2 className="w-20 h-20 md:w-24 md:h-24 text-purple-600" />
+                    <Sparkles className="w-10 h-10 text-white" />
                   </motion.div>
-                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                    AI is crafting your website...
-                  </h2>
-                  <p className="text-lg text-gray-600 mb-8">
-                    This usually takes 10-15 seconds
-                  </p>
-                  <div className="max-w-md mx-auto space-y-3">
-                    {[
-                      'Analyzing your requirements...',
-                      'Generating layout structure...',
-                      'Creating demo content...',
-                      'Applying your color scheme...'
-                    ].map((text, idx) => (
+                  
+                  <h3 className="text-2xl font-bold text-white mb-4">Creating Your Website...</h3>
+                  <p className="text-purple-200 mb-6">AI is generating your professional website with custom design, content, and layout</p>
+                  
+                  <div className="space-y-3">
+                    {['Analyzing requirements', 'Generating design', 'Creating content', 'Finalizing layout'].map((text, idx) => (
                       <motion.div
                         key={idx}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.5 }}
-                        className="flex items-center gap-3 bg-white p-4 rounded-xl shadow-sm"
+                        className="flex items-center gap-3 text-white"
                       >
-                        <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                          <Check className="w-4 h-4 text-white" />
-                        </div>
-                        <span className="text-gray-700">{text}</span>
+                        <Check className="w-5 h-5 text-green-400" />
+                        {text}
                       </motion.div>
                     ))}
                   </div>
-                </div>
-              ) : (
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="text-center max-w-2xl mx-auto"
-                >
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', duration: 0.6 }}
-                    className="inline-block mb-6"
-                  >
-                    <div className="w-24 h-24 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center shadow-2xl">
-                      <Check className="w-12 h-12 text-white" />
-                    </div>
-                  </motion.div>
-                  <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                    🎉 Your site is ready!
-                  </h2>
-                  <p className="text-xl text-gray-600 mb-8">
-                    We've created a unique design just for you
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button
-                      onClick={() => router.push('/blog/preview')}
-                      className="px-8 py-4 bg-white border-2 border-gray-300 hover:border-purple-500 text-gray-900 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2"
-                    >
-                      <Eye className="w-5 h-5" />
-                      Preview Site
-                    </button>
-                    <button
-                      onClick={() => router.push('/blog/setup')}
-                      className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
-                    >
-                      <Download className="w-5 h-5" />
-                      Deploy Now
-                    </button>
-                  </div>
                 </motion.div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }
