@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import axios from 'axios';
 import { 
   Sparkles, 
   Target, 
@@ -15,6 +17,7 @@ import {
 } from 'lucide-react';
 
 const OnboardingFlow = () => {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
     fullName: '',
@@ -23,8 +26,10 @@ const OnboardingFlow = () => {
     experience: ''
   });
   const [isComplete, setIsComplete] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const totalSteps = 4;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
   // Celebrate completion with confetti
   const celebrateCompletion = () => {
@@ -56,16 +61,62 @@ const OnboardingFlow = () => {
     }, 250);
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     setIsComplete(true);
     celebrateCompletion();
     
-    // Save to backend/localStorage
-    console.log('Onboarding completed:', formData);
+    console.log('🎉 Onboarding completed! Saving data...');
+    console.log('📋 Form data:', formData);
+
+    // Mark as completed locally (backup)
+    localStorage.setItem('onboardingCompleted', 'true');
     
-    // Redirect after celebration
+    // Save to backend
+    setIsSaving(true);
+    
+    try {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        console.error('❌ No token found!');
+        // Still redirect if no token (shouldn't happen)
+        setTimeout(() => {
+          router.push('/studio');
+        }, 3500);
+        return;
+      }
+
+      console.log('💾 Sending onboarding data to backend...');
+      
+      const response = await axios.put(
+        `${API_URL}/api/user/complete-onboarding`,
+        {
+          fullName: formData.fullName,
+          role: formData.role,
+          goals: formData.goals,
+          experience: formData.experience
+        },
+        {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      console.log('✅ Onboarding data saved successfully:', response.data);
+      
+    } catch (error) {
+      console.error('❌ Failed to save onboarding data:', error.response?.data || error.message);
+      // Don't block user even if save fails - they can update profile later
+    } finally {
+      setIsSaving(false);
+    }
+    
+    // Redirect after celebration (even if save failed)
     setTimeout(() => {
-      window.location.href = '/dashboard';
+      console.log('→ Redirecting to studio...');
+      router.push('/studio');
     }, 3500);
   };
 
@@ -282,6 +333,7 @@ const OnboardingFlow = () => {
                 {['Developer', 'Designer', 'Product Manager', 'Marketer', 'Founder', 'Other'].map((role) => (
                   <motion.button
                     key={role}
+                    type="button"
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleInputChange('role', role)}
@@ -325,6 +377,7 @@ const OnboardingFlow = () => {
                 return (
                   <motion.button
                     key={goal.id}
+                    type="button"
                     whileHover={{ scale: 1.03, y: -2 }}
                     whileTap={{ scale: 0.97 }}
                     onClick={() => toggleGoal(goal.id)}
@@ -370,6 +423,7 @@ const OnboardingFlow = () => {
             {experiences.map((exp, index) => (
               <motion.button
                 key={exp.id}
+                type="button"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5 + index * 0.1 }}
@@ -460,9 +514,9 @@ const OnboardingFlow = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-xl text-gray-300"
+            className="text-xl text-gray-300 mb-2"
           >
-            Redirecting to your dashboard...
+            {isSaving ? 'Saving your preferences...' : 'Redirecting to your studio...'}
           </motion.p>
 
           <motion.div
