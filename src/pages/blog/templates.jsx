@@ -53,7 +53,30 @@ export default function TemplateSelector() {
       badge: 'Ministry'
     },
 
-    // General Templates
+    
+    {
+      id: 'news_blog_cnn',
+      name: 'News Blog (CNN Style)',
+      category: 'general',
+      icon: '🗞️',
+      description: 'Ideal for breaking news, global updates, and multiple categories',
+      features: ['Breaking Banner', 'Multi-Categories', 'Live Updates', 'Sidebar Trends'],
+      preview: '/templates/news-blog-preview.jpg',
+      color: 'from-red-600 to-gray-800',
+      badge: 'General'
+    },
+    {
+      id: 'tv_blog_bloomberg',
+      name: 'Online TV Blog (Bloomberg Style)',
+      category: 'general',
+      icon: '📺',
+      description: 'Video-first news platform with live stream and embedded TV segments',
+      features: ['Video Player', 'Live Stream', 'Ticker', 'Trending Topics'],
+      preview: '/templates/tv-blog-preview.jpg',
+      color: 'from-gray-700 to-black',
+      badge: 'General'
+    },
+// General Templates
     {
       id: 'magazine',
       name: 'Magazine',
