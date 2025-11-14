@@ -12,9 +12,9 @@ const nextConfig = {
     ignoreDuringBuilds: true 
   },
 
-  // 🆕 Add image domains for Unsplash stock photos
+  // ✨ Enhanced image domains for AI Template Generator
   images: {
-    domains: ['images.unsplash.com', 'images.pexels.com'],
+    domains: ['images.unsplash.com', 'images.pexels.com', 'source.unsplash.com'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -24,7 +24,15 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'images.pexels.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'source.unsplash.com',
+      },
     ],
+    // Optimized for mobile and desktop
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    formats: ['image/webp'], // Better compression for mobile
   },
 
   webpack: (config, { isServer }) => {
