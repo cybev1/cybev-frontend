@@ -31,20 +31,51 @@ export default function Login() {
     setLoading(true);
     setError('');
 
-    try {
-      const response = await axios.post(`${API_URL}/api/auth/login`, formData);
-      localStorage.setItem('token', response.data.token);
-      
-      const profileResponse = await axios.get(`${API_URL}/api/auth/profile`, {
-        headers: { Authorization: `Bearer ${response.data.token}` }
-      });
+    console.log('🔐 Attempting login to:', `${API_URL}/api/auth/login`);
 
-      if (profileResponse.data.hasCompletedOnboarding) {
+    try {
+      // Step 1: Login
+      const response = await axios.post(`${API_URL}/api/auth/login`, formData);
+      console.log('✅ Login successful:', response.data);
+      
+      const token = response.data.token;
+      localStorage.setItem('token', token);
+      
+      // Step 2: Check onboarding status
+      try {
+        console.log('👤 Fetching profile to check onboarding status...');
+        const profileResponse = await axios.get(`${API_URL}/api/auth/profile`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        console.log('📋 Profile data:', profileResponse.data);
+
+        // Smart check for onboarding completion
+        // Check multiple fields to be sure
+        const hasCompletedOnboarding = 
+          profileResponse.data.hasCompletedOnboarding === true ||
+          (profileResponse.data.onboardingData && 
+           profileResponse.data.onboardingData.role) ||
+          localStorage.getItem('onboardingCompleted') === 'true';
+
+        console.log('✅ Has completed onboarding?', hasCompletedOnboarding);
+
+        if (hasCompletedOnboarding) {
+          console.log('→ Redirecting to studio');
+          router.push('/studio');
+        } else {
+          console.log('→ Redirecting to onboarding (first time user)');
+          router.push('/onboarding');
+        }
+      } catch (profileError) {
+        console.warn('⚠️ Could not fetch profile:', profileError.message);
+        console.log('→ Redirecting to studio (assuming existing user)');
+        // If profile check fails, assume existing user and go to studio
         router.push('/studio');
-      } else {
-        router.push('/onboarding');
       }
+      
     } catch (err) {
+      console.error('❌ Login error:', err.response?.data || err.message);
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
