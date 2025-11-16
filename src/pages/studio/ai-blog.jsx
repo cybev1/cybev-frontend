@@ -69,6 +69,9 @@ export default function AIBlogGenerator() {
       const token = localStorage.getItem('token');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
+      console.log('🚀 Calling API:', `${API_URL}/api/content/create-blog`);
+      console.log('📋 Request data:', formData);
+
       const response = await fetch(`${API_URL}/api/content/create-blog`, {
         method: 'POST',
         headers: {
@@ -78,7 +81,28 @@ export default function AIBlogGenerator() {
         body: JSON.stringify(formData)
       });
 
+      console.log('📡 Response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API Error:', errorText);
+        
+        // If route not found, show helpful message
+        if (response.status === 404) {
+          throw new Error(
+            'Backend route not found!\n\n' +
+            'This means the backend needs to be deployed.\n\n' +
+            'Check Railway logs for:\n' +
+            '✅ Content routes loaded\n\n' +
+            'OR contact support for help.'
+          );
+        }
+        
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
+      }
+
       const data = await response.json();
+      console.log('✅ API Response:', data);
 
       if (data.success) {
         setGeneratedBlog(data.data);
@@ -90,8 +114,21 @@ export default function AIBlogGenerator() {
         throw new Error(data.error || 'Failed to generate blog');
       }
     } catch (error) {
-      console.error('Generation error:', error);
-      alert('Failed to generate blog: ' + error.message);
+      console.error('❌ Generation error:', error);
+      
+      // Show user-friendly error
+      if (error.message.includes('Failed to fetch')) {
+        alert(
+          '🚨 Cannot connect to backend!\n\n' +
+          'Please check:\n' +
+          '1. Backend is deployed on Railway\n' +
+          '2. NEXT_PUBLIC_API_URL is set correctly\n' +
+          '3. No CORS issues\n\n' +
+          'Error: ' + error.message
+        );
+      } else {
+        alert('Failed to generate blog:\n\n' + error.message);
+      }
     } finally {
       setGenerating(false);
     }
