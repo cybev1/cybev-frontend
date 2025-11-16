@@ -155,10 +155,10 @@ export default function AIBlogGenerator() {
       const data = await response.json();
 
       if (data.success) {
-        alert(`🎉 Blog published successfully!\n\nYou can view it at: ${data.data.url}\n\nTokens earned: ${data.data.tokensEarned}`);
+        alert('🎉 Blog published successfully!\n\nBlog ID: ' + data.data.blogId + '\nTokens earned: ' + data.data.tokensEarned + '\n\nYour blog is now live in the feed!');
         
         // Redirect to the published blog
-        router.push(data.data.url);
+        router.push("/blog");
       } else {
         throw new Error(data.error || 'Failed to publish');
       }
