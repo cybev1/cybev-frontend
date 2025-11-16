@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import AppLayout from '../../components/AppLayout';
-import GreetingHeader from '../../components/Feed/GreetingHeader';
-import QuickActions from '../../components/Feed/QuickActions';
-import PostCard from '../../components/Feed/PostCard';
+import AppLayout from '../components/AppLayout';
+import GreetingHeader from '../components/Feed/GreetingHeader';
+import QuickActions from '../components/Feed/QuickActions';
+import PostCard from '../components/Feed/PostCard';
 import { TrendingUp, Users, Hash, Radio } from 'lucide-react';
 
 export default function UnifiedFeed() {
