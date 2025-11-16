@@ -61,17 +61,17 @@ export default function Login() {
         console.log('✅ Has completed onboarding?', hasCompletedOnboarding);
 
         if (hasCompletedOnboarding) {
-          console.log('→ Redirecting to studio');
-          router.push('/studio');
+          console.log('→ Redirecting to feed');
+          router.push('/feed');
         } else {
           console.log('→ Redirecting to onboarding (first time user)');
           router.push('/onboarding');
         }
       } catch (profileError) {
         console.warn('⚠️ Could not fetch profile:', profileError.message);
-        console.log('→ Redirecting to studio (assuming existing user)');
+        console.log('→ Redirecting to feed (assuming existing user)');
         // If profile check fails, assume existing user and go to studio
-        router.push('/studio');
+        router.push('/feed');
       }
       
     } catch (err) {
