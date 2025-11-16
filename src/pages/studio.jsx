@@ -63,15 +63,15 @@ export default function Studio() {
       available: true
     },
     {
-      id: 'ai-website',
-      title: 'AI Website Builder',
-      description: 'Generate complete websites with AI',
+      id: 'ai-blog',
+      title: 'AI Blog Generator',
+      description: 'Generate complete blogs with AI, SEO & images',
       icon: Wand2,
       gradient: 'from-purple-500 via-pink-500 to-rose-500',
-      badge: 'Coming Soon',
-      earnings: '100 coins',
-      route: '#',
-      available: false
+      badge: 'AI Powered',
+      earnings: '50 coins',
+      route: '/studio/ai-blog',
+      available: true
     },
     {
       id: 'landing',
