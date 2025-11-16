@@ -107,8 +107,8 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
           </h3>
         )}
 
-        {/* Post Content Preview */}
-        {post.content && !post.featuredImage && (
+        {/* Post Content Preview - Always show */}
+        {post.content && (
           <p className="text-gray-600 text-sm md:text-base mb-3 line-clamp-3">
             {stripHtml(post.content)}
           </p>
