@@ -134,10 +134,38 @@ export default function AIBlogGenerator() {
     }
   };
 
-  const handlePublish = () => {
-    // TODO: Save to database
-    alert('Publishing feature coming soon!\n\nFor now, you can copy the content and publish manually in Blog Create page.');
-    router.push('/blog/create');
+  const handlePublish = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
+
+      console.log('📤 Publishing blog to database...');
+
+      const response = await fetch(`${API_URL}/api/content/publish-blog`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          blogData: generatedBlog
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert(`🎉 Blog published successfully!\n\nYou can view it at: ${data.data.url}\n\nTokens earned: ${data.data.tokensEarned}`);
+        
+        // Redirect to the published blog
+        router.push(data.data.url);
+      } else {
+        throw new Error(data.error || 'Failed to publish');
+      }
+    } catch (error) {
+      console.error('❌ Publish error:', error);
+      alert('Failed to publish blog:\n\n' + error.message + '\n\nPlease try again or contact support.');
+    }
   };
 
   return (
