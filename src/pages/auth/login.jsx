@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import { authAPI } from '@/lib/api';  // Use api.js instead of axios
+import { toast } from 'react-toastify';
 import {
   Mail,
   Lock,
@@ -24,29 +25,25 @@ export default function Login() {
   const [error, setError] = useState('');
   const [fieldFocus, setFieldFocus] = useState('');
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    console.log('🔐 Attempting login to:', `${API_URL}/api/auth/login`);
+    console.log('🔐 Attempting login...');
 
     try {
-      // Step 1: Login
-      const response = await axios.post(`${API_URL}/api/auth/login`, formData);
+      // Step 1: Login using authAPI
+      const response = await authAPI.login(formData);
       console.log('✅ Login successful:', response.data);
       
       const token = response.data.token;
       localStorage.setItem('token', token);
       
-      // Step 2: Check onboarding status
+      // Step 2: Get profile using authAPI
       try {
         console.log('👤 Fetching profile to check onboarding status...');
-        const profileResponse = await axios.get(`${API_URL}/api/auth/profile`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const profileResponse = await authAPI.getProfile();
 
         console.log('📋 Profile data:', profileResponse.data);
 
@@ -54,7 +51,6 @@ export default function Login() {
         localStorage.setItem('user', JSON.stringify(profileResponse.data));
 
         // Smart check for onboarding completion
-        // Check multiple fields to be sure
         const hasCompletedOnboarding = 
           profileResponse.data.hasCompletedOnboarding === true ||
           (profileResponse.data.onboardingData && 
@@ -65,6 +61,7 @@ export default function Login() {
 
         if (hasCompletedOnboarding) {
           console.log('→ Redirecting to feed');
+          toast.success('Welcome back!');
           router.push('/feed');
         } else {
           console.log('→ Redirecting to onboarding (first time user)');
@@ -73,7 +70,6 @@ export default function Login() {
       } catch (profileError) {
         console.warn('⚠️ Could not fetch profile:', profileError.message);
         console.log('→ Redirecting to feed (assuming existing user)');
-        // If profile check fails, assume existing user and go to studio
         router.push('/feed');
       }
       
@@ -237,7 +233,7 @@ export default function Login() {
                 </label>
                 <button
                   type="button"
-                  onClick={() => alert('Password reset coming soon!')}
+                  onClick={() => toast.info('Password reset coming soon!')}
                   className="text-sm text-blue-600 hover:text-blue-700 font-semibold hover:underline"
                 >
                   Forgot?
@@ -313,7 +309,7 @@ export default function Login() {
             {[
               { icon: '🔵', name: 'Google', color: 'hover:border-blue-400 hover:bg-blue-50' },
               { icon: '💰', name: 'Wallet', color: 'hover:border-purple-400 hover:bg-purple-50' },
-              { icon: '🐦', name: 'Twitter', color: 'hover:border-cyan-400 hover:bg-cyan-50' }
+              { icon: '🦅', name: 'Twitter', color: 'hover:border-cyan-400 hover:bg-cyan-50' }
             ].map((social, index) => (
               <motion.button
                 key={index}
@@ -322,7 +318,7 @@ export default function Login() {
                 transition={{ delay: 0.8 + index * 0.1 }}
                 whileHover={{ scale: 1.05, y: -3 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => alert(`${social.name} auth coming soon!`)}
+                onClick={() => toast.info(`${social.name} auth coming soon!`)}
                 className={`p-4 rounded-xl bg-white border-2 border-gray-200 ${social.color} shadow-md hover:shadow-lg transition-all`}
               >
                 <span className="text-3xl">{social.icon}</span>
