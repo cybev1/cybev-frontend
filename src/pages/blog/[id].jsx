@@ -5,7 +5,7 @@ import AppLayout from '@/components/Layout/AppLayout';
 import SEO from '@/components/SEO';
 import SocialShare from '@/components/SocialShare';
 import Comments from '@/components/Comments';
-import { blogAPI } from '@/lib/api';
+import { blogAPI, bookmarkAPI } from '@/lib/api';
 import { toast } from 'react-toastify';
 import {
   Heart, Eye, Clock, Calendar, Share2, Bookmark,
@@ -14,7 +14,7 @@ import {
 
 export default function BlogDetail() {
   const router = useRouter();
-  const { id: blogId } = router.query; // Changed from 'id' to handle both [id] and [username]
+  const { id: blogId } = router.query;
   const id = blogId;
 
   const [blog, setBlog] = useState(null);
@@ -36,17 +36,19 @@ export default function BlogDetail() {
     setLoading(true);
     try {
       const response = await blogAPI.getBlog(id);
-      if (response.data.ok) {
-        setBlog(response.data.blog);
-        setLikeCount(response.data.blog.likes?.length || 0);
+      if (response.data.ok || response.data.success) {
+        const blogData = response.data.blog || response.data.data;
+        setBlog(blogData);
+        setLikeCount(blogData.likes?.length || blogData.likeCount || 0);
         
         // Check if user has liked this blog
         const userId = JSON.parse(localStorage.getItem('user') || '{}').id;
-        setLiked(response.data.blog.likes?.includes(userId));
+        setLiked(blogData.likes?.includes(userId));
       }
     } catch (error) {
+      console.error('Error loading blog:', error);
       toast.error('Failed to load blog');
-      router.push('/blog');
+      router.push('/feed');
     } finally {
       setLoading(false);
     }
@@ -55,11 +57,24 @@ export default function BlogDetail() {
   const fetchRelatedBlogs = async () => {
     try {
       const response = await blogAPI.getBlogs({ limit: 3 });
-      if (response.data.ok) {
-        setRelatedBlogs(response.data.blogs.filter(b => b._id !== id));
+      if (response.data.ok || response.data.success) {
+        const blogs = response.data.blogs || response.data.data || [];
+        setRelatedBlogs(blogs.filter(b => b._id !== id));
       }
     } catch (error) {
       console.error('Failed to load related blogs');
+    }
+  };
+
+  const checkBookmark = async () => {
+    try {
+      const response = await bookmarkAPI.checkBookmark(id);
+      if (response.data.ok || response.data.success) {
+        setBookmarked(response.data.bookmarked || false);
+      }
+    } catch (error) {
+      // Silently fail - bookmarks are optional
+      console.log('Bookmark check failed');
     }
   };
 
@@ -73,13 +88,36 @@ export default function BlogDetail() {
 
     try {
       const response = await blogAPI.toggleLike(id);
-      if (response.data.ok) {
+      if (response.data.ok || response.data.success) {
         setLiked(response.data.liked);
         setLikeCount(response.data.likeCount);
         toast.success(response.data.liked ? '❤️ Liked!' : 'Unliked');
       }
     } catch (error) {
       toast.error('Failed to like post');
+    }
+  };
+
+  const handleBookmark = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Please login to bookmark posts');
+      router.push('/auth/login');
+      return;
+    }
+
+    try {
+      if (bookmarked) {
+        await bookmarkAPI.deleteBookmark(id);
+        setBookmarked(false);
+        toast.success('Bookmark removed');
+      } else {
+        await bookmarkAPI.createBookmark(id);
+        setBookmarked(true);
+        toast.success('Bookmarked!');
+      }
+    } catch (error) {
+      toast.error('Failed to bookmark post');
     }
   };
 
@@ -123,9 +161,9 @@ export default function BlogDetail() {
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Blog not found</h2>
-            <Link href="/blog">
+            <Link href="/feed">
               <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg">
-                Back to Blogs
+                Back to Feed
               </button>
             </Link>
           </div>
@@ -149,17 +187,19 @@ export default function BlogDetail() {
         {/* Header */}
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <Link href="/blog">
+            <Link href="/feed">
               <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors">
                 <ArrowLeft className="w-4 h-4" />
-                Back to Blogs
+                Back to Feed
               </button>
             </Link>
 
             {/* Category Badge */}
-            <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium mb-4">
-              {blog.category}
-            </span>
+            {blog.category && (
+              <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium mb-4">
+                {blog.category}
+              </span>
+            )}
 
             {/* Title */}
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
@@ -180,13 +220,15 @@ export default function BlogDetail() {
                   day: 'numeric' 
                 })}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                <span>{blog.readTime} min read</span>
-              </div>
+              {blog.readTime && (
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  <span>{blog.readTime} min read</span>
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <Eye className="w-4 h-4" />
-                <span>{blog.views} views</span>
+                <span>{blog.views || 0} views</span>
               </div>
             </div>
 
@@ -204,16 +246,23 @@ export default function BlogDetail() {
                 <span className="font-medium">{likeCount}</span>
               </button>
 
-              <SocialShare
-                url={typeof window !== 'undefined' ? window.location.href : ''}
-                title={blog.title}
-                description={blog.content.replace(/<[^>]*>/g, '').substring(0, 160)}
-                hashtags={blog.tags || []}
-                compact={true}
-              />
+              <button
+                onClick={handleShare}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-all border border-gray-200"
+              >
+                <Share2 className="w-4 h-4" />
+                <span className="font-medium">Share</span>
+              </button>
 
-              <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-all border border-gray-200">
-                <Bookmark className="w-4 h-4" />
+              <button
+                onClick={handleBookmark}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                  bookmarked
+                    ? 'bg-yellow-100 text-yellow-600 border border-yellow-200'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+                }`}
+              >
+                <Bookmark className={`w-4 h-4 ${bookmarked ? 'fill-yellow-600' : ''}`} />
                 <span className="font-medium">Save</span>
               </button>
             </div>
@@ -248,7 +297,7 @@ export default function BlogDetail() {
           <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-8 border border-purple-100 mb-12">
             <div className="flex items-start gap-4">
               <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
-                {blog.authorName.charAt(0)}
+                {blog.authorName?.charAt(0) || 'A'}
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
