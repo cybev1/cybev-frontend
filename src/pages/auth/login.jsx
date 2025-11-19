@@ -50,6 +50,9 @@ export default function Login() {
 
         console.log('📋 Profile data:', profileResponse.data);
 
+        // Save user data to localStorage for AppLayout
+        localStorage.setItem('user', JSON.stringify(profileResponse.data));
+
         // Smart check for onboarding completion
         // Check multiple fields to be sure
         const hasCompletedOnboarding = 
