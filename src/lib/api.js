@@ -1,9 +1,30 @@
 // ============================================
-// FILE: lib/api.js (FIXED VERSION)
+// FILE: lib/api.js (IMPROVED VERSION)
 // ============================================
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+// Smart API URL handling
+const getAPIBaseURL = () => {
+  // Check if we're in browser
+  if (typeof window === 'undefined') {
+    return 'http://localhost:5000/api';
+  }
+
+  // Use environment variable if available
+  const envURL = process.env.NEXT_PUBLIC_API_URL;
+  
+  // If env URL already has /api, use it as-is
+  if (envURL) {
+    return envURL.endsWith('/api') ? envURL : `${envURL}/api`;
+  }
+
+  // Default fallback
+  return 'https://api.cybev.io/api';
+};
+
+const API_BASE_URL = getAPIBaseURL();
+
+console.log('🔗 API Base URL:', API_BASE_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -12,6 +33,7 @@ const api = axios.create({
   },
 });
 
+// Auto-add token to all requests
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
@@ -27,12 +49,14 @@ api.interceptors.request.use(
   }
 );
 
+// Auto-handle auth errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         window.location.href = '/auth/login';
       }
     }
@@ -45,7 +69,7 @@ export default api;
 // ========== HEALTH CHECK ==========
 export const healthCheck = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL.replace('/api', '')}/health`);
+    const response = await axios.get(API_BASE_URL.replace('/api', '/health'));
     return response.data;
   } catch (error) {
     console.error('Health check failed:', error);
