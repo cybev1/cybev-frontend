@@ -5,6 +5,7 @@ import GreetingHeader from '@/components/Feed/GreetingHeader';
 import QuickActions from '@/components/Feed/QuickActions';
 import PostCard from '@/components/Feed/PostCard';
 import { TrendingUp, Users, Hash, Radio } from 'lucide-react';
+import { authAPI, blogAPI } from '@/lib/api';
 
 export default function UnifiedFeed() {
   const [activeTab, setActiveTab] = useState('for-you');
@@ -26,18 +27,9 @@ export default function UnifiedFeed() {
 
   const fetchUserData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
-
-      const response = await fetch(`${API_URL}/api/auth/profile`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data);
+      const response = await authAPI.getProfile();
+      if (response.data) {
+        setUser(response.data);
       }
     } catch (error) {
       console.error('Error fetching user:', error);
@@ -47,21 +39,17 @@ export default function UnifiedFeed() {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
-      // Fetch published blogs
-      const response = await fetch(`${API_URL}/api/blogs?status=published&limit=20`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      // Fetch published blogs using blogAPI
+      const response = await blogAPI.getBlogs({ 
+        status: 'published', 
+        limit: 20 
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setPosts(data.blogs || data.data || []);
+      if (response.data) {
+        const blogs = response.data.blogs || response.data.data || [];
+        setPosts(blogs);
       } else {
-        // If blogs endpoint doesn't exist yet, use mock data
         setPosts(getMockPosts());
       }
     } catch (error) {
