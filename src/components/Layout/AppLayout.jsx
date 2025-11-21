@@ -23,7 +23,8 @@ export default function AppLayout({ children }) {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    router.push('/login');
+    localStorage.removeItem('onboardingCompleted');
+    router.push('/auth/login');
   };
 
   const navLinks = [
