@@ -1,4 +1,5 @@
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { 
   Home, 
   TrendingUp,
@@ -15,15 +16,14 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-export default function AppLayout() {
-  const navigate = useNavigate();
-  const location = useLocation();
+export default function AppLayout({ children }) {
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    navigate('/login');
+    router.push('/login');
   };
 
   const navLinks = [
@@ -33,7 +33,7 @@ export default function AppLayout() {
     { path: '/profile', icon: User, label: 'Profile' },
   ];
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => router.pathname === path;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
@@ -42,33 +42,32 @@ export default function AppLayout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div 
-              className="flex items-center gap-3 cursor-pointer"
-              onClick={() => navigate('/dashboard')}
-            >
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-white" />
+            <Link href="/dashboard">
+              <div className="flex items-center gap-3 cursor-pointer">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+                <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  CYBEV
+                </span>
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                CYBEV
-              </span>
-            </div>
+            </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-1">
               {navLinks.map((link) => (
-                <button
-                  key={link.path}
-                  onClick={() => navigate(link.path)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
-                    isActive(link.path)
-                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50'
-                      : 'text-gray-300 hover:bg-purple-500/10 hover:text-white'
-                  }`}
-                >
-                  <link.icon className="w-5 h-5" />
-                  <span className="font-medium">{link.label}</span>
-                </button>
+                <Link key={link.path} href={link.path}>
+                  <button
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
+                      isActive(link.path)
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50'
+                        : 'text-gray-300 hover:bg-purple-500/10 hover:text-white'
+                    }`}
+                  >
+                    <link.icon className="w-5 h-5" />
+                    <span className="font-medium">{link.label}</span>
+                  </button>
+                </Link>
               ))}
             </div>
 
@@ -97,12 +96,11 @@ export default function AppLayout() {
               </div>
 
               {/* Settings */}
-              <button 
-                onClick={() => navigate('/settings')}
-                className="p-2 hover:bg-purple-500/10 rounded-lg transition-colors"
-              >
-                <Settings className="w-5 h-5 text-gray-400" />
-              </button>
+              <Link href="/settings">
+                <button className="p-2 hover:bg-purple-500/10 rounded-lg transition-colors">
+                  <Settings className="w-5 h-5 text-gray-400" />
+                </button>
+              </Link>
 
               {/* Logout */}
               <button
@@ -132,21 +130,19 @@ export default function AppLayout() {
           <div className="md:hidden border-t border-purple-500/20 bg-black/60 backdrop-blur-xl">
             <div className="px-4 py-4 space-y-2">
               {navLinks.map((link) => (
-                <button
-                  key={link.path}
-                  onClick={() => {
-                    navigate(link.path);
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ${
-                    isActive(link.path)
-                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                      : 'text-gray-300 hover:bg-purple-500/10'
-                  }`}
-                >
-                  <link.icon className="w-5 h-5" />
-                  <span className="font-medium">{link.label}</span>
-                </button>
+                <Link key={link.path} href={link.path}>
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                      isActive(link.path)
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                        : 'text-gray-300 hover:bg-purple-500/10'
+                    }`}
+                  >
+                    <link.icon className="w-5 h-5" />
+                    <span className="font-medium">{link.label}</span>
+                  </button>
+                </Link>
               ))}
 
               {/* Mobile Actions */}
@@ -163,13 +159,12 @@ export default function AppLayout() {
                   <MessageCircle className="w-5 h-5" />
                   <span>Messages</span>
                 </button>
-                <button 
-                  onClick={() => navigate('/settings')}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-purple-500/10"
-                >
-                  <Settings className="w-5 h-5" />
-                  <span>Settings</span>
-                </button>
+                <Link href="/settings">
+                  <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-purple-500/10">
+                    <Settings className="w-5 h-5" />
+                    <span>Settings</span>
+                  </button>
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10"
@@ -185,7 +180,7 @@ export default function AppLayout() {
 
       {/* Main Content */}
       <main>
-        <Outlet />
+        {children}
       </main>
     </div>
   );
