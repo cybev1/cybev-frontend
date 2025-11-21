@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { 
   Sparkles, 
   TrendingUp, 
@@ -19,7 +20,7 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -102,20 +103,18 @@ export default function Dashboard() {
               <p className="text-gray-400 mt-1">Manage your content and track your growth</p>
             </div>
             <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate('/feed')}
-                className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300 flex items-center gap-2"
-              >
-                <TrendingUp className="w-5 h-5" />
-                View Feed
-              </button>
-              <button
-                onClick={() => navigate('/create-blog')}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 flex items-center gap-2"
-              >
-                <Sparkles className="w-5 h-5" />
-                Write New Post
-              </button>
+              <Link href="/feed">
+                <button className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5" />
+                  View Feed
+                </button>
+              </Link>
+              <Link href="/create-blog">
+                <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5" />
+                  Write New Post
+                </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -194,12 +193,11 @@ export default function Dashboard() {
               <BookOpen className="w-16 h-16 text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">No posts yet</h3>
               <p className="text-gray-400 mb-6">Start creating content to see it here</p>
-              <button
-                onClick={() => navigate('/create-blog')}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300"
-              >
-                Create Your First Post
-              </button>
+              <Link href="/create-blog">
+                <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300">
+                  Create Your First Post
+                </button>
+              </Link>
             </div>
           ) : (
             <div className="space-y-4">
@@ -234,12 +232,11 @@ export default function Dashboard() {
                     </div>
 
                     <div className="flex items-center gap-2 ml-4">
-                      <button
-                        onClick={() => navigate(`/edit-blog/${blog._id}`)}
-                        className="p-2 hover:bg-purple-500/10 rounded-lg transition-colors"
-                      >
-                        <Edit className="w-5 h-5 text-purple-400" />
-                      </button>
+                      <Link href={`/edit-blog/${blog._id}`}>
+                        <button className="p-2 hover:bg-purple-500/10 rounded-lg transition-colors">
+                          <Edit className="w-5 h-5 text-purple-400" />
+                        </button>
+                      </Link>
                       <button
                         onClick={() => handleDelete(blog._id)}
                         className="p-2 hover:bg-red-500/10 rounded-lg transition-colors"
