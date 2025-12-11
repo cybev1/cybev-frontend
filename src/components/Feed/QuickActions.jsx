@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Video, Sparkles, Image, FileText, Radio } from 'lucide-react';
+import { Plus, Video, Sparkles, Image, FileText, Radio, Edit } from 'lucide-react';
 import { useRouter } from 'next/router';
 
 export default function QuickActions() {
@@ -28,16 +28,24 @@ export default function QuickActions() {
       id: 'post',
       icon: FileText,
       label: 'Create Post',
-      description: 'Share thoughts',
+      description: 'Quick social post',
       color: 'from-blue-600 to-cyan-600',
-      action: () => alert('📝 Regular posts coming soon!')
+      action: () => alert('📝 Quick social posts coming soon! Think Facebook/Twitter style posts.')
+    },
+    {
+      id: 'article',
+      icon: Edit,
+      label: 'Create Article',
+      description: 'Write long-form blog',
+      color: 'from-green-600 to-emerald-600',
+      action: () => router.push('/blog/create')
     },
     {
       id: 'image',
       icon: Image,
       label: 'Upload Image',
       description: 'Share photos',
-      color: 'from-green-600 to-emerald-600',
+      color: 'from-pink-600 to-rose-600',
       action: () => alert('🖼️ Image posts coming soon!')
     },
     {
