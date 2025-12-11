@@ -67,12 +67,12 @@ export default function AIBlogGenerator() {
 
     try {
       const token = localStorage.getItem('token');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
 
-      console.log('🚀 Calling API:', `${API_URL}/api/content/create-blog`);
+      console.log('🚀 Calling API:', `${API_URL}/content/create-blog`);
       console.log('📋 Request data:', formData);
 
-      const response = await fetch(`${API_URL}/api/content/create-blog`, {
+      const response = await fetch(`${API_URL}/content/create-blog`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -137,11 +137,11 @@ export default function AIBlogGenerator() {
   const handlePublish = async () => {
     try {
       const token = localStorage.getItem('token');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
 
       console.log('📤 Publishing blog to database...');
 
-      const response = await fetch(`${API_URL}/api/content/publish-blog`, {
+      const response = await fetch(`${API_URL}/content/publish-blog`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
