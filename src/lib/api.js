@@ -1,9 +1,9 @@
 // ============================================
-// FILE: lib/api.js (IMPROVED VERSION)
+// FILE: lib/api.js (FIXED VERSION - No Double /api)
 // ============================================
 import axios from 'axios';
 
-// Smart API URL handling
+// Smart API URL handling - FIXED to avoid double /api
 const getAPIBaseURL = () => {
   // Check if we're in browser
   if (typeof window === 'undefined') {
@@ -13,12 +13,13 @@ const getAPIBaseURL = () => {
   // Use environment variable if available
   const envURL = process.env.NEXT_PUBLIC_API_URL;
   
-  // If env URL already has /api, use it as-is
   if (envURL) {
+    // If env URL already has /api, use it as-is
+    // Otherwise, add /api
     return envURL.endsWith('/api') ? envURL : `${envURL}/api`;
   }
 
-  // Default fallback
+  // Production default
   return 'https://api.cybev.io/api';
 };
 
@@ -96,6 +97,26 @@ export const blogAPI = {
   getMyBlogs: () => api.get('/blogs/user/my-blogs'),
   getTrendingBlogs: () => api.get('/blogs/trending/top'),
   getTrendingTags: () => api.get('/blogs/trending-tags')
+};
+
+// ========== CONTENT CREATION APIs (FIXED - No /api prefix) ==========
+export const contentAPI = {
+  // AI Blog Creation
+  createBlog: (data) => api.post('/content/create-blog', data),
+  publishBlog: (data) => api.post('/content/publish-blog', data),
+  
+  // AI Template Generation
+  createTemplate: (data) => api.post('/content/create-template', data),
+  
+  // SEO & Optimization
+  generateSEO: (data) => api.post('/content/generate-seo', data),
+  generateHashtags: (data) => api.post('/content/generate-hashtags', data),
+  getFeaturedImage: (data) => api.post('/content/get-featured-image', data),
+  
+  // NFT & Staking
+  mintNFT: (data) => api.post('/content/mint-nft', data),
+  stake: (data) => api.post('/content/stake', data),
+  getViralScore: (blogId) => api.get(`/content/viral-score/${blogId}`)
 };
 
 // ========== COMMENT APIs ==========
