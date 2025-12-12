@@ -43,49 +43,79 @@ export default function UnifiedFeed() {
       const token = localStorage.getItem('token');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
 
+      console.log('🔍 Fetching posts and blogs...');
+
       // Fetch both posts and blogs
       const [postsResponse, blogsResponse] = await Promise.all([
         // Fetch social posts
-        fetch(`${API_URL}/posts/feed?limit=20`, {
+        fetch(`${API_URL}/posts/feed?limit=50`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         }).then(res => res.json()).catch(err => {
-          console.error('Error fetching posts:', err);
+          console.error('❌ Error fetching posts:', err);
           return { success: false, posts: [] };
         }),
         
-        // Fetch blog articles
-        blogAPI.getBlogs({ 
-          status: 'published', 
-          limit: 20 
-        }).catch(err => {
-          console.error('Error fetching blogs:', err);
-          return { data: { blogs: [] } };
+        // Fetch blog articles - GET ALL, not just published
+        fetch(`${API_URL}/blogs?limit=50`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }).then(res => res.json()).catch(err => {
+          console.error('❌ Error fetching blogs:', err);
+          return { success: false, data: { blogs: [] } };
         })
       ]);
 
-      // Combine posts and blogs
+      console.log('📊 Posts response:', postsResponse);
+      console.log('📊 Blogs response:', blogsResponse);
+
+      // Extract posts
       const socialPosts = postsResponse.success ? postsResponse.posts : [];
-      const blogArticles = blogsResponse.data?.blogs || blogsResponse.data?.data || [];
+      console.log(`✅ Got ${socialPosts.length} social posts`);
+
+      // Extract blogs - handle multiple response formats
+      let blogArticles = [];
+      if (blogsResponse.success) {
+        blogArticles = blogsResponse.data?.blogs || blogsResponse.blogs || [];
+      } else if (blogsResponse.data) {
+        blogArticles = blogsResponse.data.blogs || blogsResponse.data.data || [];
+      }
+      console.log(`✅ Got ${blogArticles.length} blog articles`);
 
       // Mark posts vs articles
       const allPosts = [
-        ...socialPosts.map(p => ({ ...p, postType: 'social' })),
-        ...blogArticles.map(b => ({ ...b, postType: 'article' }))
+        ...socialPosts.map(p => ({ 
+          ...p, 
+          postType: 'social',
+          authorName: p.authorName || 'Anonymous'
+        })),
+        ...blogArticles.map(b => ({ 
+          ...b, 
+          postType: 'article',
+          authorName: b.authorName || 'Anonymous'
+        }))
       ];
 
-      // Sort by creation date
-      allPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      console.log(`📦 Total posts to display: ${allPosts.length}`);
+
+      // Sort by creation date (newest first)
+      allPosts.sort((a, b) => {
+        const dateA = new Date(a.createdAt || a.updatedAt || 0);
+        const dateB = new Date(b.createdAt || b.updatedAt || 0);
+        return dateB - dateA;
+      });
 
       setPosts(allPosts);
 
       if (allPosts.length === 0) {
+        console.log('⚠️ No posts found, showing mock data');
         setPosts(getMockPosts());
       }
 
     } catch (error) {
-      console.error('Error fetching feed:', error);
+      console.error('❌ Fatal error fetching feed:', error);
       setPosts(getMockPosts());
     } finally {
       setLoading(false);
@@ -98,11 +128,16 @@ export default function UnifiedFeed() {
     // Add new post to the top of the feed
     setPosts(prev => [{ ...newPost, postType: 'social' }, ...prev]);
     
-    // Update stats (optional)
+    // Update stats
     setStats(prev => ({
       ...prev,
       tokens: prev.tokens + 10 // User earned 10 tokens
     }));
+
+    // Refresh feed to ensure consistency
+    setTimeout(() => {
+      fetchPosts();
+    }, 1000);
   };
 
   const tabs = [
@@ -125,7 +160,18 @@ export default function UnifiedFeed() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Main Feed - Left/Center Column */}
             <div className="lg:col-span-8">
-              {/* Tabs - white theme */}
+              {/* Debug Info */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                  <p className="text-sm font-mono">
+                    🔍 Debug: {posts.length} posts loaded
+                    ({posts.filter(p => p.postType === 'social').length} social, 
+                    {posts.filter(p => p.postType === 'article').length} articles)
+                  </p>
+                </div>
+              )}
+
+              {/* Tabs */}
               <div className="mb-6 bg-white/80 backdrop-blur-xl rounded-3xl p-1.5 border-2 border-purple-100 shadow-xl">
                 <div className="grid grid-cols-4 gap-2">
                   {tabs.map((tab) => (
@@ -175,12 +221,20 @@ export default function UnifiedFeed() {
                   <p className="text-gray-600 text-lg mb-8">
                     Be the first to create something amazing
                   </p>
-                  <button
-                    onClick={() => window.location.href = '/studio/ai-blog'}
-                    className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl font-bold text-white hover:scale-105 transition-transform shadow-xl hover:shadow-2xl"
-                  >
-                    🤖 Generate AI Blog
-                  </button>
+                  <div className="flex gap-4 justify-center">
+                    <button
+                      onClick={() => document.querySelector('[data-action="create-post"]')?.click()}
+                      className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl font-bold text-white hover:scale-105 transition-transform shadow-xl"
+                    >
+                      📝 Create Post
+                    </button>
+                    <button
+                      onClick={() => window.location.href = '/studio/ai-blog'}
+                      className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl font-bold text-white hover:scale-105 transition-transform shadow-xl"
+                    >
+                      🤖 Generate AI Blog
+                    </button>
+                  </div>
                 </motion.div>
               ) : (
                 <div className="space-y-6">
@@ -188,7 +242,7 @@ export default function UnifiedFeed() {
                     <PostCard
                       key={post._id || index}
                       post={post}
-                      isAIGenerated={post.isAIGenerated || index % 3 === 0}
+                      isAIGenerated={post.isAIGenerated || post.postType === 'article'}
                       isPinned={index === 0}
                       isLive={false}
                     />
@@ -201,10 +255,10 @@ export default function UnifiedFeed() {
                 <motion.button
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  onClick={() => alert('Loading more posts...')}
-                  className="w-full mt-6 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl font-semibold text-purple-300 transition-all"
+                  onClick={() => fetchPosts()}
+                  className="w-full mt-6 px-6 py-4 bg-white/80 hover:bg-white border-2 border-purple-200 hover:border-purple-400 rounded-2xl font-bold text-gray-700 transition-all shadow-lg"
                 >
-                  Load More Posts
+                  🔄 Refresh Feed
                 </motion.button>
               )}
             </div>
@@ -212,7 +266,7 @@ export default function UnifiedFeed() {
             {/* Right Sidebar - Desktop Only */}
             <div className="hidden lg:block lg:col-span-4">
               <div className="sticky top-24 space-y-6">
-                {/* Trending Topics - white theme */}
+                {/* Trending Topics */}
                 <div className="bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-purple-100 p-6 shadow-xl">
                   <h3 className="text-xl font-black text-gray-800 mb-4 flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-green-600" />
@@ -307,7 +361,8 @@ function getMockPosts() {
       views: 1523,
       likes: [],
       likeCount: 234,
-      comments: 45,
+      comments: [],
+      commentCount: 45,
       viralityScore: 95,
       tokensEarned: 100,
       trending: true,
