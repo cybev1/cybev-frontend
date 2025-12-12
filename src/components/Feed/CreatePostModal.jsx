@@ -1,13 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
-  Image,
+  Image as ImageIcon,
   Smile,
   MapPin,
-  Users,
-  Globe,
-  Lock,
   Send,
   Loader2
 } from 'lucide-react';
@@ -17,20 +14,43 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
   const [images, setImages] = useState([]);
   const [visibility, setVisibility] = useState('public');
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
   const fileInputRef = useRef(null);
 
   const maxLength = 5000;
   const remaining = maxLength - content.length;
 
+  // Get user data on mount
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData));
+      } catch (e) {
+        console.error('Failed to parse user data:', e);
+      }
+    }
+  }, []);
+
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
+    
     files.forEach(file => {
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`${file.name} is too large. Maximum size is 5MB.`);
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (event) => {
+        // For now, just store the placeholder
+        // In production, upload to Cloudinary/S3 first
         setImages(prev => [...prev, {
-          url: event.target.result,
+          url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809', // Placeholder
           file,
-          alt: file.name
+          alt: file.name,
+          localPreview: event.target.result // For preview only
         }]);
       };
       reader.readAsDataURL(file);
@@ -53,9 +73,10 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
       const token = localStorage.getItem('token');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
 
-      // TODO: Upload images to storage first if needed
+      // For now, use placeholder images instead of base64
+      // TODO: Upload images to Cloudinary/S3 first
       const imageUrls = images.map(img => ({
-        url: img.url, // In production, upload to S3/Cloudinary first
+        url: img.url, // Use placeholder URL
         alt: img.alt
       }));
 
@@ -136,13 +157,11 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
             {/* User Info */}
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-lg">
-                {localStorage.getItem('user') ? 
-                  JSON.parse(localStorage.getItem('user')).name?.[0] : 'U'}
+                {user?.name?.[0]?.toUpperCase() || user?.username?.[0]?.toUpperCase() || 'U'}
               </div>
               <div>
                 <div className="font-bold text-gray-900">
-                  {localStorage.getItem('user') ? 
-                    JSON.parse(localStorage.getItem('user')).name : 'User'}
+                  {user?.name || user?.username || 'User'}
                 </div>
                 <select
                   value={visibility}
@@ -176,7 +195,7 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
                 {images.map((image, index) => (
                   <div key={index} className="relative group">
                     <img
-                      src={image.url}
+                      src={image.localPreview || image.url}
                       alt={image.alt}
                       className="w-full h-48 object-cover rounded-xl"
                     />
@@ -199,11 +218,11 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
                   onClick={() => fileInputRef.current?.click()}
                   className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors font-medium"
                 >
-                  <Image className="w-5 h-5" />
+                  <ImageIcon className="w-5 h-5" />
                   <span className="hidden sm:inline">Photo</span>
                 </button>
                 <button
-                  onClick={() => alert('🎨 GIF picker coming soon!')}
+                  onClick={() => alert('🎨 Emoji picker coming soon!')}
                   className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors font-medium"
                 >
                   <Smile className="w-5 h-5" />
