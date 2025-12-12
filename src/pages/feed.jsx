@@ -40,20 +40,52 @@ export default function UnifiedFeed() {
     try {
       setLoading(true);
 
-      // Fetch published blogs using blogAPI
-      const response = await blogAPI.getBlogs({ 
-        status: 'published', 
-        limit: 20 
-      });
+      const token = localStorage.getItem('token');
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
 
-      if (response.data) {
-        const blogs = response.data.blogs || response.data.data || [];
-        setPosts(blogs);
-      } else {
+      // Fetch both posts and blogs
+      const [postsResponse, blogsResponse] = await Promise.all([
+        // Fetch social posts
+        fetch(`${API_URL}/posts/feed?limit=20`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }).then(res => res.json()).catch(err => {
+          console.error('Error fetching posts:', err);
+          return { success: false, posts: [] };
+        }),
+        
+        // Fetch blog articles
+        blogAPI.getBlogs({ 
+          status: 'published', 
+          limit: 20 
+        }).catch(err => {
+          console.error('Error fetching blogs:', err);
+          return { data: { blogs: [] } };
+        })
+      ]);
+
+      // Combine posts and blogs
+      const socialPosts = postsResponse.success ? postsResponse.posts : [];
+      const blogArticles = blogsResponse.data?.blogs || blogsResponse.data?.data || [];
+
+      // Mark posts vs articles
+      const allPosts = [
+        ...socialPosts.map(p => ({ ...p, postType: 'social' })),
+        ...blogArticles.map(b => ({ ...b, postType: 'article' }))
+      ];
+
+      // Sort by creation date
+      allPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      setPosts(allPosts);
+
+      if (allPosts.length === 0) {
         setPosts(getMockPosts());
       }
+
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      console.error('Error fetching feed:', error);
       setPosts(getMockPosts());
     } finally {
       setLoading(false);
@@ -64,7 +96,7 @@ export default function UnifiedFeed() {
   const handlePostCreated = (newPost) => {
     console.log('✅ New post created:', newPost);
     // Add new post to the top of the feed
-    setPosts(prev => [newPost, ...prev]);
+    setPosts(prev => [{ ...newPost, postType: 'social' }, ...prev]);
     
     // Update stats (optional)
     setStats(prev => ({
@@ -279,7 +311,8 @@ function getMockPosts() {
       viralityScore: 95,
       tokensEarned: 100,
       trending: true,
-      isAIGenerated: false
+      isAIGenerated: false,
+      postType: 'article'
     }
   ];
 }
