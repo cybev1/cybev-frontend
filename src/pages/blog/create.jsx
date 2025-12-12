@@ -1,270 +1,378 @@
-import { useState, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/router';
+import { motion } from 'framer-motion';
+import {
+  ArrowLeft,
+  Save,
+  Eye,
+  Image as ImageIcon,
+  Sparkles,
+  Loader2,
+  X,
+  Upload
+} from 'lucide-react';
 import dynamic from 'next/dynamic';
-import AppLayout from '@/components/Layout/AppLayout';
-import { blogAPI } from '@/lib/api';
-import { toast } from 'react-toastify';
-import { PenTool, Save, Eye, Sparkles, TrendingUp } from 'lucide-react';
 
-// Dynamically import React Quill to avoid SSR issues
+// Dynamic import for rich text editor
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 import 'react-quill/dist/quill.snow.css';
 
-const CATEGORIES = [
-  'Technology',
-  'Health & Wellness',
-  'Business & Finance',
-  'Lifestyle',
-  'Travel',
-  'Food & Cooking',
-  'Education',
-  'Entertainment',
-  'Science',
-  'Sports',
-  'Fashion & Beauty',
-  'Personal Development',
-  'News & Politics',
-  'Environment',
-  'Other'
-];
-
 export default function CreateBlog() {
   const router = useRouter();
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState(''); // NEW: Meta description/excerpt
+  const [content, setContent] = useState('');
+  const [featuredImage, setFeaturedImage] = useState(null); // NEW: Featured image
+  const [featuredImagePreview, setFeaturedImagePreview] = useState(''); // NEW: Preview
+  const [tags, setTags] = useState([]);
+  const [tagInput, setTagInput] = useState('');
+  const [category, setCategory] = useState('technology');
+  const [status, setStatus] = useState('draft');
   const [loading, setLoading] = useState(false);
-  const [preview, setPreview] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    category: 'Technology',
-    tags: ''
-  });
+  const fileInputRef = useRef(null);
 
-  useEffect(() => {
-    // Check if user is logged in
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        toast.error('Please login to create a blog');
-        router.push('/auth/login');
-      }
+  const categories = [
+    'Technology', 'Business', 'Lifestyle', 'Health', 'Science',
+    'Entertainment', 'Sports', 'Politics', 'Education', 'Travel'
+  ];
+
+  // Handle featured image upload
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image is too large. Maximum size is 5MB.');
+      return;
     }
-  }, [router]);
 
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file.');
+      return;
+    }
+
+    setFeaturedImage(file);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setFeaturedImagePreview(e.target.result);
+    };
+    reader.readAsDataURL(file);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!formData.title || !formData.content) {
-      toast.error('Title and content are required');
+  // Remove featured image
+  const removeFeaturedImage = () => {
+    setFeaturedImage(null);
+    setFeaturedImagePreview('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Add tag
+  const handleAddTag = (e) => {
+    if (e.key === 'Enter' && tagInput.trim()) {
+      e.preventDefault();
+      if (!tags.includes(tagInput.trim()) && tags.length < 10) {
+        setTags([...tags, tagInput.trim()]);
+        setTagInput('');
+      }
+    }
+  };
+
+  // Remove tag
+  const removeTag = (tagToRemove) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
+  // Save blog
+  const handleSave = async (publishStatus = status) => {
+    if (!title.trim()) {
+      alert('Please enter a title');
+      return;
+    }
+
+    if (!description.trim()) {
+      alert('Please enter a description');
+      return;
+    }
+
+    if (!content.trim() || content === '<p><br></p>') {
+      alert('Please enter some content');
       return;
     }
 
     setLoading(true);
+
     try {
-      const payload = {
-        ...formData,
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean)
+      const token = localStorage.getItem('token');
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
+
+      // For now, use placeholder for featured image
+      // TODO: Upload to Cloudinary/S3 first
+      let featuredImageUrl = '';
+      if (featuredImage) {
+        // Placeholder - in production, upload to cloud storage
+        featuredImageUrl = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643';
+        console.log('📸 Featured image selected:', featuredImage.name);
+        console.log('⚠️ TODO: Upload to Cloudinary/S3');
+      }
+
+      const blogData = {
+        title,
+        content,
+        excerpt: description, // Meta description
+        featuredImage: featuredImageUrl,
+        tags,
+        category: category.toLowerCase(),
+        status: publishStatus,
+        readTime: Math.ceil(content.split(' ').length / 200) // Estimate reading time
       };
 
-      const response = await blogAPI.createBlog(payload);
-      
-      if (response.data.ok) {
-        toast.success(`🎉 Blog published! You earned ${response.data.tokensEarned} tokens!`);
-        router.push('/blog');
+      const response = await fetch(`${API_URL}/blogs`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(blogData)
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert(`✅ Blog ${publishStatus === 'published' ? 'published' : 'saved as draft'}!`);
+        router.push('/dashboard');
+      } else {
+        throw new Error(data.error || 'Failed to save blog');
       }
+
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to create blog');
+      console.error('❌ Save error:', error);
+      alert('Failed to save blog: ' + error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'color': [] }, { 'background': [] }],
-      ['link', 'image'],
-      ['clean']
-    ],
-  };
-
   return (
-    <AppLayout>
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50">
       {/* Header */}
-      <div className="bg-black/30 backdrop-blur-lg border-b border-white/10 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="bg-white/80 backdrop-blur-xl border-b border-purple-100 sticky top-0 z-40">
+        <div className="max-w-5xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <PenTool className="w-6 h-6 text-purple-400" />
-              <h1 className="text-2xl font-bold text-white">Create Blog Post</h1>
-            </div>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="flex items-center gap-2 text-gray-600 hover:text-purple-600 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span className="font-semibold">Back</span>
+            </button>
+
             <div className="flex items-center gap-3">
               <button
-                type="button"
-                onClick={() => setPreview(!preview)}
-                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all"
-              >
-                <Eye className="w-4 h-4" />
-                {preview ? 'Edit' : 'Preview'}
-              </button>
-              <button
-                type="button"
-                onClick={handleSubmit}
+                onClick={() => handleSave('draft')}
                 disabled={loading}
-                className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors flex items-center gap-2"
               >
                 <Save className="w-4 h-4" />
-                {loading ? 'Publishing...' : 'Publish'}
+                Save Draft
+              </button>
+              
+              <button
+                onClick={() => handleSave('published')}
+                disabled={loading}
+                className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all flex items-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Publishing...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    Publish
+                  </>
+                )}
               </button>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Reward Banner */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-xl p-4 flex items-center gap-4">
-          <Sparkles className="w-8 h-8 text-yellow-400 flex-shrink-0" />
-          <div>
-            <h3 className="text-white font-semibold">Earn 50 Tokens!</h3>
-            <p className="text-gray-300 text-sm">Publishing this blog will reward you with tokens. Keep your streak going!</p>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {!preview ? (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Title */}
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Title *
-              </label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter an engaging title..."
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                required
-              />
+      <div className="max-w-5xl mx-auto px-6 py-8">
+        <div className="bg-white rounded-3xl border-2 border-purple-100 shadow-xl p-8">
+          {/* Title */}
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Article Title..."
+            className="w-full text-4xl font-bold mb-6 border-none focus:outline-none focus:ring-0 placeholder-gray-300"
+            maxLength={200}
+          />
+
+          {/* NEW: Description/Excerpt */}
+          <div className="mb-6">
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              Description (Excerpt) *
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Write a brief description of your article (shown in previews and search results)..."
+              className="w-full p-4 border-2 border-purple-100 rounded-xl focus:border-purple-300 focus:ring-2 focus:ring-purple-200 resize-none"
+              rows={3}
+              maxLength={300}
+            />
+            <div className="text-sm text-gray-500 mt-1 text-right">
+              {description.length}/300 characters
             </div>
+          </div>
 
-            {/* Category and Tags */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-white font-medium mb-2">
-                  Category *
-                </label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => handleChange('category', e.target.value)}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  required
-                >
-                  {CATEGORIES.map(cat => (
-                    <option key={cat} value={cat} className="bg-gray-900">
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-white font-medium mb-2">
-                  Tags (comma separated)
-                </label>
-                <input
-                  type="text"
-                  value={formData.tags}
-                  onChange={(e) => handleChange('tags', e.target.value)}
-                  placeholder="e.g., coding, javascript, web development"
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-            </div>
-
-            {/* Content Editor */}
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Content *
-              </label>
-              <div className="bg-white rounded-lg overflow-hidden">
-                <ReactQuill
-                  theme="snow"
-                  value={formData.content}
-                  onChange={(value) => handleChange('content', value)}
-                  modules={modules}
-                  className="h-96"
-                  placeholder="Write your amazing content here..."
-                />
-              </div>
-            </div>
-
-            {/* Submit Button (Mobile) */}
-            <div className="md:hidden">
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          {/* NEW: Featured Image Upload */}
+          <div className="mb-6">
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              Featured Image
+            </label>
+            
+            {!featuredImagePreview ? (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-purple-200 rounded-xl p-8 text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50/50 transition-all"
               >
-                <Save className="w-4 h-4" />
-                {loading ? 'Publishing...' : 'Publish Blog'}
-              </button>
-            </div>
-          </form>
-        ) : (
-          // Preview Mode
-          <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl p-8">
-            <div className="mb-6">
-              <span className="inline-block px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm mb-4">
-                {formData.category}
-              </span>
-              <h1 className="text-4xl font-bold text-white mb-4">
-                {formData.title || 'Untitled'}
-              </h1>
-              {formData.tags && (
-                <div className="flex flex-wrap gap-2">
-                  {formData.tags.split(',').map((tag, idx) => (
-                    <span key={idx} className="px-3 py-1 bg-white/10 text-gray-300 rounded-full text-sm">
-                      #{tag.trim()}
-                    </span>
-                  ))}
+                <Upload className="w-12 h-12 text-purple-400 mx-auto mb-3" />
+                <p className="text-gray-600 font-semibold mb-1">
+                  Click to upload featured image
+                </p>
+                <p className="text-sm text-gray-500">
+                  PNG, JPG up to 5MB
+                </p>
+              </div>
+            ) : (
+              <div className="relative group">
+                <img
+                  src={featuredImagePreview}
+                  alt="Featured"
+                  className="w-full h-64 object-cover rounded-xl"
+                />
+                <button
+                  onClick={removeFeaturedImage}
+                  className="absolute top-3 right-3 p-2 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                <div className="absolute bottom-3 left-3 bg-black/70 text-white px-3 py-1 rounded-lg text-sm">
+                  {featuredImage?.name}
                 </div>
-              )}
-            </div>
-            <div 
-              className="prose prose-invert max-w-none"
-              dangerouslySetInnerHTML={{ __html: formData.content || '<p className="text-gray-400">No content yet...</p>' }}
+              </div>
+            )}
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
             />
           </div>
-        )}
-      </div>
 
-      {/* Tips Sidebar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-        <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-green-400" />
-            <h3 className="text-white font-semibold">Tips for Great Content</h3>
+          {/* Category */}
+          <div className="mb-6">
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              Category
+            </label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full p-3 border-2 border-purple-100 rounded-xl focus:border-purple-300 focus:ring-2 focus:ring-purple-200"
+            >
+              {categories.map(cat => (
+                <option key={cat} value={cat.toLowerCase()}>
+                  {cat}
+                </option>
+              ))}
+            </select>
           </div>
-          <ul className="space-y-2 text-gray-300 text-sm">
-            <li>• Use a catchy, descriptive title</li>
-            <li>• Break content into sections with headers</li>
-            <li>• Add relevant images to engage readers</li>
-            <li>• Use tags to help readers find your content</li>
-            <li>• Proofread before publishing</li>
-          </ul>
+
+          {/* Tags */}
+          <div className="mb-6">
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              Tags
+            </label>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {tags.map(tag => (
+                <span
+                  key={tag}
+                  className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold flex items-center gap-2"
+                >
+                  #{tag}
+                  <button
+                    onClick={() => removeTag(tag)}
+                    className="hover:text-red-600"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+            <input
+              type="text"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyPress={handleAddTag}
+              placeholder="Type a tag and press Enter..."
+              className="w-full p-3 border-2 border-purple-100 rounded-xl focus:border-purple-300 focus:ring-2 focus:ring-purple-200"
+              maxLength={30}
+            />
+            <p className="text-sm text-gray-500 mt-1">
+              Press Enter to add tags (max 10)
+            </p>
+          </div>
+
+          {/* Rich Text Editor */}
+          <div className="mb-6">
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              Content *
+            </label>
+            <div className="border-2 border-purple-100 rounded-xl overflow-hidden">
+              <ReactQuill
+                value={content}
+                onChange={setContent}
+                placeholder="Write your article content here..."
+                className="bg-white"
+                theme="snow"
+                modules={{
+                  toolbar: [
+                    [{ header: [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ list: 'ordered' }, { list: 'bullet' }],
+                    [{ align: [] }],
+                    ['link', 'image', 'video'],
+                    ['blockquote', 'code-block'],
+                    [{ color: [] }, { background: [] }],
+                    ['clean']
+                  ]
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Preview Button */}
+          <button
+            onClick={() => alert('Preview coming soon!')}
+            className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+          >
+            <Eye className="w-5 h-5" />
+            Preview Article
+          </button>
         </div>
       </div>
     </div>
-    </AppLayout>
   );
 }
