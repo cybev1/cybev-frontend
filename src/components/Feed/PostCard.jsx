@@ -16,7 +16,7 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
 
   const reactions = [
     { emoji: '❤️', name: 'love', color: 'text-red-500' },
-    { emoji: '😍', name: 'wow', color: 'text-pink-500' },
+    { emoji: '😮', name: 'wow', color: 'text-pink-500' },
     { emoji: '🔥', name: 'fire', color: 'text-orange-500' },
     { emoji: '😊', name: 'happy', color: 'text-yellow-500' },
     { emoji: '🎉', name: 'celebrate', color: 'text-purple-500' },
@@ -38,9 +38,24 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
         url: window.location.origin + `/blog/${post._id}`
       });
     } else {
-      alert('📤 Share functionality coming soon!');
+      alert('🔗 Share functionality coming soon!');
     }
   };
+
+  // Get display image - check both featuredImage and images array
+  const getDisplayImage = () => {
+    // For blog articles (have featuredImage)
+    if (post.featuredImage) {
+      return post.featuredImage;
+    }
+    // For social posts (have images array)
+    if (post.images && post.images.length > 0) {
+      return post.images[0].url;
+    }
+    return null;
+  };
+
+  const displayImage = getDisplayImage();
 
   return (
     <motion.div
@@ -59,7 +74,7 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-semibold text-gray-800 truncate">
-                  @{post.authorName || 'Anonymous'}
+                  {post.authorName || 'Anonymous'}
                 </span>
                 {isAIGenerated && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 rounded-full text-xs font-semibold text-gray-600 border border-purple-200">
@@ -115,17 +130,18 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
         )}
       </div>
 
-      {/* Featured Image */}
-      {post.featuredImage && (
+      {/* Featured Image - Works for BOTH blog articles and social posts */}
+      {displayImage && (
         <div 
           className="relative aspect-video md:aspect-[2/1] cursor-pointer overflow-hidden"
           onClick={() => router.push(`/blog/${post._id || post.slug}`)}
         >
           <Image
-            src={post.featuredImage}
+            src={displayImage}
             alt={post.title || 'Post image'}
             fill
             className="object-cover hover:scale-105 transition-transform duration-300"
+            unoptimized // For external images
           />
           {isAIGenerated && (
             <div className="absolute top-3 right-3 px-3 py-1.5 bg-black/70 backdrop-blur-sm rounded-full text-xs font-semibold text-white flex items-center gap-1.5 border border-white/20">
@@ -133,6 +149,32 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
               AI Generated in 30s
             </div>
           )}
+        </div>
+      )}
+
+      {/* Multiple Images Grid (for social posts with multiple images) */}
+      {post.images && post.images.length > 1 && (
+        <div className={`px-4 pb-4 grid gap-2 ${
+          post.images.length === 2 ? 'grid-cols-2' : 
+          post.images.length === 3 ? 'grid-cols-3' : 
+          'grid-cols-2'
+        }`}>
+          {post.images.slice(1, 5).map((img, index) => (
+            <div key={index} className="relative aspect-square rounded-xl overflow-hidden">
+              <Image
+                src={img.url}
+                alt={img.alt || `Image ${index + 1}`}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+              {index === 3 && post.images.length > 5 && (
+                <div className="absolute inset-0 bg-black/70 flex items-center justify-center text-white text-2xl font-bold">
+                  +{post.images.length - 4}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
 
@@ -162,21 +204,21 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
             {post.viralityScore && (
               <div className="flex items-center gap-1.5">
                 <Flame className="w-4 h-4 text-orange-400" />
-                <span className="font-semibold text-white">{post.viralityScore}/100</span>
-                <span className="text-orange-300">Virality</span>
+                <span className="font-semibold text-gray-800">{post.viralityScore}/100</span>
+                <span className="text-gray-600">Virality</span>
               </div>
             )}
             {post.tokensEarned && (
               <div className="flex items-center gap-1.5">
                 <Coins className="w-4 h-4 text-yellow-400" />
-                <span className="font-semibold text-white">{post.tokensEarned}</span>
-                <span className="text-yellow-300">tokens</span>
+                <span className="font-semibold text-gray-800">{post.tokensEarned}</span>
+                <span className="text-gray-600">tokens</span>
               </div>
             )}
             {post.viralityScore >= 90 && (
               <div className="flex items-center gap-1.5 ml-auto">
                 <Award className="w-4 h-4 text-purple-400" />
-                <span className="text-gray-600 font-semibold">Top Performer</span>
+                <span className="text-gray-800 font-semibold">Top Performer</span>
               </div>
             )}
           </div>
@@ -198,7 +240,7 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
           </div>
           <div className="flex items-center gap-1">
             <MessageCircle className="w-4 h-4" />
-            <span>{formatNumber(post.comments || 0)}</span>
+            <span>{formatNumber(post.comments?.length || post.commentCount || 0)}</span>
           </div>
           {post.trending && (
             <div className="flex items-center gap-1 ml-auto text-green-400">
@@ -229,7 +271,7 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
               className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold transition-all shadow-lg ${
                 liked
                   ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white border border-white/20'
-                  : 'bg-white/10 text-white hover:bg-white/20 border-2 border-white/20 hover:border-purple-200'
+                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-2 border-gray-200 hover:border-purple-200'
               }`}
             >
               {selectedReaction ? (
@@ -247,7 +289,7 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
               <motion.div
                 initial={{ opacity: 0, scale: 0.8, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="absolute bottom-full left-0 mb-2 p-2 bg-slate-800/95 backdrop-blur-lg rounded-xl border border-white/20 shadow-xl flex gap-1 z-50"
+                className="absolute bottom-full left-0 mb-2 p-2 bg-white backdrop-blur-lg rounded-xl border-2 border-purple-200 shadow-xl flex gap-1 z-50"
                 onMouseEnter={() => setShowReactions(true)}
                 onMouseLeave={() => setShowReactions(false)}
               >
@@ -257,7 +299,7 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
                     whileHover={{ scale: 1.3 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => handleReaction(reaction)}
-                    className="text-2xl hover:bg-gray-50 rounded-lg p-1.5 transition-colors"
+                    className="text-2xl hover:bg-purple-50 rounded-lg p-1.5 transition-colors"
                   >
                     {reaction.emoji}
                   </motion.button>
@@ -270,7 +312,7 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => alert('💬 Comments coming soon!')}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold bg-white/10 text-white hover:bg-white/20 border-2 border-white/20 hover:border-purple-200 transition-all shadow-lg"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold bg-gray-50 text-gray-700 hover:bg-gray-100 border-2 border-gray-200 hover:border-purple-200 transition-all shadow-lg"
           >
             <MessageCircle className="w-5 h-5" />
             <span className="hidden sm:inline">Comment</span>
@@ -280,7 +322,7 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={handleShare}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold bg-white/10 text-white hover:bg-white/20 border-2 border-white/20 hover:border-purple-200 transition-all shadow-lg"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold bg-gray-50 text-gray-700 hover:bg-gray-100 border-2 border-gray-200 hover:border-purple-200 transition-all shadow-lg"
           >
             <Share2 className="w-5 h-5" />
             <span className="hidden sm:inline">Share</span>
@@ -293,7 +335,7 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
             className={`p-3 rounded-2xl font-bold transition-all shadow-lg ${
               bookmarked
                 ? 'bg-gradient-to-r from-yellow-600 to-orange-600 text-white border border-white/20'
-                : 'bg-white/10 text-white hover:bg-white/20 border-2 border-white/20 hover:border-purple-200'
+                : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-2 border-gray-200 hover:border-purple-200'
             }`}
           >
             <Bookmark className={`w-5 h-5 ${bookmarked ? 'fill-current' : ''}`} />
@@ -327,6 +369,7 @@ function formatNumber(num) {
 }
 
 function stripHtml(html) {
+  if (typeof window === 'undefined') return html;
   const tmp = document.createElement('DIV');
   tmp.innerHTML = html;
   return tmp.textContent || tmp.innerText || '';
