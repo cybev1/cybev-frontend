@@ -60,6 +60,19 @@ export default function UnifiedFeed() {
     }
   };
 
+  // Handle new post creation
+  const handlePostCreated = (newPost) => {
+    console.log('✅ New post created:', newPost);
+    // Add new post to the top of the feed
+    setPosts(prev => [newPost, ...prev]);
+    
+    // Update stats (optional)
+    setStats(prev => ({
+      ...prev,
+      tokens: prev.tokens + 10 // User earned 10 tokens
+    }));
+  };
+
   const tabs = [
     { id: 'for-you', label: 'For You', icon: '🏠' },
     { id: 'following', label: 'Following', icon: '⚡' },
@@ -74,7 +87,7 @@ export default function UnifiedFeed() {
         <GreetingHeader user={user} stats={stats} />
 
         {/* Quick Actions */}
-        <QuickActions />
+        <QuickActions onPostCreated={handlePostCreated} />
 
         <div className="max-w-7xl mx-auto px-4 py-6 md:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
