@@ -32,29 +32,76 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
     }
   }, []);
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     
-    files.forEach(file => {
-      // Check file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert(`${file.name} is too large. Maximum size is 5MB.`);
-        return;
+    for (const file of files) {
+      // Validation
+      if (file.size > 10 * 1024 * 1024) {
+        alert(`${file.name} is too large. Maximum size is 10MB.`);
+        continue;
       }
 
+      if (!file.type.startsWith('image/')) {
+        alert(`${file.name} is not an image file.`);
+        continue;
+      }
+
+      // Show preview immediately
       const reader = new FileReader();
       reader.onload = (event) => {
-        // For now, just store the placeholder
-        // In production, upload to Cloudinary/S3 first
         setImages(prev => [...prev, {
-          url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809', // Placeholder
           file,
-          alt: file.name,
-          localPreview: event.target.result // For preview only
+          localPreview: event.target.result,
+          uploading: true,
+          url: null,
+          alt: file.name
         }]);
       };
       reader.readAsDataURL(file);
-    });
+
+      // Upload to Cloudinary
+      try {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const token = localStorage.getItem('token');
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
+
+        console.log('📸 Uploading image to Cloudinary:', file.name);
+
+        const response = await fetch(`${API_URL}/upload/image`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          console.log('✅ Image uploaded:', data.url);
+          
+          // Update image with real URL
+          setImages(prev => prev.map(img => 
+            img.file === file ? {
+              ...img,
+              url: data.url,
+              uploading: false
+            } : img
+          ));
+        } else {
+          throw new Error(data.error || 'Upload failed');
+        }
+      } catch (error) {
+        console.error('❌ Upload failed:', error);
+        alert(`Failed to upload ${file.name}: ${error.message}`);
+        
+        // Remove failed image
+        setImages(prev => prev.filter(img => img.file !== file));
+      }
+    }
   };
 
   const removeImage = (index) => {
@@ -67,18 +114,28 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
       return;
     }
 
+    // Check if any images are still uploading
+    const stillUploading = images.some(img => img.uploading);
+    if (stillUploading) {
+      alert('⏳ Please wait for images to finish uploading...');
+      return;
+    }
+
     setLoading(true);
 
     try {
       const token = localStorage.getItem('token');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
 
-      // For now, use placeholder images instead of base64
-      // TODO: Upload images to Cloudinary/S3 first
-      const imageUrls = images.map(img => ({
-        url: img.url, // Use placeholder URL
-        alt: img.alt
-      }));
+      // Get only successfully uploaded images with real URLs
+      const imageUrls = images
+        .filter(img => img.url && !img.uploading) // Only uploaded images
+        .map(img => ({
+          url: img.url, // Real Cloudinary URL
+          alt: img.alt
+        }));
+
+      console.log('📤 Creating post with', imageUrls.length, 'images');
 
       const response = await fetch(`${API_URL}/posts`, {
         method: 'POST',
@@ -89,7 +146,7 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
         body: JSON.stringify({
           content,
           images: imageUrls,
-          type: images.length > 0 ? 'image' : 'text',
+          type: imageUrls.length > 0 ? 'image' : 'text',
           visibility
         })
       });
@@ -199,9 +256,34 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
                       alt={image.alt}
                       className="w-full h-48 object-cover rounded-xl"
                     />
+                    
+                    {/* Uploading overlay */}
+                    {image.uploading && (
+                      <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center">
+                        <div className="text-white text-center">
+                          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                          <p className="text-sm font-semibold">Uploading...</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Success checkmark */}
+                    {!image.uploading && image.url && (
+                      <div className="absolute top-2 left-2 bg-green-500 text-white rounded-full p-1">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    )}
+                    
                     <button
                       onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      disabled={image.uploading}
+                      className={`absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full transition-opacity ${
+                        image.uploading 
+                          ? 'opacity-50 cursor-not-allowed' 
+                          : 'opacity-0 group-hover:opacity-100'
+                      }`}
                     >
                       <X className="w-4 h-4" />
                     </button>
