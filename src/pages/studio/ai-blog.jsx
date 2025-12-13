@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
 import AppLayout from '@/components/Layout/AppLayout';
@@ -17,7 +17,9 @@ import {
   TrendingUp,
   Coins,
   FileText,
-  Tag
+  Tag,
+  Upload,
+  X
 } from 'lucide-react';
 
 export default function AIBlogGenerator() {
@@ -27,11 +29,17 @@ export default function AIBlogGenerator() {
   const [generatedBlog, setGeneratedBlog] = useState(null);
   const [formData, setFormData] = useState({
     topic: '',
+    description: '',
     niche: 'technology',
     tone: 'professional',
     length: 'medium',
-    targetAudience: 'general'
+    targetAudience: 'general',
+    featuredImage: null,
+    featuredImagePreview: null
   });
+
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const niches = [
     { id: 'technology', label: 'Technology', icon: '💻' },
@@ -57,6 +65,80 @@ export default function AIBlogGenerator() {
     { id: 'long', label: 'Long', words: '2000-3000', time: '10-15 min read' }
   ];
 
+
+
+  // Handle image upload
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Image too large! Maximum 10MB.');
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setFormData(prev => ({
+        ...prev,
+        featuredImagePreview: event.target.result
+      }));
+    };
+    reader.readAsDataURL(file);
+
+    setUploading(true);
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append('image', file);
+
+      const token = localStorage.getItem('token');
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
+
+      const response = await fetch(`${API_URL}/upload/image`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: uploadFormData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setFormData(prev => ({
+          ...prev,
+          featuredImage: data.url
+        }));
+        console.log('✅ Image uploaded:', data.url);
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error) {
+      console.error('❌ Upload failed:', error);
+      alert('Failed to upload image: ' + error.message);
+      setFormData(prev => ({
+        ...prev,
+        featuredImage: null,
+        featuredImagePreview: null
+      }));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = () => {
+    setFormData(prev => ({
+      ...prev,
+      featuredImage: null,
+      featuredImagePreview: null
+    }));
+  };
+
   const handleGenerate = async () => {
     if (!formData.topic) {
       alert('Please enter a topic!');
@@ -72,13 +154,31 @@ export default function AIBlogGenerator() {
       console.log('🚀 Calling API:', `${API_URL}/content/create-blog`);
       console.log('📋 Request data:', formData);
 
+      const requestData = {
+        topic: formData.topic,
+        niche: formData.niche,
+        tone: formData.tone,
+        length: formData.length,
+        targetAudience: formData.targetAudience
+      };
+
+      if (formData.description?.trim()) {
+        requestData.description = formData.description;
+        console.log('📝 Including description for context');
+      }
+
+      if (formData.featuredImage) {
+        requestData.featuredImage = formData.featuredImage;
+        console.log('📸 Using user-uploaded featured image');
+      }
+
       const response = await fetch(`${API_URL}/content/create-blog`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(requestData)
       });
 
       console.log('📡 Response status:', response.status);
@@ -256,6 +356,92 @@ export default function AIBlogGenerator() {
                         className="w-full px-6 py-4 bg-white/10 border-2 border-white/20 rounded-2xl text-white placeholder-purple-300 focus:border-purple-500 focus:outline-none"
                         autoFocus
                       />
+                    </div>
+
+
+                    <div>
+                      <label className="block text-white font-semibold mb-2 flex items-center gap-2">
+                        Brief Description (Optional)
+                        <span className="text-purple-300 text-sm font-normal">
+                          - Helps AI write more relevant content
+                        </span>
+                      </label>
+                      <textarea
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        placeholder="e.g., This article explores how AI is transforming content creation, focusing on automated writing tools..."
+                        className="w-full px-6 py-4 rounded-2xl bg-white/10 border-2 border-white/20 text-white placeholder-purple-300 focus:border-purple-500 focus:outline-none resize-none min-h-[120px]"
+                        maxLength={500}
+                      />
+                      <p className="text-purple-300 text-sm mt-2 flex items-center justify-between">
+                        <span>💡 Add context to help AI understand your vision</span>
+                        <span>{500 - formData.description.length} characters</span>
+                      </p>
+                    </div>
+
+
+                    <div>
+                      <label className="block text-white font-semibold mb-2 flex items-center gap-2">
+                        Featured Image (Optional)
+                        <span className="text-purple-300 text-sm font-normal">
+                          - Or let AI generate one
+                        </span>
+                      </label>
+                      
+                      {!formData.featuredImagePreview ? (
+                        <div
+                          onClick={() => fileInputRef.current?.click()}
+                          className="border-2 border-dashed border-white/30 hover:border-purple-400 rounded-2xl p-8 cursor-pointer transition-all bg-white/5 hover:bg-white/10"
+                        >
+                          <div className="text-center">
+                            {uploading ? (
+                              <Loader2 className="w-12 h-12 mx-auto mb-4 text-purple-400 animate-spin" />
+                            ) : (
+                              <Upload className="w-12 h-12 mx-auto mb-4 text-purple-400" />
+                            )}
+                            <p className="text-white font-semibold mb-2">
+                              {uploading ? 'Uploading...' : 'Click to upload featured image'}
+                            </p>
+                            <p className="text-purple-300 text-sm">
+                              PNG, JPG up to 10MB
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="relative group">
+                          <img
+                            src={formData.featuredImagePreview}
+                            alt="Featured preview"
+                            className="w-full h-64 object-cover rounded-2xl"
+                          />
+                          <button
+                            onClick={removeImage}
+                            className="absolute top-4 right-4 p-2 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                          {formData.featuredImage && (
+                            <div className="absolute top-4 left-4 px-3 py-1 bg-green-500 text-white rounded-full text-sm font-semibold flex items-center gap-2">
+                              <Check className="w-4 h-4" />
+                              Uploaded
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+
+                      {!formData.featuredImage && (
+                        <p className="text-purple-300 text-sm mt-2">
+                          📸 Leave empty to let AI generate a perfect image for your blog
+                        </p>
+                      )}
                     </div>
 
                     <div>
