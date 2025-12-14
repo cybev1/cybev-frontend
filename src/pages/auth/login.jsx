@@ -392,7 +392,7 @@ export default function Login() {
         <p className="text-center mt-6 text-gray-600">
           Don't have an account?{' '}
           <Link 
-            href="/signup"
+            href="/auth/signup"
             className="font-bold text-purple-600 hover:text-purple-700 transition-colors"
           >
             Sign up free
