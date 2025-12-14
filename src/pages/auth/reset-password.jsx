@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
+import { authAPI } from '@/lib/api';
 import {
   Lock,
   Eye,
@@ -56,22 +57,12 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
-      
-      const response = await fetch(`${API_URL}/auth/reset-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          token,
-          password: formData.password
-        })
+      const response = await authAPI.resetPassword({
+        token,
+        password: formData.password
       });
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.data.success) {
         setSuccess(true);
         toast.success('Password reset successful!');
         
@@ -79,13 +70,12 @@ export default function ResetPassword() {
         setTimeout(() => {
           router.push('/auth/login');
         }, 3000);
-      } else {
-        throw new Error(data.message || 'Failed to reset password');
       }
     } catch (err) {
       console.error('❌ Reset error:', err);
-      setError(err.message || 'Failed to reset password. Please try again.');
-      toast.error('Failed to reset password');
+      const errorMsg = err.response?.data?.message || 'Failed to reset password. Please try again.';
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
