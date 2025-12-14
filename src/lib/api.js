@@ -1,37 +1,20 @@
 // ============================================
-// FILE: lib/api.js (FIXED VERSION - No Double /api)
+// FILE: src/lib/api.js - FIXED VERSION
 // ============================================
 import axios from 'axios';
 
-// Smart API URL handling - FIXED to avoid double /api
-const getAPIBaseURL = () => {
-  // Check if we're in browser
-  if (typeof window === 'undefined') {
-    return 'http://localhost:5000/api';
-  }
-
-  // Use environment variable if available
-  const envURL = process.env.NEXT_PUBLIC_API_URL;
-  
-  if (envURL) {
-    // If env URL already has /api, use it as-is
-    // Otherwise, add /api
-    return envURL.endsWith('/api') ? envURL : `${envURL}/api`;
-  }
-
-  // Production default
-  return 'https://api.cybev.io/api';
-};
-
-const API_BASE_URL = getAPIBaseURL();
+// Get base API URL (without /api suffix)
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
 console.log('🔗 API Base URL:', API_BASE_URL);
 
+// Create axios instance with /api included in baseURL
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: `${API_BASE_URL}/api`,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 30000, // 30 second timeout
 });
 
 // Auto-add token to all requests
@@ -70,7 +53,7 @@ export default api;
 // ========== HEALTH CHECK ==========
 export const healthCheck = async () => {
   try {
-    const response = await axios.get(API_BASE_URL.replace('/api', '/health'));
+    const response = await axios.get(`${API_BASE_URL}/health`);
     return response.data;
   } catch (error) {
     console.error('Health check failed:', error);
@@ -82,8 +65,13 @@ export const healthCheck = async () => {
 export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
+  verifyEmail: (token) => api.post('/auth/verify-email', { token }),
+  resendVerification: (email) => api.post('/auth/resend-verification', { email }),
+  forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+  resetPassword: (data) => api.post('/auth/reset-password', data),
   getProfile: () => api.get('/auth/profile'),
-  updateProfile: (data) => api.put('/auth/profile', data)
+  updateProfile: (data) => api.put('/auth/profile', data),
+  completeOnboarding: (data) => api.put('/auth/complete-onboarding', data),
 };
 
 // ========== BLOG APIs ==========
@@ -94,12 +82,13 @@ export const blogAPI = {
   updateBlog: (id, data) => api.put(`/blogs/${id}`, data),
   deleteBlog: (id) => api.delete(`/blogs/${id}`),
   toggleLike: (id) => api.post(`/blogs/${id}/like`),
-  getMyBlogs: () => api.get('/blogs/user/my-blogs'),
-  getTrendingBlogs: () => api.get('/blogs/trending/top'),
+  getMyBlogs: () => api.get('/blogs/my-blogs'),
+  getStats: () => api.get('/blogs/stats'),
+  getTrendingBlogs: () => api.get('/blogs/trending'),
   getTrendingTags: () => api.get('/blogs/trending-tags')
 };
 
-// ========== CONTENT CREATION APIs (FIXED - No /api prefix) ==========
+// ========== CONTENT CREATION APIs ==========
 export const contentAPI = {
   // AI Blog Creation
   createBlog: (data) => api.post('/content/create-blog', data),
@@ -177,4 +166,22 @@ export const domainAPI = {
   verifyDomain: (domain) => api.post('/domain/verify', { domain }),
   getDomainStatus: () => api.get('/domain/status'),
   removeDomain: () => api.delete('/domain/remove')
+};
+
+// ========== UPLOAD APIs ==========
+export const uploadAPI = {
+  uploadImage: (formData) => {
+    return api.post('/upload/image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  uploadVideo: (formData) => {
+    return api.post('/upload/video', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
 };
