@@ -29,7 +29,7 @@ export default function Signup() {
   const [error, setError] = useState('');
   const [fieldFocus, setFieldFocus] = useState('');
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
 
   const validateForm = () => {
     if (!formData.name.trim()) {
