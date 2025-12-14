@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
+import { authAPI } from '@/lib/api';
 import {
   Mail,
   Check,
@@ -31,19 +32,9 @@ export default function VerifyEmail() {
     setError('');
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
-      
-      const response = await fetch(`${API_URL}/auth/verify-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ token })
-      });
+      const response = await authAPI.verifyEmail(token);
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.data.success) {
         setVerified(true);
         toast.success('Email verified successfully!');
         
@@ -51,12 +42,11 @@ export default function VerifyEmail() {
         setTimeout(() => {
           router.push('/auth/login');
         }, 3000);
-      } else {
-        throw new Error(data.message || 'Verification failed');
       }
     } catch (err) {
       console.error('❌ Verification error:', err);
-      setError(err.message || 'Failed to verify email. The link may be invalid or expired.');
+      const errorMsg = err.response?.data?.message || 'Failed to verify email. The link may be invalid or expired.';
+      setError(errorMsg);
       toast.error('Verification failed');
     } finally {
       setVerifying(false);
@@ -70,26 +60,14 @@ export default function VerifyEmail() {
     setResending(true);
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
-      
-      const response = await fetch(`${API_URL}/auth/resend-verification`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email })
-      });
+      const response = await authAPI.resendVerification(email);
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.data.success) {
         toast.success('Verification email sent! Check your inbox.');
-      } else {
-        throw new Error(data.message);
       }
     } catch (err) {
       console.error('❌ Resend error:', err);
-      toast.error('Failed to send verification email');
+      toast.error(err.response?.data?.message || 'Failed to send verification email');
     } finally {
       setResending(false);
     }
