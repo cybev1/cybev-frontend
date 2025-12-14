@@ -29,7 +29,7 @@ const OnboardingFlow = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   const totalSteps = 4;
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
   // Celebrate completion with confetti
   const celebrateCompletion = () => {
@@ -89,7 +89,7 @@ const OnboardingFlow = () => {
       console.log('💾 Sending onboarding data to backend...');
       
       const response = await axios.put(
-        `${API_URL}/api/user/complete-onboarding`,
+        `${API_URL}/api/auth/complete-onboarding`,
         {
           fullName: formData.fullName,
           role: formData.role,
