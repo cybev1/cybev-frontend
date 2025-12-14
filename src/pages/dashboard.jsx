@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { blogAPI } from '@/lib/api';
 import { 
   Sparkles, 
   TrendingUp, 
@@ -38,14 +39,9 @@ export default function Dashboard() {
 
   const fetchBlogs = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/blogs/my-blogs', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      const data = await response.json();
-      if (data.success) {
-        setBlogs(data.blogs);
+      const response = await blogAPI.getMyBlogs();
+      if (response.data.success) {
+        setBlogs(response.data.blogs);
       }
     } catch (error) {
       console.error('Error fetching blogs:', error);
@@ -56,14 +52,9 @@ export default function Dashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/blogs/stats', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      const data = await response.json();
-      if (data.success) {
-        setStats(data.stats);
+      const response = await blogAPI.getStats();
+      if (response.data.success) {
+        setStats(response.data.stats);
       }
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -74,14 +65,8 @@ export default function Dashboard() {
     if (!confirm('Are you sure you want to delete this post?')) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/blogs/${blogId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      const data = await response.json();
-      if (data.success) {
+      const response = await blogAPI.deleteBlog(blogId);
+      if (response.data.success) {
         setBlogs(blogs.filter(blog => blog._id !== blogId));
         fetchStats(); // Refresh stats
       }
