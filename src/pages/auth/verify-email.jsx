@@ -49,7 +49,7 @@ export default function VerifyEmail() {
         
         // Redirect to login after 3 seconds
         setTimeout(() => {
-          router.push('/login');
+          router.push('/auth/login');
         }, 3000);
       } else {
         throw new Error(data.message || 'Verification failed');
@@ -168,7 +168,7 @@ export default function VerifyEmail() {
                 Redirecting to login...
               </p>
               <button
-                onClick={() => router.push('/login')}
+                onClick={() => router.push('/auth/login')}
                 className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-xl hover:shadow-lg transition-all flex items-center gap-2 mx-auto"
               >
                 Go to Login
