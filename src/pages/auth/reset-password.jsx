@@ -77,7 +77,7 @@ export default function ResetPassword() {
         
         // Redirect to login after 3 seconds
         setTimeout(() => {
-          router.push('/login');
+          router.push('/auth/login');
         }, 3000);
       } else {
         throw new Error(data.message || 'Failed to reset password');
@@ -99,7 +99,7 @@ export default function ResetPassword() {
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Invalid Reset Link</h1>
           <p className="text-gray-600 mb-6">This password reset link is invalid or has expired.</p>
           <button
-            onClick={() => router.push('/login')}
+            onClick={() => router.push('/auth/login')}
             className="px-6 py-3 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition-colors"
           >
             Back to Login
