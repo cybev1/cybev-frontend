@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import AppLayout from '@/components/Layout/AppLayout';
 import GreetingHeader from '@/components/Feed/GreetingHeader';
 import QuickActions from '@/components/Feed/QuickActions';
 import PostCard from '@/components/Feed/PostCard';
-import { TrendingUp, Users, Hash, Radio } from 'lucide-react';
+import { 
+  TrendingUp, Users, Hash, Radio,
+  Wand2, Lightbulb, Sparkles, BarChart3, 
+  Plus, FileText, Image as ImageIcon, DollarSign 
+} from 'lucide-react';
 import { authAPI, blogAPI } from '@/lib/api';
 
 export default function UnifiedFeed() {
@@ -19,11 +24,29 @@ export default function UnifiedFeed() {
     growth: 15,
     streak: 7
   });
+  
+  // New state for tour and quick actions
+  const [showTour, setShowTour] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+  const [showQuickActions, setShowQuickActions] = useState(false);
 
   useEffect(() => {
     fetchUserData();
     fetchPosts();
   }, [activeTab]);
+
+  // Tour effect
+  useEffect(() => {
+    const hasSeenTour = localStorage.getItem('hasSeenFeedTour');
+    if (!hasSeenTour && user) {
+      setTimeout(() => setShowTour(true), 1000);
+    }
+  }, [user]);
+
+  const completeTour = () => {
+    localStorage.setItem('hasSeenFeedTour', 'true');
+    setShowTour(false);
+  };
 
   const fetchUserData = async () => {
     try {
@@ -192,6 +215,43 @@ export default function UnifiedFeed() {
                 </div>
               </div>
 
+              {/* Smart Suggestions Banner */}
+              {user && posts.length < 5 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-xl border border-blue-500/20 rounded-2xl p-6 mb-6"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Lightbulb className="w-6 h-6 text-blue-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-white mb-2">
+                        ✨ Ready to create amazing content?
+                      </h3>
+                      <p className="text-gray-300 mb-4">
+                        Use our AI-powered Studio to generate blog posts, social content, and more in seconds!
+                      </p>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <Link href="/studio">
+                          <button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center gap-2">
+                            <Wand2 className="w-4 h-4" />
+                            Open Studio
+                          </button>
+                        </Link>
+                        <button 
+                          onClick={() => setShowTour(true)}
+                          className="px-4 py-2 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-all"
+                        >
+                          Show me around
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Posts Feed */}
               {loading ? (
                 <div className="space-y-6">
@@ -341,6 +401,172 @@ export default function UnifiedFeed() {
             </div>
           </div>
         </div>
+
+        {/* Welcome Tour Modal */}
+        {showTour && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={completeTour}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-gradient-to-br from-purple-900 to-blue-900 rounded-3xl p-8 max-w-md w-full border-2 border-purple-500/50 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center">
+                {tourStep === 0 && (
+                  <>
+                    <div className="w-20 h-20 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <Sparkles className="w-10 h-10 text-purple-400" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-white mb-4">
+                      Welcome to CYBEV! 🎉
+                    </h2>
+                    <p className="text-gray-300 mb-6">
+                      Your AI-powered content creation platform. Let's show you around!
+                    </p>
+                  </>
+                )}
+
+                {tourStep === 1 && (
+                  <>
+                    <div className="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <TrendingUp className="w-10 h-10 text-blue-400" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-white mb-4">
+                      Discover Content
+                    </h2>
+                    <p className="text-gray-300 mb-6">
+                      Your feed shows content from creators you follow and trending posts.
+                    </p>
+                  </>
+                )}
+
+                {tourStep === 2 && (
+                  <>
+                    <div className="w-20 h-20 bg-pink-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <Wand2 className="w-10 h-10 text-pink-400" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-white mb-4">
+                      Create with AI Studio
+                    </h2>
+                    <p className="text-gray-300 mb-6">
+                      Generate blog posts, social content, images in seconds!
+                    </p>
+                  </>
+                )}
+
+                {tourStep === 3 && (
+                  <>
+                    <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <DollarSign className="w-10 h-10 text-green-400" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-white mb-4">
+                      Earn Tokens
+                    </h2>
+                    <p className="text-gray-300 mb-6">
+                      Get rewarded for creating and engaging with content!
+                    </p>
+                  </>
+                )}
+
+                {tourStep === 4 && (
+                  <>
+                    <div className="w-20 h-20 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <BarChart3 className="w-10 h-10 text-yellow-400" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-white mb-4">
+                      Track Growth
+                    </h2>
+                    <p className="text-gray-300 mb-6">
+                      Visit Dashboard to see analytics and manage content.
+                    </p>
+                  </>
+                )}
+
+                <div className="flex items-center justify-center gap-2 mb-6">
+                  {[0, 1, 2, 3, 4].map((step) => (
+                    <div
+                      key={step}
+                      className={`h-2 rounded-full transition-all ${
+                        step === tourStep ? 'w-8 bg-purple-500' : 'w-2 bg-gray-600'
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={completeTour}
+                    className="flex-1 px-6 py-3 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/20 transition-all"
+                  >
+                    Skip
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (tourStep < 4) {
+                        setTourStep(tourStep + 1);
+                      } else {
+                        completeTour();
+                      }
+                    }}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+                  >
+                    {tourStep < 4 ? 'Next' : 'Get Started'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* Floating Quick Actions */}
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="fixed bottom-8 right-8 z-40"
+        >
+          <div className="relative">
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setShowQuickActions(!showQuickActions)}
+              className="w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-2xl hover:shadow-purple-500/50 transition-all"
+            >
+              <Plus className="w-6 h-6 text-white" />
+            </motion.button>
+
+            {showQuickActions && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute bottom-16 right-0 bg-black/90 backdrop-blur-xl border border-purple-500/20 rounded-2xl p-2 min-w-[200px] shadow-2xl"
+              >
+                <Link href="/studio">
+                  <button className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-xl transition-all text-left flex items-center gap-3">
+                    <Wand2 className="w-5 h-5 text-purple-400" />
+                    <span>AI Studio</span>
+                  </button>
+                </Link>
+                <Link href="/create-blog">
+                  <button className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-xl transition-all text-left flex items-center gap-3">
+                    <FileText className="w-5 h-5 text-blue-400" />
+                    <span>Write Blog</span>
+                  </button>
+                </Link>
+                <Link href="/dashboard">
+                  <button className="w-full px-4 py-3 text-white hover:bg-white/10 rounded-xl transition-all text-left flex items-center gap-3">
+                    <BarChart3 className="w-5 h-5 text-yellow-400" />
+                    <span>Dashboard</span>
+                  </button>
+                </Link>
+              </motion.div>
+            )}
+          </div>
+        </motion.div>
       </div>
     </AppLayout>
   );
