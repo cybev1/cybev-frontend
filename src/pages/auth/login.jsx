@@ -79,8 +79,8 @@ export default function Login() {
 
         // Check if user has completed onboarding
         if (response.data.user.hasCompletedOnboarding) {
-          console.log('✅ User has completed onboarding - redirecting to dashboard');
-          router.push('/dashboard');
+          console.log('✅ User has completed onboarding - redirecting to feed');
+          router.push('/feed'); // Changed from /dashboard to /feed
         } else {
           console.log('📝 User needs onboarding - redirecting to onboarding');
           router.push('/onboarding');
