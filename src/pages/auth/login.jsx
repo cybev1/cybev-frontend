@@ -78,9 +78,11 @@ export default function Login() {
         toast.success('Login successful!');
 
         // Check if user has completed onboarding
-        if (response.data.user.hasOnboardingData) {
+        if (response.data.user.hasCompletedOnboarding) {
+          console.log('✅ User has completed onboarding - redirecting to dashboard');
           router.push('/dashboard');
         } else {
+          console.log('📝 User needs onboarding - redirecting to onboarding');
           router.push('/onboarding');
         }
       }
