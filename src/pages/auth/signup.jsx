@@ -14,7 +14,9 @@ import {
   Heart,
   Globe,
   Shield,
-  CheckCircle
+  CheckCircle,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 export default function Signup() {
@@ -28,6 +30,7 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [fieldFocus, setFieldFocus] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
@@ -85,9 +88,18 @@ export default function Signup() {
       console.log('✅ Registration successful:', response.data);
       
       if (response.data.token) {
+        // Save token and user data
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
-        router.push('/onboarding');
+        
+        // Check if email is verified
+        if (!response.data.user.isEmailVerified) {
+          console.log('📧 Email not verified - redirecting to notice page');
+          router.push('/auth/verify-email-notice');
+        } else {
+          console.log('✅ Email already verified - proceeding to onboarding');
+          router.push('/onboarding');
+        }
       }
       
     } catch (err) {
@@ -338,12 +350,12 @@ export default function Signup() {
                 <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <motion.input
                   whileFocus={{ scale: 1.01 }}
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
                   onFocus={() => setFieldFocus('password')}
                   onBlur={() => setFieldFocus('')}
-                  className={`w-full pl-12 pr-4 py-3.5 rounded-xl border-2 transition-all ${
+                  className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 transition-all ${
                     fieldFocus === 'password'
                       ? 'border-blue-500 shadow-lg shadow-blue-100'
                       : 'border-gray-200'
@@ -352,6 +364,13 @@ export default function Signup() {
                   required
                   minLength={6}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
               <p className="text-xs text-gray-500 mt-1.5">Minimum 6 characters</p>
             </motion.div>
