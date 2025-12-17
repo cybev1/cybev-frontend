@@ -88,6 +88,12 @@ export default function Dashboard() {
               <p className="text-gray-400 mt-1">Manage your content and track your growth</p>
             </div>
             <div className="flex items-center gap-4">
+              <Link href="/studio">
+                <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5" />
+                  Studio
+                </button>
+              </Link>
               <Link href="/feed">
                 <button className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300 flex items-center gap-2">
                   <TrendingUp className="w-5 h-5" />
@@ -95,9 +101,9 @@ export default function Dashboard() {
                 </button>
               </Link>
               <Link href="/create-blog">
-                <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5" />
-                  Write New Post
+                <button className="bg-white/10 backdrop-blur-sm text-white border border-white/20 px-6 py-3 rounded-xl font-semibold hover:bg-white/20 transition-all duration-300 flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  New Post
                 </button>
               </Link>
             </div>
