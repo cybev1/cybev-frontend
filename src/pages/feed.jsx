@@ -170,6 +170,39 @@ export default function UnifiedFeed() {
     { id: 'ai-generated', label: 'AI', icon: '🤖' }
   ];
 
+  // Filter posts based on active tab
+  const getFilteredPosts = () => {
+    if (!posts || posts.length === 0) return [];
+    
+    switch (activeTab) {
+      case 'for-you':
+        // Show all posts
+        return posts;
+      
+      case 'following':
+        // Show posts from people user follows (for now, show all)
+        // TODO: Implement following filter when backend supports it
+        return posts;
+      
+      case 'trending':
+        // Show posts with high engagement
+        return [...posts].sort((a, b) => {
+          const scoreA = (a.likeCount || 0) + (a.commentCount || 0) * 2 + (a.views || 0) * 0.1;
+          const scoreB = (b.likeCount || 0) + (b.commentCount || 0) * 2 + (b.views || 0) * 0.1;
+          return scoreB - scoreA;
+        });
+      
+      case 'ai-generated':
+        // Show only AI-generated content
+        return posts.filter(p => p.isAIGenerated || p.postType === 'article');
+      
+      default:
+        return posts;
+    }
+  };
+
+  const filteredPosts = getFilteredPosts();
+
   return (
     <AppLayout>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50">
@@ -187,9 +220,10 @@ export default function UnifiedFeed() {
               {process.env.NODE_ENV === 'development' && (
                 <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
                   <p className="text-sm font-mono">
-                    🔍 Debug: {posts.length} posts loaded
+                    🔍 Debug: {posts.length} total posts loaded, {filteredPosts.length} showing
                     ({posts.filter(p => p.postType === 'social').length} social, 
                     {posts.filter(p => p.postType === 'article').length} articles)
+                    | Active Tab: {activeTab}
                   </p>
                 </div>
               )}
@@ -216,7 +250,7 @@ export default function UnifiedFeed() {
               </div>
 
               {/* Smart Suggestions Banner */}
-              {user && posts.length < 5 && (
+              {user && filteredPosts.length < 5 && (
                 <motion.div
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -266,7 +300,7 @@ export default function UnifiedFeed() {
                     </div>
                   ))}
                 </div>
-              ) : posts.length === 0 ? (
+              ) : filteredPosts.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -298,7 +332,7 @@ export default function UnifiedFeed() {
                 </motion.div>
               ) : (
                 <div className="space-y-6">
-                  {posts.map((post, index) => (
+                  {filteredPosts.map((post, index) => (
                     <PostCard
                       key={post._id || index}
                       post={post}
