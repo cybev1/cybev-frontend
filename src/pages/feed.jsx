@@ -64,28 +64,38 @@ export default function UnifiedFeed() {
       setLoading(true);
 
       const token = localStorage.getItem('token');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
-
-      console.log('🔍 Fetching posts and blogs...');
+      
+      // API base URL - already includes everything needed
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
+      
+      console.log('🔍 Fetching posts and blogs from:', API_BASE);
 
       // Fetch both posts and blogs
       const [postsResponse, blogsResponse] = await Promise.all([
         // Fetch social posts
-        fetch(`${API_URL}/posts/feed?limit=50`, {
+        fetch(`${API_BASE}/posts/feed?limit=50`, {
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
           }
-        }).then(res => res.json()).catch(err => {
+        }).then(res => {
+          console.log('Posts fetch status:', res.status, res.statusText);
+          return res.json();
+        }).catch(err => {
           console.error('❌ Error fetching posts:', err);
           return { success: false, posts: [] };
         }),
         
-        // Fetch blog articles - GET ALL, not just published
-        fetch(`${API_URL}/blogs?limit=50`, {
+        // Fetch blog articles
+        fetch(`${API_BASE}/blogs?limit=50`, {
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
           }
-        }).then(res => res.json()).catch(err => {
+        }).then(res => {
+          console.log('Blogs fetch status:', res.status, res.statusText);
+          return res.json();
+        }).catch(err => {
           console.error('❌ Error fetching blogs:', err);
           return { success: false, data: { blogs: [] } };
         })
@@ -93,6 +103,13 @@ export default function UnifiedFeed() {
 
       console.log('📊 Posts response:', postsResponse);
       console.log('📊 Blogs response:', blogsResponse);
+      console.log('📊 Blogs response structure:', {
+        success: blogsResponse.success,
+        hasData: !!blogsResponse.data,
+        hasBlogs: !!blogsResponse.blogs,
+        dataKeys: blogsResponse.data ? Object.keys(blogsResponse.data) : [],
+        blogsLength: blogsResponse.blogs?.length || 0
+      });
 
       // Extract posts
       const socialPosts = postsResponse.success ? postsResponse.posts : [];
@@ -100,11 +117,20 @@ export default function UnifiedFeed() {
 
       // Extract blogs - handle multiple response formats
       let blogArticles = [];
-      if (blogsResponse.success) {
-        blogArticles = blogsResponse.data?.blogs || blogsResponse.blogs || [];
-      } else if (blogsResponse.data) {
-        blogArticles = blogsResponse.data.blogs || blogsResponse.data.data || [];
+      
+      // Try different response structures
+      if (blogsResponse.success && blogsResponse.data?.blogs) {
+        blogArticles = blogsResponse.data.blogs;
+      } else if (blogsResponse.success && blogsResponse.blogs) {
+        blogArticles = blogsResponse.blogs;
+      } else if (blogsResponse.data?.data?.blogs) {
+        blogArticles = blogsResponse.data.data.blogs;
+      } else if (blogsResponse.data?.blogs) {
+        blogArticles = blogsResponse.data.blogs;
+      } else if (blogsResponse.blogs) {
+        blogArticles = blogsResponse.blogs;
       }
+      
       console.log(`✅ Got ${blogArticles.length} blog articles`);
 
       // Mark posts vs articles
