@@ -109,7 +109,7 @@ export default function CreateBlog() {
 
     try {
       const token = localStorage.getItem('token');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
       // For now, use placeholder for featured image
       // TODO: Upload to Cloudinary/S3 first
