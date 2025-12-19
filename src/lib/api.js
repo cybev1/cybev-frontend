@@ -10,7 +10,7 @@ console.log('🔗 API Base URL:', API_BASE_URL);
 
 // Create axios instance with /api included in baseURL
 const api = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
