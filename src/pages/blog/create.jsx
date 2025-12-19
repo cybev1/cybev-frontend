@@ -122,6 +122,7 @@ export default function CreateBlog() {
       }
 
       const blogData = {
+        authorName: JSON.parse(localStorage.getItem("user"))?.name || "User",
         title,
         content,
         excerpt: description, // Meta description
