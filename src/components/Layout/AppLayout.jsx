@@ -15,6 +15,7 @@ import {
   MessageCircle
 } from 'lucide-react';
 import { useState } from 'react';
+import NotificationBell from '@/components/notificationBell';
 
 export default function AppLayout({ children }) {
   const router = useRouter();
@@ -80,10 +81,7 @@ export default function AppLayout({ children }) {
               </button>
 
               {/* Notifications */}
-              <button className="p-2 hover:bg-purple-500/10 rounded-lg transition-colors relative">
-                <Bell className="w-5 h-5 text-gray-400" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-pink-500 rounded-full"></span>
-              </button>
+              <NotificationBell />
 
               {/* Messages */}
               <button className="p-2 hover:bg-purple-500/10 rounded-lg transition-colors">

@@ -1,59 +1,51 @@
-```javascript
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { io } from 'socket.io-client';
-import { useAuth } from './AuthContext';
-import { toast } from 'react-hot-toast';
 
-const SocketContext = createContext();
+const SocketContext = createContext(null);
 
 export function SocketProvider({ children }) {
   const [socket, setSocket] = useState(null);
-  const { user, isAuthenticated } = useAuth();
+  const [connected, setConnected] = useState(false);
+
+  const baseUrl = useMemo(() => {
+    return process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
+  }, []);
 
   useEffect(() => {
-    if (isAuthenticated && user) {
-      const newSocket = io(process.env.NEXT_PUBLIC_API_URL, {
-        withCredentials: true
-      });
+    // Socket is optional in CYBEV right now (backend may not expose socket.io yet).
+    // We only attempt connection if a token exists.
+    if (typeof window === 'undefined') return;
 
-      newSocket.on('connect', () => {
-        console.log('Socket connected');
-        newSocket.emit('join', user._id);
-      });
+    const token = localStorage.getItem('token');
+    if (!token) return;
 
-      newSocket.on('notification', (notification) => {
-        // Show toast notification
-        toast(
-          
-            
-            
-              {notification.sender.username}
-              {notification.message}
-            
-          ,
-          {
-            duration: 4000,
-            icon: '🔔'
-          }
-        );
+    const s = io(baseUrl, {
+      transports: ['websocket'],
+      auth: { token },
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000
+    });
 
-        // You can also update notification count here
-      });
+    setSocket(s);
 
-      setSocket(newSocket);
+    s.on('connect', () => setConnected(true));
+    s.on('disconnect', () => setConnected(false));
 
-      return () => {
-        newSocket.disconnect();
-      };
-    }
-  }, [isAuthenticated, user]);
+    return () => {
+      try {
+        s.disconnect();
+      } catch {
+        // ignore
+      }
+    };
+  }, [baseUrl]);
 
-  return (
-    
-      {children}
-    
-  );
+  const value = useMemo(() => ({ socket, connected }), [socket, connected]);
+
+  return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
 }
 
-export const useSocket = () => useContext(SocketContext);
-```
+export function useSocket() {
+  return useContext(SocketContext);
+}
