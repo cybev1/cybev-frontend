@@ -22,7 +22,7 @@ export default function PostActions({ post, onEdit, onDelete }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
       const response = await fetch(`${API_URL}/posts/${post._id}`, {
         method: 'PUT',
@@ -60,7 +60,7 @@ export default function PostActions({ post, onEdit, onDelete }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
       const response = await fetch(`${API_URL}/posts/${post._id}`, {
         method: 'DELETE',
@@ -85,9 +85,16 @@ export default function PostActions({ post, onEdit, onDelete }) {
     }
   };
 
-  // Check if current user owns this post
-  const currentUserId = localStorage.getItem('user') ? 
-    JSON.parse(localStorage.getItem('user')).id : null;
+  // Check if current user owns this post (safe for SSR)
+  let currentUserId = null;
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('user');
+      if (raw) currentUserId = JSON.parse(raw)?.id || null;
+    } catch (_) {
+      currentUserId = null;
+    }
+  }
   const isOwner = post.authorId?._id === currentUserId || 
                   post.authorId === currentUserId;
 

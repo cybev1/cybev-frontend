@@ -66,11 +66,11 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
         formData.append('image', file);
 
         const token = localStorage.getItem('token');
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
         console.log('📸 Uploading image to Cloudinary:', file.name);
 
-        const response = await fetch(`${API_URL}/upload/image`, {
+        const response = await fetch(`${API_URL}/api/upload/image`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -125,7 +125,7 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
 
     try {
       const token = localStorage.getItem('token');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
       // Get only successfully uploaded images with real URLs
       const imageUrls = images

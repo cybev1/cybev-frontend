@@ -403,7 +403,7 @@ export default function UnifiedFeed() {
                       >
                         <div>
                           <div className="font-bold text-gray-800">{tag}</div>
-                          <div className="text-xs text-gray-600">{Math.floor(Math.random() * 10000)} posts</div>
+                          <div className="text-xs text-gray-600">10k+ posts</div>
                         </div>
                         <Hash className="w-4 h-4 text-purple-600" />
                       </motion.div>

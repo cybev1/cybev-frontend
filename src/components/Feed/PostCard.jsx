@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Heart, MessageCircle, Share2, Bookmark,
@@ -10,6 +10,7 @@ import { useRouter } from 'next/router';
 
 export default function PostCard({ post, isAIGenerated = false, isPinned = false, isLive = false, onUpdate, onDelete }) {
   const router = useRouter();
+  const [clientNow, setClientNow] = useState(null);
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
@@ -18,6 +19,11 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
   const [showEditModal, setShowEditModal] = useState(false);
   const [editContent, setEditContent] = useState(post.content || '');
   const [loading, setLoading] = useState(false);
+
+  // Avoid time-based server/client mismatches by computing "now" on the client
+  useEffect(() => {
+    setClientNow(Date.now());
+  }, []);
 
   const reactions = [
     { emoji: '❤️', name: 'love', color: 'text-red-500' },
@@ -30,6 +36,7 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
 
   // Check if current user owns this post
   const getCurrentUserId = () => {
+    if (typeof window === 'undefined') return null;
     try {
       const userData = localStorage.getItem('user');
       if (userData) {
@@ -43,6 +50,9 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
   };
 
   const currentUserId = getCurrentUserId();
+  useEffect(() => {
+    setClientNow(Date.now());
+  }, []);
   const isOwner = post.authorId?._id === currentUserId || 
                   post.authorId === currentUserId;
 
@@ -73,7 +83,7 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
       const response = await fetch(`${API_URL}/posts/${post._id}`, {
         method: 'PUT',
@@ -110,7 +120,7 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io/api';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
       const response = await fetch(`${API_URL}/posts/${post._id}`, {
         method: 'DELETE',
@@ -184,7 +194,11 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
                   )}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-600">
-                  <span>{formatTime(post.createdAt || new Date())}</span>
+                  <span>
+                    {clientNow
+                      ? formatTime(post.createdAt || new Date(), clientNow)
+                      : formatDateISO(post.createdAt || new Date())}
+                  </span>
                   {post.readTime && (
                     <>
                       <span>•</span>
@@ -537,8 +551,8 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
 }
 
 // Helper functions
-function formatTime(date) {
-  const now = new Date();
+function formatTime(date, nowMs) {
+  const now = typeof nowMs === 'number' ? new Date(nowMs) : new Date();
   const postDate = new Date(date);
   const diffMs = now - postDate;
   const diffMins = Math.floor(diffMs / 60000);
@@ -549,7 +563,17 @@ function formatTime(date) {
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
-  return postDate.toLocaleDateString();
+  return formatDateISO(postDate);
+}
+
+// Stable across server/client regardless of timezone/locale
+function formatDateISO(date) {
+  try {
+    const d = date instanceof Date ? date : new Date(date);
+    return d.toISOString().slice(0, 10); // YYYY-MM-DD
+  } catch {
+    return '';
+  }
 }
 
 function formatNumber(num) {
@@ -559,8 +583,10 @@ function formatNumber(num) {
 }
 
 function stripHtml(html) {
-  if (typeof window === 'undefined') return html;
-  const tmp = document.createElement('DIV');
-  tmp.innerHTML = html;
-  return tmp.textContent || tmp.innerText || '';
+  if (!html) return '';
+  // Pure string approach (works in SSR too)
+  return String(html)
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
