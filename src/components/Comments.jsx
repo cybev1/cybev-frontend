@@ -22,7 +22,7 @@ export default function Comments({ blogId }) {
   const fetchComments = async () => {
     setLoading(true);
     try {
-      const response = await api.get(`/comments/blog/${blogId}`);
+      const response = await api.get(`/api/comments/blog/${blogId}`);
       if (response.data.ok) {
         setComments(response.data.comments);
       }
@@ -49,7 +49,7 @@ export default function Comments({ blogId }) {
 
     setSubmitting(true);
     try {
-      const response = await api.post('/comments', {
+      const response = await api.post('/api/comments', {
         content,
         blogId,
         parentCommentId: parentId
@@ -76,7 +76,7 @@ export default function Comments({ blogId }) {
     }
 
     try {
-      const response = await api.post(`/comments/${commentId}/like`);
+      const response = await api.post(`/api/comments/${commentId}/like`);
       if (response.data.ok) {
         fetchComments();
       }
@@ -89,7 +89,7 @@ export default function Comments({ blogId }) {
     if (!confirm('Are you sure you want to delete this comment?')) return;
 
     try {
-      const response = await api.delete(`/comments/${commentId}`);
+      const response = await api.delete(`/api/comments/${commentId}`);
       if (response.data.ok) {
         toast.success('Comment deleted');
         fetchComments();

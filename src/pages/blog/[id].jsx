@@ -55,16 +55,24 @@ export default function BlogDetail() {
   };
 
   const fetchRelatedBlogs = async () => {
-    try {
-      const response = await blogAPI.getBlogs({ limit: 3 });
-      if (response.data.ok || response.data.success) {
-        const blogs = response.data.blogs || response.data.data || [];
-        setRelatedBlogs(blogs.filter(b => b._id !== id));
-      }
-    } catch (error) {
-      console.error('Failed to load related blogs');
-    }
-  };
+  try {
+    const response = await blogAPI.getBlogs({ limit: 6 });
+
+    // Backend returns: { success: true, data: { blogs: [...] } }
+    const raw =
+      response?.data?.blogs ??
+      response?.data?.data?.blogs ??
+      response?.data?.data ??
+      [];
+
+    const blogs = Array.isArray(raw) ? raw : (raw?.blogs ?? []);
+    const related = blogs.filter((b) => b?._id && b._id !== id).slice(0, 3);
+    setRelatedBlogs(related);
+  } catch (error) {
+    console.error('Failed to load related blogs', error);
+    // Do not toast here; related blogs are optional
+  }
+};
 
   const checkBookmark = async () => {
     try {
