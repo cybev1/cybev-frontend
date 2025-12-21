@@ -2,7 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom scrollbar for dark mode */
+/* Global UX improvements for mobile (WebView + browsers) */
+html, body {
+  height: 100%;
+}
+
 body {
   transition: background-color 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+/* Safe-area helper classes */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Leave room for the mobile bottom nav */
+.pb-mobile-nav {
+  padding-bottom: calc(76px + env(safe-area-inset-bottom));
+}
+
+/* Improve scrolling inside containers on iOS */
+.ios-scroll {
+  -webkit-overflow-scrolling: touch;
 }

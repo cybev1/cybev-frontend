@@ -7,7 +7,7 @@ export default function App({ Component, pageProps }) {
     <>
       <Component {...pageProps} />
       <ToastContainer
-        position="top-right"
+        position="top-center"
         autoClose={3000}
         hideProgressBar={false}
         newestOnTop
@@ -16,6 +16,7 @@ export default function App({ Component, pageProps }) {
         draggable
         pauseOnHover
         theme="dark"
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
       />
     </>
   );

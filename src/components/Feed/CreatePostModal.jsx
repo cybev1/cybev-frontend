@@ -32,6 +32,17 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
     }
   }, []);
 
+  // Mobile UX: lock background scroll while modal is open
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (!isOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isOpen]);
+
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     
@@ -188,7 +199,7 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4"
         onClick={onClose}
       >
         <motion.div
@@ -196,10 +207,10 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.9, y: 20 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+          className="bg-white sm:rounded-3xl rounded-none shadow-2xl w-full sm:max-w-2xl h-[100dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
             <h2 className="text-2xl font-bold text-gray-900">Create Post</h2>
             <button
               onClick={onClose}
@@ -210,7 +221,7 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto ios-scroll p-4 sm:p-6">
             {/* User Info */}
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-lg">
@@ -237,7 +248,7 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="What's on your mind?"
-              className="w-full min-h-[200px] text-lg resize-none border-none focus:ring-0 focus:outline-none placeholder-gray-400"
+              className="w-full min-h-[160px] sm:min-h-[200px] text-lg resize-none border-none focus:ring-0 focus:outline-none placeholder-gray-400"
               maxLength={maxLength}
             />
 
@@ -331,7 +342,7 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
           </div>
 
           {/* Footer */}
-          <div className="p-6 border-t border-gray-200">
+          <div className="p-4 sm:p-6 border-t border-gray-200 bg-white/95 backdrop-blur sticky bottom-0">
             <button
               onClick={handleSubmit}
               disabled={loading || (!content.trim() && images.length === 0)}
