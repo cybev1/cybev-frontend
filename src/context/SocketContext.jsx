@@ -1,36 +1,36 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { io } from 'socket.io-client';
 
-const SocketContext = createContext(null);
+const SocketContext = createContext({ socket: null });
+
+function getAuthToken() {
+  if (typeof window === 'undefined') return null;
+  // Support both keys (we'll normalize later)
+  return localStorage.getItem('cybev_token') || localStorage.getItem('token');
+}
 
 export function SocketProvider({ children }) {
   const [socket, setSocket] = useState(null);
-  const [connected, setConnected] = useState(false);
-
-  const baseUrl = useMemo(() => {
-    return process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
-  }, []);
 
   useEffect(() => {
-    // Socket is optional in CYBEV right now (backend may not expose socket.io yet).
-    // We only attempt connection if a token exists.
-    if (typeof window === 'undefined') return;
+    const token = getAuthToken();
+    if (!token) {
+      // Not authenticated; don't connect
+      return;
+    }
 
-    const token = localStorage.getItem('token');
-    if (!token) return;
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!baseUrl) {
+      // Avoid throwing in build; just skip
+      return;
+    }
 
     const s = io(baseUrl, {
       transports: ['websocket'],
       auth: { token },
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000
     });
 
     setSocket(s);
-
-    s.on('connect', () => setConnected(true));
-    s.on('disconnect', () => setConnected(false));
 
     return () => {
       try {
@@ -39,10 +39,9 @@ export function SocketProvider({ children }) {
         // ignore
       }
     };
-  }, [baseUrl]);
+  }, []);
 
-  const value = useMemo(() => ({ socket, connected }), [socket, connected]);
-
+  const value = useMemo(() => ({ socket }), [socket]);
   return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
 }
 

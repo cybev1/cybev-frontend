@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import AppLayout from '@/components/Layout/AppLayout';
-import SuggestedUsers from '@/components/SuggestedUsers';
 import GreetingHeader from '@/components/Feed/GreetingHeader';
 import QuickActions from '@/components/Feed/QuickActions';
 import PostCard from '@/components/Feed/PostCard';
@@ -11,15 +10,13 @@ import {
   Wand2, Lightbulb, Sparkles, BarChart3, 
   Plus, FileText, Image as ImageIcon, DollarSign 
 } from 'lucide-react';
-import { authAPI, blogAPI, followAPI } from '@/lib/api';
+import { authAPI, blogAPI } from '@/lib/api';
 
 export default function UnifiedFeed() {
   const [activeTab, setActiveTab] = useState('for-you');
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [followingIds, setFollowingIds] = useState([]);
-  const [loadingFollowing, setLoadingFollowing] = useState(false);
   const [stats, setStats] = useState({
     views: 1234,
     virality: 95,
@@ -62,42 +59,7 @@ export default function UnifiedFeed() {
     }
   };
 
-
-  const fetchFollowingIds = async () => {
-    if (!user?.id) return;
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    if (!token) {
-      setFollowingIds([]);
-      return;
-    }
-
-    setLoadingFollowing(true);
-    try {
-      const { data } = await followAPI.getFollowing(user.id, { limit: 200, skip: 0 });
-      if (data?.ok) {
-        const ids = (data.following || []).map(u => String(u._id));
-        // include your own id so your posts show in Following
-        ids.push(String(user.id));
-        setFollowingIds(Array.from(new Set(ids)));
-      } else {
-        setFollowingIds([String(user.id)]);
-      }
-    } catch (err) {
-      console.error('Failed to fetch following list:', err);
-      setFollowingIds([String(user.id)]);
-    } finally {
-      setLoadingFollowing(false);
-    }
-  };
-
-  useEffect(() => {
-    if (activeTab === 'following' && user?.id) {
-      fetchFollowingIds();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, user?.id]);
-
-  const fetchPosts = async () => {
+  const fetchPosts = async (tab = activeTab) => {
     try {
       setLoading(true);
 
@@ -108,10 +70,13 @@ export default function UnifiedFeed() {
       
       console.log('🔍 Fetching posts and blogs from:', API_BASE);
 
+      // If user is on the "Following" tab, ask the backend for a following-only feed.
+      const scopeParam = tab === 'following' ? '&scope=following' : '';
+
       // Fetch both posts and blogs
       const [postsResponse, blogsResponse] = await Promise.all([
         // Fetch social posts
-        fetch(`${API_BASE}/posts/feed?limit=50`, {
+        fetch(`${API_BASE}/posts/feed?limit=50${scopeParam}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -243,24 +208,10 @@ export default function UnifiedFeed() {
         // Show all posts
         return posts;
       
-      case 'following': {
-        // Show posts/blogs only from accounts you follow (+ your own)
-        if (!user?.id) return [];
-        if (loadingFollowing) return [];
-        if (!followingIds || followingIds.length === 0) return [];
-
-        return posts.filter((p) => {
-          // social posts: authorId (may be populated object)
-          if (p.postType === 'social') {
-            const id = p.authorId?._id || p.authorId;
-            return id ? followingIds.includes(String(id)) : false;
-          }
-
-          // blogs/articles: author (populated) or authorId
-          const id = p.author?._id || p.authorId || p.author;
-          return id ? followingIds.includes(String(id)) : false;
-        });
-      }
+      case 'following':
+        // Show posts from people user follows (for now, show all)
+        // TODO: Implement following filter when backend supports it
+        return posts;
       
       case 'trending':
         // Show posts with high engagement
@@ -455,7 +406,7 @@ export default function UnifiedFeed() {
                       >
                         <div>
                           <div className="font-bold text-gray-800">{tag}</div>
-                          <div className="text-xs text-gray-600">10k+ posts</div>
+                          <div className="text-xs text-gray-600">{Math.floor(Math.random() * 10000)} posts</div>
                         </div>
                         <Hash className="w-4 h-4 text-purple-600" />
                       </motion.div>
@@ -464,7 +415,36 @@ export default function UnifiedFeed() {
                 </div>
 
                 {/* Suggested Creators */}
-                <SuggestedUsers />
+                <div className="bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-purple-100 p-6 shadow-xl">
+                  <h3 className="text-xl font-black text-gray-800 mb-4 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-blue-600" />
+                    Suggested Creators
+                  </h3>
+                  <div className="space-y-3">
+                    {['Sarah', 'Mike', 'Alex'].map((name, i) => (
+                      <motion.div
+                        key={name}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className="flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold shadow-lg">
+                            {name[0]}
+                          </div>
+                          <div>
+                            <div className="font-bold text-gray-800">@{name.toLowerCase()}</div>
+                            <div className="text-xs text-gray-600">Content Creator</div>
+                          </div>
+                        </div>
+                        <button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 rounded-xl text-sm font-bold text-white transition-all shadow-lg">
+                          Follow
+                        </button>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
 
                 {/* Live Streams */}
                 <div className="bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-purple-100 p-6 shadow-xl">

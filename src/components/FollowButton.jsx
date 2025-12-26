@@ -1,120 +1,89 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Loader2, UserCheck, UserPlus } from 'lucide-react';
+import { UserPlus, UserMinus, Loader2 } from 'lucide-react';
 import { followAPI } from '@/lib/api';
 
-function getCurrentUserId() {
-  if (typeof window === 'undefined') return null;
-  try {
-    const u = JSON.parse(localStorage.getItem('user') || 'null');
-    return u?._id || u?.id || null;
-  } catch {
-    return null;
-  }
-}
-
 /**
- * FollowButton
- * - Auth: expects token in localStorage (axios interceptor adds it)
- * - Backend: /api/follow/*
+ * Reusable Follow/Unfollow button.
+ *
+ * Props:
+ * - targetUserId (string)  : user ID to follow/unfollow
+ * - initialIsFollowing (boolean)
+ * - onChanged({ isFollowing }) (optional)
  */
 export default function FollowButton({
-  userId,
-  username = 'user',
-  size = 'md',
+  targetUserId,
+  initialIsFollowing = false,
+  onChanged,
   className = '',
-  initialFollowing = null,
-  onChange
+  size = 'md',
 }) {
-  const currentUserId = useMemo(() => getCurrentUserId(), []);
-  const [isFollowing, setIsFollowing] = useState(Boolean(initialFollowing));
+  const [isFollowing, setIsFollowing] = useState(!!initialIsFollowing);
   const [loading, setLoading] = useState(false);
-
-  // Hide for missing target or for self
-  if (!userId || (currentUserId && String(currentUserId) === String(userId))) {
-    return null;
-  }
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    let mounted = true;
+    setIsFollowing(!!initialIsFollowing);
+  }, [initialIsFollowing]);
 
-    const run = async () => {
-      if (typeof window === 'undefined') return;
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      try {
-        const { data } = await followAPI.checkFollowing(userId);
-        if (!mounted) return;
-        if (data?.ok) setIsFollowing(Boolean(data.isFollowing));
-      } catch (err) {
-        console.error('Failed to check follow status:', err);
-      }
+  const ui = useMemo(() => {
+    const base =
+      'inline-flex items-center justify-center gap-2 rounded-xl border transition px-3 py-2 text-sm font-medium';
+    const sizes = {
+      sm: 'px-2 py-1 text-xs',
+      md: 'px-3 py-2 text-sm',
+      lg: 'px-4 py-2.5 text-base',
     };
+    const variant = isFollowing
+      ? 'bg-white/10 border-white/20 hover:bg-white/15'
+      : 'bg-white text-black border-white hover:bg-white/90';
+    return `${base} ${sizes[size] || sizes.md} ${variant} ${className}`;
+  }, [className, isFollowing, size]);
 
-    run();
-    return () => {
-      mounted = false;
-    };
-  }, [userId]);
-
-  const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-5 py-2.5 text-base'
-  };
-
-  const handleToggle = async () => {
-    if (typeof window === 'undefined') return;
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('Please login to follow users');
-      return;
-    }
-
+  const toggle = async () => {
+    if (!targetUserId || loading) return;
     setLoading(true);
+    setError('');
+
     try {
       if (isFollowing) {
-        await followAPI.unfollowUser(userId);
+        await followAPI.unfollow(targetUserId);
         setIsFollowing(false);
-        onChange?.(false);
+        onChanged?.({ isFollowing: false });
       } else {
-        await followAPI.followUser(userId);
+        await followAPI.follow(targetUserId);
         setIsFollowing(true);
-        onChange?.(true);
+        onChanged?.({ isFollowing: true });
       }
-    } catch (err) {
-      console.error('Follow action failed:', err);
-      const msg = err?.response?.data?.error || 'Failed to update follow status';
-      alert(msg);
+    } catch (e) {
+      console.error(e);
+      setError('Could not update follow. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <button
-      onClick={handleToggle}
-      disabled={loading}
-      className={[
-        'inline-flex items-center gap-2 rounded-xl font-bold transition-all shadow-lg',
-        isFollowing
-          ? 'bg-white text-gray-900 border-2 border-purple-200 hover:bg-gray-50'
-          : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:opacity-90',
-        sizeClasses[size] || sizeClasses.md,
-        loading ? 'opacity-70 cursor-not-allowed' : '',
-        className
-      ].join(' ')}
-      title={isFollowing ? `Unfollow @${username}` : `Follow @${username}`}
-      type="button"
-    >
-      {loading ? (
-        <Loader2 className="w-4 h-4 animate-spin" />
-      ) : isFollowing ? (
-        <UserCheck className="w-4 h-4" />
-      ) : (
-        <UserPlus className="w-4 h-4" />
-      )}
-      <span>{isFollowing ? 'Following' : 'Follow'}</span>
-    </button>
+    <div className="inline-flex flex-col items-start">
+      <button type="button" onClick={toggle} className={ui} disabled={loading}>
+        {loading ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>...</span>
+          </>
+        ) : isFollowing ? (
+          <>
+            <UserMinus className="h-4 w-4" />
+            <span>Following</span>
+          </>
+        ) : (
+          <>
+            <UserPlus className="h-4 w-4" />
+            <span>Follow</span>
+          </>
+        )}
+      </button>
+
+      {error ? <div className="mt-1 text-xs text-red-300">{error}</div> : null}
+    </div>
   );
 }
