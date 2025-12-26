@@ -131,8 +131,6 @@ export default function BlogDetail() {
     if (navigator.share) {
       try {
         await navigator.share(shareData);
-	        // Best-effort: track shares on backend
-	        try { await blogAPI.share(id); } catch (e) {}
         toast.success('Shared successfully!');
       } catch (error) {
         copyToClipboard();
@@ -142,10 +140,8 @@ export default function BlogDetail() {
     }
   };
 
-	  const copyToClipboard = () => {
+  const copyToClipboard = () => {
     navigator.clipboard.writeText(window.location.href);
-	    // Best-effort: track shares on backend
-	    blogAPI.share(id).catch(() => {});
     toast.success('Link copied to clipboard!');
   };
 
@@ -250,13 +246,12 @@ export default function BlogDetail() {
                 <span className="font-medium">{likeCount}</span>
               </button>
 
-              <button
-                onClick={handleShare}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-all border border-gray-200"
-              >
-                <Share2 className="w-4 h-4" />
-                <span className="font-medium">Share</span>
-              </button>
+				<SocialShare
+					compact
+					blogId={blog?._id}
+					title={blog?.title}
+					description={blog?.excerpt || blog?.summary || ''}
+				/>
 
               <button
                 onClick={handleBookmark}
