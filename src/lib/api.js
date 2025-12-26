@@ -82,7 +82,6 @@ export const blogAPI = {
   updateBlog: (id, data) => api.put(`/blogs/${id}`, data),
   deleteBlog: (id) => api.delete(`/blogs/${id}`),
   toggleLike: (id) => api.post(`/blogs/${id}/like`),
-  share: (id) => api.post(`/blogs/${id}/share`),
   getMyBlogs: () => api.get('/blogs/my-blogs'),
   getStats: () => api.get('/blogs/stats'),
   getTrendingBlogs: () => api.get('/blogs/trending'),
@@ -177,6 +176,13 @@ export const domainAPI = {
   verifyDomain: (domain) => api.post('/api/domain/verify', { domain }),
   getDomainStatus: () => api.get('/api/domain/status'),
   removeDomain: () => api.delete('/api/domain/remove')
+};
+
+// ========== BLOG SITE APIs (Has /api prefix) ==========
+export const blogSiteAPI = {
+  getMine: () => api.get('/api/blogsite/me'),
+  upsertMine: (data) => api.put('/api/blogsite/me', data),
+  getByUser: (userId) => api.get(`/api/blogsite/${userId}`)
 };
 
 // ========== UPLOAD APIs (Has /api prefix) ==========
