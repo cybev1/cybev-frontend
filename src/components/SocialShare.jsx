@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Share2, Twitter, Facebook, Linkedin, Link as LinkIcon, Check } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { blogAPI } from '../lib/api';
 
 export default function SocialShare({ 
   url, 
   title, 
   description,
+  blogId,
   hashtags = ['CYBEV', 'blogging'],
   compact = false 
 }) {
@@ -30,6 +32,11 @@ export default function SocialShare({
       setCopied(true);
       toast.success('Link copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
+
+      // Track share on backend (best-effort)
+      if (blogId) {
+        blogAPI.share(blogId).catch(() => {});
+      }
     } catch (error) {
       toast.error('Failed to copy link');
     }
@@ -49,6 +56,11 @@ export default function SocialShare({
       copyToClipboard();
     } else {
       window.open(socialLinks[platform], '_blank', 'width=600,height=400');
+
+      // Track share on backend (best-effort)
+      if (blogId) {
+        blogAPI.share(blogId).catch(() => {});
+      }
     }
     
     setShowMenu(false);
@@ -63,6 +75,11 @@ export default function SocialShare({
           url: shareUrl
         });
         toast.success('Shared successfully!');
+
+        // Track share on backend (best-effort)
+        if (blogId) {
+          blogAPI.share(blogId).catch(() => {});
+        }
       } catch (error) {
         if (error.name !== 'AbortError') {
           setShowMenu(true);

@@ -82,6 +82,7 @@ export const blogAPI = {
   updateBlog: (id, data) => api.put(`/blogs/${id}`, data),
   deleteBlog: (id) => api.delete(`/blogs/${id}`),
   toggleLike: (id) => api.post(`/blogs/${id}/like`),
+  share: (id) => api.post(`/blogs/${id}/share`),
   getMyBlogs: () => api.get('/blogs/my-blogs'),
   getStats: () => api.get('/blogs/stats'),
   getTrendingBlogs: () => api.get('/blogs/trending'),
