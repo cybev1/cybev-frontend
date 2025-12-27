@@ -1,23 +1,116 @@
-export default function NotificationPanel() {
-  const notifications = [
-    { id: 1, type: 'like', text: 'Jane liked your post.', time: '2h ago' },
-    { id: 2, type: 'follow', text: 'Chris started following you.', time: '3h ago' },
-    { id: 3, type: 'comment', text: 'Prince commented on your post.', time: '4h ago' },
-  ];
+// ============================================
+// FILE: utils/notifications.js
+// Safe wrapper for notifications utility
+// ============================================
 
-  return (
-    <div className="space-y-4">
-      {notifications.map((note) => (
-        <div key={note.id} className="p-4 bg-white dark:bg-gray-800 rounded-2xl shadow flex justify-between items-center">
-          <div className="text-sm text-gray-700 dark:text-gray-200">
-            <p>{note.text}</p>
-            <span className="text-xs text-gray-500">{note.time}</span>
-          </div>
-          <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-lg capitalize">
-            {note.type}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
+// This module is intentionally defensive: notifications should never crash the API.
+
+let Notification;
+let emitNotification;
+
+/**
+ * Create a notification.
+ *
+ * Supported call styles:
+ * 1) createNotification({ recipient, sender, type, message, targetModel?, target? })
+ * 2) createNotification(recipientId, type, message, extra?)
+ */
+let createNotification;
+let sendNotification;
+
+try {
+  Notification = require('../models/notification.model');
+  
+  // Try to load socket emitter
+  try {
+    const socket = require('../socket');
+    emitNotification = socket.emitNotification;
+  } catch (e) {
+    console.log('⚠️ Socket not available for notifications');
+    emitNotification = () => {};
+  }
+
+  createNotification = async (arg1, type, message, extra = {}) => {
+    try {
+      const payload =
+        arg1 && typeof arg1 === 'object'
+          ? { ...arg1 }
+          : {
+              recipient: arg1,
+              type,
+              message,
+              ...extra
+            };
+
+      // Back-compat: if callers pass { user: <id> } use it as recipient.
+      if (!payload.recipient && payload.user) payload.recipient = payload.user;
+
+      if (!payload.recipient || !payload.type || !payload.message) {
+        console.log('⚠️ Notification not created (missing fields):', {
+          hasRecipient: !!payload.recipient,
+          hasType: !!payload.type,
+          hasMessage: !!payload.message
+        });
+        return null;
+      }
+
+      const notification = new Notification({
+        recipient: payload.recipient,
+        sender: payload.sender,
+        type: payload.type,
+        message: payload.message,
+        entityId: payload.entityId || payload.targetModel,
+        entityModel: payload.entityModel || payload.target,
+        isRead: false
+      });
+
+      await notification.save();
+      
+      // Emit real-time notification via socket
+      if (emitNotification) {
+        emitNotification(payload.recipient.toString(), {
+          _id: notification._id,
+          type: notification.type,
+          message: notification.message,
+          sender: payload.sender,
+          createdAt: notification.createdAt
+        });
+      }
+      
+      return notification;
+    } catch (error) {
+      console.log('⚠️ Could not create notification:', error.message);
+      return null;
+    }
+  };
+
+  sendNotification = async (...args) => createNotification(...args);
+
+  console.log('✅ Notifications utility loaded');
+} catch (error) {
+  console.log('⚠️ Notification model failed to load - using mock functions');
+  console.log('   Error:', error.message);
+  console.log('   Notifications will be logged but not saved');
+
+  createNotification = async (arg1, type, message, extra = {}) => {
+    const payload =
+      arg1 && typeof arg1 === 'object'
+        ? { ...arg1 }
+        : {
+            recipient: arg1,
+            type,
+            message,
+            ...extra
+          };
+
+    const recipient = payload.recipient || payload.user;
+    console.log(
+      `📧 [MOCK] Notification: ${payload.type || type} - ${payload.message || message} for user ${recipient}`
+    );
+    return { ...payload, recipient, read: false, _id: 'mock-' + Date.now() };
+  };
+
+  sendNotification = async (...args) => createNotification(...args);
 }
+
+module.exports = { createNotification, sendNotification, Notification };
