@@ -88,7 +88,8 @@ export const blogAPI = {
   getStats: () => api.get('/blogs/stats'),
   getTrendingBlogs: () => api.get('/blogs/trending'),
   getTrendingTags: () => api.get('/blogs/trending-tags'),
-  search: (params) => api.get('/blogs/search', { params })
+  search: (params) => api.get('/blogs/search', { params }),
+  trackShare: (id, platform) => api.post(`/blogs/${id}/share`, { platform })
 };
 
 // ========== CONTENT CREATION APIs (Has /api prefix) ==========
