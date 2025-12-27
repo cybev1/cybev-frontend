@@ -100,7 +100,7 @@ export default function Dashboard() {
                   View Feed
                 </button>
               </Link>
-              <Link href="/create-blog">
+              <Link href="/post/create">
                 <button className="bg-white/10 backdrop-blur-sm text-white border border-white/20 px-6 py-3 rounded-xl font-semibold hover:bg-white/20 transition-all duration-300 flex items-center gap-2">
                   <Plus className="w-5 h-5" />
                   New Post
@@ -184,7 +184,7 @@ export default function Dashboard() {
               <BookOpen className="w-16 h-16 text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">No posts yet</h3>
               <p className="text-gray-400 mb-6">Start creating content to see it here</p>
-              <Link href="/create-blog">
+              <Link href="/blog/create">
                 <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300">
                   Create Your First Post
                 </button>

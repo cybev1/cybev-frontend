@@ -178,13 +178,6 @@ export const domainAPI = {
   removeDomain: () => api.delete('/api/domain/remove')
 };
 
-// ========== BLOG SITE APIs (Has /api prefix) ==========
-export const blogSiteAPI = {
-  getMine: () => api.get('/api/blogsite/me'),
-  upsertMine: (data) => api.put('/api/blogsite/me', data),
-  getByUser: (userId) => api.get(`/api/blogsite/${userId}`)
-};
-
 // ========== UPLOAD APIs (Has /api prefix) ==========
 export const uploadAPI = {
   uploadImage: (formData) => {
@@ -201,4 +194,14 @@ export const uploadAPI = {
       },
     });
   },
+};
+
+
+// Blog Sites (public + creator)
+export const blogSiteAPI = {
+  create: (data) => api.post('/sites', data),
+  mySites: () => api.get('/sites/my'),
+  update: (id, data) => api.put(`/sites/${id}`, data),
+  getPublic: (slug) => api.get(`/sites/public/${slug}`),
+  getPublicPosts: (slug, params = {}) => api.get(`/sites/public/${slug}/posts`, { params }),
 };

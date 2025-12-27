@@ -19,6 +19,7 @@ import 'react-quill/dist/quill.snow.css';
 
 export default function CreateBlog() {
   const router = useRouter();
+  const siteId = typeof router.query.site === 'string' ? router.query.site : null;
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState(''); // NEW: Meta description/excerpt
   const [content, setContent] = useState('');
@@ -122,6 +123,7 @@ export default function CreateBlog() {
       }
 
       const blogData = {
+        siteId: siteId || null,
         authorName: JSON.parse(localStorage.getItem("user"))?.name || "User",
         title,
         content,

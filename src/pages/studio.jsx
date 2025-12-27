@@ -51,73 +51,91 @@ export default function Studio() {
 
   // Creation options that ACTUALLY WORK
   const creationOptions = [
-    {
-      id: 'blog',
-      title: 'Blog Post',
-      description: 'Write and publish articles instantly',
-      icon: FileText,
-      gradient: 'from-blue-500 via-cyan-500 to-teal-500',
-      badge: 'Working Now',
-      earnings: '50 coins',
-      route: '/blog/create',
-      available: true
-    },
-    {
-      id: 'ai-blog',
-      title: 'AI Blog Generator',
-      description: 'Generate complete blogs with AI, SEO & images',
-      icon: Wand2,
-      gradient: 'from-purple-500 via-pink-500 to-rose-500',
-      badge: 'AI Powered',
-      earnings: '50 coins',
-      route: '/studio/ai-blog',
-      available: true
-    },
-    {
-      id: 'landing',
-      title: 'Landing Page',
-      description: 'Build high-converting pages',
-      icon: Rocket,
-      gradient: 'from-orange-500 via-red-500 to-pink-500',
-      badge: 'Coming Soon',
-      earnings: '75 coins',
-      route: '#',
-      available: false
-    },
-    {
-      id: 'portfolio',
-      title: 'Portfolio Site',
-      description: 'Showcase your work professionally',
-      icon: Briefcase,
-      gradient: 'from-indigo-500 via-purple-500 to-pink-500',
-      badge: 'Coming Soon',
-      earnings: '80 coins',
-      route: '#',
-      available: false
-    },
-    {
-      id: 'store',
-      title: 'Online Store',
-      description: 'Create an e-commerce website',
-      icon: ShoppingBag,
-      gradient: 'from-green-500 via-emerald-500 to-teal-500',
-      badge: 'Coming Soon',
-      earnings: '120 coins',
-      route: '#',
-      available: false
-    },
-    {
-      id: 'course',
-      title: 'Course Platform',
-      description: 'Build educational content sites',
-      icon: GraduationCap,
-      gradient: 'from-yellow-500 via-orange-500 to-red-500',
-      badge: 'Coming Soon',
-      earnings: '100 coins',
-      route: '#',
-      available: false
-    }
-  ];
+  {
+    id: 'ai-blog',
+    title: 'AI Blog Generator',
+    description: 'Generate a full blog post from a title + key points.',
+    icon: Sparkles,
+    route: '/studio/ai-blog',
+    available: true,
+    badge: 'AI'
+  },
+  {
+    id: 'create-blog-post',
+    title: 'Create Blog Post',
+    description: 'Write and publish to your blog site.',
+    icon: FileText,
+    route: '/blog/create',
+    available: true
+  },
+  {
+    id: 'create-social-post',
+    title: 'Create Social Post',
+    description: 'Post to the CYBEV social feed (text + media).',
+    icon: Zap,
+    route: '/post/create',
+    available: true
+  },
+  {
+    id: 'blog-templates',
+    title: 'Blog Templates',
+    description: 'Pick a template and launch your blog site.',
+    icon: Layout,
+    route: '/blog/templates',
+    available: true
+  },
+  {
+    id: 'blog-builder',
+    title: 'Blog Site Builder',
+    description: 'Create or update your blog site (layout, branding, domain).',
+    icon: BookOpen,
+    route: '/studio/blogsite',
+    available: true
+  },
+  {
+    id: 'feed',
+    title: 'Social Feed',
+    description: 'Your follow feed + for-you discovery.',
+    icon: Users,
+    route: '/feed',
+    available: true
+  },
+  {
+    id: 'dashboard',
+    title: 'Dashboard',
+    description: 'Analytics, activity, and quick actions.',
+    icon: BarChart3,
+    route: '/dashboard',
+    available: true
+  },
+  {
+    id: 'my-blogs',
+    title: 'Blogs',
+    description: 'Browse blogs and manage your posts.',
+    icon: Crown,
+    route: '/blog',
+    available: true
+  },
+  {
+    id: 'monetization',
+    title: 'Monetization Suite',
+    description: 'Subscriptions, paywalls, gifts & offerings (coming soon).',
+    icon: Coins,
+    route: '#',
+    available: false,
+    badge: 'Soon'
+  },
+  {
+    id: 'growth',
+    title: 'Growth Tools',
+    description: 'SEO assistant, share packs, and engagement boosts (coming soon).',
+    icon: TrendingUp,
+    route: '#',
+    available: false,
+    badge: 'Soon'
+  }
+];
+
 
   const quickActions = [
     {
@@ -128,7 +146,7 @@ export default function Studio() {
       color: 'blue'
     },
     {
-      title: 'My Blogs',
+      title: 'Blogs',
       description: 'View your published content',
       icon: FileText,
       route: '/blog?filter=my',
