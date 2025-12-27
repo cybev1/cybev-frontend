@@ -77,9 +77,11 @@ export default function AppLayout({ children }) {
             {/* Right Side Actions */}
             <div className="hidden md:flex items-center gap-3">
               {/* Search */}
-              <button className="p-2 hover:bg-purple-500/10 rounded-lg transition-colors">
-                <Search className="w-5 h-5 text-gray-400" />
-              </button>
+              <Link href="/search">
+                <button className="p-2 hover:bg-purple-500/10 rounded-lg transition-colors">
+                  <Search className="w-5 h-5 text-gray-400" />
+                </button>
+              </Link>
 
               {/* Notifications */}
               <NotificationBell />
@@ -147,10 +149,15 @@ export default function AppLayout({ children }) {
 
               {/* Mobile Actions */}
               <div className="pt-4 border-t border-purple-500/20 space-y-2">
-                <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-purple-500/10">
-                  <Search className="w-5 h-5" />
-                  <span>Search</span>
-                </button>
+                <Link href="/search">
+                  <button 
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-purple-500/10"
+                  >
+                    <Search className="w-5 h-5" />
+                    <span>Search</span>
+                  </button>
+                </Link>
                 <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-purple-500/10">
                   <Bell className="w-5 h-5" />
                   <span>Notifications</span>
