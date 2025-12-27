@@ -76,6 +76,26 @@ export const authAPI = {
   getUserByUsername: (username) => api.get(`/api/auth/user/${username}`)
 };
 
+// ========== ADMIN APIs ==========
+export const adminAPI = {
+  // Stats
+  getStats: () => api.get('/api/admin/stats'),
+  getReports: (period) => api.get('/api/admin/reports', { params: { period } }),
+  
+  // Users
+  getUsers: (params) => api.get('/api/admin/users', { params }),
+  getUser: (id) => api.get(`/api/admin/users/${id}`),
+  updateUser: (id, data) => api.put(`/api/admin/users/${id}`, data),
+  deleteUser: (id, deleteContent) => api.delete(`/api/admin/users/${id}`, { params: { deleteContent } }),
+  
+  // Content Moderation
+  getContent: (params) => api.get('/api/admin/content', { params }),
+  moderateContent: (type, id, action, reason) => api.put(`/api/admin/content/${type}/${id}`, { action, reason }),
+  
+  // Broadcast
+  broadcast: (message, type) => api.post('/api/admin/broadcast', { message, type })
+};
+
 // ========== BLOG APIs (NO /api prefix) ==========
 export const blogAPI = {
   getBlogs: (params) => api.get('/blogs', { params }),
