@@ -72,6 +72,8 @@ export const authAPI = {
   getProfile: () => api.get('/api/auth/profile'),
   updateProfile: (data) => api.put('/api/auth/profile', data),
   completeOnboarding: (data) => api.put('/api/auth/complete-onboarding', data),
+  searchUsers: (params) => api.get('/api/auth/search', { params }),
+  getUserByUsername: (username) => api.get(`/api/auth/user/${username}`)
 };
 
 // ========== BLOG APIs (NO /api prefix) ==========
@@ -85,7 +87,8 @@ export const blogAPI = {
   getMyBlogs: () => api.get('/blogs/my-blogs'),
   getStats: () => api.get('/blogs/stats'),
   getTrendingBlogs: () => api.get('/blogs/trending'),
-  getTrendingTags: () => api.get('/blogs/trending-tags')
+  getTrendingTags: () => api.get('/blogs/trending-tags'),
+  search: (params) => api.get('/blogs/search', { params })
 };
 
 // ========== CONTENT CREATION APIs (Has /api prefix) ==========
