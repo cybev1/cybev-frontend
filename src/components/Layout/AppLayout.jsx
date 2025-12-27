@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import NotificationBell from '@/components/notificationBell';
+import MobileBottomNav from '@/components/MobileBottomNav';
 
 export default function AppLayout({ children }) {
   const router = useRouter();
@@ -178,9 +179,12 @@ export default function AppLayout({ children }) {
       </nav>
 
       {/* Main Content */}
-      <main>
+      <main className="pb-20 md:pb-0">
         {children}
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav />
     </div>
   );
 }
