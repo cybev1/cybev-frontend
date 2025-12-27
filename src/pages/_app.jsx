@@ -1,10 +1,11 @@
 import '../styles/globals.css';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
+import { SocketProvider } from '@/context/SocketContext';
 
 export default function App({ Component, pageProps }) {
   return (
-    <>
+    <SocketProvider>
       <Component {...pageProps} />
       <ToastContainer
         position="top-right"
@@ -17,6 +18,6 @@ export default function App({ Component, pageProps }) {
         pauseOnHover
         theme="dark"
       />
-    </>
+    </SocketProvider>
   );
 }
