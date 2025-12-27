@@ -1,50 +1,63 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { io } from 'socket.io-client';
+// ============================================
+// FILE: server/socket.js
+// ============================================
+const socketIo = require('socket.io');
 
-const SocketContext = createContext({ socket: null });
+let io;
 
-function getAuthToken() {
-  if (typeof window === 'undefined') return null;
-  // Support both keys (we'll normalize later)
-  return localStorage.getItem('cybev_token') || localStorage.getItem('token');
-}
+function initializeSocket(server) {
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://cybev.io',
+    'https://www.cybev.io',
+    process.env.CLIENT_URL
+  ].filter(Boolean);
 
-export function SocketProvider({ children }) {
-  const [socket, setSocket] = useState(null);
-
-  useEffect(() => {
-    const token = getAuthToken();
-    if (!token) {
-      // Not authenticated; don't connect
-      return;
+  io = socketIo(server, {
+    cors: {
+      origin: allowedOrigins,
+      credentials: true,
+      methods: ['GET', 'POST']
     }
+  });
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!baseUrl) {
-      // Avoid throwing in build; just skip
-      return;
-    }
+  io.on('connection', (socket) => {
+    console.log('✅ Socket connected:', socket.id);
 
-    const s = io(baseUrl, {
-      transports: ['websocket'],
-      auth: { token },
+    socket.on('join', (userId) => {
+      socket.join(`user:${userId}`);
+      console.log(`👤 User ${userId} joined their room`);
     });
 
-    setSocket(s);
+    socket.on('leave', (userId) => {
+      socket.leave(`user:${userId}`);
+      console.log(`👋 User ${userId} left their room`);
+    });
 
-    return () => {
-      try {
-        s.disconnect();
-      } catch {
-        // ignore
-      }
-    };
-  }, []);
+    socket.on('disconnect', () => {
+      console.log('👋 Socket disconnected:', socket.id);
+    });
+  });
 
-  const value = useMemo(() => ({ socket }), [socket]);
-  return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
+  console.log('🔌 Socket.io initialized');
+  return io;
 }
 
-export function useSocket() {
-  return useContext(SocketContext);
+function getIO() {
+  return io;
 }
+
+function emitNotification(userId, notification) {
+  if (io) {
+    io.to(`user:${userId}`).emit('notification', notification);
+    console.log(`📤 Notification sent to user:${userId}`);
+  }
+}
+
+function emitToUser(userId, event, data) {
+  if (io) {
+    io.to(`user:${userId}`).emit(event, data);
+  }
+}
+
+module.exports = { initializeSocket, getIO, emitNotification, emitToUser };
