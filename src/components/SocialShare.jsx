@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Share2, Twitter, Facebook, Linkedin, Link as LinkIcon, Check } from 'lucide-react';
+import { Share2, Twitter, Facebook, Linkedin, Link as LinkIcon, Check, MessageCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { blogAPI } from '../lib/api';
 
@@ -19,11 +19,23 @@ export default function SocialShare({
   const encodedTitle = encodeURIComponent(title || '');
   const encodedDescription = encodeURIComponent(description || '');
   const encodedHashtags = hashtags.join(',');
+  const whatsappText = encodeURIComponent(`${title || ''}\n\n${description || ''}\n\n${shareUrl}`);
 
   const socialLinks = {
     twitter: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}&hashtags=${encodedHashtags}`,
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
     linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+    whatsapp: `https://wa.me/?text=${whatsappText}`,
+  };
+
+  const trackShare = async (platform) => {
+    try {
+      if (blogId) {
+        await blogAPI.trackShare(blogId, platform);
+      }
+    } catch (e) {
+      // Best effort - don't fail on tracking errors
+    }
   };
 
   const copyToClipboard = async () => {
@@ -32,11 +44,7 @@ export default function SocialShare({
       setCopied(true);
       toast.success('Link copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
-
-      // Track share on backend (best-effort)
-      if (blogId) {
-        blogAPI.share(blogId).catch(() => {});
-      }
+      trackShare('copy');
     } catch (error) {
       toast.error('Failed to copy link');
     }
@@ -56,11 +64,7 @@ export default function SocialShare({
       copyToClipboard();
     } else {
       window.open(socialLinks[platform], '_blank', 'width=600,height=400');
-
-      // Track share on backend (best-effort)
-      if (blogId) {
-        blogAPI.share(blogId).catch(() => {});
-      }
+      trackShare(platform);
     }
     
     setShowMenu(false);
@@ -75,11 +79,7 @@ export default function SocialShare({
           url: shareUrl
         });
         toast.success('Shared successfully!');
-
-        // Track share on backend (best-effort)
-        if (blogId) {
-          blogAPI.share(blogId).catch(() => {});
-        }
+        trackShare('native');
       } catch (error) {
         if (error.name !== 'AbortError') {
           setShowMenu(true);
@@ -133,6 +133,14 @@ export default function SocialShare({
               </button>
               
               <button
+                onClick={() => handleShare('whatsapp')}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+              >
+                <MessageCircle className="w-5 h-5 text-green-500" />
+                <span className="text-gray-700 font-medium">WhatsApp</span>
+              </button>
+              
+              <button
                 onClick={() => handleShare('copy')}
                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left border-t border-gray-100"
               >
@@ -179,6 +187,14 @@ export default function SocialShare({
         >
           <Linkedin className="w-4 h-4" />
           <span className="font-medium">LinkedIn</span>
+        </button>
+
+        <button
+          onClick={() => handleShare('whatsapp')}
+          className="flex items-center gap-2 px-4 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-all border border-green-200"
+        >
+          <MessageCircle className="w-4 h-4" />
+          <span className="font-medium">WhatsApp</span>
         </button>
 
         <button
