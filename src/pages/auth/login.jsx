@@ -70,25 +70,40 @@ export default function Login() {
 
       console.log('✅ Login response:', response.data);
 
-      if (response.data.success) {
+      // FIX: Check for both 'ok' and 'success' responses
+      if (response.data.ok || response.data.success) {
         // Store token and user data
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        const token = response.data.token;
+        const user = response.data.user;
+        
+        localStorage.setItem('token', token);
+        localStorage.setItem('cybev_token', token); // Also set cybev_token for SocketContext
+        localStorage.setItem('user', JSON.stringify(user));
 
         toast.success('Login successful!');
 
+        // Check if user is admin - redirect to admin dashboard
+        if (user.role === 'admin' || user.isAdmin) {
+          console.log('👑 Admin user detected');
+        }
+
         // Check if user has completed onboarding
-        if (response.data.user.hasCompletedOnboarding) {
+        if (user.hasCompletedOnboarding) {
           console.log('✅ User has completed onboarding - redirecting to feed');
-          router.push('/feed'); // Changed from /dashboard to /feed
+          router.push('/feed');
         } else {
           console.log('📝 User needs onboarding - redirecting to onboarding');
           router.push('/onboarding');
         }
+      } else {
+        // Handle case where response doesn't have ok or success
+        const errorMessage = response.data.message || response.data.error || 'Login failed';
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err) {
       console.error('❌ Login error:', err);
-      const errorMessage = err.response?.data?.message || 'Login failed. Please check your credentials.';
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Login failed. Please check your credentials.';
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -104,7 +119,7 @@ export default function Login() {
     try {
       const response = await authAPI.forgotPassword(resetEmail);
       
-      if (response.data.success) {
+      if (response.data.ok || response.data.success) {
         setResetSent(true);
         toast.success('Password reset link sent! Check your email.');
         
@@ -202,7 +217,7 @@ export default function Login() {
                     Email or Username
                   </label>
                   <div className="relative">
-                    <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="text"
                       value={formData.email}
