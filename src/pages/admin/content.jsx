@@ -10,7 +10,7 @@ import { adminAPI } from '@/lib/api';
 import { 
   FileText, MessageCircle, Flag, Trash2, Eye, EyeOff,
   ChevronLeft, ChevronRight, RefreshCw, AlertTriangle,
-  Check, X, Filter, Clock, User
+  Check, X, Filter, Clock, User, Shield, LogIn, Loader2
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -24,21 +24,42 @@ export default function AdminContent() {
   const [showModal, setShowModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [moderationReason, setModerationReason] = useState('');
+  const [authState, setAuthState] = useState('checking');
 
   useEffect(() => {
     checkAdminAccess();
   }, []);
 
   useEffect(() => {
-    fetchContent();
-  }, [pagination.page, filters]);
+    if (authState === 'authenticated') {
+      fetchContent();
+    }
+  }, [authState, pagination.page, filters]);
 
   const checkAdminAccess = () => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (!user.role || user.role !== 'admin') {
-      toast.error('Admin access required');
-      router.push('/');
-      return;
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      const userStr = localStorage.getItem('user');
+      
+      if (!token || !userStr) {
+        setAuthState('not-logged-in');
+        setLoading(false);
+        return;
+      }
+
+      const user = JSON.parse(userStr);
+      
+      if (user.role !== 'admin' && !user.isAdmin) {
+        setAuthState('not-admin');
+        setLoading(false);
+        return;
+      }
+
+      setAuthState('authenticated');
+    } catch (error) {
+      console.error('Auth check error:', error);
+      setAuthState('not-logged-in');
+      setLoading(false);
     }
   };
 
@@ -53,7 +74,7 @@ export default function AdminContent() {
       });
 
       if (response.data.ok) {
-        setContent(response.data.content);
+        setContent(response.data.content || response.data.blogs || []);
         if (response.data.pagination) {
           setPagination(prev => ({
             ...prev,
@@ -75,7 +96,7 @@ export default function AdminContent() {
     setActionLoading(true);
     try {
       await adminAPI.moderateContent(
-        selectedItem.contentType,
+        selectedItem.contentType || 'blog',
         selectedItem._id,
         action,
         moderationReason
@@ -102,13 +123,13 @@ export default function AdminContent() {
   };
 
   const getContentPreview = (item) => {
-    if (item.contentType === 'blog') {
+    if (item.contentType === 'blog' || item.title) {
       return item.title || 'Untitled Blog';
     }
     if (item.contentType === 'comment') {
       return item.content?.substring(0, 100) || 'No content';
     }
-    return item.content?.substring(0, 100) || item.text?.substring(0, 100) || 'No preview';
+    return item.content?.substring(0, 100) || item.text?.substring(0, 100) || item.title || 'No preview';
   };
 
   const getTypeIcon = (type) => {
@@ -127,6 +148,55 @@ export default function AdminContent() {
     }
   };
 
+  // Not logged in
+  if (authState === 'not-logged-in') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
+        <div className="text-center p-8 bg-gray-800/50 rounded-2xl border border-purple-500/30 max-w-md">
+          <Shield className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-white mb-2">Admin Access</h1>
+          <p className="text-gray-400 mb-6">Please log in to access content moderation</p>
+          <Link href="/auth/login">
+            <button className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors mx-auto">
+              <LogIn className="w-5 h-5" />
+              Go to Login
+            </button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Not admin
+  if (authState === 'not-admin') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
+        <div className="text-center p-8 bg-gray-800/50 rounded-2xl border border-red-500/30 max-w-md">
+          <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
+          <p className="text-gray-400 mb-6">You don't have admin privileges</p>
+          <Link href="/feed">
+            <button className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+              Go to Feed
+            </button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Still checking
+  if (authState === 'checking') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-purple-500 mx-auto mb-4" />
+          <p className="text-gray-400">Checking access...</p>
+        </div>
+      </div>
+    );
+  }
+
   const ContentCard = ({ item }) => (
     <div className={`bg-gray-800/30 rounded-xl p-5 border transition-all ${
       item.isFlagged 
@@ -139,9 +209,9 @@ export default function AdminContent() {
         <div className="flex-1 min-w-0">
           {/* Type Badge */}
           <div className="flex items-center gap-2 mb-2">
-            <span className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${getTypeColor(item.contentType)}`}>
-              {getTypeIcon(item.contentType)}
-              {item.contentType}
+            <span className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${getTypeColor(item.contentType || 'blog')}`}>
+              {getTypeIcon(item.contentType || 'blog')}
+              {item.contentType || 'blog'}
             </span>
             {item.isFlagged && (
               <span className="flex items-center gap-1 px-2 py-1 bg-red-500/20 text-red-300 rounded text-xs font-medium">
@@ -166,13 +236,13 @@ export default function AdminContent() {
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <span className="flex items-center gap-1">
               <User className="w-3 h-3" />
-              {item.author?.username || item.authorName || 'Unknown'}
+              {item.author?.username || item.authorName || item.author?.name || 'Unknown'}
             </span>
             <span className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
-              {new Date(item.createdAt).toLocaleDateString()}
+              {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
             </span>
-            {item.contentType === 'blog' && (
+            {(item.contentType === 'blog' || item.views !== undefined) && (
               <span className="flex items-center gap-1">
                 <Eye className="w-3 h-3" />
                 {item.views || 0} views
@@ -194,12 +264,12 @@ export default function AdminContent() {
         {/* Actions */}
         <div className="flex flex-col gap-2">
           <button
-            onClick={() => { setSelectedItem(item); setShowModal(true); }}
+            onClick={() => { setSelectedItem({...item, contentType: item.contentType || 'blog'}); setShowModal(true); }}
             className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm transition-colors"
           >
             Moderate
           </button>
-          {item.contentType === 'blog' && (
+          {(item.contentType === 'blog' || !item.contentType) && (
             <Link href={`/blog/${item._id}`}>
               <button className="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors w-full">
                 View
@@ -223,7 +293,7 @@ export default function AdminContent() {
           <div className="max-w-7xl mx-auto px-4 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Link href="/admin/Admin_dashboard">
+                <Link href="/admin">
                   <button className="p-2 hover:bg-gray-800 rounded-lg transition-colors">
                     <ChevronLeft className="w-5 h-5 text-gray-400" />
                   </button>
@@ -300,7 +370,7 @@ export default function AdminContent() {
           ) : (
             <div className="space-y-4">
               {content.map((item) => (
-                <ContentCard key={`${item.contentType}-${item._id}`} item={item} />
+                <ContentCard key={`${item.contentType || 'blog'}-${item._id}`} item={item} />
               ))}
             </div>
           )}
@@ -336,7 +406,7 @@ export default function AdminContent() {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-gray-800 rounded-xl p-6 max-w-lg w-full mx-4 border border-purple-500/30">
               <h3 className="text-xl font-bold text-white mb-2">
-                Moderate {selectedItem.contentType}
+                Moderate {selectedItem.contentType || 'content'}
               </h3>
               <p className="text-gray-400 text-sm mb-4 line-clamp-2">
                 {getContentPreview(selectedItem)}
