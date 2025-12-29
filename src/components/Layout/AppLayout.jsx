@@ -12,31 +12,56 @@ import {
   X,
   Search,
   Bell,
-  MessageCircle
+  MessageCircle,
+  Shield,
+  Wallet
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import NotificationBell from '@/components/notificationBell';
 import MobileBottomNav from '@/components/MobileBottomNav';
 
 export default function AppLayout({ children }) {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [tokenBalance, setTokenBalance] = useState(0);
+
+  useEffect(() => {
+    // Get user from localStorage
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData));
+      } catch (e) {
+        console.error('Failed to parse user data');
+      }
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('cybev_token');
     localStorage.removeItem('user');
     localStorage.removeItem('onboardingCompleted');
     router.push('/auth/login');
   };
 
+  // Check if user is admin
+  const isAdmin = user?.role === 'admin' || user?.isAdmin;
+
   const navLinks = [
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
     { path: '/feed', icon: TrendingUp, label: 'Feed' },
-    { path: '/create-blog', icon: Sparkles, label: 'Create' },
-    { path: '/profile', icon: User, label: 'Profile' },
+    { path: '/studio', icon: Sparkles, label: 'Create' },
+    { path: `/profile/${user?.username || ''}`, icon: User, label: 'Profile' },
   ];
 
-  const isActive = (path) => router.pathname === path;
+  const isActive = (path) => {
+    if (path.includes('/profile/')) {
+      return router.pathname.startsWith('/profile');
+    }
+    return router.pathname === path;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
@@ -87,15 +112,28 @@ export default function AppLayout({ children }) {
               <NotificationBell />
 
               {/* Messages */}
-              <button className="p-2 hover:bg-purple-500/10 rounded-lg transition-colors">
-                <MessageCircle className="w-5 h-5 text-gray-400" />
-              </button>
+              <Link href="/messages">
+                <button className="p-2 hover:bg-purple-500/10 rounded-lg transition-colors relative">
+                  <MessageCircle className="w-5 h-5 text-gray-400" />
+                </button>
+              </Link>
 
               {/* Token Balance */}
-              <div className="bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 border border-yellow-500/20 px-4 py-2 rounded-lg flex items-center gap-2">
-                <Coins className="w-5 h-5 text-yellow-400" />
-                <span className="text-yellow-400 font-semibold">0 CYBEV</span>
-              </div>
+              <Link href="/wallet">
+                <div className="bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 border border-yellow-500/20 px-4 py-2 rounded-lg flex items-center gap-2 cursor-pointer hover:border-yellow-500/40 transition-colors">
+                  <Coins className="w-5 h-5 text-yellow-400" />
+                  <span className="text-yellow-400 font-semibold">{tokenBalance} CYBEV</span>
+                </div>
+              </Link>
+
+              {/* Admin Link - Only show for admins */}
+              {isAdmin && (
+                <Link href="/admin">
+                  <button className="p-2 hover:bg-red-500/10 rounded-lg transition-colors" title="Admin Dashboard">
+                    <Shield className="w-5 h-5 text-red-400" />
+                  </button>
+                </Link>
+              )}
 
               {/* Settings */}
               <Link href="/settings">
@@ -158,20 +196,61 @@ export default function AppLayout({ children }) {
                     <span>Search</span>
                   </button>
                 </Link>
-                <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-purple-500/10">
-                  <Bell className="w-5 h-5" />
-                  <span>Notifications</span>
-                </button>
-                <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-purple-500/10">
-                  <MessageCircle className="w-5 h-5" />
-                  <span>Messages</span>
-                </button>
+                
+                <Link href="/notifications">
+                  <button 
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-purple-500/10"
+                  >
+                    <Bell className="w-5 h-5" />
+                    <span>Notifications</span>
+                  </button>
+                </Link>
+                
+                <Link href="/messages">
+                  <button 
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-purple-500/10"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    <span>Messages</span>
+                  </button>
+                </Link>
+
+                <Link href="/wallet">
+                  <button 
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-purple-500/10"
+                  >
+                    <Wallet className="w-5 h-5" />
+                    <span>Wallet</span>
+                    <span className="ml-auto text-yellow-400 text-sm">{tokenBalance} CYBEV</span>
+                  </button>
+                </Link>
+
+                {/* Admin Link - Mobile */}
+                {isAdmin && (
+                  <Link href="/admin">
+                    <button 
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10"
+                    >
+                      <Shield className="w-5 h-5" />
+                      <span>Admin Dashboard</span>
+                    </button>
+                  </Link>
+                )}
+                
                 <Link href="/settings">
-                  <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-purple-500/10">
+                  <button 
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-purple-500/10"
+                  >
                     <Settings className="w-5 h-5" />
                     <span>Settings</span>
                   </button>
                 </Link>
+                
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10"
