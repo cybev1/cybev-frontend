@@ -11,7 +11,7 @@ import { toast } from 'react-toastify';
 import {
   Users, FileText, MessageCircle, Eye, Heart, Share2,
   TrendingUp, Shield, Settings, BarChart3, AlertTriangle,
-  Calendar, ArrowUpRight, Loader2
+  Calendar, ArrowUpRight, Loader2, LogIn
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -21,7 +21,7 @@ export default function AdminDashboard() {
   const [topBlogs, setTopBlogs] = useState([]);
   const [recentUsers, setRecentUsers] = useState([]);
   const [recentBlogs, setRecentBlogs] = useState([]);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [authState, setAuthState] = useState('checking'); // 'checking', 'authenticated', 'not-logged-in', 'not-admin'
 
   useEffect(() => {
     checkAdminAccess();
@@ -29,16 +29,47 @@ export default function AdminDashboard() {
 
   const checkAdminAccess = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      if (user.role !== 'admin' && !user.isAdmin) {
-        toast.error('Admin access required');
-        router.push('/dashboard');
+      // Check if user is logged in
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      const userStr = localStorage.getItem('user');
+      
+      console.log('🔐 Admin check - Token:', !!token, 'User:', !!userStr);
+      
+      if (!token || !userStr) {
+        console.log('❌ No token or user found in localStorage');
+        setAuthState('not-logged-in');
+        setLoading(false);
         return;
       }
-      setIsAdmin(true);
+
+      let user;
+      try {
+        user = JSON.parse(userStr);
+      } catch (e) {
+        console.error('❌ Failed to parse user from localStorage');
+        setAuthState('not-logged-in');
+        setLoading(false);
+        return;
+      }
+
+      console.log('👤 User data:', { role: user.role, isAdmin: user.isAdmin, name: user.name });
+
+      // Check admin role
+      if (user.role !== 'admin' && !user.isAdmin) {
+        console.log('❌ User is not an admin');
+        setAuthState('not-admin');
+        setLoading(false);
+        return;
+      }
+
+      // User is admin!
+      console.log('✅ Admin access granted');
+      setAuthState('authenticated');
       fetchStats();
     } catch (error) {
-      router.push('/auth/login');
+      console.error('❌ Admin check error:', error);
+      setAuthState('not-logged-in');
+      setLoading(false);
     }
   };
 
@@ -56,23 +87,69 @@ export default function AdminDashboard() {
       console.error('Failed to fetch admin stats:', error);
       if (error.response?.status === 403) {
         toast.error('Admin access required');
-        router.push('/dashboard');
+        setAuthState('not-admin');
       }
     } finally {
       setLoading(false);
     }
   };
 
-  if (!isAdmin) {
+  // Not logged in - show login prompt
+  if (authState === 'not-logged-in') {
     return (
       <AppLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
+          <div className="text-center p-8 bg-gray-800/50 rounded-2xl border border-purple-500/30 max-w-md">
+            <Shield className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-white mb-2">Admin Access</h1>
+            <p className="text-gray-400 mb-6">Please log in to access the admin dashboard</p>
+            <Link href="/auth/login">
+              <button className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors mx-auto">
+                <LogIn className="w-5 h-5" />
+                Go to Login
+              </button>
+            </Link>
+          </div>
         </div>
       </AppLayout>
     );
   }
 
+  // Not an admin - show access denied
+  if (authState === 'not-admin') {
+    return (
+      <AppLayout>
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
+          <div className="text-center p-8 bg-gray-800/50 rounded-2xl border border-red-500/30 max-w-md">
+            <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
+            <p className="text-gray-400 mb-6">You don't have admin privileges to access this page</p>
+            <Link href="/feed">
+              <button className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                Go to Feed
+              </button>
+            </Link>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // Still checking auth
+  if (authState === 'checking') {
+    return (
+      <AppLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin text-purple-500 mx-auto mb-4" />
+            <p className="text-gray-400">Checking admin access...</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // Loading stats
   if (loading) {
     return (
       <AppLayout>
@@ -91,7 +168,7 @@ export default function AdminDashboard() {
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
             <div>
               <h1 className="text-3xl font-bold text-white flex items-center gap-3">
                 <Shield className="w-8 h-8 text-purple-400" />
@@ -99,7 +176,7 @@ export default function AdminDashboard() {
               </h1>
               <p className="text-gray-400 mt-1">Platform overview and management</p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <Link href="/admin/users">
                 <button className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors">
                   <Users className="w-4 h-4" />
@@ -125,14 +202,14 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <StatCard
               title="Total Users"
-              value={stats?.users?.total || 0}
-              subtext={`+${stats?.users?.today || 0} today`}
+              value={stats?.users?.total || stats?.totalUsers || 0}
+              subtext={`+${stats?.users?.today || stats?.growth?.users || 0} today`}
               icon={Users}
               color="blue"
             />
             <StatCard
               title="Total Blogs"
-              value={stats?.content?.blogs || 0}
+              value={stats?.content?.blogs || stats?.totalBlogs || 0}
               subtext={`${stats?.content?.comments || 0} comments`}
               icon={FileText}
               color="green"
@@ -163,11 +240,11 @@ export default function AdminDashboard() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Today</span>
-                  <span className="text-white font-semibold">+{stats?.users?.today || 0}</span>
+                  <span className="text-white font-semibold">+{stats?.users?.today || stats?.recentUsers || 0}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">This Week</span>
-                  <span className="text-white font-semibold">+{stats?.users?.thisWeek || 0}</span>
+                  <span className="text-white font-semibold">+{stats?.users?.thisWeek || stats?.growth?.users || 0}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">This Month</span>
@@ -188,22 +265,26 @@ export default function AdminDashboard() {
                 </Link>
               </div>
               <div className="space-y-3">
-                {recentUsers.map((user) => (
-                  <div key={user._id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                        {user.name?.charAt(0) || '?'}
+                {recentUsers.length > 0 ? (
+                  recentUsers.map((user) => (
+                    <div key={user._id} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                          {user.name?.charAt(0) || user.username?.charAt(0) || '?'}
+                        </div>
+                        <div>
+                          <p className="text-white text-sm font-medium">{user.name || 'Unknown'}</p>
+                          <p className="text-gray-500 text-xs">@{user.username || 'user'}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-white text-sm font-medium">{user.name}</p>
-                        <p className="text-gray-500 text-xs">@{user.username}</p>
-                      </div>
+                      <span className="text-gray-500 text-xs">
+                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                      </span>
                     </div>
-                    <span className="text-gray-500 text-xs">
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-sm">No recent users</p>
+                )}
               </div>
             </div>
 
@@ -219,17 +300,21 @@ export default function AdminDashboard() {
                 </Link>
               </div>
               <div className="space-y-3">
-                {recentBlogs.map((blog) => (
-                  <div key={blog._id} className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0 mr-2">
-                      <p className="text-white text-sm font-medium truncate">{blog.title}</p>
-                      <p className="text-gray-500 text-xs">by {blog.authorName}</p>
+                {recentBlogs.length > 0 ? (
+                  recentBlogs.map((blog) => (
+                    <div key={blog._id} className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0 mr-2">
+                        <p className="text-white text-sm font-medium truncate">{blog.title}</p>
+                        <p className="text-gray-500 text-xs">by {blog.authorName || blog.author?.name || 'Unknown'}</p>
+                      </div>
+                      <span className="text-gray-500 text-xs whitespace-nowrap">
+                        {blog.createdAt ? new Date(blog.createdAt).toLocaleDateString() : 'N/A'}
+                      </span>
                     </div>
-                    <span className="text-gray-500 text-xs whitespace-nowrap">
-                      {new Date(blog.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-sm">No recent blogs</p>
+                )}
               </div>
             </div>
           </div>
@@ -252,26 +337,34 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700/50">
-                  {topBlogs.map((blog, idx) => (
-                    <tr key={blog._id} className="text-sm">
-                      <td className="py-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-500">{idx + 1}.</span>
-                          <Link href={`/blog/${blog._id}`}>
-                            <span className="text-white hover:text-purple-400 cursor-pointer truncate max-w-xs">
-                              {blog.title}
-                            </span>
-                          </Link>
-                        </div>
-                      </td>
-                      <td className="py-3 text-gray-400">{blog.authorName}</td>
-                      <td className="py-3 text-right text-gray-300">{blog.views?.toLocaleString() || 0}</td>
-                      <td className="py-3 text-right text-gray-300">{blog.likes?.length || 0}</td>
-                      <td className="py-3 text-right text-gray-500">
-                        {new Date(blog.createdAt).toLocaleDateString()}
+                  {topBlogs.length > 0 ? (
+                    topBlogs.map((blog, idx) => (
+                      <tr key={blog._id} className="text-sm">
+                        <td className="py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-500">{idx + 1}.</span>
+                            <Link href={`/blog/${blog._id}`}>
+                              <span className="text-white hover:text-purple-400 cursor-pointer truncate max-w-xs">
+                                {blog.title}
+                              </span>
+                            </Link>
+                          </div>
+                        </td>
+                        <td className="py-3 text-gray-400">{blog.authorName || blog.author?.name || 'Unknown'}</td>
+                        <td className="py-3 text-right text-gray-300">{(blog.views || 0).toLocaleString()}</td>
+                        <td className="py-3 text-right text-gray-300">{blog.likes?.length || blog.likesCount || 0}</td>
+                        <td className="py-3 text-right text-gray-500">
+                          {blog.createdAt ? new Date(blog.createdAt).toLocaleDateString() : 'N/A'}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5" className="py-8 text-center text-gray-500">
+                        No content yet
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
