@@ -10,7 +10,7 @@ import { adminAPI } from '@/lib/api';
 import { 
   Users, Search, Filter, MoreVertical, Shield, ShieldOff,
   Trash2, Mail, Calendar, Eye, Edit, ChevronLeft, ChevronRight,
-  UserCheck, UserX, AlertTriangle, RefreshCw
+  UserCheck, UserX, AlertTriangle, RefreshCw, LogIn, Loader2
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -24,23 +24,42 @@ export default function AdminUsers() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [authState, setAuthState] = useState('checking'); // 'checking', 'authenticated', 'not-logged-in', 'not-admin'
 
   useEffect(() => {
     checkAdminAccess();
   }, []);
 
   useEffect(() => {
-    if (pagination.page) {
+    if (authState === 'authenticated' && pagination.page) {
       fetchUsers();
     }
-  }, [pagination.page, search, filters]);
+  }, [authState, pagination.page, search, filters]);
 
   const checkAdminAccess = () => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (!user.role || user.role !== 'admin') {
-      toast.error('Admin access required');
-      router.push('/');
-      return;
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      const userStr = localStorage.getItem('user');
+      
+      if (!token || !userStr) {
+        setAuthState('not-logged-in');
+        setLoading(false);
+        return;
+      }
+
+      const user = JSON.parse(userStr);
+      
+      if (user.role !== 'admin' && !user.isAdmin) {
+        setAuthState('not-admin');
+        setLoading(false);
+        return;
+      }
+
+      setAuthState('authenticated');
+    } catch (error) {
+      console.error('Auth check error:', error);
+      setAuthState('not-logged-in');
+      setLoading(false);
     }
   };
 
@@ -109,6 +128,55 @@ export default function AdminUsers() {
     }
   };
 
+  // Not logged in
+  if (authState === 'not-logged-in') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
+        <div className="text-center p-8 bg-gray-800/50 rounded-2xl border border-purple-500/30 max-w-md">
+          <Shield className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-white mb-2">Admin Access</h1>
+          <p className="text-gray-400 mb-6">Please log in to access user management</p>
+          <Link href="/auth/login">
+            <button className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors mx-auto">
+              <LogIn className="w-5 h-5" />
+              Go to Login
+            </button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Not admin
+  if (authState === 'not-admin') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
+        <div className="text-center p-8 bg-gray-800/50 rounded-2xl border border-red-500/30 max-w-md">
+          <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
+          <p className="text-gray-400 mb-6">You don't have admin privileges</p>
+          <Link href="/feed">
+            <button className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+              Go to Feed
+            </button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Still checking
+  if (authState === 'checking') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-purple-500 mx-auto mb-4" />
+          <p className="text-gray-400">Checking access...</p>
+        </div>
+      </div>
+    );
+  }
+
   const UserRow = ({ user }) => (
     <tr className="border-b border-gray-700/50 hover:bg-gray-800/30 transition-colors">
       <td className="px-4 py-4">
@@ -131,7 +199,7 @@ export default function AdminUsers() {
       </td>
       <td className="px-4 py-4">
         <div className="flex items-center gap-2">
-          {user.role === 'admin' && (
+          {(user.role === 'admin' || user.isAdmin) && (
             <span className="px-2 py-1 bg-purple-500/20 text-purple-300 rounded text-xs font-medium">
               Admin
             </span>
@@ -146,7 +214,7 @@ export default function AdminUsers() {
               Banned
             </span>
           )}
-          {!user.role && !user.isEmailVerified && !user.isBanned && (
+          {user.role !== 'admin' && !user.isAdmin && !user.isEmailVerified && !user.isBanned && (
             <span className="px-2 py-1 bg-gray-500/20 text-gray-300 rounded text-xs font-medium">
               User
             </span>
@@ -155,7 +223,7 @@ export default function AdminUsers() {
       </td>
       <td className="px-4 py-4">
         <p className="text-gray-400 text-sm">
-          {new Date(user.createdAt).toLocaleDateString()}
+          {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
         </p>
       </td>
       <td className="px-4 py-4">
@@ -189,7 +257,7 @@ export default function AdminUsers() {
           <div className="max-w-7xl mx-auto px-4 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Link href="/admin/Admin_dashboard">
+                <Link href="/admin">
                   <button className="p-2 hover:bg-gray-800 rounded-lg transition-colors">
                     <ChevronLeft className="w-5 h-5 text-gray-400" />
                   </button>
@@ -199,7 +267,7 @@ export default function AdminUsers() {
                     <Users className="w-6 h-6 text-purple-400" />
                     User Management
                   </h1>
-                  <p className="text-gray-400 text-sm">{pagination.total} total users</p>
+                  <p className="text-gray-400 text-sm">{pagination.total || 0} total users</p>
                 </div>
               </div>
               <button
@@ -339,7 +407,7 @@ export default function AdminUsers() {
                   </button>
                 )}
 
-                {selectedUser.role !== 'admin' ? (
+                {selectedUser.role !== 'admin' && !selectedUser.isAdmin ? (
                   <button
                     onClick={() => handleAction('makeAdmin', selectedUser)}
                     disabled={actionLoading}
