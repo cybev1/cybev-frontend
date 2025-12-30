@@ -1,58 +1,61 @@
 {
   "name": "CYBEV - Web3 Content Platform",
   "short_name": "CYBEV",
-  "description": "Create, share, and earn with Web3-powered content",
-  "start_url": "/",
+  "description": "Create, share, and earn with blockchain-powered content",
+  "start_url": "/feed",
   "display": "standalone",
-  "background_color": "#111827",
-  "theme_color": "#8B5CF6",
+  "background_color": "#0f0a1a",
+  "theme_color": "#8b5cf6",
   "orientation": "portrait-primary",
   "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["social", "entertainment", "finance"],
   "icons": [
     {
-      "src": "/icons/icon-72.png",
+      "src": "/icons/icon-72x72.png",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/icons/icon-96.png",
+      "src": "/icons/icon-96x96.png",
       "sizes": "96x96",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/icons/icon-128.png",
+      "src": "/icons/icon-128x128.png",
       "sizes": "128x128",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/icons/icon-144.png",
+      "src": "/icons/icon-144x144.png",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/icons/icon-152.png",
+      "src": "/icons/icon-152x152.png",
       "sizes": "152x152",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/icons/icon-192.png",
+      "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/icons/icon-384.png",
+      "src": "/icons/icon-384x384.png",
       "sizes": "384x384",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable any"
@@ -60,48 +63,59 @@
   ],
   "screenshots": [
     {
-      "src": "/screenshots/home.png",
-      "sizes": "1280x720",
+      "src": "/screenshots/feed-mobile.png",
+      "sizes": "390x844",
       "type": "image/png",
-      "form_factor": "wide"
+      "form_factor": "narrow",
+      "label": "CYBEV Feed"
     },
     {
-      "src": "/screenshots/mobile.png",
-      "sizes": "750x1334",
+      "src": "/screenshots/feed-desktop.png",
+      "sizes": "1920x1080",
       "type": "image/png",
-      "form_factor": "narrow"
+      "form_factor": "wide",
+      "label": "CYBEV Desktop View"
     }
   ],
-  "categories": ["social", "entertainment", "finance"],
   "shortcuts": [
     {
-      "name": "Create Blog",
-      "short_name": "Create",
-      "description": "Create a new blog post",
-      "url": "/studio/ai-blog",
-      "icons": [{ "src": "/icons/create-96.png", "sizes": "96x96" }]
+      "name": "Create Post",
+      "short_name": "Post",
+      "description": "Create a new post",
+      "url": "/post/create",
+      "icons": [{ "src": "/icons/shortcut-create.png", "sizes": "96x96" }]
     },
     {
-      "name": "My Wallet",
+      "name": "Write Blog",
+      "short_name": "Blog",
+      "description": "Write a new blog article",
+      "url": "/blog/create",
+      "icons": [{ "src": "/icons/shortcut-blog.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "NFT Marketplace",
+      "short_name": "NFTs",
+      "description": "Browse NFT marketplace",
+      "url": "/nft",
+      "icons": [{ "src": "/icons/shortcut-nft.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Wallet",
       "short_name": "Wallet",
-      "description": "View your CYBEV wallet",
-      "url": "/web3",
-      "icons": [{ "src": "/icons/wallet-96.png", "sizes": "96x96" }]
-    },
-    {
-      "name": "Notifications",
-      "short_name": "Alerts",
-      "description": "View notifications",
-      "url": "/notifications",
-      "icons": [{ "src": "/icons/bell-96.png", "sizes": "96x96" }]
+      "description": "View your wallet",
+      "url": "/wallet",
+      "icons": [{ "src": "/icons/shortcut-wallet.png", "sizes": "96x96" }]
     }
   ],
-  "related_applications": [
-    {
-      "platform": "play",
-      "url": "https://play.google.com/store/apps/details?id=io.cybev.app",
-      "id": "io.cybev.app"
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "share_target": {
+    "action": "/post/create",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
     }
-  ],
-  "prefer_related_applications": false
+  }
 }
