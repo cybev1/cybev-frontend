@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/components/Layout/AppLayout.jsx
 // PATH: cybev-frontend/src/components/Layout/AppLayout.jsx
-// PURPOSE: Main app layout with navigation, admin link for admins
+// PURPOSE: Main app layout with navigation, admin link for admins, PWA support
 // ============================================
 
 import { useRouter } from 'next/router';
@@ -9,7 +9,6 @@ import Link from 'next/link';
 import { 
   Home, 
   TrendingUp,
-  Sparkles, 
   User, 
   LogOut, 
   Settings,
@@ -25,7 +24,55 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import NotificationBell from '@/components/notificationBell';
-import MobileBottomNav from '@/components/MobileBottomNav';
+import MobileNav from '@/components/Navigation/MobileNav';
+
+// CYBEV Logo Component with text
+function CybevLogo({ size = 40, showText = true }) {
+  return (
+    <div className="flex items-center gap-3">
+      {/* Logo Icon */}
+      <div 
+        className="relative rounded-xl overflow-hidden flex-shrink-0"
+        style={{ width: size, height: size }}
+      >
+        <svg 
+          viewBox="0 0 100 100" 
+          className="w-full h-full"
+          style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #ec4899 100%)' }}
+        >
+          {/* Rounded background is handled by parent div */}
+          
+          {/* C Letter */}
+          <path 
+            d="M52 25 
+               C 38 25, 22 36, 22 50 
+               C 22 64, 38 75, 52 75
+               L 52 62
+               C 42 62, 32 57, 32 50
+               C 32 43, 42 38, 52 38
+               Z"
+            fill="white"
+          />
+          
+          {/* Blockchain dots */}
+          <circle cx="62" cy="32" r="5" fill="white" opacity="0.95"/>
+          <circle cx="62" cy="68" r="5" fill="white" opacity="0.95"/>
+          <circle cx="72" cy="50" r="3.5" fill="white" opacity="0.75"/>
+          
+          {/* Connecting line */}
+          <line x1="62" y1="38" x2="62" y2="62" stroke="white" strokeWidth="2.5" opacity="0.5"/>
+        </svg>
+      </div>
+      
+      {/* Text */}
+      {showText && (
+        <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent hidden sm:block">
+          CYBEV
+        </span>
+      )}
+    </div>
+  );
+}
 
 export default function AppLayout({ children }) {
   const router = useRouter();
@@ -82,13 +129,8 @@ export default function AppLayout({ children }) {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/dashboard">
-              <div className="flex items-center gap-3 cursor-pointer">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent hidden sm:block">
-                  CYBEV
-                </span>
+              <div className="cursor-pointer">
+                <CybevLogo size={40} showText={true} />
               </div>
             </Link>
 
@@ -285,12 +327,15 @@ export default function AppLayout({ children }) {
       </nav>
 
       {/* Main Content */}
-      <main className="pb-20 md:pb-0">
+      <main className="pb-20 md:pb-0 main-content">
         {children}
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav />
+      {/* Mobile Bottom Navigation - PWA optimized */}
+      <MobileNav />
     </div>
   );
 }
+
+// Export the logo component for use elsewhere
+export { CybevLogo };
