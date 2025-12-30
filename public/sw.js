@@ -1,45 +1,66 @@
 // ============================================
-// FILE: public/sw.js
-// Service Worker for Offline Support & PWA
+// CYBEV Service Worker v1.0.0
+// Provides offline support and caching
 // ============================================
 
-const CACHE_NAME = 'cybev-v1';
-const STATIC_CACHE = 'cybev-static-v1';
-const DYNAMIC_CACHE = 'cybev-dynamic-v1';
+const CACHE_NAME = 'cybev-v1.0.0';
+const OFFLINE_URL = '/offline';
 
-// Static assets to cache
-const STATIC_ASSETS = [
+// Assets to cache immediately on install
+const PRECACHE_ASSETS = [
   '/',
+  '/feed',
   '/offline',
   '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png'
 ];
 
-// API routes to cache
-const API_CACHE_ROUTES = [
-  '/api/feed',
-  '/api/blogs',
-  '/api/users'
-];
+// Cache strategies
+const CACHE_STRATEGIES = {
+  // Cache first, fall back to network
+  cacheFirst: [
+    /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/,
+    /\.(?:woff|woff2|ttf|otf|eot)$/,
+    /\/icons\//,
+    /\/images\//
+  ],
+  // Network first, fall back to cache
+  networkFirst: [
+    /\/api\//,
+    /\/feed/,
+    /\/blog/,
+    /\/post/,
+    /\/profile/
+  ],
+  // Stale while revalidate
+  staleWhileRevalidate: [
+    /\.(?:js|css)$/,
+    /\/_next\/static\//
+  ]
+};
 
-// Install event - cache static assets
+// Install event - cache essential assets
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing service worker...');
   
   event.waitUntil(
-    caches.open(STATIC_CACHE)
+    caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('[SW] Caching static assets');
-        return cache.addAll(STATIC_ASSETS).catch(err => {
-          console.log('[SW] Some assets failed to cache:', err);
-        });
+        console.log('[SW] Caching essential assets');
+        return cache.addAll(PRECACHE_ASSETS);
       })
-      .then(() => self.skipWaiting())
+      .then(() => {
+        console.log('[SW] Service worker installed');
+        return self.skipWaiting();
+      })
+      .catch((error) => {
+        console.error('[SW] Install failed:', error);
+      })
   );
 });
 
-// Activate event - clean old caches
+// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
   console.log('[SW] Activating service worker...');
   
@@ -48,192 +69,183 @@ self.addEventListener('activate', (event) => {
       .then((cacheNames) => {
         return Promise.all(
           cacheNames
-            .filter((name) => name !== STATIC_CACHE && name !== DYNAMIC_CACHE)
+            .filter((name) => name !== CACHE_NAME)
             .map((name) => {
               console.log('[SW] Deleting old cache:', name);
               return caches.delete(name);
             })
         );
       })
-      .then(() => self.clients.claim())
+      .then(() => {
+        console.log('[SW] Service worker activated');
+        return self.clients.claim();
+      })
   );
 });
 
-// Fetch event - serve from cache or network
+// Fetch event - handle requests with appropriate strategy
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
-
+  
   // Skip non-GET requests
   if (request.method !== 'GET') return;
-
-  // Skip chrome extension requests
-  if (url.protocol === 'chrome-extension:') return;
-
-  // API requests - network first, then cache
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(networkFirst(request));
+  
+  // Skip cross-origin requests (except CDN assets)
+  if (url.origin !== self.location.origin && !url.hostname.includes('cdn')) {
     return;
   }
-
-  // Static assets - cache first, then network
-  if (isStaticAsset(url.pathname)) {
-    event.respondWith(cacheFirst(request));
-    return;
+  
+  // Determine cache strategy
+  const strategy = getCacheStrategy(url.pathname);
+  
+  switch (strategy) {
+    case 'cacheFirst':
+      event.respondWith(cacheFirst(request));
+      break;
+    case 'networkFirst':
+      event.respondWith(networkFirst(request));
+      break;
+    case 'staleWhileRevalidate':
+      event.respondWith(staleWhileRevalidate(request));
+      break;
+    default:
+      event.respondWith(networkFirst(request));
   }
-
-  // HTML pages - stale while revalidate
-  if (request.headers.get('accept')?.includes('text/html')) {
-    event.respondWith(staleWhileRevalidate(request));
-    return;
-  }
-
-  // Default - network first
-  event.respondWith(networkFirst(request));
 });
 
 // Cache first strategy
 async function cacheFirst(request) {
-  const cached = await caches.match(request);
-  if (cached) {
-    return cached;
+  const cachedResponse = await caches.match(request);
+  if (cachedResponse) {
+    return cachedResponse;
   }
-
+  
   try {
-    const response = await fetch(request);
-    const cache = await caches.open(STATIC_CACHE);
-    cache.put(request, response.clone());
-    return response;
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
   } catch (error) {
-    console.log('[SW] Cache first failed:', error);
-    return new Response('Offline', { status: 503 });
+    return new Response('Asset not available offline', { status: 503 });
   }
 }
 
 // Network first strategy
 async function networkFirst(request) {
   try {
-    const response = await fetch(request);
-    
-    // Cache successful API responses
-    if (response.ok && shouldCacheAPI(request.url)) {
-      const cache = await caches.open(DYNAMIC_CACHE);
-      cache.put(request, response.clone());
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(request, networkResponse.clone());
     }
-    
-    return response;
+    return networkResponse;
   } catch (error) {
-    console.log('[SW] Network failed, trying cache');
-    const cached = await caches.match(request);
-    
-    if (cached) {
-      return cached;
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
     }
-
+    
     // Return offline page for navigation requests
     if (request.mode === 'navigate') {
-      return caches.match('/offline');
+      return caches.match(OFFLINE_URL);
     }
-
-    return new Response(JSON.stringify({ error: 'Offline' }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    
+    return new Response('Network error', { status: 503 });
   }
 }
 
 // Stale while revalidate strategy
 async function staleWhileRevalidate(request) {
-  const cache = await caches.open(DYNAMIC_CACHE);
-  const cached = await cache.match(request);
-
-  const fetchPromise = fetch(request)
-    .then((response) => {
-      cache.put(request, response.clone());
-      return response;
-    })
-    .catch(() => cached);
-
-  return cached || fetchPromise;
+  const cachedResponse = await caches.match(request);
+  
+  const fetchPromise = fetch(request).then((networkResponse) => {
+    if (networkResponse.ok) {
+      caches.open(CACHE_NAME).then((cache) => {
+        cache.put(request, networkResponse.clone());
+      });
+    }
+    return networkResponse;
+  }).catch(() => cachedResponse);
+  
+  return cachedResponse || fetchPromise;
 }
 
-// Check if URL is a static asset
-function isStaticAsset(pathname) {
-  const staticExtensions = ['.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.woff', '.woff2'];
-  return staticExtensions.some(ext => pathname.endsWith(ext));
+// Determine which strategy to use based on URL
+function getCacheStrategy(pathname) {
+  for (const [strategy, patterns] of Object.entries(CACHE_STRATEGIES)) {
+    for (const pattern of patterns) {
+      if (pattern.test(pathname)) {
+        return strategy;
+      }
+    }
+  }
+  return 'networkFirst';
 }
 
-// Check if API should be cached
-function shouldCacheAPI(url) {
-  return API_CACHE_ROUTES.some(route => url.includes(route));
-}
-
-// Push notification handling
+// Handle push notifications
 self.addEventListener('push', (event) => {
   console.log('[SW] Push notification received');
   
   let data = { title: 'CYBEV', body: 'You have a new notification' };
   
-  try {
-    data = event.data?.json() || data;
-  } catch (e) {
-    data.body = event.data?.text() || data.body;
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data.body = event.data.text();
+    }
   }
-
+  
   const options = {
-    body: data.body,
-    icon: '/icons/icon-192.png',
-    badge: '/icons/badge-72.png',
+    body: data.body || data.message,
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/badge-72x72.png',
     vibrate: [100, 50, 100],
-    data: data.data || {},
+    data: {
+      url: data.url || '/notifications',
+      dateOfArrival: Date.now()
+    },
     actions: [
-      { action: 'view', title: 'View' },
-      { action: 'close', title: 'Close' }
-    ]
+      { action: 'open', title: 'Open' },
+      { action: 'dismiss', title: 'Dismiss' }
+    ],
+    tag: data.tag || 'cybev-notification',
+    renotify: true
   };
-
+  
   event.waitUntil(
     self.registration.showNotification(data.title, options)
   );
 });
 
-// Notification click handling
+// Handle notification click
 self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] Notification clicked:', event.action);
+  console.log('[SW] Notification clicked');
   
   event.notification.close();
-
-  if (event.action === 'close') return;
-
-  const data = event.notification.data;
-  let url = '/';
-
-  // Navigate based on notification type
-  if (data.type === 'blog' && data.blogId) {
-    url = `/blog/${data.blogId}`;
-  } else if (data.type === 'follow' && data.userId) {
-    url = `/profile/${data.userId}`;
-  } else if (data.type === 'comment' && data.blogId) {
-    url = `/blog/${data.blogId}#comments`;
-  } else if (data.type === 'reward') {
-    url = '/rewards/dashboard';
-  } else if (data.url) {
-    url = data.url;
+  
+  if (event.action === 'dismiss') {
+    return;
   }
-
+  
+  const urlToOpen = event.notification.data?.url || '/notifications';
+  
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then((clientList) => {
+      .then((windowClients) => {
         // Focus existing window if available
-        for (const client of clientList) {
+        for (const client of windowClients) {
           if (client.url.includes(self.location.origin) && 'focus' in client) {
-            client.navigate(url);
+            client.navigate(urlToOpen);
             return client.focus();
           }
         }
         // Open new window
         if (clients.openWindow) {
-          return clients.openWindow(url);
+          return clients.openWindow(urlToOpen);
         }
       })
   );
@@ -243,14 +255,101 @@ self.addEventListener('notificationclick', (event) => {
 self.addEventListener('sync', (event) => {
   console.log('[SW] Background sync:', event.tag);
   
-  if (event.tag === 'sync-pending-actions') {
-    event.waitUntil(syncPendingActions());
+  if (event.tag === 'sync-posts') {
+    event.waitUntil(syncPosts());
+  }
+  
+  if (event.tag === 'sync-comments') {
+    event.waitUntil(syncComments());
   }
 });
 
-async function syncPendingActions() {
-  // This would sync pending actions stored in IndexedDB
-  console.log('[SW] Syncing pending actions...');
+// Sync queued posts when back online
+async function syncPosts() {
+  try {
+    const db = await openIndexedDB();
+    const posts = await getAllFromStore(db, 'pendingPosts');
+    
+    for (const post of posts) {
+      try {
+        await fetch('/api/posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(post.data)
+        });
+        await deleteFromStore(db, 'pendingPosts', post.id);
+      } catch (error) {
+        console.error('[SW] Failed to sync post:', error);
+      }
+    }
+  } catch (error) {
+    console.error('[SW] Sync posts failed:', error);
+  }
+}
+
+// Sync queued comments when back online
+async function syncComments() {
+  try {
+    const db = await openIndexedDB();
+    const comments = await getAllFromStore(db, 'pendingComments');
+    
+    for (const comment of comments) {
+      try {
+        await fetch(`/api/comments/${comment.postId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(comment.data)
+        });
+        await deleteFromStore(db, 'pendingComments', comment.id);
+      } catch (error) {
+        console.error('[SW] Failed to sync comment:', error);
+      }
+    }
+  } catch (error) {
+    console.error('[SW] Sync comments failed:', error);
+  }
+}
+
+// IndexedDB helpers for offline queue
+function openIndexedDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('cybev-offline', 1);
+    
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('pendingPosts')) {
+        db.createObjectStore('pendingPosts', { keyPath: 'id', autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains('pendingComments')) {
+        db.createObjectStore('pendingComments', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+  });
+}
+
+function getAllFromStore(db, storeName) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(storeName, 'readonly');
+    const store = transaction.objectStore(storeName);
+    const request = store.getAll();
+    
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+  });
+}
+
+function deleteFromStore(db, storeName, id) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(storeName, 'readwrite');
+    const store = transaction.objectStore(storeName);
+    const request = store.delete(id);
+    
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve();
+  });
 }
 
 console.log('[SW] Service worker loaded');
