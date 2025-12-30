@@ -1,0 +1,441 @@
+/* ============================================
+   FILE: src/styles/pwa.css
+   PATH: cybev-frontend/src/styles/pwa.css
+   PURPOSE: PWA-specific styles and mobile optimizations
+   ============================================ */
+
+/* ==========================================
+   PWA SAFE AREA INSETS
+   For devices with notches (iPhone X+, etc.)
+   ========================================== */
+
+:root {
+  --sat: env(safe-area-inset-top);
+  --sar: env(safe-area-inset-right);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+}
+
+/* Apply safe area padding to app layout */
+.app-layout {
+  padding-top: var(--sat);
+  padding-right: var(--sar);
+  padding-bottom: var(--sab);
+  padding-left: var(--sal);
+}
+
+/* Bottom navigation should respect safe area */
+.bottom-nav {
+  padding-bottom: calc(0.5rem + var(--sab));
+}
+
+/* ==========================================
+   STANDALONE MODE STYLES
+   When running as installed PWA
+   ========================================== */
+
+@media all and (display-mode: standalone) {
+  /* Hide browser-specific elements */
+  .browser-only {
+    display: none !important;
+  }
+
+  /* Show PWA-specific elements */
+  .pwa-only {
+    display: block !important;
+  }
+
+  /* Adjust header for standalone */
+  .app-header {
+    padding-top: calc(0.5rem + var(--sat));
+  }
+
+  /* Full height without browser chrome */
+  .full-height {
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height */
+  }
+}
+
+/* ==========================================
+   TOUCH OPTIMIZATIONS
+   ========================================== */
+
+/* Prevent text selection on interactive elements */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Improve tap targets */
+.tap-target {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Remove tap highlight on mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth scrolling */
+.smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* ==========================================
+   PULL TO REFRESH STYLES
+   ========================================== */
+
+.pull-to-refresh {
+  overscroll-behavior-y: contain;
+}
+
+.pull-indicator {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.pull-indicator.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(60px);
+}
+
+/* ==========================================
+   LOADING SKELETON ANIMATIONS
+   ========================================== */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ==========================================
+   PWA ANIMATIONS
+   ========================================== */
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-down {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
+}
+
+/* ==========================================
+   MOBILE NAVIGATION
+   ========================================== */
+
+.mobile-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(15, 10, 26, 0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(139, 92, 246, 0.2);
+  padding: 0.5rem 0;
+  padding-bottom: calc(0.5rem + var(--sab));
+  z-index: 40;
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  color: #9ca3af;
+  transition: color 0.2s;
+}
+
+.mobile-nav-item.active {
+  color: #8b5cf6;
+}
+
+.mobile-nav-item .icon {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 2px;
+}
+
+.mobile-nav-item .label {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* Hide desktop nav on mobile when bottom nav is shown */
+@media (max-width: 768px) {
+  .desktop-nav {
+    display: none;
+  }
+  
+  .mobile-nav {
+    display: flex;
+    justify-content: space-around;
+  }
+  
+  /* Add padding for bottom nav */
+  .main-content {
+    padding-bottom: calc(70px + var(--sab));
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-nav {
+    display: none;
+  }
+}
+
+/* ==========================================
+   SWIPE GESTURES
+   ========================================== */
+
+.swipeable {
+  touch-action: pan-y;
+}
+
+.swipe-container {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.swipe-item {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* ==========================================
+   IMAGE OPTIMIZATIONS
+   ========================================== */
+
+.lazy-image {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.lazy-image.loaded {
+  opacity: 1;
+}
+
+/* Progressive image loading */
+.progressive-image {
+  position: relative;
+  overflow: hidden;
+}
+
+.progressive-image .placeholder {
+  filter: blur(20px);
+  transform: scale(1.1);
+}
+
+.progressive-image .full {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.progressive-image .full.loaded {
+  opacity: 1;
+}
+
+/* ==========================================
+   OFFLINE INDICATOR
+   ========================================== */
+
+.offline-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #eab308;
+  color: #713f12;
+  text-align: center;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  z-index: 9999;
+  transform: translateY(-100%);
+  transition: transform 0.3s;
+}
+
+.offline-bar.visible {
+  transform: translateY(0);
+}
+
+.online-bar {
+  background: #22c55e;
+  color: white;
+}
+
+/* ==========================================
+   KEYBOARD HANDLING
+   ========================================== */
+
+/* When keyboard is open */
+.keyboard-open .mobile-nav {
+  display: none;
+}
+
+.keyboard-open .input-focused {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+}
+
+/* ==========================================
+   HAPTIC FEEDBACK INDICATORS
+   ========================================== */
+
+.haptic-tap {
+  transition: transform 0.1s;
+}
+
+.haptic-tap:active {
+  transform: scale(0.97);
+}
+
+/* ==========================================
+   RESPONSIVE TYPOGRAPHY
+   ========================================== */
+
+@media (max-width: 640px) {
+  html {
+    font-size: 15px;
+  }
+  
+  h1 {
+    font-size: 1.75rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  h3 {
+    font-size: 1.25rem;
+  }
+}
+
+/* ==========================================
+   DARK MODE OPTIMIZATIONS
+   ========================================== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+  
+  /* Reduce image brightness in dark mode */
+  img {
+    filter: brightness(0.95);
+  }
+}
+
+/* ==========================================
+   REDUCED MOTION
+   ========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================
+   HIGH CONTRAST MODE
+   ========================================== */
+
+@media (prefers-contrast: high) {
+  .text-gray-400 {
+    color: #d1d5db;
+  }
+  
+  .border-purple-500\/20 {
+    border-color: rgba(139, 92, 246, 0.4);
+  }
+}
