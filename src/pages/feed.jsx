@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/feed.jsx
 // PATH: cybev-frontend/src/pages/feed.jsx
-// PURPOSE: Main feed with posts, reactions, FIXED IMAGE PREVIEWS
+// PURPOSE: Main feed with posts, reactions, FIXED HTML & IMAGE handling
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -24,7 +24,6 @@ import {
   Users,
   Eye,
   X,
-  Play,
   ChevronLeft,
   ChevronRight,
   Loader2
@@ -41,6 +40,50 @@ const REACTIONS = [
   { type: 'sad', emoji: '😢', label: 'Sad' },
   { type: 'angry', emoji: '😠', label: 'Angry' }
 ];
+
+// ==========================================
+// UTILITY: Strip HTML tags and get plain text
+// ==========================================
+function stripHtml(html) {
+  if (!html) return '';
+  // Remove HTML tags
+  let text = html.replace(/<[^>]*>/g, ' ');
+  // Decode HTML entities
+  text = text.replace(/&nbsp;/g, ' ')
+             .replace(/&amp;/g, '&')
+             .replace(/&lt;/g, '<')
+             .replace(/&gt;/g, '>')
+             .replace(/&quot;/g, '"')
+             .replace(/&#39;/g, "'");
+  // Clean up whitespace
+  text = text.replace(/\s+/g, ' ').trim();
+  return text;
+}
+
+// ==========================================
+// UTILITY: Extract images from HTML content
+// ==========================================
+function extractImagesFromHtml(html) {
+  if (!html) return [];
+  const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+  const images = [];
+  let match;
+  while ((match = imgRegex.exec(html)) !== null) {
+    if (match[1] && !images.includes(match[1])) {
+      images.push(match[1]);
+    }
+  }
+  return images;
+}
+
+// ==========================================
+// UTILITY: Get excerpt from content
+// ==========================================
+function getExcerpt(content, maxLength = 280) {
+  const plainText = stripHtml(content);
+  if (plainText.length <= maxLength) return plainText;
+  return plainText.substring(0, maxLength).trim() + '...';
+}
 
 // ==========================================
 // IMAGE GALLERY MODAL
@@ -114,7 +157,7 @@ function PostMedia({ post, onImageClick }) {
     // Images array
     if (Array.isArray(post.images)) {
       post.images.forEach(img => {
-        if (typeof img === 'string') imgs.push(img);
+        if (typeof img === 'string' && img.trim()) imgs.push(img);
         else if (img?.url) imgs.push(img.url);
       });
     }
@@ -127,15 +170,16 @@ function PostMedia({ post, onImageClick }) {
       });
     }
     
-    // Attachments
-    if (Array.isArray(post.attachments)) {
-      post.attachments.forEach(a => {
-        if (a?.type === 'image' && a?.url) imgs.push(a.url);
+    // Extract images from HTML content (for blogs)
+    if (post.content && typeof post.content === 'string' && post.content.includes('<img')) {
+      const htmlImages = extractImagesFromHtml(post.content);
+      htmlImages.forEach(img => {
+        if (!imgs.includes(img)) imgs.push(img);
       });
     }
     
     // Remove duplicates and invalid
-    return [...new Set(imgs)].filter(img => img && typeof img === 'string');
+    return [...new Set(imgs)].filter(img => img && typeof img === 'string' && img.startsWith('http'));
   };
 
   // Get video URL
@@ -275,7 +319,9 @@ function PostMedia({ post, onImageClick }) {
 // ==========================================
 function PostCard({ post }) {
   const [userReaction, setUserReaction] = useState(null);
-  const [reactionCount, setReactionCount] = useState(post.likes?.length || post.reactionCount || post.likesCount || 0);
+  const [reactionCount, setReactionCount] = useState(
+    post.likes?.length || post.reactionCount || post.likesCount || 0
+  );
   const [showReactions, setShowReactions] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState(post.comments || []);
@@ -285,6 +331,18 @@ function PostCard({ post }) {
   const [showGallery, setShowGallery] = useState(false);
   const [galleryImages, setGalleryImages] = useState([]);
   const [galleryIndex, setGalleryIndex] = useState(0);
+
+  // Get author - handle both 'author' and 'authorId' schemas
+  const author = post.author || post.authorId || {};
+  const authorName = author.name || post.authorName || 'Anonymous';
+  const authorUsername = author.username || 'user';
+  const authorAvatar = author.avatar;
+
+  // Get display content - strip HTML for preview
+  const displayContent = getExcerpt(post.content || post.excerpt || post.description || post.body || '', 400);
+  
+  // Check if content has HTML (is a blog)
+  const isBlog = post.type === 'blog' || post.title || (post.content && post.content.includes('<'));
 
   const handleReaction = async (reactionType) => {
     try {
@@ -315,10 +373,8 @@ function PostCard({ post }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      if (response.data.ok) {
-        setComments([...comments, response.data.comment]);
-      } else {
-        setComments([...comments, {
+      if (response.data.ok || response.data.success) {
+        setComments([...comments, response.data.comment || {
           _id: Date.now(),
           content: newComment,
           author: { name: userData.name || 'You' },
@@ -340,8 +396,8 @@ function PostCard({ post }) {
   const handleBookmark = () => setBookmarked(!bookmarked);
 
   const handleShare = (platform) => {
-    const url = `${window.location.origin}/post/${post._id}`;
-    const text = post.content?.slice(0, 100) || post.title || 'Check this out!';
+    const url = `${window.location.origin}/${isBlog ? 'blog' : 'post'}/${post.slug || post._id}`;
+    const text = post.title || displayContent.slice(0, 100) || 'Check this out!';
     
     switch (platform) {
       case 'copy':
@@ -369,24 +425,25 @@ function PostCard({ post }) {
     return REACTIONS.find(r => r.type === userReaction)?.emoji || '👍';
   };
 
-  const author = post.author || post.user || {};
-
   return (
     <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 overflow-hidden">
       {/* Author Header */}
       <div className="p-4 flex items-center justify-between">
-        <Link href={`/profile/${author.username || 'user'}`}>
+        <Link href={`/profile/${authorUsername}`}>
           <div className="flex items-center gap-3 cursor-pointer hover:opacity-80">
             <div className="w-11 h-11 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold overflow-hidden">
-              {author.avatar ? (
-                <img src={author.avatar} alt="" className="w-full h-full object-cover" />
+              {authorAvatar ? (
+                <img src={authorAvatar} alt="" className="w-full h-full object-cover" />
               ) : (
-                author.name?.[0] || 'U'
+                authorName[0]?.toUpperCase() || 'U'
               )}
             </div>
             <div>
-              <h4 className="text-white font-semibold">{author.name || 'Anonymous'}</h4>
-              <p className="text-gray-400 text-sm">@{author.username || 'user'} · {new Date(post.createdAt).toLocaleDateString()}</p>
+              <h4 className="text-white font-semibold">{authorName}</h4>
+              <p className="text-gray-400 text-sm">
+                @{authorUsername} · {new Date(post.createdAt).toLocaleDateString()}
+                {isBlog && <span className="ml-2 px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded text-xs">Blog</span>}
+              </p>
             </div>
           </div>
         </Link>
@@ -399,12 +456,19 @@ function PostCard({ post }) {
       <div className="px-4 pb-3">
         {post.title && (
           <Link href={`/blog/${post.slug || post._id}`}>
-            <h3 className="text-xl font-bold text-white mb-2 hover:text-purple-400 cursor-pointer">{post.title}</h3>
+            <h3 className="text-xl font-bold text-white mb-2 hover:text-purple-400 cursor-pointer">
+              {post.title}
+            </h3>
           </Link>
         )}
-        {(post.content || post.excerpt || post.description || post.body) && (
+        {displayContent && (
           <p className="text-gray-300 whitespace-pre-wrap leading-relaxed">
-            {post.content || post.excerpt || post.description || post.body}
+            {displayContent}
+            {isBlog && displayContent.length >= 400 && (
+              <Link href={`/blog/${post.slug || post._id}`}>
+                <span className="text-purple-400 hover:text-purple-300 ml-1 cursor-pointer">Read more</span>
+              </Link>
+            )}
           </p>
         )}
       </div>
@@ -524,14 +588,16 @@ function PostCard({ post }) {
             {comments.length === 0 ? (
               <p className="text-gray-500 text-center text-sm py-4">No comments yet</p>
             ) : (
-              comments.map((comment) => (
-                <div key={comment._id} className="flex gap-3">
+              comments.map((comment, idx) => (
+                <div key={comment._id || idx} className="flex gap-3">
                   <div className="w-8 h-8 bg-gray-700 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
-                    {comment.author?.name?.[0] || 'U'}
+                    {(comment.author?.name || comment.user?.name || comment.userName || 'U')[0]}
                   </div>
                   <div className="flex-1">
                     <div className="bg-gray-800 rounded-2xl px-4 py-2">
-                      <p className="text-white text-sm font-medium">{comment.author?.name || 'User'}</p>
+                      <p className="text-white text-sm font-medium">
+                        {comment.author?.name || comment.user?.name || comment.userName || 'User'}
+                      </p>
                       <p className="text-gray-300 text-sm">{comment.content}</p>
                     </div>
                   </div>
@@ -582,7 +648,7 @@ function CreatePost({ onPostCreated }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      if (response.data.ok) {
+      if (response.data.ok || response.data.success) {
         setContent('');
         setImages([]);
         setIsExpanded(false);
@@ -661,81 +727,6 @@ export default function Feed() {
   const [posts, setPosts] = useState([]);
   const [filter, setFilter] = useState('latest');
 
-  // Sample posts with IMAGES
-  const samplePosts = [
-    {
-      _id: '1',
-      author: { name: 'Sarah Chen', username: 'sarahchen' },
-      content: 'Just finished my latest digital artwork! 🎨 What do you think?',
-      featuredImage: 'https://images.unsplash.com/photo-1634017839464-5c339bbe3c9c?w=800&h=600&fit=crop',
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      likes: [1, 2, 3],
-      views: 245,
-      comments: []
-    },
-    {
-      _id: '2',
-      author: { name: 'Alex Rivera', username: 'alexrivera' },
-      title: 'The Future of Web3 Content Creation',
-      content: 'I\'ve been exploring how blockchain technology is revolutionizing the way creators monetize their work...',
-      coverImage: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=600&fit=crop',
-      createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
-      likes: [1, 2, 3, 4, 5],
-      views: 892,
-      comments: [{ _id: '1', author: { name: 'Mike' }, content: 'Great insights!', createdAt: new Date() }]
-    },
-    {
-      _id: '3',
-      author: { name: 'Emma Wilson', username: 'emmawilson' },
-      content: 'Beach vibes this weekend! 🏖️ Sometimes you need to disconnect to reconnect.',
-      images: [
-        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=800&h=600&fit=crop'
-      ],
-      createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000),
-      likes: [1, 2],
-      views: 567,
-      comments: []
-    },
-    {
-      _id: '4',
-      author: { name: 'Tech Daily', username: 'techdaily' },
-      title: 'NFT Market Reaches New Highs',
-      content: 'The NFT marketplace has seen unprecedented growth this quarter. Major brands are entering the space.',
-      image: 'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?w=800&h=600&fit=crop',
-      createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
-      likes: [1, 2, 3, 4, 5, 6, 7, 8],
-      views: 2341,
-      comments: []
-    },
-    {
-      _id: '5',
-      author: { name: 'Creative Studio', username: 'creativestudio' },
-      content: 'Our latest project showcase! 4 unique pieces from our team 🖼️',
-      images: [
-        'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1549490349-8643362247b5?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1551913902-c92207136625?w=800&h=600&fit=crop'
-      ],
-      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-      likes: [1, 2, 3, 4, 5, 6],
-      views: 1567,
-      comments: []
-    },
-    {
-      _id: '6',
-      author: { name: 'Nature Lover', username: 'naturelover' },
-      content: 'Morning hike in the mountains ⛰️ The view was absolutely breathtaking!',
-      featuredImage: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop',
-      createdAt: new Date(Date.now() - 36 * 60 * 60 * 1000),
-      likes: [1, 2, 3, 4],
-      views: 890,
-      comments: []
-    }
-  ];
-
   useEffect(() => {
     const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
     if (!token) {
@@ -759,20 +750,22 @@ export default function Feed() {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      if (response.data.ok && response.data.posts?.length > 0) {
+      if ((response.data.ok || response.data.success) && response.data.posts?.length > 0) {
         setPosts(response.data.posts);
       } else {
-        setPosts(samplePosts);
+        setPosts([]);
       }
     } catch (error) {
-      console.log('Using sample posts');
-      setPosts(samplePosts);
+      console.log('Feed error:', error);
+      setPosts([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePostCreated = (newPost) => setPosts([newPost, ...posts]);
+  const handlePostCreated = (newPost) => {
+    if (newPost) setPosts([newPost, ...posts]);
+  };
 
   return (
     <AppLayout>
@@ -808,7 +801,7 @@ export default function Feed() {
           </div>
         ) : posts.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-gray-400">No posts yet. Be the first!</p>
+            <p className="text-gray-400">No posts yet. Be the first to share something!</p>
           </div>
         ) : (
           <div className="space-y-6">
