@@ -396,7 +396,7 @@ function PostCard({ post }) {
   const handleBookmark = () => setBookmarked(!bookmarked);
 
   const handleShare = (platform) => {
-    const url = `${window.location.origin}/${isBlog ? 'blog' : 'post'}/${post.slug || post._id}`;
+    const url = `${window.location.origin}/${isBlog ? 'blog' : 'post'}/${post._id}`;
     const text = post.title || displayContent.slice(0, 100) || 'Check this out on CYBEV!';
     const hashtags = 'CYBEV,Web3,Creators';
     
@@ -471,7 +471,7 @@ function PostCard({ post }) {
       {/* Content */}
       <div className="px-4 pb-3">
         {post.title && (
-          <Link href={`/blog/${post.slug || post._id}`}>
+          <Link href={`/blog/${post._id}`}>
             <h3 className="text-xl font-bold text-white mb-2 hover:text-purple-400 cursor-pointer">
               {post.title}
             </h3>
@@ -481,7 +481,7 @@ function PostCard({ post }) {
           <p className="text-gray-300 whitespace-pre-wrap leading-relaxed">
             {displayContent}
             {isBlog && displayContent.length >= 400 && (
-              <Link href={`/blog/${post.slug || post._id}`}>
+              <Link href={`/blog/${post._id}`}>
                 <span className="text-purple-400 hover:text-purple-300 ml-1 cursor-pointer">Read more</span>
               </Link>
             )}
