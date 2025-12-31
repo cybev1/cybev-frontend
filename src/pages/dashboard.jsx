@@ -223,7 +223,7 @@ export default function Dashboard() {
                     </div>
 
                     <div className="flex items-center gap-2 ml-4">
-                      <Link href={`/edit-blog/${blog._id}`}>
+                      <Link href={`/blog/edit/${blog._id}`}>
                         <button className="p-2 hover:bg-purple-500/10 rounded-lg transition-colors">
                           <Edit className="w-5 h-5 text-purple-400" />
                         </button>
