@@ -8,15 +8,15 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import { 
-  FiSave, 
-  FiArrowLeft, 
-  FiImage, 
-  FiTag, 
-  FiLoader,
-  FiTrash2,
-  FiEye,
-  FiAlertCircle
-} from 'react-icons/fi';
+  Save, 
+  ArrowLeft, 
+  Image, 
+  Tag, 
+  Loader2,
+  Trash2,
+  Eye,
+  AlertCircle
+} from 'lucide-react';
 
 // Dynamic import for rich text editor (avoid SSR issues)
 const ReactQuill = dynamic(() => import('react-quill'), { 
@@ -260,7 +260,7 @@ export default function EditBlog() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <FiLoader className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
           <p className="text-white/70">Loading blog...</p>
         </div>
       </div>
@@ -282,7 +282,7 @@ export default function EditBlog() {
               onClick={() => router.back()}
               className="flex items-center gap-2 text-white/70 hover:text-white transition-colors"
             >
-              <FiArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-5 h-5" />
               Back
             </button>
             
@@ -291,7 +291,7 @@ export default function EditBlog() {
                 onClick={() => window.open(`/blog/${id}`, '_blank')}
                 className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
               >
-                <FiEye className="w-4 h-4" />
+                <Eye className="w-4 h-4" />
                 Preview
               </button>
               
@@ -299,7 +299,7 @@ export default function EditBlog() {
                 onClick={() => setShowDeleteConfirm(true)}
                 className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors"
               >
-                <FiTrash2 className="w-4 h-4" />
+                <Trash2 className="w-4 h-4" />
                 Delete
               </button>
               
@@ -309,9 +309,9 @@ export default function EditBlog() {
                 className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all disabled:opacity-50"
               >
                 {saving ? (
-                  <FiLoader className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  <FiSave className="w-4 h-4" />
+                  <Save className="w-4 h-4" />
                 )}
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>
@@ -321,7 +321,7 @@ export default function EditBlog() {
           {/* Messages */}
           {error && (
             <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg flex items-center gap-3">
-              <FiAlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
               <p className="text-red-400">{error}</p>
             </div>
           )}
@@ -350,7 +350,7 @@ export default function EditBlog() {
             {/* Featured Image */}
             <div>
               <label className="block text-white/70 mb-2 text-sm flex items-center gap-2">
-                <FiImage className="w-4 h-4" />
+                <Image className="w-4 h-4" />
                 Featured Image URL
               </label>
               <input
@@ -403,7 +403,7 @@ export default function EditBlog() {
             {/* Tags */}
             <div>
               <label className="block text-white/70 mb-2 text-sm flex items-center gap-2">
-                <FiTag className="w-4 h-4" />
+                <Tag className="w-4 h-4" />
                 Tags ({blog.tags.length}/10)
               </label>
               <div className="flex gap-2 mb-3">
@@ -482,12 +482,12 @@ export default function EditBlog() {
               >
                 {deleting ? (
                   <>
-                    <FiLoader className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                     Deleting...
                   </>
                 ) : (
                   <>
-                    <FiTrash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4" />
                     Delete
                   </>
                 )}
