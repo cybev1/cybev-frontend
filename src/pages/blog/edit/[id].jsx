@@ -1,36 +1,73 @@
 // ============================================
-// FILE: src/pages/blog/edit/[id].jsx
-// PURPOSE: Edit Blog Page
+// FILE: pages/blog/edit/[id].jsx
+// Blog Edit Page - Edit existing blog posts
 // ============================================
 
-import { useState, useEffect, useRef } from 'react';
-import Head from 'next/head';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
-import AppLayout from '@/components/Layout/AppLayout';
-import {
-  ArrowLeft, Save, Eye, Image as ImageIcon, X, Loader2, Sparkles, Upload, Trash2, Clock, Globe, Lock
-} from 'lucide-react';
-import api from '@/lib/api';
-import { toast } from 'react-toastify';
+import Head from 'next/head';
+import dynamic from 'next/dynamic';
+import { 
+  FiSave, 
+  FiArrowLeft, 
+  FiImage, 
+  FiTag, 
+  FiLoader,
+  FiTrash2,
+  FiEye,
+  FiAlertCircle
+} from 'react-icons/fi';
+
+// Dynamic import for rich text editor (avoid SSR issues)
+const ReactQuill = dynamic(() => import('react-quill'), { 
+  ssr: false,
+  loading: () => <div className="h-64 bg-white/5 rounded-lg animate-pulse" />
+});
+import 'react-quill/dist/quill.snow.css';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://cybev-backend-production.up.railway.app';
+
+const CATEGORIES = [
+  'Technology',
+  'Business & Finance',
+  'Health & Wellness',
+  'Lifestyle',
+  'Education',
+  'Entertainment',
+  'Food & Cooking',
+  'Travel',
+  'Science',
+  'Sports',
+  'Fashion & Beauty',
+  'Personal Development',
+  'News & Politics',
+  'Environment',
+  'Other'
+];
 
 export default function EditBlog() {
   const router = useRouter();
   const { id } = router.query;
-  const editorRef = useRef(null);
-
+  
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [blog, setBlog] = useState(null);
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [excerpt, setExcerpt] = useState('');
-  const [featuredImage, setFeaturedImage] = useState('');
-  const [tags, setTags] = useState([]);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  const [blog, setBlog] = useState({
+    title: '',
+    content: '',
+    category: 'Technology',
+    tags: [],
+    featuredImage: '',
+    status: 'published'
+  });
+  
   const [tagInput, setTagInput] = useState('');
-  const [status, setStatus] = useState('draft');
-  const [category, setCategory] = useState('');
 
+  // Fetch blog data
   useEffect(() => {
     if (id) {
       fetchBlog();
@@ -38,328 +75,448 @@ export default function EditBlog() {
   }, [id]);
 
   const fetchBlog = async () => {
-    setLoading(true);
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      setLoading(true);
+      setError('');
       
-      // Try multiple endpoints
-      let response;
-      try {
-        response = await api.get(`/api/blogs/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-      } catch {
-        // Try alternate endpoint
-        response = await api.get(`/blogs/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/login');
+        return;
       }
 
-      const blogData = response.data.blog || response.data;
-      setBlog(blogData);
-      setTitle(blogData.title || '');
-      setContent(blogData.content || '');
-      setExcerpt(blogData.excerpt || '');
-      setFeaturedImage(blogData.featuredImage || blogData.coverImage || '');
-      setTags(blogData.tags || []);
-      setStatus(blogData.status || 'draft');
-      setCategory(blogData.category || '');
-    } catch (err) {
-      console.error('Fetch blog error:', err);
-      toast.error('Failed to load blog');
-      router.push('/dashboard');
-    }
-    setLoading(false);
-  };
-
-  const handleSave = async (newStatus = status) => {
-    if (!title.trim()) {
-      toast.error('Please enter a title');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      
-      const updateData = {
-        title,
-        content,
-        excerpt: excerpt || content.replace(/<[^>]*>/g, '').slice(0, 160),
-        featuredImage,
-        tags,
-        status: newStatus,
-        category
-      };
-
-      await api.put(`/api/blogs/${id}`, updateData, {
-        headers: { Authorization: `Bearer ${token}` }
+      // Try multiple endpoints
+      let response = await fetch(`${API_URL}/api/blogs/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
-      setStatus(newStatus);
-      toast.success(newStatus === 'published' ? 'Blog published!' : 'Blog saved!');
-      
-      if (newStatus === 'published') {
-        router.push(`/blog/${id}`);
+      // If not found, try content routes
+      if (!response.ok && response.status === 404) {
+        response = await fetch(`${API_URL}/api/content/blogs/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
       }
+
+      if (!response.ok) {
+        throw new Error('Blog not found');
+      }
+
+      const data = await response.json();
+      const blogData = data.blog || data.data || data;
+      
+      setBlog({
+        title: blogData.title || '',
+        content: blogData.content || '',
+        category: blogData.category || 'Technology',
+        tags: blogData.tags || [],
+        featuredImage: blogData.featuredImage || '',
+        status: blogData.status || 'published'
+      });
+      
     } catch (err) {
-      console.error('Save error:', err);
-      toast.error('Failed to save blog');
+      console.error('Error fetching blog:', err);
+      setError(err.message || 'Failed to load blog');
+    } finally {
+      setLoading(false);
     }
-    setSaving(false);
   };
 
-  const handleAddTag = (e) => {
-    if (e.key === 'Enter' && tagInput.trim()) {
-      e.preventDefault();
-      if (!tags.includes(tagInput.trim())) {
-        setTags([...tags, tagInput.trim()]);
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      setError('');
+      setSuccess('');
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/login');
+        return;
       }
+
+      if (!blog.title.trim()) {
+        setError('Title is required');
+        return;
+      }
+
+      if (!blog.content.trim()) {
+        setError('Content is required');
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/blogs/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title: blog.title,
+          content: blog.content,
+          category: blog.category,
+          tags: blog.tags,
+          featuredImage: blog.featuredImage,
+          status: blog.status
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || data.message || 'Failed to update blog');
+      }
+
+      setSuccess('Blog updated successfully!');
+      
+      // Redirect after short delay
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 1500);
+      
+    } catch (err) {
+      console.error('Error saving blog:', err);
+      setError(err.message || 'Failed to save blog');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      setDeleting(true);
+      setError('');
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/login');
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/blogs/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete blog');
+      }
+
+      // Redirect to dashboard
+      router.push('/dashboard');
+      
+    } catch (err) {
+      console.error('Error deleting blog:', err);
+      setError(err.message || 'Failed to delete blog');
+      setShowDeleteConfirm(false);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const addTag = () => {
+    const tag = tagInput.trim().toLowerCase();
+    if (tag && !blog.tags.includes(tag) && blog.tags.length < 10) {
+      setBlog(prev => ({
+        ...prev,
+        tags: [...prev.tags, tag]
+      }));
       setTagInput('');
     }
   };
 
-  const handleRemoveTag = (tagToRemove) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+  const removeTag = (tagToRemove) => {
+    setBlog(prev => ({
+      ...prev,
+      tags: prev.tags.filter(tag => tag !== tagToRemove)
+    }));
   };
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // For now, convert to base64 or use your upload endpoint
-    const reader = new FileReader();
-    reader.onload = () => {
-      setFeaturedImage(reader.result);
-    };
-    reader.readAsDataURL(file);
-
-    // Or use upload API:
-    // const formData = new FormData();
-    // formData.append('file', file);
-    // const res = await api.post('/api/upload', formData);
-    // setFeaturedImage(res.data.url);
-  };
-
-  const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this blog?')) return;
-
-    try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      await api.delete(`/api/blogs/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      toast.success('Blog deleted');
-      router.push('/dashboard');
-    } catch (err) {
-      toast.error('Failed to delete blog');
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTag();
     }
+  };
+
+  // Quill editor modules
+  const quillModules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      ['blockquote', 'code-block'],
+      ['link', 'image'],
+      ['clean']
+    ]
   };
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <FiLoader className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <p className="text-white/70">Loading blog...</p>
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
+    <>
       <Head>
-        <title>Edit Blog - CYBEV</title>
+        <title>Edit Blog | CYBEV</title>
       </Head>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard">
-              <button className="p-2 hover:bg-gray-800 rounded-lg">
-                <ArrowLeft className="w-5 h-5 text-gray-400" />
-              </button>
-            </Link>
-            <div>
-              <h1 className="text-xl font-bold text-white">Edit Blog</h1>
-              <p className="text-gray-400 text-sm flex items-center gap-2">
-                {status === 'published' ? (
-                  <><Globe className="w-3 h-3" /> Published</>
-                ) : (
-                  <><Lock className="w-3 h-3" /> Draft</>
-                )}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
             <button
-              onClick={handleDelete}
-              className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg"
-              title="Delete"
+              onClick={() => router.back()}
+              className="flex items-center gap-2 text-white/70 hover:text-white transition-colors"
             >
-              <Trash2 className="w-5 h-5" />
+              <FiArrowLeft className="w-5 h-5" />
+              Back
             </button>
-            <Link href={`/blog/${id}`}>
-              <button className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700">
-                <Eye className="w-4 h-4" />
+            
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => window.open(`/blog/${id}`, '_blank')}
+                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+              >
+                <FiEye className="w-4 h-4" />
                 Preview
               </button>
-            </Link>
-            <button
-              onClick={() => handleSave('draft')}
-              disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50"
-            >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              Save Draft
-            </button>
-            <button
-              onClick={() => handleSave('published')}
-              disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50"
-            >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Globe className="w-4 h-4" />}
-              Publish
-            </button>
-          </div>
-        </div>
-
-        {/* Featured Image */}
-        <div className="mb-6">
-          {featuredImage ? (
-            <div className="relative rounded-xl overflow-hidden">
-              <img
-                src={featuredImage}
-                alt="Featured"
-                className="w-full h-64 object-cover"
-              />
+              
               <button
-                onClick={() => setFeaturedImage('')}
-                className="absolute top-4 right-4 p-2 bg-black/50 rounded-lg hover:bg-black/70"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors"
               >
-                <X className="w-5 h-5 text-white" />
+                <FiTrash2 className="w-4 h-4" />
+                Delete
+              </button>
+              
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all disabled:opacity-50"
+              >
+                {saving ? (
+                  <FiLoader className="w-4 h-4 animate-spin" />
+                ) : (
+                  <FiSave className="w-4 h-4" />
+                )}
+                {saving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
-          ) : (
-            <label className="block w-full h-48 border-2 border-dashed border-gray-700 rounded-xl cursor-pointer hover:border-purple-500 transition-colors">
-              <div className="flex flex-col items-center justify-center h-full">
-                <Upload className="w-8 h-8 text-gray-500 mb-2" />
-                <p className="text-gray-400">Click to upload featured image</p>
-              </div>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-            </label>
-          )}
-        </div>
-
-        {/* Title */}
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Enter your blog title..."
-          className="w-full text-3xl font-bold bg-transparent text-white placeholder-gray-500 focus:outline-none mb-6"
-        />
-
-        {/* Excerpt */}
-        <div className="mb-6">
-          <label className="block text-gray-400 text-sm mb-2">Excerpt (optional)</label>
-          <textarea
-            value={excerpt}
-            onChange={(e) => setExcerpt(e.target.value)}
-            placeholder="Brief description of your blog..."
-            rows={2}
-            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:outline-none resize-none"
-          />
-        </div>
-
-        {/* Content Editor */}
-        <div className="mb-6">
-          <label className="block text-gray-400 text-sm mb-2">Content</label>
-          <textarea
-            ref={editorRef}
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Write your blog content here... (HTML supported)"
-            rows={15}
-            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:outline-none resize-none font-mono text-sm"
-          />
-        </div>
-
-        {/* Category */}
-        <div className="mb-6">
-          <label className="block text-gray-400 text-sm mb-2">Category</label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:outline-none"
-          >
-            <option value="">Select category</option>
-            <option value="technology">Technology</option>
-            <option value="crypto">Crypto & Web3</option>
-            <option value="lifestyle">Lifestyle</option>
-            <option value="business">Business</option>
-            <option value="education">Education</option>
-            <option value="entertainment">Entertainment</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-
-        {/* Tags */}
-        <div className="mb-6">
-          <label className="block text-gray-400 text-sm mb-2">Tags</label>
-          <div className="flex flex-wrap gap-2 mb-2">
-            {tags.map((tag, idx) => (
-              <span
-                key={idx}
-                className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-sm flex items-center gap-1"
-              >
-                #{tag}
-                <button onClick={() => handleRemoveTag(tag)} className="hover:text-white">
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
           </div>
-          <input
-            type="text"
-            value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
-            onKeyPress={handleAddTag}
-            placeholder="Add tag and press Enter..."
-            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:outline-none"
-          />
-        </div>
 
-        {/* Bottom Actions */}
-        <div className="flex items-center justify-between pt-6 border-t border-gray-700">
-          <p className="text-gray-500 text-sm">
-            Last updated: {blog?.updatedAt ? new Date(blog.updatedAt).toLocaleString() : 'Never'}
-          </p>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => handleSave('draft')}
-              disabled={saving}
-              className="px-6 py-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 disabled:opacity-50"
-            >
-              Save Draft
-            </button>
-            <button
-              onClick={() => handleSave('published')}
-              disabled={saving}
-              className="px-6 py-3 bg-purple-500 text-white rounded-xl hover:bg-purple-600 disabled:opacity-50"
-            >
-              {status === 'published' ? 'Update' : 'Publish'}
-            </button>
+          {/* Messages */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg flex items-center gap-3">
+              <FiAlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+              <p className="text-red-400">{error}</p>
+            </div>
+          )}
+          
+          {success && (
+            <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-lg">
+              <p className="text-green-400">{success}</p>
+            </div>
+          )}
+
+          {/* Edit Form */}
+          <div className="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-6 space-y-6">
+            
+            {/* Title */}
+            <div>
+              <label className="block text-white/70 mb-2 text-sm">Title</label>
+              <input
+                type="text"
+                value={blog.title}
+                onChange={(e) => setBlog(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter blog title..."
+                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-purple-500 text-lg"
+              />
+            </div>
+
+            {/* Featured Image */}
+            <div>
+              <label className="block text-white/70 mb-2 text-sm flex items-center gap-2">
+                <FiImage className="w-4 h-4" />
+                Featured Image URL
+              </label>
+              <input
+                type="url"
+                value={blog.featuredImage}
+                onChange={(e) => setBlog(prev => ({ ...prev, featuredImage: e.target.value }))}
+                placeholder="https://example.com/image.jpg"
+                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-purple-500"
+              />
+              {blog.featuredImage && (
+                <div className="mt-3">
+                  <img 
+                    src={blog.featuredImage} 
+                    alt="Featured" 
+                    className="w-full h-48 object-cover rounded-lg"
+                    onError={(e) => e.target.style.display = 'none'}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Category & Status */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-white/70 mb-2 text-sm">Category</label>
+                <select
+                  value={blog.category}
+                  onChange={(e) => setBlog(prev => ({ ...prev, category: e.target.value }))}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                >
+                  {CATEGORIES.map(cat => (
+                    <option key={cat} value={cat} className="bg-gray-900">{cat}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-white/70 mb-2 text-sm">Status</label>
+                <select
+                  value={blog.status}
+                  onChange={(e) => setBlog(prev => ({ ...prev, status: e.target.value }))}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                >
+                  <option value="published" className="bg-gray-900">Published</option>
+                  <option value="draft" className="bg-gray-900">Draft</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Tags */}
+            <div>
+              <label className="block text-white/70 mb-2 text-sm flex items-center gap-2">
+                <FiTag className="w-4 h-4" />
+                Tags ({blog.tags.length}/10)
+              </label>
+              <div className="flex gap-2 mb-3">
+                <input
+                  type="text"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Add a tag..."
+                  className="flex-1 px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-purple-500"
+                />
+                <button
+                  onClick={addTag}
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                >
+                  Add
+                </button>
+              </div>
+              {blog.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {blog.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm flex items-center gap-2"
+                    >
+                      #{tag}
+                      <button
+                        onClick={() => removeTag(tag)}
+                        className="hover:text-red-400 transition-colors"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Content Editor */}
+            <div>
+              <label className="block text-white/70 mb-2 text-sm">Content</label>
+              <div className="bg-white rounded-lg">
+                <ReactQuill
+                  value={blog.content}
+                  onChange={(content) => setBlog(prev => ({ ...prev, content }))}
+                  modules={quillModules}
+                  theme="snow"
+                  placeholder="Write your blog content..."
+                  className="h-96"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </AppLayout>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold text-white mb-4">Delete Blog Post?</h3>
+            <p className="text-white/70 mb-6">
+              Are you sure you want to delete "{blog.title}"? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                {deleting ? (
+                  <>
+                    <FiLoader className="w-4 h-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <FiTrash2 className="w-4 h-4" />
+                    Delete
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style jsx global>{`
+        .ql-toolbar {
+          border-top-left-radius: 0.5rem;
+          border-top-right-radius: 0.5rem;
+          border-color: #e5e7eb !important;
+        }
+        .ql-container {
+          border-bottom-left-radius: 0.5rem;
+          border-bottom-right-radius: 0.5rem;
+          border-color: #e5e7eb !important;
+          font-size: 16px;
+        }
+        .ql-editor {
+          min-height: 300px;
+        }
+        .ql-editor.ql-blank::before {
+          color: #9ca3af;
+          font-style: normal;
+        }
+      `}</style>
+    </>
   );
 }
