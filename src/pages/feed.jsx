@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { toast } from 'react-hot-toast';
+import { toast } from 'react-toastify';
 import api from '@/lib/api';
 import { 
   Clock, TrendingUp, Users, Heart, MessageCircle, Share2, Bookmark, MoreHorizontal,
