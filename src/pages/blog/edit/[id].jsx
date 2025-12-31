@@ -1,46 +1,35 @@
-import { useState, useEffect } from 'react';
+// ============================================
+// FILE: src/pages/blog/edit/[id].jsx
+// PURPOSE: Edit Blog Page
+// ============================================
+
+import { useState, useEffect, useRef } from 'react';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
-import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import AppLayout from '@/components/Layout/AppLayout';
-import { blogAPI } from '@/lib/api';
+import {
+  ArrowLeft, Save, Eye, Image as ImageIcon, X, Loader2, Sparkles, Upload, Trash2, Clock, Globe, Lock
+} from 'lucide-react';
+import api from '@/lib/api';
 import { toast } from 'react-toastify';
-import { Save, Eye, ArrowLeft, Trash2 } from 'lucide-react';
-
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
-import 'react-quill/dist/quill.snow.css';
-
-const CATEGORIES = [
-  'Technology',
-  'Health & Wellness',
-  'Business & Finance',
-  'Lifestyle',
-  'Travel',
-  'Food & Cooking',
-  'Education',
-  'Entertainment',
-  'Science',
-  'Sports',
-  'Fashion & Beauty',
-  'Personal Development',
-  'News & Politics',
-  'Environment',
-  'Other'
-];
 
 export default function EditBlog() {
   const router = useRouter();
   const { id } = router.query;
+  const editorRef = useRef(null);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [preview, setPreview] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    category: 'Technology',
-    tags: '',
-    status: 'published'
-  });
+  const [blog, setBlog] = useState(null);
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [excerpt, setExcerpt] = useState('');
+  const [featuredImage, setFeaturedImage] = useState('');
+  const [tags, setTags] = useState([]);
+  const [tagInput, setTagInput] = useState('');
+  const [status, setStatus] = useState('draft');
+  const [category, setCategory] = useState('');
 
   useEffect(() => {
     if (id) {
@@ -51,101 +40,127 @@ export default function EditBlog() {
   const fetchBlog = async () => {
     setLoading(true);
     try {
-      const response = await blogAPI.getBlog(id);
-      if (response.data.ok) {
-        const blog = response.data.blog;
-        
-        // Check if user owns this blog
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        if (blog.author !== user.id) {
-          toast.error('You can only edit your own blogs');
-          router.push('/blog');
-          return;
-        }
-
-        setFormData({
-          title: blog.title,
-          content: blog.content,
-          category: blog.category,
-          tags: blog.tags?.join(', ') || '',
-          status: blog.status || 'published'
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      
+      // Try multiple endpoints
+      let response;
+      try {
+        response = await api.get(`/api/blogs/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } catch {
+        // Try alternate endpoint
+        response = await api.get(`/blogs/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
       }
-    } catch (error) {
+
+      const blogData = response.data.blog || response.data;
+      setBlog(blogData);
+      setTitle(blogData.title || '');
+      setContent(blogData.content || '');
+      setExcerpt(blogData.excerpt || '');
+      setFeaturedImage(blogData.featuredImage || blogData.coverImage || '');
+      setTags(blogData.tags || []);
+      setStatus(blogData.status || 'draft');
+      setCategory(blogData.category || '');
+    } catch (err) {
+      console.error('Fetch blog error:', err);
       toast.error('Failed to load blog');
-      router.push('/blog');
-    } finally {
-      setLoading(false);
+      router.push('/dashboard');
     }
+    setLoading(false);
   };
 
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSave = async (e) => {
-    e.preventDefault();
-
-    if (!formData.title || !formData.content) {
-      toast.error('Title and content are required');
+  const handleSave = async (newStatus = status) => {
+    if (!title.trim()) {
+      toast.error('Please enter a title');
       return;
     }
 
     setSaving(true);
     try {
-      const payload = {
-        ...formData,
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean)
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      
+      const updateData = {
+        title,
+        content,
+        excerpt: excerpt || content.replace(/<[^>]*>/g, '').slice(0, 160),
+        featuredImage,
+        tags,
+        status: newStatus,
+        category
       };
 
-      const response = await blogAPI.updateBlog(id, payload);
+      await api.put(`/api/blogs/${id}`, updateData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-      if (response.data.ok) {
-        toast.success('✅ Blog updated successfully!');
+      setStatus(newStatus);
+      toast.success(newStatus === 'published' ? 'Blog published!' : 'Blog saved!');
+      
+      if (newStatus === 'published') {
         router.push(`/blog/${id}`);
       }
-    } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to update blog');
-    } finally {
-      setSaving(false);
+    } catch (err) {
+      console.error('Save error:', err);
+      toast.error('Failed to save blog');
     }
+    setSaving(false);
+  };
+
+  const handleAddTag = (e) => {
+    if (e.key === 'Enter' && tagInput.trim()) {
+      e.preventDefault();
+      if (!tags.includes(tagInput.trim())) {
+        setTags([...tags, tagInput.trim()]);
+      }
+      setTagInput('');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // For now, convert to base64 or use your upload endpoint
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFeaturedImage(reader.result);
+    };
+    reader.readAsDataURL(file);
+
+    // Or use upload API:
+    // const formData = new FormData();
+    // formData.append('file', file);
+    // const res = await api.post('/api/upload', formData);
+    // setFeaturedImage(res.data.url);
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this blog? This action cannot be undone.')) {
-      return;
-    }
+    if (!confirm('Are you sure you want to delete this blog?')) return;
 
-    setDeleting(true);
     try {
-      const response = await blogAPI.deleteBlog(id);
-      if (response.data.ok) {
-        toast.success('🗑️ Blog deleted successfully');
-        router.push('/blog');
-      }
-    } catch (error) {
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      await api.delete(`/api/blogs/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Blog deleted');
+      router.push('/dashboard');
+    } catch (err) {
       toast.error('Failed to delete blog');
-    } finally {
-      setDeleting(false);
     }
-  };
-
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'color': [] }, { 'background': [] }],
-      ['link', 'image'],
-      ['clean']
-    ],
   };
 
   if (loading) {
     return (
       <AppLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
         </div>
       </AppLayout>
     );
@@ -153,164 +168,196 @@ export default function EditBlog() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-blue-50 pb-20">
+      <Head>
+        <title>Edit Blog - CYBEV</title>
+      </Head>
+
+      <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 sticky top-16 z-40">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => router.push(`/blog/${id}`)}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Cancel
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard">
+              <button className="p-2 hover:bg-gray-800 rounded-lg">
+                <ArrowLeft className="w-5 h-5 text-gray-400" />
               </button>
-
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setPreview(!preview)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all"
-                >
-                  <Eye className="w-4 h-4" />
-                  {preview ? 'Edit' : 'Preview'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-all disabled:opacity-50 border border-red-200"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  {deleting ? 'Deleting...' : 'Delete'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
-                >
-                  <Save className="w-4 h-4" />
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
+            </Link>
+            <div>
+              <h1 className="text-xl font-bold text-white">Edit Blog</h1>
+              <p className="text-gray-400 text-sm flex items-center gap-2">
+                {status === 'published' ? (
+                  <><Globe className="w-3 h-3" /> Published</>
+                ) : (
+                  <><Lock className="w-3 h-3" /> Draft</>
+                )}
+              </p>
             </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleDelete}
+              className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg"
+              title="Delete"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+            <Link href={`/blog/${id}`}>
+              <button className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700">
+                <Eye className="w-4 h-4" />
+                Preview
+              </button>
+            </Link>
+            <button
+              onClick={() => handleSave('draft')}
+              disabled={saving}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Save Draft
+            </button>
+            <button
+              onClick={() => handleSave('published')}
+              disabled={saving}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Globe className="w-4 h-4" />}
+              Publish
+            </button>
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {!preview ? (
-            <form onSubmit={handleSave} className="space-y-6">
-              {/* Title */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">
-                  Title *
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => handleChange('title', e.target.value)}
-                  placeholder="Enter an engaging title..."
-                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  required
-                />
-              </div>
-
-              {/* Category, Tags, and Status */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Category *
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => handleChange('category', e.target.value)}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    required
-                  >
-                    {CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Tags (comma separated)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.tags}
-                    onChange={(e) => handleChange('tags', e.target.value)}
-                    placeholder="e.g., coding, javascript"
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Status
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => handleChange('status', e.target.value)}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  >
-                    <option value="published">Published</option>
-                    <option value="draft">Draft</option>
-                    <option value="archived">Archived</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Content Editor */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">
-                  Content *
-                </label>
-                <div className="bg-white rounded-lg overflow-hidden border border-gray-300">
-                  <ReactQuill
-                    theme="snow"
-                    value={formData.content}
-                    onChange={(value) => handleChange('content', value)}
-                    modules={modules}
-                    className="h-96"
-                    placeholder="Write your amazing content here..."
-                  />
-                </div>
-              </div>
-            </form>
-          ) : (
-            // Preview Mode
-            <div className="bg-white rounded-xl p-8 border border-gray-200">
-              <div className="mb-6">
-                <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm mb-4">
-                  {formData.category}
-                </span>
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                  {formData.title || 'Untitled'}
-                </h1>
-                {formData.tags && (
-                  <div className="flex flex-wrap gap-2">
-                    {formData.tags.split(',').map((tag, idx) => (
-                      <span key={idx} className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
-                        #{tag.trim()}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div
-                className="prose prose-lg max-w-none"
-                dangerouslySetInnerHTML={{ __html: formData.content || '<p class="text-gray-400">No content yet...</p>' }}
+        {/* Featured Image */}
+        <div className="mb-6">
+          {featuredImage ? (
+            <div className="relative rounded-xl overflow-hidden">
+              <img
+                src={featuredImage}
+                alt="Featured"
+                className="w-full h-64 object-cover"
               />
+              <button
+                onClick={() => setFeaturedImage('')}
+                className="absolute top-4 right-4 p-2 bg-black/50 rounded-lg hover:bg-black/70"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
             </div>
+          ) : (
+            <label className="block w-full h-48 border-2 border-dashed border-gray-700 rounded-xl cursor-pointer hover:border-purple-500 transition-colors">
+              <div className="flex flex-col items-center justify-center h-full">
+                <Upload className="w-8 h-8 text-gray-500 mb-2" />
+                <p className="text-gray-400">Click to upload featured image</p>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+            </label>
           )}
+        </div>
+
+        {/* Title */}
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Enter your blog title..."
+          className="w-full text-3xl font-bold bg-transparent text-white placeholder-gray-500 focus:outline-none mb-6"
+        />
+
+        {/* Excerpt */}
+        <div className="mb-6">
+          <label className="block text-gray-400 text-sm mb-2">Excerpt (optional)</label>
+          <textarea
+            value={excerpt}
+            onChange={(e) => setExcerpt(e.target.value)}
+            placeholder="Brief description of your blog..."
+            rows={2}
+            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:outline-none resize-none"
+          />
+        </div>
+
+        {/* Content Editor */}
+        <div className="mb-6">
+          <label className="block text-gray-400 text-sm mb-2">Content</label>
+          <textarea
+            ref={editorRef}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Write your blog content here... (HTML supported)"
+            rows={15}
+            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:outline-none resize-none font-mono text-sm"
+          />
+        </div>
+
+        {/* Category */}
+        <div className="mb-6">
+          <label className="block text-gray-400 text-sm mb-2">Category</label>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:outline-none"
+          >
+            <option value="">Select category</option>
+            <option value="technology">Technology</option>
+            <option value="crypto">Crypto & Web3</option>
+            <option value="lifestyle">Lifestyle</option>
+            <option value="business">Business</option>
+            <option value="education">Education</option>
+            <option value="entertainment">Entertainment</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        {/* Tags */}
+        <div className="mb-6">
+          <label className="block text-gray-400 text-sm mb-2">Tags</label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {tags.map((tag, idx) => (
+              <span
+                key={idx}
+                className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-sm flex items-center gap-1"
+              >
+                #{tag}
+                <button onClick={() => handleRemoveTag(tag)} className="hover:text-white">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+          <input
+            type="text"
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyPress={handleAddTag}
+            placeholder="Add tag and press Enter..."
+            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:outline-none"
+          />
+        </div>
+
+        {/* Bottom Actions */}
+        <div className="flex items-center justify-between pt-6 border-t border-gray-700">
+          <p className="text-gray-500 text-sm">
+            Last updated: {blog?.updatedAt ? new Date(blog.updatedAt).toLocaleString() : 'Never'}
+          </p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => handleSave('draft')}
+              disabled={saving}
+              className="px-6 py-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 disabled:opacity-50"
+            >
+              Save Draft
+            </button>
+            <button
+              onClick={() => handleSave('published')}
+              disabled={saving}
+              className="px-6 py-3 bg-purple-500 text-white rounded-xl hover:bg-purple-600 disabled:opacity-50"
+            >
+              {status === 'published' ? 'Update' : 'Publish'}
+            </button>
+          </div>
         </div>
       </div>
     </AppLayout>
