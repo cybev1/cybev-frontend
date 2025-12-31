@@ -227,6 +227,7 @@ function FeedCard({ item, onLike, onBookmark }) {
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [likesCount, setLikesCount] = useState(item.likes?.length || item.likesCount || 0);
+  const [showShareMenu, setShowShareMenu] = useState(false);
 
   const isPost = item.contentType === 'post' || !item.title;
   const isBlog = item.contentType === 'blog' || item.title;
@@ -250,6 +251,51 @@ function FeedCard({ item, onLike, onBookmark }) {
       await onBookmark(item._id, isBlog ? 'blog' : 'post');
     } catch {
       setBookmarked(bookmarked);
+    }
+  };
+
+  const handleShare = async (e, platform) => {
+    e.stopPropagation();
+    
+    const shareUrl = `${window.location.origin}/${isBlog ? 'blog' : 'post'}/${item._id}`;
+    const shareTitle = item.title || item.content?.substring(0, 50) || 'Check this out!';
+    
+    // Track share on backend
+    try {
+      await api.post(`/api/blogs/${item._id}/share`, { platform });
+    } catch (err) {
+      console.log('Share tracking failed:', err);
+    }
+    
+    if (platform === 'native' && navigator.share) {
+      try {
+        await navigator.share({ title: shareTitle, url: shareUrl });
+        toast.success('Shared!');
+      } catch (err) {
+        if (err.name !== 'AbortError') setShowShareMenu(true);
+      }
+    } else if (platform === 'copy') {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success('Link copied!');
+        setShowShareMenu(false);
+      } catch {
+        toast.error('Failed to copy');
+      }
+    } else if (platform === 'twitter') {
+      window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`, '_blank');
+      setShowShareMenu(false);
+    } else if (platform === 'facebook') {
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
+      setShowShareMenu(false);
+    } else if (platform === 'whatsapp') {
+      window.open(`https://wa.me/?text=${encodeURIComponent(shareTitle + ' ' + shareUrl)}`, '_blank');
+      setShowShareMenu(false);
+    } else if (platform === 'telegram') {
+      window.open(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`, '_blank');
+      setShowShareMenu(false);
+    } else {
+      setShowShareMenu(true);
     }
   };
 
@@ -358,12 +404,39 @@ function FeedCard({ item, onLike, onBookmark }) {
           >
             <Bookmark className={`w-5 h-5 ${bookmarked ? 'fill-current' : ''}`} />
           </button>
-          <button
-            onClick={(e) => e.stopPropagation()}
-            className="p-2 text-gray-400 hover:text-purple-400 rounded-lg"
-          >
-            <Share2 className="w-5 h-5" />
-          </button>
+          <div className="relative">
+            <button
+              onClick={(e) => handleShare(e, 'native')}
+              className="p-2 text-gray-400 hover:text-purple-400 rounded-lg"
+            >
+              <Share2 className="w-5 h-5" />
+            </button>
+            {showShareMenu && (
+              <div 
+                className="absolute right-0 bottom-12 bg-gray-800 border border-purple-500/30 rounded-xl p-3 shadow-xl z-50 min-w-[160px]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button onClick={(e) => handleShare(e, 'copy')} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-purple-500/20 rounded-lg text-gray-300 text-sm">
+                  📋 Copy Link
+                </button>
+                <button onClick={(e) => handleShare(e, 'twitter')} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-purple-500/20 rounded-lg text-gray-300 text-sm">
+                  𝕏 Twitter
+                </button>
+                <button onClick={(e) => handleShare(e, 'facebook')} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-purple-500/20 rounded-lg text-gray-300 text-sm">
+                  📘 Facebook
+                </button>
+                <button onClick={(e) => handleShare(e, 'whatsapp')} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-purple-500/20 rounded-lg text-gray-300 text-sm">
+                  💬 WhatsApp
+                </button>
+                <button onClick={(e) => handleShare(e, 'telegram')} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-purple-500/20 rounded-lg text-gray-300 text-sm">
+                  ✈️ Telegram
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); setShowShareMenu(false); }} className="w-full mt-2 pt-2 border-t border-gray-700 text-gray-500 text-xs">
+                  Close
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
