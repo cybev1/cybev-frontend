@@ -1,6 +1,7 @@
 // ============================================
 // FILE: src/pages/feed.jsx
-// CYBEV Social-Blogging Platform - Facebook-Style Feed
+// CYBEV Social-Blogging Platform - Complete Feed
+// Features: VLOG, TV, PIN POST, Ads, Groups, Websites
 // ============================================
 
 import { useState, useEffect, useRef } from 'react';
@@ -8,17 +9,17 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import {
-  Home, Users, Video, Bell, Menu, Search, MessageCircle, Plus,
+  Home, Users, Tv, Bell, Menu, Search, MessageCircle, Plus,
   Heart, MessageSquare, Share2, Bookmark, MoreHorizontal, Send,
-  Image as ImageIcon, Smile, Camera, X, Edit, Trash2, Pin, Flag,
-  Copy, ExternalLink, Globe, Loader2, Sparkles, Radio, Play
+  Image as ImageIcon, X, Edit, Trash2, Pin, Flag, Copy, ExternalLink,
+  Globe, Loader2, Sparkles, Radio, Play, Monitor, Building, Wand2
 } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'react-toastify';
 
 // Emoji Reactions
 const REACTIONS = [
-  { type: 'like', emoji: '👍', label: 'Like', color: 'text-blue-500' },
+  { type: 'like', emoji: '👍', label: 'Like', color: 'text-blue-600' },
   { type: 'love', emoji: '❤️', label: 'Love', color: 'text-red-500' },
   { type: 'haha', emoji: '😂', label: 'Haha', color: 'text-yellow-500' },
   { type: 'wow', emoji: '😮', label: 'Wow', color: 'text-yellow-500' },
@@ -27,75 +28,57 @@ const REACTIONS = [
 ];
 
 // ==========================================
-// TOP NAVIGATION BAR (Facebook-style)
+// TOP NAVIGATION BAR
 // ==========================================
 function TopNavBar({ user }) {
   const router = useRouter();
   
   return (
-    <div className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-2">
+    <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-2">
       <div className="max-w-screen-lg mx-auto flex items-center justify-between">
         {/* Logo */}
         <Link href="/feed">
           <h1 className="text-2xl font-bold text-purple-600 cursor-pointer">CYBEV</h1>
         </Link>
         
-        {/* Center Nav Icons - Desktop */}
-        <div className="hidden md:flex items-center gap-2">
+        {/* Center Nav Icons */}
+        <div className="hidden md:flex items-center gap-1">
           <Link href="/feed">
-            <button className="px-8 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-purple-600 border-b-2 border-purple-600">
+            <button className="px-6 py-2 rounded-lg hover:bg-gray-100 text-purple-600 border-b-2 border-purple-600" title="Home">
               <Home className="w-6 h-6" />
             </button>
           </Link>
-          <Link href="/discover">
-            <button className="px-8 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500">
-              <Users className="w-6 h-6" />
-            </button>
-          </Link>
-          <Link href="/live">
-            <button className="px-8 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 relative">
-              <Video className="w-6 h-6" />
-            </button>
-          </Link>
           <Link href="/groups">
-            <button className="px-8 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500">
+            <button className="px-6 py-2 rounded-lg hover:bg-gray-100 text-gray-500" title="Groups">
               <Users className="w-6 h-6" />
+            </button>
+          </Link>
+          <Link href="/tv">
+            <button className="px-6 py-2 rounded-lg hover:bg-gray-100 text-gray-500" title="CYBEV TV">
+              <Tv className="w-6 h-6" />
+            </button>
+          </Link>
+          <Link href="/websites">
+            <button className="px-6 py-2 rounded-lg hover:bg-gray-100 text-gray-500" title="Websites & Blogs">
+              <Building className="w-6 h-6" />
             </button>
           </Link>
         </div>
         
         {/* Right Icons */}
         <div className="flex items-center gap-2">
-          <button 
-            onClick={() => router.push('/studio')}
-            className="w-10 h-10 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-700"
-          >
-            <Plus className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+          <button onClick={() => router.push('/studio')} className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200" title="Create">
+            <Plus className="w-5 h-5 text-gray-700" />
           </button>
-          <button 
-            onClick={() => router.push('/search')}
-            className="w-10 h-10 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-700"
-          >
-            <Search className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+          <button onClick={() => router.push('/search')} className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200" title="Search">
+            <Search className="w-5 h-5 text-gray-700" />
           </button>
-          <button 
-            onClick={() => router.push('/messages')}
-            className="w-10 h-10 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-700 relative"
-          >
-            <MessageCircle className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+          <button onClick={() => router.push('/messages')} className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 relative" title="Messages">
+            <MessageCircle className="w-5 h-5 text-gray-700" />
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">3</span>
           </button>
-          <button 
-            onClick={() => router.push('/notifications')}
-            className="w-10 h-10 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-700"
-          >
-            <Bell className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-          </button>
-          <button 
-            onClick={() => router.push('/settings')}
-            className="w-10 h-10 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-700"
-          >
-            <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+          <button onClick={() => router.push('/notifications')} className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200" title="Notifications">
+            <Bell className="w-5 h-5 text-gray-700" />
           </button>
         </div>
       </div>
@@ -104,59 +87,54 @@ function TopNavBar({ user }) {
 }
 
 // ==========================================
-// POST COMPOSER (Facebook-style)
+// POST COMPOSER
 // ==========================================
 function PostComposer({ user, onOpenAI }) {
   const router = useRouter();
   
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg shadow mb-4 p-4">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 p-4">
       <div className="flex items-center gap-3">
-        {/* Profile Picture */}
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0">
           {user?.profilePicture ? (
             <img src={user.profilePicture} alt="" className="w-full h-full object-cover" />
           ) : (
-            user?.name?.[0] || 'U'
+            <span className="text-white">{user?.name?.[0] || 'U'}</span>
           )}
         </div>
-        
-        {/* Input */}
         <button 
           onClick={() => router.push('/studio')}
-          className="flex-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full px-4 py-2.5 text-left text-gray-500 transition-colors"
+          className="flex-1 bg-gray-100 hover:bg-gray-200 rounded-full px-4 py-2.5 text-left text-gray-600 transition-colors"
         >
           Write a short blog or article...
         </button>
-        
-        {/* Gallery Icon */}
-        <button className="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center">
-          <ImageIcon className="w-6 h-6 text-green-500" />
+        <button onClick={() => router.push('/studio')} className="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center">
+          <ImageIcon className="w-6 h-6 text-green-600" />
         </button>
       </div>
       
       {/* Action Buttons */}
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
         <button 
           onClick={() => router.push('/live/start')}
-          className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-600 dark:text-gray-400 text-sm font-medium"
+          className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded-lg text-gray-700 text-sm font-medium"
         >
           <Radio className="w-5 h-5 text-red-500" />
           <span>Live video</span>
         </button>
         <button 
-          onClick={() => router.push('/studio')}
-          className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-600 dark:text-gray-400 text-sm font-medium"
+          onClick={() => router.push('/studio?mode=ai')}
+          className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded-lg text-gray-700 text-sm font-medium"
         >
-          <ImageIcon className="w-5 h-5 text-green-500" />
-          <span>Photo/video</span>
+          <Wand2 className="w-5 h-5 text-purple-600" />
+          <span>Write with AI</span>
         </button>
         <button 
           onClick={onOpenAI}
-          className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-600 dark:text-gray-400 text-sm font-medium"
+          className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded-lg text-gray-700 text-sm font-medium"
         >
-          <Sparkles className="w-5 h-5 text-purple-500" />
-          <span>AI Blog</span>
+          <Sparkles className="w-5 h-5 text-pink-500" />
+          <span>AI Blog Builder</span>
         </button>
       </div>
     </div>
@@ -164,97 +142,125 @@ function PostComposer({ user, onOpenAI }) {
 }
 
 // ==========================================
-// STORIES SECTION (Facebook-style rectangular)
+// VLOG SECTION (formerly Stories/Reels)
 // ==========================================
-function StoriesSection({ user, stories = [] }) {
+function VlogSection({ user }) {
   const router = useRouter();
   
-  // Demo stories
-  const displayStories = [
+  const vlogs = [
     { id: 'create', isCreate: true, user: user },
-    { id: 1, user: { name: 'Deborah Toh', profilePicture: null }, image: '/api/placeholder/150/250', hasNew: true },
-    { id: 2, user: { name: 'Sonia Mds', profilePicture: null }, image: '/api/placeholder/150/250', hasNew: true },
-    { id: 3, user: { name: 'Prince D', profilePicture: null }, image: '/api/placeholder/150/250', hasNew: false },
-    { id: 4, user: { name: 'Jane Doe', profilePicture: null }, image: '/api/placeholder/150/250', hasNew: true },
-    ...stories
+    { id: 1, user: { name: 'Deborah T', profilePicture: null }, hasNew: true },
+    { id: 2, user: { name: 'Sonia M', profilePicture: null }, hasNew: true },
+    { id: 3, user: { name: 'Prince D', profilePicture: null }, hasNew: false },
+    { id: 4, user: { name: 'Jane D', profilePicture: null }, hasNew: true },
   ];
 
+  const colors = ['from-pink-400 to-purple-500', 'from-blue-400 to-cyan-500', 'from-green-400 to-teal-500', 'from-orange-400 to-red-500', 'from-purple-400 to-indigo-500'];
+
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg shadow mb-4 p-4">
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        {displayStories.map((story, idx) => (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-semibold text-gray-900">Vlogs</h3>
+        <Link href="/vlogs">
+          <span className="text-purple-600 text-sm font-medium cursor-pointer hover:underline">See all</span>
+        </Link>
+      </div>
+      
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+        {vlogs.map((vlog, idx) => (
           <div 
-            key={story.id} 
-            onClick={() => story.isCreate ? router.push('/stories/create') : router.push(`/stories/${story.id}`)}
-            className="flex-shrink-0 w-28 h-48 rounded-xl overflow-hidden relative cursor-pointer group"
+            key={vlog.id} 
+            onClick={() => vlog.isCreate ? router.push('/vlog/create') : router.push(`/vlog/${vlog.id}`)}
+            className="flex-shrink-0 w-28 h-44 rounded-xl overflow-hidden relative cursor-pointer group shadow-sm"
           >
-            {story.isCreate ? (
-              /* Create Story Card */
-              <div className="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                {/* User's profile image as background */}
-                <div className="h-3/4 bg-gradient-to-br from-purple-400 to-pink-400 relative">
+            {vlog.isCreate ? (
+              <div className="w-full h-full bg-white border-2 border-gray-200">
+                <div className={`h-3/4 bg-gradient-to-br ${colors[0]} relative`}>
                   {user?.profilePicture ? (
                     <img src={user.profilePicture} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white text-4xl font-bold">
+                    <div className="w-full h-full flex items-center justify-center text-white text-3xl font-bold">
                       {user?.name?.[0] || 'U'}
                     </div>
                   )}
                 </div>
-                {/* Create button and text */}
-                <div className="h-1/4 flex flex-col items-center justify-center bg-white dark:bg-gray-800 relative">
-                  <div className="absolute -top-4 w-9 h-9 bg-purple-600 rounded-full flex items-center justify-center border-4 border-white dark:border-gray-800">
-                    <Plus className="w-5 h-5 text-white" />
+                <div className="h-1/4 flex flex-col items-center justify-center bg-white relative">
+                  <div className="absolute -top-4 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center border-4 border-white">
+                    <Plus className="w-4 h-4 text-white" />
                   </div>
-                  <span className="text-xs font-semibold text-gray-900 dark:text-white mt-2">Create story</span>
+                  <span className="text-xs font-semibold text-gray-900 mt-2">Create Vlog</span>
                 </div>
               </div>
             ) : (
-              /* User Story Card */
               <div className="w-full h-full relative">
-                {/* Story Image/Background */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${
-                  idx % 3 === 0 ? 'from-orange-400 to-red-500' : 
-                  idx % 3 === 1 ? 'from-blue-400 to-purple-500' : 
-                  'from-green-400 to-teal-500'
-                }`}>
-                  {story.image && (
-                    <img src={story.image} alt="" className="w-full h-full object-cover" />
-                  )}
-                </div>
-                
-                {/* Gradient Overlay */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${colors[idx % colors.length]}`} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                 
-                {/* Profile Picture Ring */}
-                <div className="absolute top-3 left-3">
-                  <div className={`w-10 h-10 rounded-full p-0.5 ${story.hasNew ? 'bg-gradient-to-br from-blue-500 to-purple-500' : 'bg-gray-400'}`}>
-                    <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 p-0.5">
-                      <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold overflow-hidden">
-                        {story.user?.profilePicture ? (
-                          <img src={story.user.profilePicture} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          story.user?.name?.[0] || 'U'
-                        )}
+                {/* Profile Ring */}
+                <div className="absolute top-2 left-2">
+                  <div className={`w-9 h-9 rounded-full p-0.5 ${vlog.hasNew ? 'bg-gradient-to-br from-purple-500 to-pink-500' : 'bg-gray-400'}`}>
+                    <div className="w-full h-full rounded-full bg-white p-0.5">
+                      <div className={`w-full h-full rounded-full bg-gradient-to-br ${colors[(idx + 1) % colors.length]} flex items-center justify-center text-white text-xs font-bold`}>
+                        {vlog.user?.name?.[0] || 'U'}
                       </div>
                     </div>
                   </div>
                 </div>
                 
-                {/* Name */}
-                <div className="absolute bottom-3 left-3 right-3">
-                  <p className="text-white text-xs font-semibold truncate drop-shadow-lg">
-                    {story.user?.name || 'User'}
-                  </p>
+                {/* Play Icon */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="w-10 h-10 bg-white/30 backdrop-blur rounded-full flex items-center justify-center">
+                    <Play className="w-5 h-5 text-white fill-white" />
+                  </div>
                 </div>
                 
-                {/* Hover Overlay */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                {/* Name */}
+                <div className="absolute bottom-2 left-2 right-2">
+                  <p className="text-white text-xs font-semibold truncate drop-shadow">{vlog.user?.name}</p>
+                </div>
               </div>
             )}
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ==========================================
+// AD CARD
+// ==========================================
+function AdCard({ position }) {
+  return (
+    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200 mb-4 p-4">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs text-gray-500 font-medium">Sponsored</span>
+        <button className="text-xs text-gray-400 hover:text-gray-600">×</button>
+      </div>
+      <div className="flex gap-4">
+        <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg flex items-center justify-center">
+          <Sparkles className="w-8 h-8 text-white" />
+        </div>
+        <div className="flex-1">
+          <h4 className="font-semibold text-gray-900">Advertise on CYBEV</h4>
+          <p className="text-sm text-gray-600 mt-1">Reach millions of readers with your brand</p>
+          <button className="mt-2 px-4 py-1 bg-purple-600 text-white text-sm rounded-full hover:bg-purple-700">
+            Learn More
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// PINNED POST INDICATOR
+// ==========================================
+function PinnedBadge() {
+  return (
+    <div className="flex items-center gap-1 text-purple-600 text-xs font-medium mb-2">
+      <Pin className="w-3.5 h-3.5" />
+      <span>Pinned Post</span>
     </div>
   );
 }
@@ -317,10 +323,10 @@ function CommentsModal({ isOpen, onClose, blogId }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white dark:bg-gray-900 rounded-xl w-full max-w-lg max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">Comments</h3>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full">
+      <div className="bg-white rounded-xl w-full max-w-lg max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <h3 className="text-lg font-bold text-gray-900">Comments</h3>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
@@ -336,12 +342,12 @@ function CommentsModal({ isOpen, onClose, blogId }) {
             comments.map(comment => (
               <div key={comment._id} className="flex gap-3">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                  {comment.author?.name?.[0] || comment.authorName?.[0] || 'U'}
+                  {comment.author?.name?.[0] || 'U'}
                 </div>
                 <div className="flex-1">
-                  <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl px-3 py-2">
-                    <p className="font-semibold text-sm text-gray-900 dark:text-white">{comment.author?.name || comment.authorName}</p>
-                    <p className="text-gray-700 dark:text-gray-300 text-sm">{comment.content}</p>
+                  <div className="bg-gray-100 rounded-2xl px-3 py-2">
+                    <p className="font-semibold text-sm text-gray-900">{comment.author?.name || comment.authorName}</p>
+                    <p className="text-gray-700 text-sm">{comment.content}</p>
                   </div>
                   <div className="flex gap-4 mt-1 ml-3 text-xs text-gray-500">
                     <span>{new Date(comment.createdAt).toLocaleDateString()}</span>
@@ -354,7 +360,7 @@ function CommentsModal({ isOpen, onClose, blogId }) {
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200 dark:border-gray-700">
+        <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200">
           <div className="flex gap-2 items-center">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex-shrink-0" />
             <input
@@ -362,7 +368,7 @@ function CommentsModal({ isOpen, onClose, blogId }) {
               value={newComment}
               onChange={e => setNewComment(e.target.value)}
               placeholder="Write a comment..."
-              className="flex-1 bg-gray-100 dark:bg-gray-800 rounded-full px-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
             <button type="submit" disabled={submitting || !newComment.trim()}
               className="text-purple-600 font-semibold text-sm disabled:opacity-50">
@@ -376,9 +382,9 @@ function CommentsModal({ isOpen, onClose, blogId }) {
 }
 
 // ==========================================
-// FEED POST CARD (Facebook-style)
+// FEED POST CARD
 // ==========================================
-function FeedCard({ item, currentUserId, onRefresh }) {
+function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
   const router = useRouter();
   const [showReactions, setShowReactions] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
@@ -387,14 +393,13 @@ function FeedCard({ item, currentUserId, onRefresh }) {
   const [userReactions, setUserReactions] = useState({});
   const [reactions, setReactions] = useState(item.reactions || {});
   const [likesCount, setLikesCount] = useState(item.likes?.length || item.likesCount || 0);
-  const [isPinned, setIsPinned] = useState(item.isPinned || false);
+  const [isPinned, setIsPinned] = useState(item.isPinned || isPinnedPost);
   const reactionTimeout = useRef(null);
 
   const isBlog = item.contentType === 'blog' || item.title;
   const authorId = item.author?._id || item.author || item.authorId?._id || item.authorId;
   const isOwner = currentUserId && (String(authorId) === String(currentUserId));
 
-  // Check existing reactions
   useEffect(() => {
     if (currentUserId && item.reactions) {
       const myReactions = {};
@@ -410,7 +415,6 @@ function FeedCard({ item, currentUserId, onRefresh }) {
     }
   }, [currentUserId, item]);
 
-  // Handle reaction (accumulates)
   const handleReaction = async (e, type) => {
     e.stopPropagation();
     const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
@@ -432,20 +436,15 @@ function FeedCard({ item, currentUserId, onRefresh }) {
       });
       if (response.data.ok) {
         setReactions(response.data.reactions || {});
-        if (response.data.userReactions) {
-          setUserReactions(response.data.userReactions);
-        }
+        if (response.data.userReactions) setUserReactions(response.data.userReactions);
       }
     } catch {
       setUserReactions(prev => ({ ...prev, [type]: hadThisReaction }));
-      if (type === 'like') {
-        setLikesCount(prev => hadThisReaction ? prev + 1 : prev - 1);
-      }
+      if (type === 'like') setLikesCount(prev => hadThisReaction ? prev + 1 : prev - 1);
     }
     setShowReactions(false);
   };
 
-  // Handle actions
   const handlePin = async () => {
     const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
     try {
@@ -499,68 +498,86 @@ function FeedCard({ item, currentUserId, onRefresh }) {
   const images = item.images || item.media || (item.featuredImage ? [item.featuredImage] : []);
   const commentsCount = item.commentsCount || item.comments?.length || 0;
   const totalReactions = reactions ? Object.values(reactions).reduce((sum, arr) => sum + (arr?.length || 0), 0) : likesCount;
-
-  // Get active reaction emoji
   const activeReaction = Object.keys(userReactions).find(key => userReactions[key]);
   const activeReactionData = REACTIONS.find(r => r.type === activeReaction);
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg shadow mb-4">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-4">
+      {/* Pinned Badge */}
+      {isPinned && (
+        <div className="px-4 pt-3">
+          <PinnedBadge />
+        </div>
+      )}
+      
       {/* Header */}
-      <div className="flex items-start justify-between p-4">
+      <div className="flex items-start justify-between p-4 pb-2">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden">
             {authorAvatar ? (
               <img src={authorAvatar} alt="" className="w-full h-full object-cover" />
             ) : (
-              authorName[0]?.toUpperCase()
+              <span className="text-white">{authorName[0]?.toUpperCase()}</span>
             )}
           </div>
           <div>
             <div className="flex items-center gap-2">
               <Link href={`/profile/${author.username || authorId}`}>
-                <span className="font-semibold text-gray-900 dark:text-white hover:underline cursor-pointer">{authorName}</span>
+                <span className="font-semibold text-gray-900 hover:underline cursor-pointer">{authorName}</span>
               </Link>
-              {isPinned && <Pin className="w-4 h-4 text-purple-500" />}
             </div>
             <div className="flex items-center gap-1 text-gray-500 text-xs">
               <span>{new Date(item.createdAt).toLocaleDateString()}</span>
               <span>·</span>
               <Globe className="w-3 h-3" />
+              {isBlog && (
+                <>
+                  <span>·</span>
+                  <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">Blog</span>
+                </>
+              )}
             </div>
           </div>
         </div>
         
         {/* More Menu */}
         <div className="relative">
-          <button 
-            onClick={() => setShowMoreMenu(!showMoreMenu)}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
-          >
+          <button onClick={() => setShowMoreMenu(!showMoreMenu)} className="p-2 hover:bg-gray-100 rounded-full">
             <MoreHorizontal className="w-5 h-5 text-gray-500" />
           </button>
           
           {showMoreMenu && (
-            <div className="absolute right-0 top-10 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 min-w-[200px] z-50">
+            <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-gray-200 py-2 min-w-[180px] z-50">
               <button onClick={() => { router.push(`/blog/${item._id}`); setShowMoreMenu(false); }}
-                className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
-                <ExternalLink className="w-5 h-5" /> Open post
+                className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
+                <ExternalLink className="w-4 h-4" /> Open post
               </button>
+              
+              {/* Pin - Admin can pin on feed, Owner can pin on their timeline */}
+              {(isAdmin || isOwner) && (
+                <button onClick={handlePin}
+                  className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
+                  <Pin className="w-4 h-4" /> {isPinned ? 'Unpin' : isAdmin ? 'Pin to Feed' : 'Pin to Profile'}
+                </button>
+              )}
+              
               {isOwner && (
                 <>
-                  <button onClick={handlePin}
-                    className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
-                    <Pin className="w-5 h-5" /> {isPinned ? 'Unpin' : 'Pin to profile'}
-                  </button>
                   <button onClick={() => { router.push(`/blog/edit/${item._id}`); setShowMoreMenu(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
-                    <Edit className="w-5 h-5" /> Edit post
+                    className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
+                    <Edit className="w-4 h-4" /> Edit post
                   </button>
                   <button onClick={handleDelete}
-                    className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-red-500">
-                    <Trash2 className="w-5 h-5" /> Delete post
+                    className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-red-600 text-sm">
+                    <Trash2 className="w-4 h-4" /> Delete post
                   </button>
                 </>
+              )}
+              
+              {!isOwner && (
+                <button className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
+                  <Flag className="w-4 h-4" /> Report
+                </button>
               )}
             </div>
           )}
@@ -570,38 +587,27 @@ function FeedCard({ item, currentUserId, onRefresh }) {
       {/* Content */}
       <div className="px-4 pb-3">
         {item.title && (
-          <h3 
-            onClick={() => router.push(`/blog/${item._id}`)}
-            className="text-lg font-bold text-gray-900 dark:text-white mb-2 cursor-pointer hover:underline"
-          >
+          <h3 onClick={() => router.push(`/blog/${item._id}`)}
+            className="text-lg font-bold text-gray-900 mb-2 cursor-pointer hover:text-purple-600">
             {item.title}
           </h3>
         )}
-        <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+        <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
           {item.excerpt || item.content?.replace(/<[^>]*>/g, '').slice(0, 400)}
           {item.content?.length > 400 && (
-            <span 
-              onClick={() => router.push(`/blog/${item._id}`)}
-              className="text-gray-500 cursor-pointer hover:underline"
-            > ...See more</span>
+            <span onClick={() => router.push(`/blog/${item._id}`)}
+              className="text-purple-600 cursor-pointer hover:underline font-medium"> ...See more</span>
           )}
         </p>
       </div>
 
       {/* Images */}
       {images.length > 0 && (
-        <div 
-          onClick={() => router.push(`/blog/${item._id}`)}
-          className={`cursor-pointer ${images.length > 1 ? 'grid grid-cols-2 gap-0.5' : ''}`}
-        >
+        <div onClick={() => router.push(`/blog/${item._id}`)}
+          className={`cursor-pointer ${images.length > 1 ? 'grid grid-cols-2 gap-0.5' : ''}`}>
           {images.slice(0, 4).map((img, idx) => (
-            <div key={idx} className={`relative ${images.length === 1 ? 'aspect-video' : 'aspect-square'} bg-gray-200 dark:bg-gray-800`}>
+            <div key={idx} className={`relative ${images.length === 1 ? 'aspect-video' : 'aspect-square'} bg-gray-100`}>
               <img src={img} alt="" className="w-full h-full object-cover" onError={e => e.target.style.display = 'none'} />
-              {idx === 3 && images.length > 4 && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <span className="text-white text-2xl font-bold">+{images.length - 4}</span>
-                </div>
-              )}
             </div>
           ))}
         </div>
@@ -614,34 +620,30 @@ function FeedCard({ item, currentUserId, onRefresh }) {
             <>
               <div className="flex -space-x-1">
                 {Object.entries(reactions || {}).filter(([_, users]) => users?.length > 0).slice(0, 3).map(([type]) => (
-                  <span key={type} className="text-base">{REACTIONS.find(r => r.type === type)?.emoji}</span>
+                  <span key={type} className="text-sm">{REACTIONS.find(r => r.type === type)?.emoji}</span>
                 ))}
                 {totalReactions > 0 && Object.keys(reactions || {}).length === 0 && <span>👍</span>}
               </div>
-              <span className="ml-1">{totalReactions}</span>
+              <span className="ml-1 text-gray-600">{totalReactions}</span>
             </>
           )}
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-4 text-gray-600">
           {commentsCount > 0 && <span>{commentsCount} comments</span>}
           {item.shares?.total > 0 && <span>{item.shares.total} shares</span>}
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-1 flex items-center justify-around relative">
-        {/* Like Button with Reactions */}
-        <div 
-          className="relative flex-1"
+      <div className="border-t border-gray-100 px-4 py-1 flex items-center justify-around relative">
+        {/* Like with Reactions */}
+        <div className="relative flex-1"
           onMouseEnter={() => { clearTimeout(reactionTimeout.current); setShowReactions(true); }}
-          onMouseLeave={() => { reactionTimeout.current = setTimeout(() => setShowReactions(false), 500); }}
-        >
-          <button 
-            onClick={(e) => handleReaction(e, 'like')}
-            className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 font-semibold text-sm ${
-              activeReaction ? activeReactionData?.color || 'text-blue-500' : 'text-gray-500'
-            }`}
-          >
+          onMouseLeave={() => { reactionTimeout.current = setTimeout(() => setShowReactions(false), 500); }}>
+          <button onClick={(e) => handleReaction(e, 'like')}
+            className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-gray-50 font-medium text-sm ${
+              activeReaction ? activeReactionData?.color || 'text-blue-600' : 'text-gray-600'
+            }`}>
             {activeReaction ? (
               <span className="text-lg">{activeReactionData?.emoji}</span>
             ) : (
@@ -650,77 +652,69 @@ function FeedCard({ item, currentUserId, onRefresh }) {
             <span>{activeReaction ? activeReactionData?.label : 'Like'}</span>
           </button>
           
-          {/* Reaction Picker */}
           {showReactions && (
-            <div className="absolute bottom-12 left-0 bg-white dark:bg-gray-800 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 px-2 py-1 flex gap-1 z-50">
+            <div className="absolute bottom-12 left-0 bg-white rounded-full shadow-lg border border-gray-200 px-2 py-1 flex gap-1 z-50">
               {REACTIONS.map(r => (
-                <button 
-                  key={r.type}
-                  onClick={(e) => handleReaction(e, r.type)}
-                  className={`p-1.5 hover:scale-125 transition-transform rounded-full ${userReactions[r.type] ? 'bg-gray-200 dark:bg-gray-700 ring-2 ring-purple-500' : ''}`}
-                  title={r.label}
-                >
-                  <span className="text-2xl">{r.emoji}</span>
+                <button key={r.type} onClick={(e) => handleReaction(e, r.type)}
+                  className={`p-1.5 hover:scale-125 transition-transform rounded-full ${userReactions[r.type] ? 'bg-purple-100 ring-2 ring-purple-500' : ''}`}
+                  title={r.label}>
+                  <span className="text-xl">{r.emoji}</span>
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        {/* Comment Button */}
-        <button 
-          onClick={() => setShowComments(true)}
-          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 font-semibold text-sm"
-        >
+        {/* Comment */}
+        <button onClick={() => setShowComments(true)}
+          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-gray-50 text-gray-600 font-medium text-sm">
           <MessageSquare className="w-5 h-5" />
           <span>Comment</span>
         </button>
 
-        {/* Share Button */}
+        {/* Share */}
         <div className="relative flex-1">
-          <button 
-            onClick={() => setShowShareMenu(!showShareMenu)}
-            className="w-full flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 font-semibold text-sm"
-          >
+          <button onClick={() => setShowShareMenu(!showShareMenu)}
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-gray-50 text-gray-600 font-medium text-sm">
             <Share2 className="w-5 h-5" />
             <span>Share</span>
           </button>
           
           {showShareMenu && (
-            <div className="absolute bottom-12 right-0 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 min-w-[150px] z-50">
-              <button onClick={() => handleShare('copy')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm">
+            <div className="absolute bottom-12 right-0 bg-white rounded-xl shadow-lg border border-gray-200 py-2 min-w-[150px] z-50">
+              <button onClick={() => handleShare('copy')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
                 <Copy className="w-4 h-4" /> Copy link
               </button>
-              <button onClick={() => handleShare('facebook')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm">
+              <button onClick={() => handleShare('facebook')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
                 <span className="w-4 text-blue-600 font-bold">f</span> Facebook
               </button>
-              <button onClick={() => handleShare('twitter')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm">
-                <span className="w-4 font-bold">𝕏</span> Twitter
-              </button>
-              <button onClick={() => handleShare('whatsapp')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm">
-                <span className="w-4">💬</span> WhatsApp
+              <button onClick={() => handleShare('whatsapp')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
+                <span className="w-4 text-green-600">💬</span> WhatsApp
               </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Comments Modal */}
       <CommentsModal isOpen={showComments} onClose={() => setShowComments(false)} blogId={item._id} />
     </div>
   );
 }
 
 // ==========================================
-// AI BLOG MODAL
+// AI BLOG BUILDER MODAL
 // ==========================================
-function AIBlogModal({ isOpen, onClose, onSuccess }) {
+function AIBlogBuilderModal({ isOpen, onClose, onSuccess }) {
   const router = useRouter();
   const [topic, setTopic] = useState('');
+  const [description, setDescription] = useState('');
   const [niche, setNiche] = useState('technology');
+  const [seoTitle, setSeoTitle] = useState('');
+  const [seoDescription, setSeoDescription] = useState('');
+  const [seoHashtags, setSeoHashtags] = useState('');
   const [generating, setGenerating] = useState(false);
 
-  const niches = ['technology', 'business', 'health', 'lifestyle', 'education', 'finance', 'entertainment'];
+  const niches = ['technology', 'business', 'health', 'lifestyle', 'education', 'finance', 'entertainment', 'food', 'travel'];
 
   const handleGenerate = async () => {
     if (!topic.trim()) {
@@ -732,14 +726,22 @@ function AIBlogModal({ isOpen, onClose, onSuccess }) {
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
       const response = await api.post('/api/content/create-blog', {
-        topic, niche, tone: 'professional', length: 'medium', targetAudience: 'general'
+        topic,
+        description,
+        niche,
+        seoTitle: seoTitle || topic,
+        seoDescription: seoDescription || description,
+        seoHashtags: seoHashtags.split(',').map(t => t.trim()).filter(Boolean),
+        tone: 'professional',
+        length: 'medium',
+        targetAudience: 'general'
       }, { headers: { Authorization: `Bearer ${token}` }, timeout: 120000 });
 
       if (response.data.success) {
         toast.success(`Blog created! +${response.data.tokensEarned || 50} CYBEV earned!`);
         
         const publishResponse = await api.post('/api/content/publish-blog', {
-          blogData: { ...response.data.data, niche }
+          blogData: { ...response.data.data, niche, seoTitle, seoDescription, seoHashtags }
         }, { headers: { Authorization: `Bearer ${token}` } });
 
         if (publishResponse.data.success) {
@@ -760,38 +762,81 @@ function AIBlogModal({ isOpen, onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-lg w-full max-w-md p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-purple-500" /> AI Blog Generator
+      <div className="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <Sparkles className="w-6 h-6 text-purple-600" /> AI Blog Builder
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
+            <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
         
-        <div className="space-y-4">
+        <div className="p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Topic</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Topic *</label>
             <input type="text" value={topic} onChange={e => setTopic(e.target.value)}
               placeholder="e.g., Future of Web3 in Africa"
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500" />
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent" />
           </div>
+          
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description / Prompt Hint</label>
+            <textarea value={description} onChange={e => setDescription(e.target.value)}
+              placeholder="Describe what you want the article to cover, key points, target audience..."
+              rows={3}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none" />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
             <select value={niche} onChange={e => setNiche(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500">
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-purple-500">
               {niches.map(n => <option key={n} value={n}>{n.charAt(0).toUpperCase() + n.slice(1)}</option>)}
             </select>
           </div>
           
-          <div className="bg-purple-50 dark:bg-purple-900/30 rounded-lg p-3">
-            <p className="text-purple-700 dark:text-purple-300 text-sm">✨ Earn 50-100 CYBEV tokens for quality content!</p>
+          {/* SEO Section */}
+          <div className="border-t border-gray-200 pt-4">
+            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <Globe className="w-4 h-4" /> SEO Settings (for viral search)
+            </h3>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">SEO Title</label>
+                <input type="text" value={seoTitle} onChange={e => setSeoTitle(e.target.value)}
+                  placeholder="Leave empty to auto-generate"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-purple-500" />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">SEO Description</label>
+                <textarea value={seoDescription} onChange={e => setSeoDescription(e.target.value)}
+                  placeholder="Meta description for search engines..."
+                  rows={2}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 resize-none" />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">SEO Hashtags</label>
+                <input type="text" value={seoHashtags} onChange={e => setSeoHashtags(e.target.value)}
+                  placeholder="web3, africa, blockchain, crypto (comma separated)"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-purple-500" />
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
+            <p className="text-purple-700 text-sm flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              Earn 50-100 CYBEV tokens for quality content!
+            </p>
           </div>
           
           <button onClick={handleGenerate} disabled={generating || !topic.trim()}
             className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
-            {generating ? <><Loader2 className="w-5 h-5 animate-spin" /> Generating...</> : <><Sparkles className="w-5 h-5" /> Generate Blog</>}
+            {generating ? <><Loader2 className="w-5 h-5 animate-spin" /> Generating...</> : <><Sparkles className="w-5 h-5" /> Generate & Publish</>}
           </button>
         </div>
       </div>
@@ -808,18 +853,17 @@ export default function Feed() {
   const [feed, setFeed] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAIModal, setShowAIModal] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
-      try { setUser(JSON.parse(userData)); } catch {}
+      try {
+        const parsed = JSON.parse(userData);
+        setUser(parsed);
+        setIsAdmin(parsed.role === 'admin' || parsed.isAdmin);
+      } catch {}
     }
-    
-    const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-    if (!token) {
-      // Allow viewing feed without login
-    }
-    
     fetchFeed();
   }, []);
 
@@ -840,6 +884,22 @@ export default function Feed() {
     setLoading(false);
   };
 
+  // Insert ads at positions 3, 8, 15, etc.
+  const feedWithAds = [];
+  feed.forEach((item, idx) => {
+    // First item might be pinned
+    if (idx === 0 && item.isPinned) {
+      feedWithAds.push({ ...item, isPinnedPost: true });
+    } else {
+      feedWithAds.push(item);
+    }
+    
+    // Insert ad after positions 2, 7, 14 (so after 3rd, 8th, 15th posts)
+    if ([2, 7, 14].includes(idx)) {
+      feedWithAds.push({ isAd: true, position: idx });
+    }
+  });
+
   return (
     <>
       <Head>
@@ -847,27 +907,21 @@ export default function Feed() {
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
 
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-950">
-        {/* Top Navigation */}
+      <div className="min-h-screen bg-gray-100">
         <TopNavBar user={user} />
 
-        {/* Main Content */}
-        <div className="max-w-screen-sm mx-auto px-4 py-4">
-          {/* Post Composer */}
+        <div className="max-w-screen-sm mx-auto px-4 py-4 pb-20 md:pb-4">
           <PostComposer user={user} onOpenAI={() => setShowAIModal(true)} />
-          
-          {/* Stories */}
-          <StoriesSection user={user} />
+          <VlogSection user={user} />
 
-          {/* Feed */}
           {loading ? (
             <div className="flex justify-center py-12">
               <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
             </div>
           ) : feed.length === 0 ? (
-            <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-8 text-center">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
               <Sparkles className="w-12 h-12 text-purple-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No posts yet</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No posts yet</h3>
               <p className="text-gray-500 mb-4">Be the first to share something!</p>
               <button onClick={() => setShowAIModal(true)}
                 className="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700">
@@ -875,25 +929,36 @@ export default function Feed() {
               </button>
             </div>
           ) : (
-            feed.map(item => (
-              <FeedCard key={item._id} item={item} currentUserId={user?._id || user?.id} onRefresh={fetchFeed} />
-            ))
+            feedWithAds.map((item, idx) => 
+              item.isAd ? (
+                <AdCard key={`ad-${item.position}`} position={item.position} />
+              ) : (
+                <FeedCard 
+                  key={item._id || idx} 
+                  item={item} 
+                  currentUserId={user?._id || user?.id} 
+                  isAdmin={isAdmin}
+                  onRefresh={fetchFeed}
+                  isPinnedPost={item.isPinnedPost}
+                />
+              )
+            )
           )}
         </div>
 
         {/* Mobile Bottom Navigation */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 px-4 py-2 flex items-center justify-around z-50">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 flex items-center justify-around z-50">
           <Link href="/feed">
             <button className="p-3 text-purple-600"><Home className="w-6 h-6" /></button>
           </Link>
-          <Link href="/discover">
+          <Link href="/groups">
             <button className="p-3 text-gray-500"><Users className="w-6 h-6" /></button>
           </Link>
           <button onClick={() => router.push('/studio')} className="p-3 bg-purple-600 rounded-full -mt-6 shadow-lg">
             <Plus className="w-6 h-6 text-white" />
           </button>
-          <Link href="/live">
-            <button className="p-3 text-gray-500"><Video className="w-6 h-6" /></button>
+          <Link href="/tv">
+            <button className="p-3 text-gray-500"><Tv className="w-6 h-6" /></button>
           </Link>
           <Link href={user?.username ? `/profile/${user.username}` : '/profile'}>
             <button className="p-3 text-gray-500"><Menu className="w-6 h-6" /></button>
@@ -901,8 +966,7 @@ export default function Feed() {
         </div>
       </div>
 
-      {/* AI Blog Modal */}
-      <AIBlogModal isOpen={showAIModal} onClose={() => setShowAIModal(false)} onSuccess={fetchFeed} />
+      <AIBlogBuilderModal isOpen={showAIModal} onClose={() => setShowAIModal(false)} onSuccess={fetchFeed} />
     </>
   );
 }
