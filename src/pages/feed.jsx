@@ -1,19 +1,25 @@
 // ============================================
 // FILE: src/pages/feed.jsx
-// COMPLETE: Pin, Emoji Reactions, Comments, Like, Share, Edit/Delete
+// CYBEV Social-Blogging Platform Feed
+// Features: Stories, Greeting, Comments, Reactions, Pin, Share, Edit/Delete
 // ============================================
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/router';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import Head from 'next/head';
 import Link from 'next/link';
-import { toast } from 'react-toastify';
-import api from '@/lib/api';
-import { 
+import { useRouter } from 'next/router';
+import AppLayout from '@/components/Layout/AppLayout';
+import {
   Clock, TrendingUp, Users, Heart, MessageCircle, Share2, Bookmark, MoreHorizontal,
-  Eye, Sparkles, Loader2, X, Edit, Trash2, Flag, Copy, ExternalLink, Pin, Send
+  Eye, Sparkles, Plus, Image as ImageIcon, Video, Loader2, RefreshCw, X, Send, 
+  Wand2, Edit, Trash2, Pin, Flag, Copy, ExternalLink, Play, Radio, ChevronRight
 } from 'lucide-react';
+import api from '@/lib/api';
+import { toast } from 'react-toastify';
 
-// Emoji Reactions Config
+// ==========================================
+// EMOJI REACTIONS CONFIG
+// ==========================================
 const REACTIONS = [
   { type: 'like', emoji: '👍', label: 'Like' },
   { type: 'love', emoji: '❤️', label: 'Love' },
@@ -25,8 +31,216 @@ const REACTIONS = [
   { type: 'clap', emoji: '👏', label: 'Clap' }
 ];
 
-// AI Blog Generator Modal
-function AIBlogModal({ isOpen, onClose }) {
+// ==========================================
+// GREETING HEADER COMPONENT
+// ==========================================
+function GreetingHeader({ user }) {
+  const [greeting, setGreeting] = useState('');
+  
+  const quotes = [
+    { text: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb" },
+    { text: "Stay hungry, stay foolish.", author: "Steve Jobs" },
+    { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+    { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+    { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" }
+  ];
+  
+  const [quote] = useState(() => quotes[Math.floor(Math.random() * quotes.length)]);
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting('Good Morning');
+    else if (hour < 18) setGreeting('Good Afternoon');
+    else setGreeting('Good Evening');
+  }, []);
+
+  const emoji = greeting.includes('Morning') ? '🌅' : greeting.includes('Afternoon') ? '☀️' : '🌙';
+
+  return (
+    <div className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 rounded-2xl p-6 mb-6 border border-purple-500/20">
+      <div className="flex items-center gap-3 mb-3">
+        <h1 className="text-2xl md:text-3xl font-bold">
+          <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            {greeting}, {user?.name || user?.username || 'Creator'}!
+          </span>
+        </h1>
+        <span className="text-2xl">{emoji}</span>
+      </div>
+      <p className="text-gray-400 italic">"{quote.text}"</p>
+      <p className="text-gray-500 text-sm mt-1">— {quote.author}</p>
+    </div>
+  );
+}
+
+// ==========================================
+// STORIES STRIP COMPONENT
+// ==========================================
+function StoriesStrip({ user, stories = [] }) {
+  const router = useRouter();
+  
+  // Demo stories if none provided
+  const displayStories = stories.length > 0 ? stories : [
+    { id: 'create', isCreate: true },
+    { id: 1, user: { name: 'Prince', username: 'prince' }, hasNew: true },
+    { id: 2, user: { name: 'Jane', username: 'jane' }, hasNew: true },
+    { id: 3, user: { name: 'Chris', username: 'chris' }, hasNew: false },
+    { id: 4, user: { name: 'Sarah', username: 'sarah' }, hasNew: true },
+  ];
+
+  return (
+    <div className="mb-6">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-white font-semibold">Stories</h3>
+        <Link href="/live">
+          <span className="text-purple-400 text-sm flex items-center gap-1 hover:text-purple-300 cursor-pointer">
+            <Radio className="w-4 h-4" /> Go Live <ChevronRight className="w-4 h-4" />
+          </span>
+        </Link>
+      </div>
+      <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+        {displayStories.map((story, idx) => (
+          <div key={story.id} className="flex-shrink-0 text-center">
+            {story.isCreate ? (
+              <div 
+                onClick={() => router.push('/live/start')}
+                className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
+              >
+                <Plus className="w-6 h-6 text-white" />
+              </div>
+            ) : (
+              <div 
+                onClick={() => router.push(`/live/${story.id}`)}
+                className={`w-16 h-16 md:w-20 md:h-20 rounded-full p-0.5 cursor-pointer hover:scale-105 transition-transform ${
+                  story.hasNew 
+                    ? 'bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500' 
+                    : 'bg-gray-600'
+                }`}
+              >
+                <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
+                  {story.user?.profilePicture ? (
+                    <img src={story.user.profilePicture} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    story.user?.name?.[0] || 'U'
+                  )}
+                </div>
+              </div>
+            )}
+            <p className="text-xs text-gray-400 mt-1 truncate w-16 md:w-20">
+              {story.isCreate ? 'Your Story' : story.user?.name || 'User'}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// QUICK ACTION BUTTONS
+// ==========================================
+function QuickActions({ onAIBlog, onShortBlog }) {
+  const router = useRouter();
+  
+  return (
+    <div className="grid grid-cols-4 gap-2 mb-6">
+      <button 
+        onClick={() => router.push('/live/start')}
+        className="flex flex-col items-center gap-1 p-3 bg-red-500/10 hover:bg-red-500/20 rounded-xl border border-red-500/20 transition-colors"
+      >
+        <Radio className="w-5 h-5 text-red-400" />
+        <span className="text-xs text-gray-400">Go Live</span>
+      </button>
+      <button 
+        onClick={() => router.push('/studio')}
+        className="flex flex-col items-center gap-1 p-3 bg-purple-500/10 hover:bg-purple-500/20 rounded-xl border border-purple-500/20 transition-colors"
+      >
+        <Edit className="w-5 h-5 text-purple-400" />
+        <span className="text-xs text-gray-400">Studio</span>
+      </button>
+      <button 
+        onClick={onAIBlog}
+        className="flex flex-col items-center gap-1 p-3 bg-pink-500/10 hover:bg-pink-500/20 rounded-xl border border-pink-500/20 transition-colors"
+      >
+        <Wand2 className="w-5 h-5 text-pink-400" />
+        <span className="text-xs text-gray-400">AI Blog</span>
+      </button>
+      <button 
+        onClick={() => router.push('/dashboard')}
+        className="flex flex-col items-center gap-1 p-3 bg-blue-500/10 hover:bg-blue-500/20 rounded-xl border border-blue-500/20 transition-colors"
+      >
+        <TrendingUp className="w-5 h-5 text-blue-400" />
+        <span className="text-xs text-gray-400">Dashboard</span>
+      </button>
+    </div>
+  );
+}
+
+// ==========================================
+// SHORT BLOG POST COMPOSER (Blog-Socialized)
+// ==========================================
+function ShortBlogComposer({ onPost, user }) {
+  const [content, setContent] = useState('');
+  const [posting, setPosting] = useState(false);
+
+  const handlePost = async () => {
+    if (!content.trim()) return;
+    setPosting(true);
+    try {
+      await onPost(content);
+      setContent('');
+      toast.success('Short blog posted!');
+    } catch {
+      toast.error('Failed to post');
+    }
+    setPosting(false);
+  };
+
+  return (
+    <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 p-4 mb-6">
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+          {user?.profilePicture ? (
+            <img src={user.profilePicture} alt="" className="w-full h-full rounded-full object-cover" />
+          ) : (
+            user?.name?.[0] || user?.username?.[0] || 'U'
+          )}
+        </div>
+        <div className="flex-1">
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Share a quick thought or micro-blog..."
+            className="w-full bg-transparent text-white placeholder-gray-500 resize-none focus:outline-none min-h-[60px]"
+            rows={2}
+          />
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-700">
+            <div className="flex items-center gap-2">
+              <button className="p-2 hover:bg-gray-700 rounded-lg text-gray-400 hover:text-purple-400">
+                <ImageIcon className="w-5 h-5" />
+              </button>
+              <button className="p-2 hover:bg-gray-700 rounded-lg text-gray-400 hover:text-purple-400">
+                <Video className="w-5 h-5" />
+              </button>
+            </div>
+            <button
+              onClick={handlePost}
+              disabled={!content.trim() || posting}
+              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg hover:shadow-purple-500/30 disabled:opacity-50 flex items-center gap-2 text-sm font-medium"
+            >
+              {posting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              Post Short Blog
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// AI BLOG GENERATOR MODAL
+// ==========================================
+function AIBlogModal({ isOpen, onClose, onSuccess }) {
   const router = useRouter();
   const [topic, setTopic] = useState('');
   const [niche, setNiche] = useState('technology');
@@ -49,18 +263,21 @@ function AIBlogModal({ isOpen, onClose }) {
       const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
       const response = await api.post('/api/content/create-blog', {
         topic, niche, tone, length, targetAudience: 'general'
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      }, { headers: { Authorization: `Bearer ${token}` }, timeout: 120000 });
 
       if (response.data.success) {
-        toast.success(`Blog created! You earned ${response.data.tokensEarned || 50} tokens!`);
+        const tokensEarned = response.data.tokensEarned || 50;
+        toast.success(`Blog created! +${tokensEarned} CYBEV tokens earned!`);
         
+        // Publish the blog
         const publishResponse = await api.post('/api/content/publish-blog', {
           blogData: { ...response.data.data, niche }
         }, { headers: { Authorization: `Bearer ${token}` } });
 
         if (publishResponse.data.success) {
-          toast.success('Blog published!');
+          toast.success('Blog published to your feed!');
           onClose();
+          if (onSuccess) onSuccess();
           router.push(`/blog/${publishResponse.data.data.blogId}`);
         }
       }
@@ -86,11 +303,13 @@ function AIBlogModal({ isOpen, onClose }) {
           </button>
         </div>
 
+        <p className="text-gray-400 text-sm mb-4">Generate a professional blog post with AI and earn CYBEV tokens!</p>
+
         <div className="space-y-4">
           <div>
             <label className="block text-gray-300 mb-2 text-sm">Topic *</label>
             <input type="text" value={topic} onChange={(e) => setTopic(e.target.value)}
-              placeholder="e.g., The Future of AI in Healthcare"
+              placeholder="e.g., The Future of Web3 in Africa"
               className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none" />
           </div>
           <div>
@@ -116,18 +335,27 @@ function AIBlogModal({ isOpen, onClose }) {
               </select>
             </div>
           </div>
+          
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3">
+            <p className="text-yellow-400 text-sm flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              You'll earn 50-100 CYBEV tokens for creating quality content!
+            </p>
+          </div>
+
           <button onClick={handleGenerate} disabled={generating || !topic.trim()}
             className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-50">
-            {generating ? <><Loader2 className="w-5 h-5 animate-spin" />Generating...</> : <><Sparkles className="w-5 h-5" />Generate Blog</>}
+            {generating ? <><Loader2 className="w-5 h-5 animate-spin" />Generating (up to 2 min)...</> : <><Wand2 className="w-5 h-5" />Generate & Earn Tokens</>}
           </button>
         </div>
-        {generating && <p className="text-center text-gray-400 text-sm mt-4">This may take up to 2 minutes...</p>}
       </div>
     </div>
   );
 }
 
-// Comments Modal
+// ==========================================
+// COMMENTS MODAL
+// ==========================================
 function CommentsModal({ isOpen, onClose, blogId, blogTitle }) {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -135,18 +363,18 @@ function CommentsModal({ isOpen, onClose, blogId, blogTitle }) {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (isOpen && blogId) {
-      fetchComments();
-    }
+    if (isOpen && blogId) fetchComments();
   }, [isOpen, blogId]);
 
   const fetchComments = async () => {
     try {
       setLoading(true);
+      // Correct endpoint: GET /api/comments/blog/:blogId
       const response = await api.get(`/api/comments/blog/${blogId}`);
       setComments(response.data.comments || []);
     } catch (error) {
       console.error('Failed to fetch comments:', error);
+      // Don't show error toast for empty comments
     } finally {
       setLoading(false);
     }
@@ -164,18 +392,25 @@ function CommentsModal({ isOpen, onClose, blogId, blogTitle }) {
 
     setSubmitting(true);
     try {
+      // Correct endpoint: POST /api/comments with blogId in body
       const response = await api.post('/api/comments', {
-        content: newComment,
-        blogId
-      }, { headers: { Authorization: `Bearer ${token}` } });
+        content: newComment.trim(),
+        blogId: blogId
+      }, { 
+        headers: { Authorization: `Bearer ${token}` } 
+      });
 
-      if (response.data.ok) {
-        setComments(prev => [response.data.comment, ...prev]);
+      if (response.data.ok || response.data.comment) {
+        // Add new comment to top of list
+        const newCommentData = response.data.comment;
+        setComments(prev => [newCommentData, ...prev]);
         setNewComment('');
         toast.success('Comment posted!');
       }
     } catch (error) {
-      toast.error('Failed to post comment');
+      console.error('Comment error:', error);
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Failed to post comment';
+      toast.error(errorMsg);
     } finally {
       setSubmitting(false);
     }
@@ -187,31 +422,48 @@ function CommentsModal({ isOpen, onClose, blogId, blogTitle }) {
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-gray-900 border border-purple-500/30 rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-4 border-b border-gray-800">
-          <h3 className="text-lg font-semibold text-white">Comments</h3>
+          <h3 className="text-lg font-semibold text-white">Comments {comments.length > 0 && `(${comments.length})`}</h3>
           <button onClick={onClose} className="p-2 hover:bg-gray-800 rounded-lg">
             <X className="w-5 h-5 text-gray-400" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-[200px]">
           {loading ? (
             <div className="flex justify-center py-8">
               <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
             </div>
           ) : comments.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No comments yet. Be the first!</p>
+            <p className="text-gray-500 text-center py-8">No comments yet. Be the first to share your thoughts!</p>
           ) : (
             comments.map(comment => (
               <div key={comment._id} className="flex gap-3">
                 <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                   {comment.author?.name?.[0] || comment.authorName?.[0] || 'U'}
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-white font-medium text-sm">{comment.author?.name || comment.authorName}</span>
+                <div className="flex-1 bg-gray-800/50 rounded-xl p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-white font-medium text-sm">{comment.author?.name || comment.authorName || 'Anonymous'}</span>
                     <span className="text-gray-500 text-xs">{new Date(comment.createdAt).toLocaleDateString()}</span>
                   </div>
-                  <p className="text-gray-300 text-sm mt-1">{comment.content}</p>
+                  <p className="text-gray-300 text-sm">{comment.content}</p>
+                  
+                  {/* Replies if any */}
+                  {comment.replies && comment.replies.length > 0 && (
+                    <div className="mt-3 pl-4 border-l border-gray-700 space-y-2">
+                      {comment.replies.map(reply => (
+                        <div key={reply._id} className="flex gap-2">
+                          <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                            {reply.author?.name?.[0] || reply.authorName?.[0] || 'U'}
+                          </div>
+                          <div>
+                            <span className="text-white font-medium text-xs">{reply.author?.name || reply.authorName}</span>
+                            <p className="text-gray-400 text-xs">{reply.content}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))
@@ -226,6 +478,7 @@ function CommentsModal({ isOpen, onClose, blogId, blogTitle }) {
               onChange={e => setNewComment(e.target.value)}
               placeholder="Write a comment..."
               className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none text-sm"
+              maxLength={1000}
             />
             <button type="submit" disabled={submitting || !newComment.trim()}
               className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl disabled:opacity-50 transition-colors">
@@ -238,8 +491,10 @@ function CommentsModal({ isOpen, onClose, blogId, blogTitle }) {
   );
 }
 
-// Feed Post Card with ALL Features
-function FeedCard({ item, onLike, onBookmark, currentUserId, onDelete, onRefresh }) {
+// ==========================================
+// FEED CARD COMPONENT (Full Featured)
+// ==========================================
+function FeedCard({ item, currentUserId, onRefresh }) {
   const router = useRouter();
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
@@ -248,55 +503,33 @@ function FeedCard({ item, onLike, onBookmark, currentUserId, onDelete, onRefresh
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
   const [showComments, setShowComments] = useState(false);
-  const [userReaction, setUserReaction] = useState(null);
+  const [userReactions, setUserReactions] = useState({}); // Track ALL user's reactions
   const [reactions, setReactions] = useState(item.reactions || {});
   const [isPinned, setIsPinned] = useState(item.isPinned || false);
-  const reactionRef = useRef(null);
   const reactionTimeout = useRef(null);
 
   const isBlog = item.contentType === 'blog' || item.title;
   const authorId = item.author?._id || item.author || item.authorId?._id || item.authorId;
   const isOwner = currentUserId && (String(authorId) === String(currentUserId));
 
-  // Check if user already reacted
+  // Check user's existing reactions on mount
   useEffect(() => {
     if (currentUserId && item.reactions) {
+      const myReactions = {};
       for (const [type, users] of Object.entries(item.reactions)) {
         if (users?.some(id => String(id) === String(currentUserId))) {
-          setUserReaction(type);
-          break;
+          myReactions[type] = true;
         }
       }
+      setUserReactions(myReactions);
     }
     if (currentUserId && item.likes?.some(id => String(id) === String(currentUserId))) {
       setLiked(true);
+      setUserReactions(prev => ({ ...prev, like: true }));
     }
   }, [currentUserId, item]);
 
-  // Handle Like (simple toggle)
-  const handleLike = async (e) => {
-    e.stopPropagation();
-    const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-    if (!token) {
-      toast.error('Please login to like');
-      return;
-    }
-
-    const newLiked = !liked;
-    setLiked(newLiked);
-    setLikesCount(prev => newLiked ? prev + 1 : prev - 1);
-
-    try {
-      await api.post(`/api/blogs/${item._id}/like`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-    } catch {
-      setLiked(!newLiked);
-      setLikesCount(prev => newLiked ? prev - 1 : prev + 1);
-    }
-  };
-
-  // Handle Emoji Reaction
+  // Handle Emoji Reaction (ACCUMULATES - doesn't replace)
   const handleReaction = async (e, type) => {
     e.stopPropagation();
     const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
@@ -305,22 +538,48 @@ function FeedCard({ item, onLike, onBookmark, currentUserId, onDelete, onRefresh
       return;
     }
 
-    const wasReacted = userReaction === type;
-    setUserReaction(wasReacted ? null : type);
-    setShowReactions(false);
+    const hadThisReaction = userReactions[type];
+    
+    // Optimistically update
+    setUserReactions(prev => ({
+      ...prev,
+      [type]: !hadThisReaction
+    }));
+    
+    if (type === 'like') {
+      setLiked(!hadThisReaction);
+      setLikesCount(prev => hadThisReaction ? prev - 1 : prev + 1);
+    }
 
     try {
       const response = await api.post(`/api/blogs/${item._id}/react`, { type }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.ok) {
-        setReactions(response.data.reactions);
-        setLikesCount(response.data.likeCount);
+        setReactions(response.data.reactions || {});
+        if (response.data.likeCount !== undefined) {
+          setLikesCount(response.data.likeCount);
+        }
       }
     } catch (error) {
-      setUserReaction(wasReacted ? type : null);
+      // Revert on error
+      setUserReactions(prev => ({
+        ...prev,
+        [type]: hadThisReaction
+      }));
+      if (type === 'like') {
+        setLiked(hadThisReaction);
+        setLikesCount(prev => hadThisReaction ? prev + 1 : prev - 1);
+      }
       toast.error('Failed to react');
     }
+    setShowReactions(false);
+  };
+
+  // Simple Like toggle
+  const handleLike = async (e) => {
+    e.stopPropagation();
+    handleReaction(e, 'like');
   };
 
   // Handle Pin
@@ -336,7 +595,7 @@ function FeedCard({ item, onLike, onBookmark, currentUserId, onDelete, onRefresh
         setIsPinned(response.data.isPinned);
         toast.success(response.data.message);
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to pin post');
     }
     setShowMoreMenu(false);
@@ -345,12 +604,24 @@ function FeedCard({ item, onLike, onBookmark, currentUserId, onDelete, onRefresh
   // Handle Bookmark
   const handleBookmark = async (e) => {
     e.stopPropagation();
-    setBookmarked(!bookmarked);
+    const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+    if (!token) {
+      toast.error('Please login to bookmark');
+      return;
+    }
+    
+    const newBookmarked = !bookmarked;
+    setBookmarked(newBookmarked);
+    
     try {
-      await onBookmark(item._id, 'blog');
-      toast.success(bookmarked ? 'Removed from bookmarks' : 'Added to bookmarks');
+      await api.post('/api/bookmarks', { 
+        itemId: item._id, 
+        itemType: 'blog' 
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      toast.success(newBookmarked ? 'Added to bookmarks' : 'Removed from bookmarks');
     } catch {
-      setBookmarked(bookmarked);
+      setBookmarked(!newBookmarked);
+      toast.error('Failed to update bookmark');
     }
   };
 
@@ -404,15 +675,15 @@ function FeedCard({ item, onLike, onBookmark, currentUserId, onDelete, onRefresh
 
   const handleDelete = async (e) => {
     e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this?')) return;
+    if (!confirm('Are you sure you want to delete this post?')) return;
     
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
       await api.delete(`/api/blogs/${item._id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      toast.success('Deleted successfully!');
-      if (onDelete) onDelete(item._id);
+      toast.success('Post deleted!');
+      if (onRefresh) onRefresh();
     } catch {
       toast.error('Failed to delete');
     }
@@ -428,21 +699,14 @@ function FeedCard({ item, onLike, onBookmark, currentUserId, onDelete, onRefresh
   const images = item.images || item.media || (item.featuredImage ? [item.featuredImage] : []);
   const commentsCount = item.commentsCount || item.comments?.length || 0;
 
-  // Get dominant reaction
-  const getDominantReaction = () => {
-    if (!reactions || Object.keys(reactions).length === 0) return null;
-    let max = 0, dominant = null;
-    for (const [type, users] of Object.entries(reactions)) {
-      if (users?.length > max) {
-        max = users.length;
-        dominant = type;
-      }
-    }
-    return dominant;
-  };
-
-  const dominantReaction = getDominantReaction();
+  // Calculate total reactions
   const totalReactions = reactions ? Object.values(reactions).reduce((sum, arr) => sum + (arr?.length || 0), 0) : 0;
+
+  // Get top 3 reaction types for display
+  const topReactions = Object.entries(reactions || {})
+    .filter(([_, users]) => users?.length > 0)
+    .sort((a, b) => b[1].length - a[1].length)
+    .slice(0, 3);
 
   return (
     <div onClick={handleCardClick}
@@ -450,7 +714,7 @@ function FeedCard({ item, onLike, onBookmark, currentUserId, onDelete, onRefresh
       
       {/* Pinned Badge */}
       {isPinned && (
-        <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs">
+        <div className="absolute top-3 right-14 flex items-center gap-1 px-2 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs">
           <Pin className="w-3 h-3" /> Pinned
         </div>
       )}
@@ -542,27 +806,29 @@ function FeedCard({ item, onLike, onBookmark, currentUserId, onDelete, onRefresh
       {totalReactions > 0 && (
         <div className="flex items-center gap-2 mb-3 text-sm text-gray-400">
           <div className="flex -space-x-1">
-            {Object.entries(reactions).filter(([_, users]) => users?.length > 0).slice(0, 3).map(([type]) => (
-              <span key={type} className="text-base">{REACTIONS.find(r => r.type === type)?.emoji}</span>
+            {topReactions.map(([type]) => (
+              <span key={type} className="text-base bg-gray-700 rounded-full p-0.5">{REACTIONS.find(r => r.type === type)?.emoji}</span>
             ))}
           </div>
-          <span>{totalReactions}</span>
+          <span>{totalReactions} reaction{totalReactions !== 1 ? 's' : ''}</span>
         </div>
       )}
 
       {/* Actions Bar */}
       <div className="flex items-center justify-between pt-3 border-t border-gray-700">
         <div className="flex items-center gap-1">
-          {/* Like/React Button */}
-          <div className="relative" ref={reactionRef}
+          {/* Like/React Button with hover reactions */}
+          <div className="relative"
             onMouseEnter={() => { clearTimeout(reactionTimeout.current); setShowReactions(true); }}
             onMouseLeave={() => { reactionTimeout.current = setTimeout(() => setShowReactions(false), 300); }}>
             <button onClick={handleLike}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${liked || userReaction ? 'text-pink-500' : 'text-gray-400 hover:bg-gray-700'}`}>
-              {userReaction ? (
-                <span className="text-lg">{REACTIONS.find(r => r.type === userReaction)?.emoji}</span>
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                Object.keys(userReactions).length > 0 ? 'text-pink-500' : 'text-gray-400 hover:bg-gray-700'
+              }`}>
+              {Object.keys(userReactions).length > 0 ? (
+                <span className="text-lg">{REACTIONS.find(r => userReactions[r.type])?.emoji || '👍'}</span>
               ) : (
-                <Heart className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
+                <Heart className="w-5 h-5" />
               )}
               <span>{likesCount}</span>
             </button>
@@ -573,7 +839,9 @@ function FeedCard({ item, onLike, onBookmark, currentUserId, onDelete, onRefresh
                 onClick={e => e.stopPropagation()}>
                 {REACTIONS.map(r => (
                   <button key={r.type} onClick={e => handleReaction(e, r.type)}
-                    className={`p-1.5 hover:scale-125 transition-transform rounded-full ${userReaction === r.type ? 'bg-purple-500/30' : 'hover:bg-gray-700'}`}
+                    className={`p-1.5 hover:scale-125 transition-transform rounded-full ${
+                      userReactions[r.type] ? 'bg-purple-500/30 ring-2 ring-purple-400' : 'hover:bg-gray-700'
+                    }`}
                     title={r.label}>
                     <span className="text-xl">{r.emoji}</span>
                   </button>
@@ -637,7 +905,9 @@ function FeedCard({ item, onLike, onBookmark, currentUserId, onDelete, onRefresh
   );
 }
 
-// Main Feed Component
+// ==========================================
+// MAIN FEED PAGE
+// ==========================================
 export default function Feed() {
   const router = useRouter();
   const [user, setUser] = useState(null);
@@ -647,10 +917,20 @@ export default function Feed() {
   const [showAIModal, setShowAIModal] = useState(false);
 
   useEffect(() => {
+    // Get user from localStorage
     const userData = localStorage.getItem('user');
     if (userData) {
-      try { setUser(JSON.parse(userData)); } catch {}
+      try {
+        setUser(JSON.parse(userData));
+      } catch {}
     }
+    
+    // Check if logged in
+    const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+    if (!token) {
+      // Don't redirect, just show public feed
+    }
+    
     fetchFeed();
   }, [activeTab]);
 
@@ -663,6 +943,7 @@ export default function Feed() {
       });
       setFeed(response.data.feed || response.data.posts || response.data.items || []);
     } catch {
+      // Fallback to blogs
       try {
         const blogsRes = await api.get('/api/blogs');
         setFeed(blogsRes.data.data?.blogs || blogsRes.data.blogs || []);
@@ -671,73 +952,111 @@ export default function Feed() {
     setLoading(false);
   };
 
-  const handleLike = async (id) => {
+  const handleShortBlogPost = async (content) => {
     const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-    if (!token) return toast.error('Please login');
-    await api.post(`/api/blogs/${id}/like`, {}, { headers: { Authorization: `Bearer ${token}` } });
+    if (!token) {
+      toast.error('Please login to post');
+      router.push('/auth/login');
+      return;
+    }
+    
+    await api.post('/api/posts', { content, type: 'short-blog' }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    fetchFeed();
   };
 
-  const handleBookmark = async (id) => {
-    const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-    if (!token) return toast.error('Please login');
-    await api.post('/api/bookmarks', { itemId: id, itemType: 'blog' }, { headers: { Authorization: `Bearer ${token}` } });
-  };
-
-  const handleDelete = (id) => setFeed(prev => prev.filter(item => item._id !== id));
+  const tabs = [
+    { id: 'latest', label: 'Latest', icon: Clock },
+    { id: 'trending', label: 'Trending', icon: TrendingUp },
+    { id: 'following', label: 'Following', icon: Users }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+    <AppLayout>
+      <Head>
+        <title>Feed - CYBEV Social Blogging</title>
+      </Head>
+
       <div className="max-w-2xl mx-auto px-4 py-6">
-        
-        {/* Post Composer */}
-        <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 p-4 mb-6">
-          <div className="flex items-center gap-3">
-            {user?.profilePicture ? (
-              <img src={user.profilePicture} alt="" className="w-10 h-10 rounded-full" />
-            ) : (
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full" />
-            )}
-            <input type="text" placeholder="What's on your mind?" onClick={() => router.push('/post/create')} readOnly
-              className="flex-1 bg-transparent text-white placeholder-gray-500 focus:outline-none cursor-pointer" />
-            <button onClick={() => setShowAIModal(true)}
-              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl text-sm font-medium flex items-center gap-2 hover:shadow-lg hover:shadow-purple-500/30">
-              <Sparkles className="w-4 h-4" /> AI Blog
-            </button>
+        {/* Greeting Header */}
+        {user && <GreetingHeader user={user} />}
+
+        {/* Stories Strip */}
+        <StoriesStrip user={user} />
+
+        {/* Quick Actions */}
+        <QuickActions onAIBlog={() => setShowAIModal(true)} />
+
+        {/* Short Blog Composer */}
+        {user && <ShortBlogComposer onPost={handleShortBlogPost} user={user} />}
+
+        {/* Tabs */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
+                  activeTab === tab.id
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-800/50 text-gray-400 hover:bg-gray-700 hover:text-white'
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex items-center gap-2 mb-6">
-          {[
-            { id: 'latest', label: 'Latest', icon: Clock },
-            { id: 'trending', label: 'Trending', icon: TrendingUp },
-            { id: 'following', label: 'Following', icon: Users }
-          ].map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
-                activeTab === tab.id ? 'bg-purple-600 text-white' : 'bg-gray-800/50 text-gray-400 hover:text-white'
-              }`}>
-              <tab.icon className="w-4 h-4" /> {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Feed */}
+        {/* Feed Content */}
         {loading ? (
-          <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 text-purple-500 animate-spin" /></div>
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+          </div>
         ) : feed.length === 0 ? (
-          <div className="text-center py-12"><p className="text-gray-400">No posts yet. Be the first!</p></div>
+          <div className="text-center py-12 bg-gray-800/30 rounded-2xl border border-purple-500/20">
+            <Sparkles className="w-12 h-12 text-purple-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-white mb-2">No posts yet</h3>
+            <p className="text-gray-400 mb-4">Be the first to share your thoughts!</p>
+            <button
+              onClick={() => setShowAIModal(true)}
+              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg hover:shadow-purple-500/30"
+            >
+              Create Your First Blog
+            </button>
+          </div>
         ) : (
-          <div className="space-y-4">
-            {feed.map(item => (
-              <FeedCard key={item._id} item={item} onLike={handleLike} onBookmark={handleBookmark}
-                currentUserId={user?._id || user?.id} onDelete={handleDelete} onRefresh={fetchFeed} />
+          <div className="space-y-6">
+            {feed.map((item) => (
+              <FeedCard
+                key={item._id}
+                item={item}
+                currentUserId={user?._id || user?.id}
+                onRefresh={fetchFeed}
+              />
             ))}
+          </div>
+        )}
+
+        {/* Load More */}
+        {!loading && feed.length > 0 && (
+          <div className="flex justify-center mt-8">
+            <button
+              onClick={fetchFeed}
+              className="flex items-center gap-2 px-6 py-3 bg-gray-800 text-gray-300 rounded-xl hover:bg-gray-700 transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Refresh Feed
+            </button>
           </div>
         )}
       </div>
 
-      <AIBlogModal isOpen={showAIModal} onClose={() => setShowAIModal(false)} />
-    </div>
+      {/* AI Blog Modal */}
+      <AIBlogModal isOpen={showAIModal} onClose={() => setShowAIModal(false)} onSuccess={fetchFeed} />
+    </AppLayout>
   );
 }
