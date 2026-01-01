@@ -570,9 +570,59 @@ export default function Studio() {
     }
   }, []);
 
+  // Helper to convert HTML to clean text/markdown
+  const htmlToMarkdown = (html) => {
+    if (!html) return '';
+    
+    return html
+      // Convert headings
+      .replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n')
+      .replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n')
+      .replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n')
+      .replace(/<h4[^>]*>(.*?)<\/h4>/gi, '#### $1\n\n')
+      // Convert formatting
+      .replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**')
+      .replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**')
+      .replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*')
+      .replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*')
+      // Convert lists
+      .replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n')
+      .replace(/<ul[^>]*>/gi, '\n')
+      .replace(/<\/ul>/gi, '\n')
+      .replace(/<ol[^>]*>/gi, '\n')
+      .replace(/<\/ol>/gi, '\n')
+      // Convert links
+      .replace(/<a[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/gi, '[$2]($1)')
+      // Convert blockquotes
+      .replace(/<blockquote[^>]*>(.*?)<\/blockquote>/gi, '> $1\n')
+      // Convert paragraphs and line breaks
+      .replace(/<p[^>]*>/gi, '')
+      .replace(/<\/p>/gi, '\n\n')
+      .replace(/<br\s*\/?>/gi, '\n')
+      // Remove remaining HTML tags
+      .replace(/<article[^>]*>/gi, '')
+      .replace(/<\/article>/gi, '')
+      .replace(/<section[^>]*>/gi, '')
+      .replace(/<\/section>/gi, '')
+      .replace(/<div[^>]*>/gi, '')
+      .replace(/<\/div>/gi, '\n')
+      .replace(/<span[^>]*>/gi, '')
+      .replace(/<\/span>/gi, '')
+      .replace(/<[^>]+>/g, '') // Remove any remaining tags
+      // Clean up
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/\n{3,}/g, '\n\n') // Max 2 newlines
+      .trim();
+  };
+
   const handleAIGenerated = (data) => {
     setTitle(data.title || '');
-    setContent(data.content || '');
+    // Convert HTML content to clean markdown
+    setContent(htmlToMarkdown(data.content || ''));
     setFeaturedImage(data.featuredImage || '');
     setTags(data.tags?.slice(0, 5) || []);
     setCategory(data.category || 'technology');
