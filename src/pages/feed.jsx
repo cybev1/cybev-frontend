@@ -126,7 +126,7 @@ function PostComposer({ user, onOpenAI }) {
           onClick={() => router.push('/studio')}
           className="flex-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full px-4 py-2.5 text-left text-gray-500 transition-colors"
         >
-          What's on your mind?
+          Write a short blog or article...
         </button>
         
         {/* Gallery Icon */}
