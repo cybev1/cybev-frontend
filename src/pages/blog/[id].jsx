@@ -175,6 +175,9 @@ export default function BlogDetailPage({ blog, ogData }) {
   const [viewCount, setViewCount] = useState(blog?.views || 0);
   const [shareCount, setShareCount] = useState(blog?.shares?.total || 0);
   const [api, setApi] = useState(null);
+  const [showTimelineShare, setShowTimelineShare] = useState(false);
+  const [timelineComment, setTimelineComment] = useState('');
+  const [sharingToTimeline, setSharingToTimeline] = useState(false);
   
   useEffect(() => {
     import('@/lib/api').then(module => setApi(module.default)).catch(() => {});
@@ -191,6 +194,34 @@ export default function BlogDetailPage({ blog, ogData }) {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
     } catch {}
+  };
+  
+  const handleShareToTimeline = async () => {
+    if (!user) { toast.info('Please login to share to your timeline'); return; }
+    setSharingToTimeline(true);
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io'}/api/share/timeline`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ blogId: id, comment: timelineComment })
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast.success('🎉 Shared to your timeline!');
+        setShowTimelineShare(false);
+        setTimelineComment('');
+        setShareCount(prev => prev + 1);
+      } else {
+        toast.error(data.error || 'Failed to share');
+      }
+    } catch (error) {
+      toast.error('Failed to share to timeline');
+    }
+    setSharingToTimeline(false);
   };
   
   useEffect(() => {
@@ -345,7 +376,15 @@ export default function BlogDetailPage({ blog, ogData }) {
                 </button>
                 {showShareMenu && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
-                    <div className="px-3 py-1 text-xs text-gray-500 font-medium uppercase">Share to</div>
+                    <div className="px-3 py-1 text-xs text-gray-500 font-medium uppercase">Share</div>
+                    
+                    {/* Share to My Timeline - FIRST option */}
+                    <button onClick={() => { setShowShareMenu(false); setShowTimelineShare(true); }} 
+                      className="w-full px-4 py-2.5 text-left hover:bg-purple-50 flex items-center gap-3 text-purple-700 font-medium border-b border-gray-100">
+                      <span className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center text-sm">📋</span> 
+                      Share to My Timeline
+                    </button>
+                    
                     {typeof navigator !== 'undefined' && navigator.share && (
                       <button onClick={() => handleShare('native')} className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-3 text-gray-700">
                         <Share2 className="w-4 h-4 text-purple-600" /> Share...
@@ -506,6 +545,50 @@ export default function BlogDetailPage({ blog, ogData }) {
           )}
         </main>
       </div>
+      
+      {/* Share to Timeline Modal */}
+      {showTimelineShare && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowTimelineShare(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900">Share to Your Timeline</h2>
+              <button onClick={() => setShowTimelineShare(false)} className="p-1 hover:bg-gray-100 rounded-full">
+                <span className="text-gray-500 text-xl">×</span>
+              </button>
+            </div>
+            <div className="p-4">
+              <textarea
+                value={timelineComment}
+                onChange={(e) => setTimelineComment(e.target.value)}
+                placeholder="Say something about this..."
+                className="w-full p-3 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                rows={3}
+                maxLength={500}
+              />
+              <div className="text-xs text-gray-400 mt-1">{timelineComment.length}/500</div>
+            </div>
+            <div className="mx-4 mb-4 border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
+              <div className="p-3">
+                <h4 className="font-semibold text-gray-900 text-sm line-clamp-2">{blog.title}</h4>
+                <p className="text-gray-600 text-xs mt-1 line-clamp-2">{blog.excerpt || stripMarkdown(blog.content).slice(0, 100)}...</p>
+              </div>
+              {ogData.image && !ogData.image.includes('og-default') && (
+                <img src={ogData.image} alt="" className="w-full h-32 object-cover" />
+              )}
+            </div>
+            <div className="p-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+              <button onClick={handleShareToTimeline} disabled={sharingToTimeline}
+                className="w-full py-3 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2">
+                {sharingToTimeline ? (
+                  <><Loader2 className="w-5 h-5 animate-spin" /> Sharing...</>
+                ) : (
+                  <><Share2 className="w-5 h-5" /> Share to Timeline</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <style jsx global>{`
         .blog-content h1,.blog-content h2{font-size:1.5rem;font-weight:700;color:#111827;margin:2rem 0 1rem}
