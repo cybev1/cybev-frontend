@@ -512,19 +512,37 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
   const handleShare = async (platform) => {
     const shareUrl = `${window.location.origin}/blog/${item._id}`;
     const shareTitle = item.title || 'Check this out on CYBEV!';
+    const shareDesc = item.excerpt || '';
+    const shareImage = images[0] || '';
 
     if (platform === 'copy') {
       await navigator.clipboard.writeText(shareUrl);
       toast.success('Link copied!');
+    } else if (platform === 'native' && navigator.share) {
+      try {
+        await navigator.share({ title: shareTitle, text: shareDesc, url: shareUrl });
+      } catch {}
     } else {
       const urls = {
-        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareTitle)}`,
         twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`,
-        whatsapp: `https://wa.me/?text=${encodeURIComponent(shareTitle + ' ' + shareUrl)}`
+        linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+        whatsapp: `https://wa.me/?text=${encodeURIComponent(shareTitle + '\n\n' + shareUrl)}`,
+        telegram: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`,
+        reddit: `https://reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(shareTitle)}`,
+        email: `mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent('Check out this article:\n\n' + shareTitle + '\n\n' + shareUrl)}`
       };
-      window.open(urls[platform], '_blank');
+      if (urls[platform]) window.open(urls[platform], '_blank', 'width=600,height=400');
     }
     setShowShareMenu(false);
+    
+    // Track share
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      await api.post(`/api/blogs/${item._id}/share`, { platform }, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      }).catch(() => {});
+    } catch {}
   };
 
   const author = item.author || item.authorId || {};
@@ -759,15 +777,44 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
           </button>
           
           {showShareMenu && (
-            <div className="absolute bottom-12 right-0 bg-white rounded-xl shadow-lg border border-gray-200 py-2 min-w-[150px] z-50">
+            <div className="absolute bottom-12 right-0 bg-white rounded-xl shadow-lg border border-gray-200 py-2 min-w-[180px] z-50">
+              <div className="px-3 py-1 text-xs text-gray-500 font-medium uppercase">Share to</div>
+              
+              {typeof navigator !== 'undefined' && navigator.share && (
+                <button onClick={() => handleShare('native')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
+                  <Share2 className="w-4 h-4 text-purple-600" /> Share...
+                </button>
+              )}
+              
               <button onClick={() => handleShare('copy')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
-                <Copy className="w-4 h-4" /> Copy link
+                <Copy className="w-4 h-4 text-gray-600" /> Copy link
               </button>
+              
+              <div className="border-t border-gray-100 my-1"></div>
+              
               <button onClick={() => handleShare('facebook')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
-                <span className="w-4 text-blue-600 font-bold">f</span> Facebook
+                <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">f</span> Facebook
+              </button>
+              <button onClick={() => handleShare('twitter')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
+                <span className="w-4 h-4 text-sky-500">𝕏</span> Twitter / X
+              </button>
+              <button onClick={() => handleShare('linkedin')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
+                <span className="w-4 h-4 rounded bg-blue-700 text-white text-xs flex items-center justify-center font-bold">in</span> LinkedIn
               </button>
               <button onClick={() => handleShare('whatsapp')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
-                <span className="w-4 text-green-600">💬</span> WhatsApp
+                <span className="w-4 h-4 text-green-500">📱</span> WhatsApp
+              </button>
+              <button onClick={() => handleShare('telegram')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
+                <span className="w-4 h-4 text-blue-500">✈️</span> Telegram
+              </button>
+              <button onClick={() => handleShare('reddit')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
+                <span className="w-4 h-4 text-orange-500">🔴</span> Reddit
+              </button>
+              
+              <div className="border-t border-gray-100 my-1"></div>
+              
+              <button onClick={() => handleShare('email')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
+                <span className="w-4 h-4 text-gray-600">📧</span> Email
               </button>
             </div>
           )}
