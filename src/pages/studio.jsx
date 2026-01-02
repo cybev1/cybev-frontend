@@ -666,9 +666,23 @@ export default function Studio() {
     setPublishing(true);
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      const userData = localStorage.getItem('user');
+      let authorName = 'Anonymous';
+      
+      if (userData) {
+        try {
+          const user = JSON.parse(userData);
+          authorName = user.name || user.username || 'Anonymous';
+        } catch {}
+      }
       
       const blogData = {
-        title, content, featuredImage, category, tags,
+        title, 
+        content, 
+        featuredImage, 
+        category, 
+        tags,
+        authorName, // Include author name
         seo: { title: seoTitle || title, description: seoDescription },
         visibility,
         status: 'published'
@@ -693,7 +707,7 @@ export default function Studio() {
       const blogId = response.data.blog?._id || response.data.data?._id || response.data._id;
       router.push(`/blog/${blogId}`);
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to publish');
+      toast.error(error.response?.data?.error || error.response?.data?.message || 'Failed to publish');
     } finally {
       setPublishing(false);
     }
