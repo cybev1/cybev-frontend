@@ -425,10 +425,12 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [showTimelineShare, setShowTimelineShare] = useState(false);
   const [userReactions, setUserReactions] = useState({});
   const [reactions, setReactions] = useState(item.reactions || {});
   const [likesCount, setLikesCount] = useState(item.likes?.length || item.likesCount || 0);
   const [isPinned, setIsPinned] = useState(item.isPinned || isPinnedPost);
+  const [isSharedToTimeline, setIsSharedToTimeline] = useState(false);
   const reactionTimeout = useRef(null);
 
   const isBlog = item.contentType === 'blog' || item.title;
@@ -545,7 +547,8 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
     } catch {}
   };
 
-  const author = item.author || item.authorId || {};
+  // For shared posts, show original author; for regular posts, show author
+  const author = item.isSharedPost ? (item.originalAuthor || item.author || {}) : (item.author || item.authorId || {});
   const authorName = author.name || author.username || 'Anonymous';
   const authorAvatar = author.avatar || author.profileImage || author.profilePicture;
   
@@ -594,6 +597,22 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-4">
+      {/* Shared Post Banner */}
+      {item.isSharedPost && item.sharedBy && (
+        <div className="px-4 pt-3 pb-2 border-b border-gray-100 flex items-center gap-2 text-gray-600 text-sm">
+          <Share2 className="w-4 h-4 text-purple-500" />
+          <Link href={`/profile/${item.sharedBy.username || item.sharedBy._id}`}>
+            <span className="font-medium text-gray-800 hover:underline cursor-pointer">
+              {item.sharedBy.name || item.sharedBy.username}
+            </span>
+          </Link>
+          <span>shared this</span>
+          {item.shareComment && (
+            <span className="italic text-gray-500">"{item.shareComment.slice(0, 50)}{item.shareComment.length > 50 ? '...' : ''}"</span>
+          )}
+        </div>
+      )}
+      
       {/* Pinned Badge */}
       {isPinned && (
         <div className="px-4 pt-3">
@@ -778,8 +797,15 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
           </button>
           
           {showShareMenu && (
-            <div className="absolute bottom-12 right-0 bg-white rounded-xl shadow-lg border border-gray-200 py-2 min-w-[180px] z-50">
-              <div className="px-3 py-1 text-xs text-gray-500 font-medium uppercase">Share to</div>
+            <div className="absolute bottom-12 right-0 bg-white rounded-xl shadow-lg border border-gray-200 py-2 min-w-[200px] z-50">
+              <div className="px-3 py-1 text-xs text-gray-500 font-medium uppercase">Share</div>
+              
+              {/* Share to My Timeline - FIRST option */}
+              <button onClick={() => { setShowShareMenu(false); setShowTimelineShare(true); }} 
+                className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-purple-50 text-purple-700 text-sm font-medium border-b border-gray-100">
+                <span className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center">📋</span> 
+                Share to My Timeline
+              </button>
               
               {typeof navigator !== 'undefined' && navigator.share && (
                 <button onClick={() => handleShare('native')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
@@ -823,6 +849,155 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
       </div>
 
       <CommentsModal isOpen={showComments} onClose={() => setShowComments(false)} blogId={item._id} />
+      <ShareToTimelineModal 
+        isOpen={showTimelineShare} 
+        onClose={() => setShowTimelineShare(false)} 
+        item={item}
+        onSuccess={() => { setIsSharedToTimeline(true); onRefresh?.(); }}
+      />
+    </div>
+  );
+}
+
+// ==========================================
+// SHARE TO TIMELINE MODAL
+// ==========================================
+function ShareToTimelineModal({ isOpen, onClose, item, onSuccess }) {
+  const [comment, setComment] = useState('');
+  const [sharing, setSharing] = useState(false);
+  const [visibility, setVisibility] = useState('public');
+  
+  if (!isOpen) return null;
+  
+  const author = item.author || item.authorId || {};
+  const authorName = author.name || author.username || 'Anonymous';
+  const featuredImage = typeof item.featuredImage === 'string' ? item.featuredImage : item.featuredImage?.url;
+  const images = item.images || [];
+  const displayImage = featuredImage || images[0];
+  
+  const handleShare = async () => {
+    setSharing(true);
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      
+      if (!token) {
+        toast.info('Please login to share to your timeline');
+        setSharing(false);
+        return;
+      }
+      
+      const response = await api.post('/api/share/timeline', {
+        blogId: item._id,
+        comment: comment.trim(),
+        visibility
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data.success) {
+        toast.success('🎉 Shared to your timeline!');
+        onSuccess?.();
+        onClose();
+        setComment('');
+      } else {
+        toast.error(response.data.error || 'Failed to share');
+      }
+    } catch (error) {
+      console.error('Share to timeline error:', error);
+      if (error.response?.data?.error) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Failed to share to timeline');
+      }
+    }
+    setSharing(false);
+  };
+  
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl" onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between rounded-t-2xl">
+          <h2 className="text-lg font-bold text-gray-900">Share to Your Timeline</h2>
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full">
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+        
+        {/* Your Comment */}
+        <div className="p-4">
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Say something about this..."
+            className="w-full p-3 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+            rows={3}
+            maxLength={500}
+          />
+          <div className="flex justify-between items-center mt-2">
+            <span className="text-xs text-gray-400">{comment.length}/500</span>
+            <select 
+              value={visibility} 
+              onChange={(e) => setVisibility(e.target.value)}
+              className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="public">🌍 Public</option>
+              <option value="friends">👥 Friends</option>
+              <option value="private">🔒 Only Me</option>
+            </select>
+          </div>
+        </div>
+        
+        {/* Preview of Post Being Shared */}
+        <div className="mx-4 mb-4 border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
+          {/* Original Post Preview */}
+          <div className="p-3 bg-white border-b border-gray-100">
+            <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+              <span className="font-medium text-gray-700">{authorName}</span>
+              <span>•</span>
+              <span>Original post</span>
+            </div>
+            
+            {item.title && (
+              <h4 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">{item.title}</h4>
+            )}
+            
+            {(item.excerpt || item.content) && (
+              <p className="text-gray-600 text-xs line-clamp-2">
+                {item.excerpt || item.content?.replace(/[#*_\[\]()!]/g, '').slice(0, 150)}...
+              </p>
+            )}
+          </div>
+          
+          {/* Image Preview */}
+          {displayImage && (
+            <div className="aspect-video bg-gray-200">
+              <img src={displayImage} alt="" className="w-full h-full object-cover" />
+            </div>
+          )}
+        </div>
+        
+        {/* Share Button */}
+        <div className="p-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+          <button
+            onClick={handleShare}
+            disabled={sharing}
+            className="w-full py-3 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {sharing ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Sharing...
+              </>
+            ) : (
+              <>
+                <Share2 className="w-5 h-5" />
+                Share to Timeline
+              </>
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
