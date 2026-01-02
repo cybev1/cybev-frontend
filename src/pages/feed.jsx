@@ -871,15 +871,39 @@ export default function Feed() {
     setLoading(true);
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      const response = await api.get('/api/feed?tab=latest', {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      });
-      setFeed(response.data.feed || response.data.posts || response.data.items || []);
-    } catch {
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
+      // Try multiple endpoints
+      let feedData = [];
+      
+      // Try /api/feed first
       try {
-        const blogsRes = await api.get('/api/blogs');
-        setFeed(blogsRes.data.data?.blogs || blogsRes.data.blogs || []);
-      } catch {}
+        const response = await api.get('/api/feed?tab=latest', { headers });
+        feedData = response.data.feed || response.data.posts || response.data.items || [];
+      } catch (feedError) {
+        console.log('Feed endpoint failed, trying blogs:', feedError.message);
+      }
+      
+      // If feed is empty, try /api/blogs
+      if (feedData.length === 0) {
+        try {
+          const blogsRes = await api.get('/api/blogs?status=published&limit=50', { headers });
+          feedData = blogsRes.data.data?.blogs || blogsRes.data.blogs || blogsRes.data || [];
+          
+          // Add contentType to each blog
+          feedData = feedData.map(blog => ({
+            ...blog,
+            contentType: 'blog'
+          }));
+        } catch (blogsError) {
+          console.log('Blogs endpoint also failed:', blogsError.message);
+        }
+      }
+      
+      setFeed(feedData);
+    } catch (error) {
+      console.error('Feed fetch error:', error);
+      setFeed([]);
     }
     setLoading(false);
   };
