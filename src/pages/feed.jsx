@@ -16,7 +16,41 @@ import {
 } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'react-toastify';
-import { stripMarkdown, extractImages } from '@/lib/markdown';
+
+// ==========================================
+// MARKDOWN UTILITIES (inline to avoid import issues)
+// ==========================================
+function stripMarkdown(text) {
+  if (!text) return '';
+  return text
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/_([^_]+)_/g, '$1')
+    .replace(/^>\s+/gm, '')
+    .replace(/^[\-\*]\s+/gm, '')
+    .replace(/^\d+\.\s+/gm, '')
+    .replace(/```[^`]+```/g, '')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/^[\-\*]{3,}$/gm, '')
+    .replace(/\n{2,}/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function extractImages(markdown) {
+  if (!markdown) return [];
+  const regex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+  const images = [];
+  let match;
+  while ((match = regex.exec(markdown)) !== null) {
+    images.push({ alt: match[1], url: match[2] });
+  }
+  return images;
+}
 
 // Emoji Reactions
 const REACTIONS = [
