@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'react-toastify';
+import { stripMarkdown, extractImages } from '@/lib/markdown';
 
 // Emoji Reactions
 const REACTIONS = [
@@ -495,7 +496,45 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
   const author = item.author || item.authorId || {};
   const authorName = author.name || author.username || 'Anonymous';
   const authorAvatar = author.avatar || author.profileImage || author.profilePicture;
-  const images = item.images || item.media || (item.featuredImage ? [item.featuredImage] : []);
+  
+  // Get images from multiple sources including markdown content
+  const getImages = () => {
+    let imgs = [];
+    
+    // Check for featuredImage first (most important)
+    if (item.featuredImage) {
+      const featImg = typeof item.featuredImage === 'string' ? item.featuredImage : item.featuredImage.url;
+      if (featImg) imgs.push(featImg);
+    }
+    
+    // Add from images array
+    if (item.images?.length > 0) {
+      item.images.forEach(img => {
+        const imgUrl = typeof img === 'string' ? img : img.url;
+        if (imgUrl && !imgs.includes(imgUrl)) imgs.push(imgUrl);
+      });
+    }
+    
+    // Add from media array
+    if (item.media?.length > 0) {
+      item.media.forEach(m => {
+        const mediaUrl = typeof m === 'string' ? m : m.url;
+        if (mediaUrl && !imgs.includes(mediaUrl)) imgs.push(mediaUrl);
+      });
+    }
+    
+    // Extract images from markdown content if no images found
+    if (imgs.length === 0 && item.content) {
+      const markdownImages = extractImages(item.content);
+      markdownImages.forEach(img => {
+        if (img.url && !imgs.includes(img.url)) imgs.push(img.url);
+      });
+    }
+    
+    return imgs;
+  };
+  
+  const images = getImages();
   const commentsCount = item.commentsCount || item.comments?.length || 0;
   const totalReactions = reactions ? Object.values(reactions).reduce((sum, arr) => sum + (arr?.length || 0), 0) : likesCount;
   const activeReaction = Object.keys(userReactions).find(key => userReactions[key]);
@@ -593,8 +632,13 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
           </h3>
         )}
         <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-          {item.excerpt || item.content?.replace(/<[^>]*>/g, '').slice(0, 400)}
-          {item.content?.length > 400 && (
+          {(() => {
+            // Get clean text preview (strip markdown and HTML)
+            const rawContent = item.excerpt || item.content || '';
+            const cleanText = stripMarkdown(rawContent.replace(/<[^>]*>/g, '')).slice(0, 400);
+            return cleanText;
+          })()}
+          {(item.content?.length > 400 || item.excerpt?.length > 400) && (
             <span onClick={() => router.push(`/blog/${item._id}`)}
               className="text-purple-600 cursor-pointer hover:underline font-medium"> ...See more</span>
           )}
