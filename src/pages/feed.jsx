@@ -724,9 +724,10 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
             </>
           )}
         </div>
-        <div className="flex gap-4 text-gray-600">
-          {commentsCount > 0 && <span>{commentsCount} comments</span>}
-          {item.shares?.total > 0 && <span>{item.shares.total} shares</span>}
+        <div className="flex gap-3 text-gray-500 text-xs">
+          {item.views > 0 && <span className="flex items-center gap-1">👁️ {item.views}</span>}
+          {commentsCount > 0 && <span className="flex items-center gap-1">💬 {commentsCount}</span>}
+          {(item.shares?.total > 0 || item.sharesCount > 0) && <span className="flex items-center gap-1">↗️ {item.shares?.total || item.sharesCount}</span>}
         </div>
       </div>
 
