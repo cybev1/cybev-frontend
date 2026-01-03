@@ -83,19 +83,32 @@ export default function CreateVlogPage() {
         }
       });
 
+      // Check if upload was successful
+      if (!uploadResponse.data?.success && !uploadResponse.data?.url) {
+        // Video storage not configured
+        if (uploadResponse.data?.error?.includes('not configured')) {
+          toast.error('Video storage not configured. Contact admin to set up Cloudinary.');
+          setUploading(false);
+          return;
+        }
+        throw new Error(uploadResponse.data?.error || 'Upload failed');
+      }
+
       const videoUrl = uploadResponse.data?.url || uploadResponse.data?.videoUrl;
+      const thumbnailUrl = uploadResponse.data?.thumbnailUrl;
       
       if (!videoUrl) {
-        // If upload fails, use a placeholder URL for testing
-        console.log('Upload response:', uploadResponse.data);
-        toast.info('Using test mode - video not actually uploaded');
+        toast.error('Video upload failed. Please try again.');
+        setUploading(false);
+        return;
       }
 
       setUploadProgress(90);
 
       // Create vlog entry
       const vlogData = {
-        videoUrl: videoUrl || 'https://example.com/test-video.mp4',
+        videoUrl: videoUrl,
+        thumbnailUrl: thumbnailUrl || '',
         caption: caption.trim(),
         hashtags: hashtags.split(',').map(t => t.trim()).filter(Boolean),
         visibility,
