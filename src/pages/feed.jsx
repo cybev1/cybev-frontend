@@ -52,6 +52,33 @@ function extractImages(markdown) {
   return images;
 }
 
+// ==========================================
+// RELATIVE TIME UTILITY
+// ==========================================
+function getRelativeTime(dateString) {
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  const diffWeeks = Math.floor(diffDays / 7);
+  const diffMonths = Math.floor(diffDays / 30);
+  const diffYears = Math.floor(diffDays / 365);
+  
+  if (diffSecs < 5) return 'just now';
+  if (diffSecs < 60) return `${diffSecs}s ago`;
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffWeeks < 4) return `${diffWeeks}w ago`;
+  if (diffMonths < 12) return `${diffMonths}mo ago`;
+  return `${diffYears}y ago`;
+}
+
 // Emoji Reactions
 const REACTIONS = [
   { type: 'like', emoji: '👍', label: 'Like', color: 'text-blue-600' },
@@ -514,7 +541,7 @@ function CommentsModal({ isOpen, onClose, blogId }) {
                     <p className="text-gray-700 text-sm">{comment.content}</p>
                   </div>
                   <div className="flex gap-4 mt-1 ml-3 text-xs text-gray-500">
-                    <span>{new Date(comment.createdAt).toLocaleDateString()}</span>
+                    <span>{getRelativeTime(comment.createdAt)}</span>
                     <button className="font-semibold hover:underline">Like</button>
                     <button className="font-semibold hover:underline">Reply</button>
                   </div>
@@ -830,7 +857,7 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
               )}
             </div>
             <div className="flex items-center gap-1 text-gray-500 text-xs">
-              <span>{new Date(item.createdAt).toLocaleDateString()}</span>
+              <span>{getRelativeTime(item.createdAt)}</span>
               <span>·</span>
               <Globe className="w-3 h-3" />
               {isBlog && (
