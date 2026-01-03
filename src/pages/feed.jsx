@@ -755,8 +755,8 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
 
   // For shared posts, show original author; for regular posts, show author
   const author = item.isSharedPost ? (item.originalAuthor || item.author || {}) : (item.author || item.authorId || {});
-  const authorName = author.name || author.username || 'Anonymous';
-  const authorAvatar = author.avatar || author.profileImage || author.profilePicture;
+  const authorName = author.name || author.username || item.authorName || 'Anonymous';
+  const authorAvatar = author.profilePicture || author.avatar || author.profileImage || author.image || null;
   
   // Get images from multiple sources including markdown content
   const getImages = () => {
