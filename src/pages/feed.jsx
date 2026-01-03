@@ -12,7 +12,7 @@ import {
   Home, Users, Tv, Bell, Menu, Search, MessageCircle, Plus,
   Heart, MessageSquare, Share2, Bookmark, MoreHorizontal, Send,
   Image as ImageIcon, X, Edit, Trash2, Pin, Flag, Copy, ExternalLink,
-  Globe, Loader2, Sparkles, Radio, Play, Monitor, Building, Wand2
+  Globe, Loader2, Sparkles, Radio, Play, Monitor, Building, Wand2, UserPlus
 } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'react-toastify';
@@ -177,18 +177,34 @@ function PostComposer({ user, onOpenAI }) {
 }
 
 // ==========================================
-// VLOG SECTION (formerly Stories/Reels)
+// VLOG SECTION (with API integration)
 // ==========================================
 function VlogSection({ user }) {
   const router = useRouter();
-  
-  const vlogs = [
-    { id: 'create', isCreate: true, user: user },
-    { id: 1, user: { name: 'Deborah T', profilePicture: null }, hasNew: true },
-    { id: 2, user: { name: 'Sonia M', profilePicture: null }, hasNew: true },
-    { id: 3, user: { name: 'Prince D', profilePicture: null }, hasNew: false },
-    { id: 4, user: { name: 'Jane D', profilePicture: null }, hasNew: true },
-  ];
+  const [stories, setStories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStories();
+  }, []);
+
+  const fetchStories = async () => {
+    try {
+      const response = await api.get('/api/vlogs/feed');
+      if (response.data?.success) {
+        setStories(response.data.stories || []);
+      }
+    } catch (error) {
+      // Fallback placeholder data
+      setStories([
+        { user: { _id: '1', name: 'Deborah T' }, vlogs: [], hasUnviewed: true, gradient: 'from-blue-400 to-cyan-500' },
+        { user: { _id: '2', name: 'Sonia M' }, vlogs: [], hasUnviewed: false, gradient: 'from-green-400 to-teal-500' },
+        { user: { _id: '3', name: 'Prince D' }, vlogs: [], hasUnviewed: true, gradient: 'from-orange-400 to-red-500' },
+        { user: { _id: '4', name: 'Jane D' }, vlogs: [], hasUnviewed: false, gradient: 'from-purple-400 to-indigo-500' },
+      ]);
+    }
+    setLoading(false);
+  };
 
   const colors = ['from-pink-400 to-purple-500', 'from-blue-400 to-cyan-500', 'from-green-400 to-teal-500', 'from-orange-400 to-red-500', 'from-purple-400 to-indigo-500'];
 
@@ -202,59 +218,172 @@ function VlogSection({ user }) {
       </div>
       
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-        {vlogs.map((vlog, idx) => (
+        {/* Create Vlog Card */}
+        <div 
+          onClick={() => router.push('/vlog/create')}
+          className="flex-shrink-0 w-28 h-44 rounded-xl overflow-hidden relative cursor-pointer group shadow-sm"
+        >
+          <div className="w-full h-full bg-white border-2 border-gray-200">
+            <div className={`h-3/4 bg-gradient-to-br ${colors[0]} relative`}>
+              {user?.profilePicture ? (
+                <img src={user.profilePicture} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white text-3xl font-bold">
+                  {user?.name?.[0] || 'P'}
+                </div>
+              )}
+            </div>
+            <div className="h-1/4 flex flex-col items-center justify-center bg-white relative">
+              <div className="absolute -top-4 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center border-4 border-white">
+                <Plus className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-xs font-semibold text-gray-900 mt-2">Create Vlog</span>
+            </div>
+          </div>
+        </div>
+
+        {/* User Stories */}
+        {stories.map((story, idx) => (
           <div 
-            key={vlog.id} 
-            onClick={() => vlog.isCreate ? router.push('/vlog/create') : router.push(`/vlog/${vlog.id}`)}
+            key={story.user?._id || idx} 
+            onClick={() => story.vlogs?.[0]?._id ? router.push(`/vlog/${story.vlogs[0]._id}`) : toast.info('No vlog yet')}
             className="flex-shrink-0 w-28 h-44 rounded-xl overflow-hidden relative cursor-pointer group shadow-sm"
           >
-            {vlog.isCreate ? (
-              <div className="w-full h-full bg-white border-2 border-gray-200">
-                <div className={`h-3/4 bg-gradient-to-br ${colors[0]} relative`}>
-                  {user?.profilePicture ? (
-                    <img src={user.profilePicture} alt="" className="w-full h-full object-cover" />
+            <div className="w-full h-full relative">
+              <div className={`absolute inset-0 bg-gradient-to-br ${story.gradient || colors[(idx + 1) % colors.length]}`} />
+              {story.vlogs?.[0]?.thumbnailUrl && (
+                <img src={story.vlogs[0].thumbnailUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              
+              {/* Profile Ring */}
+              <div className="absolute top-2 left-2">
+                <div className={`w-9 h-9 rounded-full p-0.5 ${story.hasUnviewed ? 'bg-gradient-to-br from-purple-500 to-pink-500' : 'bg-gray-400'}`}>
+                  <div className="w-full h-full rounded-full bg-white p-0.5">
+                    {story.user?.profilePicture || story.user?.avatar ? (
+                      <img src={story.user.profilePicture || story.user.avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                    ) : (
+                      <div className={`w-full h-full rounded-full bg-gradient-to-br ${colors[(idx + 2) % colors.length]} flex items-center justify-center text-white text-xs font-bold`}>
+                        {story.user?.name?.[0] || 'U'}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Play Icon */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="w-10 h-10 bg-white/30 backdrop-blur rounded-full flex items-center justify-center">
+                  <Play className="w-5 h-5 text-white fill-white" />
+                </div>
+              </div>
+              
+              {/* Name */}
+              <div className="absolute bottom-2 left-2 right-2">
+                <p className="text-white text-xs font-semibold truncate drop-shadow">{story.user?.name || story.user?.username}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// SUGGESTED FOLLOWS SECTION
+// ==========================================
+function SuggestedFollows({ currentUserId }) {
+  const [suggestions, setSuggestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [followingStates, setFollowingStates] = useState({});
+
+  useEffect(() => {
+    fetchSuggestions();
+  }, []);
+
+  const fetchSuggestions = async () => {
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      const response = await api.get('/api/follow/suggestions?limit=5', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      if (response.data?.success) {
+        setSuggestions(response.data.suggestions || []);
+      }
+    } catch (error) {
+      console.log('Suggestions fetch error:', error);
+    }
+    setLoading(false);
+  };
+
+  const handleFollow = async (userId, userName) => {
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      if (!token) {
+        toast.info('Please login to follow');
+        return;
+      }
+
+      if (followingStates[userId]) {
+        // Unfollow
+        await api.delete(`/api/follow/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setFollowingStates(prev => ({ ...prev, [userId]: false }));
+        toast.success(`Unfollowed ${userName}`);
+      } else {
+        // Follow
+        await api.post(`/api/follow/${userId}`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setFollowingStates(prev => ({ ...prev, [userId]: true }));
+        toast.success(`Following ${userName}!`);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed');
+    }
+  };
+
+  if (loading || suggestions.length === 0) return null;
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-semibold text-gray-900 text-sm">Suggested for you</h3>
+        <Link href="/explore/creators">
+          <span className="text-purple-600 text-xs font-medium cursor-pointer hover:underline">See All</span>
+        </Link>
+      </div>
+      
+      <div className="space-y-3">
+        {suggestions.slice(0, 5).map(user => (
+          <div key={user._id} className="flex items-center justify-between">
+            <Link href={`/profile/${user.username || user._id}`}>
+              <div className="flex items-center gap-3 cursor-pointer">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center overflow-hidden">
+                  {user.profilePicture || user.avatar ? (
+                    <img src={user.profilePicture || user.avatar} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white text-3xl font-bold">
-                      {user?.name?.[0] || 'U'}
-                    </div>
+                    <span className="text-white font-bold">{user.name?.[0] || 'U'}</span>
                   )}
                 </div>
-                <div className="h-1/4 flex flex-col items-center justify-center bg-white relative">
-                  <div className="absolute -top-4 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center border-4 border-white">
-                    <Plus className="w-4 h-4 text-white" />
-                  </div>
-                  <span className="text-xs font-semibold text-gray-900 mt-2">Create Vlog</span>
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm hover:underline">{user.name || user.username}</p>
+                  <p className="text-gray-500 text-xs">{user.suggestedReason || 'Suggested for you'}</p>
                 </div>
               </div>
-            ) : (
-              <div className="w-full h-full relative">
-                <div className={`absolute inset-0 bg-gradient-to-br ${colors[idx % colors.length]}`} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                
-                {/* Profile Ring */}
-                <div className="absolute top-2 left-2">
-                  <div className={`w-9 h-9 rounded-full p-0.5 ${vlog.hasNew ? 'bg-gradient-to-br from-purple-500 to-pink-500' : 'bg-gray-400'}`}>
-                    <div className="w-full h-full rounded-full bg-white p-0.5">
-                      <div className={`w-full h-full rounded-full bg-gradient-to-br ${colors[(idx + 1) % colors.length]} flex items-center justify-center text-white text-xs font-bold`}>
-                        {vlog.user?.name?.[0] || 'U'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Play Icon */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="w-10 h-10 bg-white/30 backdrop-blur rounded-full flex items-center justify-center">
-                    <Play className="w-5 h-5 text-white fill-white" />
-                  </div>
-                </div>
-                
-                {/* Name */}
-                <div className="absolute bottom-2 left-2 right-2">
-                  <p className="text-white text-xs font-semibold truncate drop-shadow">{vlog.user?.name}</p>
-                </div>
-              </div>
-            )}
+            </Link>
+            <button
+              onClick={() => handleFollow(user._id, user.name || user.username)}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition ${
+                followingStates[user._id]
+                  ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  : 'bg-purple-600 text-white hover:bg-purple-700'
+              }`}
+            >
+              {followingStates[user._id] ? 'Following' : 'Follow'}
+            </button>
           </div>
         ))}
       </div>
@@ -431,11 +560,61 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
   const [likesCount, setLikesCount] = useState(item.likes?.length || item.likesCount || 0);
   const [isPinned, setIsPinned] = useState(item.isPinned || isPinnedPost);
   const [isSharedToTimeline, setIsSharedToTimeline] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
   const reactionTimeout = useRef(null);
 
   const isBlog = item.contentType === 'blog' || item.title;
   const authorId = item.author?._id || item.author || item.authorId?._id || item.authorId;
   const isOwner = currentUserId && (String(authorId) === String(currentUserId));
+
+  // Check follow status on mount
+  useEffect(() => {
+    if (currentUserId && authorId && !isOwner) {
+      checkFollowStatus();
+    }
+  }, [currentUserId, authorId]);
+
+  const checkFollowStatus = async () => {
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      if (!token) return;
+      const response = await api.get(`/api/follow/check/${authorId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setIsFollowing(response.data?.following || false);
+    } catch {}
+  };
+
+  const handleFollow = async (e) => {
+    e.stopPropagation();
+    if (!currentUserId) {
+      toast.info('Please login to follow');
+      return;
+    }
+    if (isOwner) return;
+    
+    setFollowLoading(true);
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      if (isFollowing) {
+        await api.delete(`/api/follow/${authorId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setIsFollowing(false);
+        toast.success('Unfollowed');
+      } else {
+        await api.post(`/api/follow/${authorId}`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setIsFollowing(true);
+        toast.success('Following!');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed');
+    }
+    setFollowLoading(false);
+  };
 
   useEffect(() => {
     if (currentUserId && item.reactions) {
@@ -635,6 +814,20 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
               <Link href={`/profile/${author.username || authorId}`}>
                 <span className="font-semibold text-gray-900 hover:underline cursor-pointer">{authorName}</span>
               </Link>
+              {/* Follow Button */}
+              {!isOwner && currentUserId && (
+                <button
+                  onClick={handleFollow}
+                  disabled={followLoading}
+                  className={`px-2 py-0.5 text-xs font-semibold rounded transition ${
+                    isFollowing
+                      ? 'text-gray-600 hover:text-gray-800'
+                      : 'text-purple-600 hover:text-purple-700'
+                  }`}
+                >
+                  {followLoading ? '...' : isFollowing ? '✓ Following' : '+ Follow'}
+                </button>
+              )}
             </div>
             <div className="flex items-center gap-1 text-gray-500 text-xs">
               <span>{new Date(item.createdAt).toLocaleDateString()}</span>
@@ -1238,6 +1431,7 @@ export default function Feed() {
         <div className="max-w-screen-sm mx-auto px-4 py-4 pb-20 md:pb-4">
           <PostComposer user={user} onOpenAI={() => setShowAIModal(true)} />
           <VlogSection user={user} />
+          <SuggestedFollows currentUserId={user?._id || user?.id} />
 
           {loading ? (
             <div className="flex justify-center py-12">
