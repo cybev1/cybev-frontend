@@ -29,11 +29,15 @@ export default function GoLivePage() {
   const [loading, setLoading] = useState(false);
   const [cameraError, setCameraError] = useState('');
   const [streamId, setStreamId] = useState(null);
+  const [existingStream, setExistingStream] = useState(null);
+  const [showExistingStreamModal, setShowExistingStreamModal] = useState(false);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
       setUser(JSON.parse(userData));
+      // Check for existing active streams
+      checkExistingStream();
     } else {
       router.push('/login');
       return;
@@ -52,6 +56,50 @@ export default function GoLivePage() {
       stopCamera();
     };
   }, []);
+
+  const checkExistingStream = async () => {
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      const response = await api.get('/api/live/my-stream', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data?.hasActiveStream && response.data?.stream) {
+        setExistingStream(response.data.stream);
+        setShowExistingStreamModal(true);
+      }
+    } catch (error) {
+      console.log('No existing stream found');
+    }
+  };
+
+  const resumeExistingStream = () => {
+    if (existingStream) {
+      setStreamId(existingStream._id);
+      setTitle(existingStream.title || '');
+      setDescription(existingStream.description || '');
+      setIsLive(true);
+      setIsPreview(false);
+      setShowExistingStreamModal(false);
+      toast.success('Resumed your live stream!');
+    }
+  };
+
+  const endExistingAndStartNew = async () => {
+    setShowExistingStreamModal(false);
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      await api.post('/api/live/cleanup', {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setExistingStream(null);
+      toast.success('Previous stream ended. You can start a new one.');
+    } catch (error) {
+      toast.error('Failed to end previous stream');
+    }
+    setLoading(false);
+  };
 
   const startCamera = async () => {
     try {
@@ -159,6 +207,24 @@ export default function GoLivePage() {
     return key;
   };
 
+  // Cleanup any existing active streams
+  const cleanupExistingStreams = async () => {
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      const response = await api.post('/api/live/cleanup', {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data?.cleaned > 0) {
+        console.log(`🧹 Cleaned up ${response.data.cleaned} existing streams`);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Cleanup error:', error);
+      return false;
+    }
+  };
+
   const startLiveStream = async () => {
     if (!title.trim()) {
       toast.error('Please enter a title for your stream');
@@ -186,7 +252,42 @@ export default function GoLivePage() {
       }
     } catch (error) {
       console.error('Start stream error:', error);
-      toast.error(error.response?.data?.error || 'Failed to start stream');
+      
+      // If user already has an active stream, try to cleanup and retry
+      if (error.response?.status === 400 && error.response?.data?.error?.includes('active stream')) {
+        toast.info('Cleaning up previous stream...');
+        const cleaned = await cleanupExistingStreams();
+        
+        if (cleaned) {
+          // Retry starting the stream
+          try {
+            const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+            const key = streamKey || generateStreamKey();
+            
+            const retryResponse = await api.post('/api/live/start', {
+              title,
+              description,
+              streamKey: key
+            }, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (retryResponse.data?.success || retryResponse.data?.stream) {
+              setIsLive(true);
+              setIsPreview(false);
+              setStreamId(retryResponse.data.stream?._id || retryResponse.data.streamId);
+              toast.success('🔴 You are now LIVE!');
+              setLoading(false);
+              return;
+            }
+          } catch (retryError) {
+            console.error('Retry start stream error:', retryError);
+          }
+        }
+        toast.error('Could not start stream. Please try again.');
+      } else {
+        toast.error(error.response?.data?.error || 'Failed to start stream');
+      }
     }
     setLoading(false);
   };
@@ -200,6 +301,9 @@ export default function GoLivePage() {
         await api.post(`/api/live/${streamId}/end`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
+      } else {
+        // If no streamId, use cleanup to end all user's streams
+        await cleanupExistingStreams();
       }
       
       setIsLive(false);
@@ -207,6 +311,16 @@ export default function GoLivePage() {
       toast.success('Stream ended');
       router.push('/feed');
     } catch (error) {
+      console.error('End stream error:', error);
+      // Try cleanup as fallback
+      try {
+        await cleanupExistingStreams();
+        setIsLive(false);
+        stopCamera();
+        toast.success('Stream ended');
+        router.push('/feed');
+        return;
+      } catch {}
       toast.error('Failed to end stream');
     }
     setLoading(false);
@@ -474,6 +588,49 @@ export default function GoLivePage() {
             </div>
           </div>
         </main>
+        
+        {/* Existing Stream Modal */}
+        {showExistingStreamModal && existingStream && (
+          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+            <div className="bg-gray-800 rounded-2xl max-w-md w-full p-6">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Radio className="w-8 h-8 text-red-500" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Active Stream Found</h3>
+                <p className="text-gray-400">
+                  You have an active stream: <span className="text-white font-medium">"{existingStream.title}"</span>
+                </p>
+              </div>
+              
+              <div className="space-y-3">
+                <button
+                  onClick={resumeExistingStream}
+                  className="w-full py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 flex items-center justify-center gap-2"
+                >
+                  <Radio className="w-5 h-5" />
+                  Resume Stream
+                </button>
+                
+                <button
+                  onClick={endExistingAndStartNew}
+                  disabled={loading}
+                  className="w-full py-3 bg-gray-700 text-white font-semibold rounded-xl hover:bg-gray-600 flex items-center justify-center gap-2"
+                >
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <X className="w-5 h-5" />}
+                  End & Start New
+                </button>
+                
+                <button
+                  onClick={() => setShowExistingStreamModal(false)}
+                  className="w-full py-3 text-gray-400 hover:text-white"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
