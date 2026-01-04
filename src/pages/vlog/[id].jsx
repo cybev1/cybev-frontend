@@ -58,14 +58,21 @@ export default function VlogViewerPage() {
   const fetchVlog = async () => {
     setLoading(true);
     try {
-      const response = await api.get(`/api/vlogs/${id}`);
-      if (response.data?.success && response.data?.vlog) {
-        setVlog(response.data.vlog);
-        setLikesCount(response.data.vlog.likes?.length || 0);
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
+      const response = await fetch(`${baseUrl}/api/vlogs/${id}`);
+      const data = await response.json();
+      
+      if (data?.success && data?.vlog) {
+        setVlog(data.vlog);
+        setLikesCount(data.vlog.likes?.length || data.vlog.reactions?.like?.length || 0);
         
         // Track view
         try {
-          await api.post(`/api/vlogs/${id}/view`);
+          const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+          fetch(`${baseUrl}/api/vlogs/${id}/view`, { 
+            method: 'POST',
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+          });
         } catch {}
       } else {
         toast.error('Vlog not found');
@@ -105,17 +112,29 @@ export default function VlogViewerPage() {
 
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      await api.post(`/api/vlogs/${id}/react`, { type: 'like' }, {
-        headers: { Authorization: `Bearer ${token}` }
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
+      
+      const response = await fetch(`${baseUrl}/api/vlogs/${id}/react`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ type: 'like' })
       });
       
-      if (liked) {
-        setLikesCount(prev => Math.max(0, prev - 1));
+      if (response.ok) {
+        if (liked) {
+          setLikesCount(prev => Math.max(0, prev - 1));
+        } else {
+          setLikesCount(prev => prev + 1);
+        }
+        setLiked(!liked);
       } else {
-        setLikesCount(prev => prev + 1);
+        throw new Error('Failed');
       }
-      setLiked(!liked);
     } catch (error) {
+      console.error('Like error:', error);
       toast.error('Failed to like');
     }
   };
