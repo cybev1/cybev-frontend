@@ -87,35 +87,47 @@ export default function LiveStreamPage() {
     setLoading(true);
     try {
       const response = await api.get(`/api/live/${id}`);
-      if (response.data?.stream) {
+      console.log('Stream response:', response.data);
+      
+      if (response.data?.success && response.data?.stream) {
+        const streamData = response.data.stream;
+        setStream(streamData);
+        setViewerCount(streamData.viewers || 0);
+        setMessages(streamData.comments || []);
+        
+        // Check if following streamer
+        if (user && streamData.streamer?._id) {
+          checkFollowStatus(streamData.streamer._id);
+        }
+      } else if (response.data?.stream) {
+        // Handle case where success isn't explicitly returned
         setStream(response.data.stream);
         setViewerCount(response.data.stream.viewers || 0);
         setMessages(response.data.stream.comments || []);
-        
-        // Check if following streamer
-        if (user) {
-          checkFollowStatus(response.data.stream.streamer?._id);
-        }
+      } else {
+        console.log('No stream data, using demo');
+        // Demo stream for testing
+        setStream({
+          _id: id,
+          title: 'Live Stream',
+          streamer: { _id: 'demo', name: 'Demo Streamer', username: 'demo', profilePicture: null },
+          viewers: 0,
+          startedAt: new Date(),
+          status: 'live'
+        });
       }
     } catch (error) {
-      console.log('Using demo stream');
-      // Demo stream
+      console.error('Fetch stream error:', error);
+      // Demo stream for testing
       setStream({
         _id: id,
-        title: 'Live Coding Session',
+        title: 'Live Stream',
         streamer: { _id: 'demo', name: 'Demo Streamer', username: 'demo', profilePicture: null },
-        viewers: 142,
-        startedAt: new Date(Date.now() - 30 * 60000),
+        viewers: 0,
+        startedAt: new Date(),
         status: 'live'
       });
-      setViewerCount(142);
-      
-      // Demo messages
-      setMessages([
-        { _id: '1', user: { name: 'John', profilePicture: null }, content: 'Great stream! 🔥', createdAt: new Date(Date.now() - 5000) },
-        { _id: '2', user: { name: 'Sarah', profilePicture: null }, content: 'Can you explain that again?', createdAt: new Date(Date.now() - 3000) },
-        { _id: '3', user: { name: 'Mike', profilePicture: null }, content: '👏👏👏', createdAt: new Date(Date.now() - 1000) }
-      ]);
+      setMessages([]);
     }
     setLoading(false);
   };
