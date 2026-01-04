@@ -1,6 +1,6 @@
 // ============================================
-// FILE: src/pages/live/[id].jsx
-// Live Stream Viewer Page
+// FILE: src/pages/live/[streamId].jsx
+// Live Stream Viewer Page with Mux HLS Support
 // Features: Video player, chat, reactions, viewer count
 // ============================================
 
@@ -8,6 +8,7 @@ import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import Script from 'next/script';
 import {
   ArrowLeft, Heart, MessageCircle, Share2, Users, Eye,
   Send, Gift, Flag, Volume2, VolumeX, Maximize2, Minimize2,
@@ -34,6 +35,8 @@ export default function LiveStreamPage() {
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [hlsReady, setHlsReady] = useState(false);
+  const [videoError, setVideoError] = useState(null);
   
   // Chat
   const [messages, setMessages] = useState([]);
@@ -49,6 +52,7 @@ export default function LiveStreamPage() {
   const [floatingReactions, setFloatingReactions] = useState([]);
   
   const videoRef = useRef(null);
+  const hlsRef = useRef(null);
   const chatContainerRef = useRef(null);
   const containerRef = useRef(null);
 
@@ -132,6 +136,85 @@ export default function LiveStreamPage() {
     }
     setLoading(false);
   };
+
+  // Initialize HLS player when stream has playback URL
+  useEffect(() => {
+    if (!stream?.playbackUrls?.hls || !videoRef.current) return;
+    
+    const initHls = () => {
+      // Check if HLS.js is loaded
+      if (typeof window === 'undefined' || !window.Hls) {
+        console.log('HLS.js not yet loaded, retrying...');
+        setTimeout(initHls, 500);
+        return;
+      }
+      
+      const Hls = window.Hls;
+      
+      // Clean up existing instance
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+      }
+      
+      if (Hls.isSupported()) {
+        const hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: true,
+          backBufferLength: 90
+        });
+        
+        hls.loadSource(stream.playbackUrls.hls);
+        hls.attachMedia(videoRef.current);
+        
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          console.log('✅ HLS manifest loaded');
+          setHlsReady(true);
+          setVideoError(null);
+          videoRef.current?.play().catch(() => {});
+        });
+        
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          console.error('HLS error:', data);
+          if (data.fatal) {
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                console.log('Network error, trying to recover...');
+                hls.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                console.log('Media error, trying to recover...');
+                hls.recoverMediaError();
+                break;
+              default:
+                setVideoError('Stream unavailable');
+                hls.destroy();
+                break;
+            }
+          }
+        });
+        
+        hlsRef.current = hls;
+      } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
+        // Safari native HLS support
+        videoRef.current.src = stream.playbackUrls.hls;
+        videoRef.current.addEventListener('loadedmetadata', () => {
+          setHlsReady(true);
+          videoRef.current?.play().catch(() => {});
+        });
+      } else {
+        setVideoError('HLS not supported in this browser');
+      }
+    };
+    
+    initHls();
+    
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
+  }, [stream?.playbackUrls?.hls]);
 
   const joinStream = async () => {
     try {
@@ -304,34 +387,139 @@ export default function LiveStreamPage() {
   }
 
   const isEnded = stream.status === 'ended' || stream.status === 'saved';
+  const hasHlsStream = stream.playbackUrls?.hls;
 
   return (
     <>
       <Head>
         <title>{stream.title || 'Live Stream'} | CYBEV</title>
       </Head>
+      
+      {/* Load HLS.js */}
+      <Script 
+        src="https://cdn.jsdelivr.net/npm/hls.js@latest" 
+        strategy="beforeInteractive"
+      />
 
       <div ref={containerRef} className="min-h-screen bg-gray-900 flex flex-col lg:flex-row">
         {/* Video Section */}
         <div className="flex-1 flex flex-col">
           {/* Video Player */}
           <div className="relative aspect-video bg-black">
-            {/* Video placeholder - in real implementation, use HLS/WebRTC player */}
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
-              {isEnded ? (
-                <div className="text-center">
-                  <Play className="w-16 h-16 text-white/50 mx-auto mb-4" />
-                  <p className="text-white/70">Stream has ended</p>
-                  {stream.recordingUrl && (
-                    <button className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                      Watch Recording
-                    </button>
-                  )}
+            {/* HLS Video Player */}
+            {hasHlsStream && !isEnded ? (
+              <div className="absolute inset-0">
+                <video
+                  ref={videoRef}
+                  className="w-full h-full object-contain bg-black"
+                  autoPlay
+                  playsInline
+                  muted={isMuted}
+                  poster={stream.playbackUrls?.thumbnail}
+                  onClick={() => setIsPlaying(!isPlaying)}
+                />
+                
+                {/* Loading overlay */}
+                {!hlsReady && !videoError && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                    <div className="text-center">
+                      <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+                      <p className="text-white">Connecting to stream...</p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Error overlay */}
+                {videoError && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                    <div className="text-center">
+                      <p className="text-red-400 mb-2">{videoError}</p>
+                      <button 
+                        onClick={() => window.location.reload()}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Live indicator */}
+                <div className="absolute top-4 left-4 flex items-center gap-3">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-red-600 rounded-lg text-white text-sm font-bold">
+                    <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                    LIVE
+                  </div>
+                  <div className="flex items-center gap-1 px-3 py-1.5 bg-black/50 rounded-lg text-white text-sm">
+                    <Eye className="w-4 h-4" />
+                    {viewerCount}
+                  </div>
+                  <div className="flex items-center gap-1 px-3 py-1.5 bg-black/50 rounded-lg text-white text-sm">
+                    <Clock className="w-4 h-4" />
+                    {formatDuration(stream.startedAt)}
+                  </div>
                 </div>
+                
+                {/* Floating Reactions */}
+                <div className="absolute bottom-20 right-4 flex flex-col-reverse gap-2 pointer-events-none">
+                  {floatingReactions.map(reaction => (
+                    <div
+                      key={reaction.id}
+                      className="text-4xl animate-bounce"
+                      style={{ animation: 'floatUp 2s ease-out forwards' }}
+                    >
+                      {reaction.emoji}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              /* Fallback: No HLS stream or stream ended */
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
+                {isEnded ? (
+                  <div className="text-center">
+                    <Play className="w-16 h-16 text-white/50 mx-auto mb-4" />
+                    <p className="text-white/70">Stream has ended</p>
+                    {stream.recordingUrl && (
+                      <button className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                        Watch Recording
+                      </button>
+                    )}
+                  </div>
+                ) : stream.embedUrl ? (
+                  /* Embedded stream from Facebook/YouTube/Twitch */
+                  <iframe
+                    src={stream.embedUrl}
+                    className="w-full h-full"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
               ) : (
                 <>
-                  {/* Simulated video - replace with actual video element */}
+                  {/* Simulated live video - replace with actual video element */}
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-900/50 to-pink-900/50" />
+                  
+                  {/* Stream active indicator */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+                    <div className="w-20 h-20 mb-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center overflow-hidden">
+                      {stream.streamer?.profilePicture ? (
+                        <img src={stream.streamer.profilePicture} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-white text-3xl font-bold">
+                          {stream.streamer?.name?.[0] || 'L'}
+                        </span>
+                      )}
+                    </div>
+                    <h2 className="text-white text-xl font-bold mb-2">{stream.title || 'Live Stream'}</h2>
+                    <p className="text-white/70 text-sm mb-4">
+                      {stream.streamer?.name || 'Streamer'} is live now
+                    </p>
+                    <div className="flex items-center gap-2 text-white/60 text-sm">
+                      <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                      Stream is active
+                    </div>
+                  </div>
                   
                   {/* Live indicator */}
                   <div className="absolute top-4 left-4 flex items-center gap-3">
