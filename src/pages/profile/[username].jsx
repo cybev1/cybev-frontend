@@ -188,14 +188,27 @@ export default function ProfilePage() {
       });
 
       if (response.data?.url) {
-        setProfileUser(prev => ({ ...prev, profilePicture: response.data.url }));
-        // Update local storage
+        const newUrl = response.data.url;
+        
+        // Update profile display
+        setProfileUser(prev => ({ ...prev, profilePicture: newUrl, avatar: newUrl }));
+        
+        // Update localStorage with new profile picture
         const userData = JSON.parse(localStorage.getItem('user') || '{}');
-        userData.profilePicture = response.data.url;
+        userData.profilePicture = newUrl;
+        userData.avatar = newUrl;
         localStorage.setItem('user', JSON.stringify(userData));
+        
+        // Also update currentUser state
+        setCurrentUser(prev => ({ ...prev, profilePicture: newUrl, avatar: newUrl }));
+        
         toast.success('Profile picture updated!');
+        console.log('✅ Profile picture saved:', newUrl);
+      } else {
+        throw new Error('No URL returned');
       }
     } catch (error) {
+      console.error('Profile upload error:', error);
       toast.error('Failed to upload profile picture');
     }
     setUploadingProfile(false);
@@ -224,10 +237,23 @@ export default function ProfilePage() {
       });
 
       if (response.data?.url) {
-        setProfileUser(prev => ({ ...prev, coverImage: response.data.url }));
+        const newUrl = response.data.url;
+        
+        // Update profile display
+        setProfileUser(prev => ({ ...prev, coverImage: newUrl }));
+        
+        // Update localStorage
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        userData.coverImage = newUrl;
+        localStorage.setItem('user', JSON.stringify(userData));
+        
         toast.success('Cover image updated!');
+        console.log('✅ Cover image saved:', newUrl);
+      } else {
+        throw new Error('No URL returned');
       }
     } catch (error) {
+      console.error('Cover upload error:', error);
       toast.error('Failed to upload cover image');
     }
     setUploadingCover(false);
