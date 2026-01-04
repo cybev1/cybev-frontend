@@ -164,7 +164,7 @@ export default function BlogDetailPage({ blog, ogData }) {
   const id = blog?._id;
   
   const [user, setUser] = useState(null);
-  const [showComments, setShowComments] = useState(false);
+  const [showComments, setShowComments] = useState(true);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
@@ -184,7 +184,16 @@ export default function BlogDetailPage({ blog, ogData }) {
     const userData = localStorage.getItem('user');
     if (userData) setUser(JSON.parse(userData));
     trackView();
+    fetchCommentsInitial();
   }, []);
+  
+  const fetchCommentsInitial = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io'}/api/comments/blog/${id}`);
+      const data = await response.json();
+      setComments(data.comments || []);
+    } catch {}
+  };
   
   const trackView = async () => {
     try {
@@ -248,12 +257,40 @@ export default function BlogDetailPage({ blog, ogData }) {
   
   const handleReaction = async (type) => {
     if (!user) { toast.info('Please login to react'); return; }
-    if (!api) return;
+    if (!api) {
+      // Fallback to fetch if api not loaded
+      try {
+        const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io'}/api/blogs/${id}/react`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}` 
+          },
+          body: JSON.stringify({ type })
+        });
+        const data = await response.json();
+        if (data.success) {
+          setActiveReaction(activeReaction === type ? null : type);
+          toast.success(activeReaction === type ? 'Reaction removed' : `Reacted with ${type}!`);
+        }
+      } catch (error) { 
+        console.error('Reaction error:', error);
+        toast.error('Failed to react'); 
+      }
+      return;
+    }
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      await api.post(`/api/reactions/blog/${id}`, { type }, { headers: { Authorization: `Bearer ${token}` } });
-      setActiveReaction(activeReaction === type ? null : type);
-    } catch { toast.error('Failed to react'); }
+      const response = await api.post(`/api/blogs/${id}/react`, { type }, { headers: { Authorization: `Bearer ${token}` } });
+      if (response.data?.success) {
+        setActiveReaction(activeReaction === type ? null : type);
+        toast.success(activeReaction === type ? 'Reaction removed' : `Reacted with ${type}!`);
+      }
+    } catch (error) { 
+      console.error('Reaction error:', error);
+      toast.error('Failed to react'); 
+    }
   };
   
   const handleBookmark = async () => {
@@ -308,15 +345,43 @@ export default function BlogDetailPage({ blog, ogData }) {
   };
   
   const submitComment = async () => {
-    if (!newComment.trim() || !user || !api) return;
+    if (!newComment.trim() || !user) {
+      if (!user) toast.info('Please login to comment');
+      return;
+    }
     setSubmittingComment(true);
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      const response = await api.post(`/api/comments/blog/${id}`, { content: newComment.trim() }, { headers: { Authorization: `Bearer ${token}` } });
-      setComments([response.data.comment, ...comments]);
-      setNewComment('');
-      toast.success('Comment added!');
-    } catch { toast.error('Failed to add comment'); }
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io'}/api/comments`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ 
+          blogId: id, 
+          content: newComment.trim(),
+          authorName: user.name 
+        })
+      });
+      const data = await response.json();
+      if (data.comment || data.success) {
+        const newCommentObj = data.comment || {
+          _id: Date.now(),
+          content: newComment.trim(),
+          user: { name: user.name, profilePicture: user.profilePicture },
+          createdAt: new Date().toISOString()
+        };
+        setComments([newCommentObj, ...comments]);
+        setNewComment('');
+        toast.success('Comment added!');
+      } else {
+        toast.error(data.error || 'Failed to add comment');
+      }
+    } catch (error) { 
+      console.error('Comment error:', error);
+      toast.error('Failed to add comment'); 
+    }
     setSubmittingComment(false);
   };
   
