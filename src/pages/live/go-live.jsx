@@ -31,6 +31,10 @@ export default function GoLivePage() {
   const [streamId, setStreamId] = useState(null);
   const [existingStream, setExistingStream] = useState(null);
   const [showExistingStreamModal, setShowExistingStreamModal] = useState(false);
+  
+  // Mux streaming details
+  const [muxDetails, setMuxDetails] = useState(null);
+  const [showMuxInfo, setShowMuxInfo] = useState(false);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -248,7 +252,15 @@ export default function GoLivePage() {
         setIsLive(true);
         setIsPreview(false);
         setStreamId(response.data.stream?._id || response.data.streamId);
-        toast.success('🔴 You are now LIVE!');
+        
+        // Save Mux details if available
+        if (response.data?.mux) {
+          setMuxDetails(response.data.mux);
+          setShowMuxInfo(true);
+          toast.success('🔴 Stream ready! Use OBS with the stream key shown');
+        } else {
+          toast.success('🔴 You are now LIVE!');
+        }
       }
     } catch (error) {
       console.error('Start stream error:', error);
@@ -276,7 +288,14 @@ export default function GoLivePage() {
               setIsLive(true);
               setIsPreview(false);
               setStreamId(retryResponse.data.stream?._id || retryResponse.data.streamId);
-              toast.success('🔴 You are now LIVE!');
+              
+              if (retryResponse.data?.mux) {
+                setMuxDetails(retryResponse.data.mux);
+                setShowMuxInfo(true);
+                toast.success('🔴 Stream ready! Use OBS with the stream key shown');
+              } else {
+                toast.success('🔴 You are now LIVE!');
+              }
               setLoading(false);
               return;
             }
@@ -521,6 +540,88 @@ export default function GoLivePage() {
                       Use these settings in OBS Studio or Streamlabs to stream from your desktop.
                     </p>
                   </div>
+                </div>
+              )}
+              
+              {/* Mux Stream Info - Show when live with Mux */}
+              {isLive && muxDetails && (
+                <div className="mt-4 bg-gradient-to-r from-purple-900 to-pink-900 rounded-xl p-4 border border-purple-500">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-white font-semibold flex items-center gap-2">
+                      <Radio className="w-5 h-5 text-red-400 animate-pulse" />
+                      Stream with OBS/Streamlabs
+                    </h3>
+                    <button
+                      onClick={() => setShowMuxInfo(!showMuxInfo)}
+                      className="text-white/70 hover:text-white text-sm"
+                    >
+                      {showMuxInfo ? 'Hide' : 'Show'} Details
+                    </button>
+                  </div>
+                  
+                  {showMuxInfo && (
+                    <div className="space-y-4">
+                      <div className="bg-black/30 rounded-lg p-3">
+                        <label className="text-gray-300 text-xs mb-1 block">RTMP Server URL</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={muxDetails.rtmpUrl || 'rtmps://global-live.mux.com:443/app'}
+                            readOnly
+                            className="flex-1 px-3 py-2 bg-gray-800 text-white rounded-lg text-sm font-mono"
+                          />
+                          <button
+                            onClick={() => { 
+                              navigator.clipboard.writeText(muxDetails.rtmpUrl || 'rtmps://global-live.mux.com:443/app'); 
+                              toast.success('Server URL copied!'); 
+                            }}
+                            className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-black/30 rounded-lg p-3">
+                        <label className="text-gray-300 text-xs mb-1 block">Stream Key (keep secret!)</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="password"
+                            value={muxDetails.streamKey || ''}
+                            readOnly
+                            className="flex-1 px-3 py-2 bg-gray-800 text-white rounded-lg text-sm font-mono"
+                          />
+                          <button
+                            onClick={() => { 
+                              navigator.clipboard.writeText(muxDetails.streamKey); 
+                              toast.success('Stream key copied!'); 
+                            }}
+                            className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-yellow-900/30 border border-yellow-700/50 rounded-lg p-3">
+                        <p className="text-yellow-300 text-sm">
+                          📺 <strong>To stream:</strong> Open OBS → Settings → Stream → Service: Custom → Paste URL and Key → Start Streaming
+                        </p>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-xs text-gray-400">
+                        <span>Playback ID: {muxDetails.playbackId}</span>
+                        <a 
+                          href={`/live/${streamId}`}
+                          target="_blank"
+                          className="text-purple-400 hover:text-purple-300 flex items-center gap-1"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          View Stream
+                        </a>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
