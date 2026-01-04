@@ -4,7 +4,7 @@
 // Features: VLOG, TV, PIN POST, Ads, Groups, Websites
 // ============================================
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -157,13 +157,15 @@ function PostComposer({ user, onOpenAI }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 p-4">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0">
-          {user?.profilePicture ? (
-            <img src={user.profilePicture} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-white">{user?.name?.[0] || 'U'}</span>
-          )}
-        </div>
+        <Link href={user?.username ? `/profile/${user.username}` : '/profile'}>
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-purple-300 transition">
+            {user?.profilePicture ? (
+              <img src={user.profilePicture} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-white">{user?.name?.[0] || 'U'}</span>
+            )}
+          </div>
+        </Link>
         <button 
           onClick={() => router.push('/studio')}
           className="flex-1 bg-gray-100 hover:bg-gray-200 rounded-full px-4 py-2.5 text-left text-gray-600 transition-colors"
@@ -178,7 +180,7 @@ function PostComposer({ user, onOpenAI }) {
       {/* Action Buttons */}
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
         <button 
-          onClick={() => router.push('/live/start')}
+          onClick={() => router.push('/live/go-live')}
           className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded-lg text-gray-700 text-sm font-medium"
         >
           <Radio className="w-5 h-5 text-red-500" />
@@ -219,32 +221,44 @@ function VlogSection({ user }) {
     try {
       const response = await api.get('/api/vlogs/feed');
       if (response.data?.success) {
-        setStories(response.data.stories || []);
+        const fetchedStories = response.data.stories || [];
+        // Always ensure we have at least 6 frames for good UX
+        if (fetchedStories.length < 6) {
+          const placeholders = [
+            { user: { _id: 'p1', name: 'Add Story' }, vlogs: [], hasUnviewed: false, gradient: 'from-gray-300 to-gray-400', isPlaceholder: true },
+            { user: { _id: 'p2', name: 'Add Story' }, vlogs: [], hasUnviewed: false, gradient: 'from-gray-300 to-gray-400', isPlaceholder: true },
+            { user: { _id: 'p3', name: 'Add Story' }, vlogs: [], hasUnviewed: false, gradient: 'from-gray-300 to-gray-400', isPlaceholder: true },
+          ];
+          setStories([...fetchedStories, ...placeholders.slice(0, Math.max(0, 4 - fetchedStories.length))]);
+        } else {
+          setStories(fetchedStories);
+        }
       }
     } catch (error) {
-      // Fallback placeholder data
+      // Fallback placeholder data - show empty frames
       setStories([
         { user: { _id: '1', name: 'Deborah T' }, vlogs: [], hasUnviewed: true, gradient: 'from-blue-400 to-cyan-500' },
         { user: { _id: '2', name: 'Sonia M' }, vlogs: [], hasUnviewed: false, gradient: 'from-green-400 to-teal-500' },
         { user: { _id: '3', name: 'Prince D' }, vlogs: [], hasUnviewed: true, gradient: 'from-orange-400 to-red-500' },
         { user: { _id: '4', name: 'Jane D' }, vlogs: [], hasUnviewed: false, gradient: 'from-purple-400 to-indigo-500' },
+        { user: { _id: '5', name: 'Add Story' }, vlogs: [], hasUnviewed: false, gradient: 'from-gray-300 to-gray-400', isPlaceholder: true },
       ]);
     }
     setLoading(false);
   };
 
-  const colors = ['from-pink-400 to-purple-500', 'from-blue-400 to-cyan-500', 'from-green-400 to-teal-500', 'from-orange-400 to-red-500', 'from-purple-400 to-indigo-500'];
+  const colors = ['from-pink-400 to-purple-500', 'from-blue-400 to-cyan-500', 'from-green-400 to-teal-500', 'from-orange-400 to-red-500', 'from-purple-400 to-indigo-500', 'from-yellow-400 to-orange-500'];
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-semibold text-gray-900">Vlogs</h3>
-        <Link href="/vlogs">
+        <Link href="/tv">
           <span className="text-purple-600 text-sm font-medium cursor-pointer hover:underline">See all</span>
         </Link>
       </div>
       
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {/* Create Vlog Card */}
         <div 
           onClick={() => router.push('/vlog/create')}
@@ -273,8 +287,16 @@ function VlogSection({ user }) {
         {stories.map((story, idx) => (
           <div 
             key={story.user?._id || idx} 
-            onClick={() => story.vlogs?.[0]?._id ? router.push(`/vlog/${story.vlogs[0]._id}`) : toast.info('No vlog yet')}
-            className="flex-shrink-0 w-28 h-44 rounded-xl overflow-hidden relative cursor-pointer group shadow-sm"
+            onClick={() => {
+              if (story.isPlaceholder) {
+                router.push('/vlog/create');
+              } else if (story.vlogs?.[0]?._id) {
+                router.push(`/vlog/${story.vlogs[0]._id}`);
+              } else {
+                toast.info('No vlog available');
+              }
+            }}
+            className={`flex-shrink-0 w-28 h-44 rounded-xl overflow-hidden relative cursor-pointer group shadow-sm ${story.isPlaceholder ? 'opacity-60' : ''}`}
           >
             <div className="w-full h-full relative">
               <div className={`absolute inset-0 bg-gradient-to-br ${story.gradient || colors[(idx + 1) % colors.length]}`} />
@@ -291,7 +313,7 @@ function VlogSection({ user }) {
                       <img src={story.user.profilePicture || story.user.avatar} alt="" className="w-full h-full rounded-full object-cover" />
                     ) : (
                       <div className={`w-full h-full rounded-full bg-gradient-to-br ${colors[(idx + 2) % colors.length]} flex items-center justify-center text-white text-xs font-bold`}>
-                        {story.user?.name?.[0] || 'U'}
+                        {story.isPlaceholder ? '+' : (story.user?.name?.[0] || 'U')}
                       </div>
                     )}
                   </div>
@@ -299,11 +321,13 @@ function VlogSection({ user }) {
               </div>
               
               {/* Play Icon */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="w-10 h-10 bg-white/30 backdrop-blur rounded-full flex items-center justify-center">
-                  <Play className="w-5 h-5 text-white fill-white" />
+              {!story.isPlaceholder && (
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="w-10 h-10 bg-white/30 backdrop-blur rounded-full flex items-center justify-center">
+                    <Play className="w-5 h-5 text-white fill-white" />
+                  </div>
                 </div>
-              </div>
+              )}
               
               {/* Name */}
               <div className="absolute bottom-2 left-2 right-2">
@@ -1458,7 +1482,6 @@ export default function Feed() {
         <div className="max-w-screen-sm mx-auto px-4 py-4 pb-20 md:pb-4">
           <PostComposer user={user} onOpenAI={() => setShowAIModal(true)} />
           <VlogSection user={user} />
-          <SuggestedFollows currentUserId={user?._id || user?.id} />
 
           {loading ? (
             <div className="flex justify-center py-12">
@@ -1475,20 +1498,23 @@ export default function Feed() {
               </button>
             </div>
           ) : (
-            feedWithAds.map((item, idx) => 
-              item.isAd ? (
-                <AdCard key={`ad-${item.position}`} position={item.position} />
-              ) : (
-                <FeedCard 
-                  key={item._id || idx} 
-                  item={item} 
-                  currentUserId={user?._id || user?.id} 
-                  isAdmin={isAdmin}
-                  onRefresh={fetchFeed}
-                  isPinnedPost={item.isPinnedPost}
-                />
-              )
-            )
+            feedWithAds.map((item, idx) => (
+              <React.Fragment key={item._id || `item-${idx}`}>
+                {item.isAd ? (
+                  <AdCard key={`ad-${item.position}`} position={item.position} />
+                ) : (
+                  <FeedCard 
+                    item={item} 
+                    currentUserId={user?._id || user?.id} 
+                    isAdmin={isAdmin}
+                    onRefresh={fetchFeed}
+                    isPinnedPost={item.isPinnedPost}
+                  />
+                )}
+                {/* Show Suggested Follows after 3rd post */}
+                {idx === 2 && <SuggestedFollows currentUserId={user?._id || user?.id} />}
+              </React.Fragment>
+            ))
           )}
         </div>
 
