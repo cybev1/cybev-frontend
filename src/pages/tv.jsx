@@ -104,8 +104,8 @@ export default function TVPage() {
     } catch (error) {
       console.log('Using demo vlogs');
       setVlogs([
-        { _id: 'v1', title: 'My First Vlog', creator: { name: 'Creator 1' }, views: 1200, duration: 125 },
-        { _id: 'v2', title: 'Tech Tips', creator: { name: 'Creator 2' }, views: 890, duration: 180 },
+        { _id: 'v1', caption: 'My First Vlog', user: { name: 'Creator 1' }, viewsCount: 1200, duration: 125 },
+        { _id: 'v2', caption: 'Tech Tips', user: { name: 'Creator 2' }, viewsCount: 890, duration: 180 },
       ]);
     }
   };
@@ -131,14 +131,17 @@ export default function TVPage() {
   };
 
   const formatDuration = (seconds) => {
+    if (!seconds || typeof seconds !== 'number') return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const formatViewers = (num) => {
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-    return num.toString();
+    // Handle if num is an array (views array)
+    const count = Array.isArray(num) ? num.length : (typeof num === 'number' ? num : 0);
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+    return count.toString();
   };
 
   const formatStreamTime = (date) => {
@@ -312,12 +315,16 @@ export default function TVPage() {
                           )}
                         </div>
                         <div className="p-3">
-                          <h3 className="font-semibold text-gray-900 line-clamp-2">{vlog.title || 'Untitled'}</h3>
-                          <p className="text-gray-500 text-sm mt-1">{vlog.creator?.name || 'Unknown'}</p>
+                          <h3 className="font-semibold text-gray-900 line-clamp-2">
+                            {typeof vlog.caption === 'string' ? vlog.caption : (vlog.title || 'Untitled')}
+                          </h3>
+                          <p className="text-gray-500 text-sm mt-1">
+                            {vlog.user?.name || vlog.user?.username || vlog.creator?.name || 'Unknown'}
+                          </p>
                           <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
                             <span className="flex items-center gap-1">
                               <Eye className="w-3 h-3" />
-                              {formatViewers(vlog.views || 0)}
+                              {formatViewers(vlog.viewsCount || vlog.views?.length || 0)}
                             </span>
                           </div>
                         </div>
