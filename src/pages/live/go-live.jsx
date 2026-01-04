@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/live/go-live.jsx
 // Facebook Live-Style Streaming - Camera + OBS Support
-// Pre-generates stream key for OBS preview before going live
+// With Thumbnail Upload & Auto Feed Post
 // ============================================
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -14,7 +14,8 @@ import {
   MessageCircle, Share2, X, Loader2, Copy, ExternalLink, Camera,
   Monitor, Smartphone, RefreshCw, ChevronDown, Eye, Clock, Heart,
   Zap, Globe, Lock, CheckCircle, AlertCircle, Wifi, WifiOff,
-  RotateCcw, SwitchCamera, Sparkles, Play, Key, Server, EyeOff
+  RotateCcw, SwitchCamera, Sparkles, Play, Key, Server, EyeOff,
+  Image, Upload, Trash2
 } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'react-toastify';
@@ -44,6 +45,7 @@ export default function GoLivePage() {
   const previewVideoRef = useRef(null);
   const mediaStreamRef = useRef(null);
   const hlsRef = useRef(null);
+  const thumbnailInputRef = useRef(null);
   
   // User state
   const [user, setUser] = useState(null);
@@ -73,6 +75,11 @@ export default function GoLivePage() {
   const [description, setDescription] = useState('');
   const [privacy, setPrivacy] = useState('public');
   const [showPrivacyDropdown, setShowPrivacyDropdown] = useState(false);
+  
+  // Thumbnail state
+  const [thumbnail, setThumbnail] = useState(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState(null);
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
   
   // OBS/Software streaming state
   const [streamCredentials, setStreamCredentials] = useState(null);
@@ -104,7 +111,6 @@ export default function GoLivePage() {
     if (userData) {
       setUser(JSON.parse(userData));
       checkExistingStream();
-      // Check for persistent stream key
       loadPersistentCredentials();
     } else {
       router.push('/auth/login');
@@ -216,6 +222,73 @@ export default function GoLivePage() {
     }
   };
 
+  // ==========================================
+  // THUMBNAIL HANDLING
+  // ==========================================
+  
+  const handleThumbnailSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB');
+      return;
+    }
+    
+    setThumbnail(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setThumbnailPreview(e.target.result);
+    };
+    reader.readAsDataURL(file);
+    
+    toast.success('Thumbnail selected!');
+  };
+
+  const uploadThumbnail = async () => {
+    if (!thumbnail) return null;
+    
+    setUploadingThumbnail(true);
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      const formData = new FormData();
+      formData.append('file', thumbnail);
+      formData.append('type', 'stream-thumbnail');
+      
+      const response = await api.post('/api/upload', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      return response.data?.url || response.data?.fileUrl || null;
+    } catch (error) {
+      console.error('Thumbnail upload failed:', error);
+      toast.error('Failed to upload thumbnail');
+      return null;
+    } finally {
+      setUploadingThumbnail(false);
+    }
+  };
+
+  const removeThumbnail = () => {
+    setThumbnail(null);
+    setThumbnailPreview(null);
+    if (thumbnailInputRef.current) {
+      thumbnailInputRef.current.value = '';
+    }
+  };
+
   // Generate stream credentials for OBS
   const generateStreamCredentials = async (type = KEY_TYPES.ONE_TIME) => {
     setGeneratingCredentials(true);
@@ -266,7 +339,6 @@ export default function GoLivePage() {
         if (!obsConnected) {
           setObsConnected(true);
           toast.success('🎬 OBS connected! Preview is now available.');
-          // Initialize HLS preview
           initPreviewPlayer();
         }
       } else {
@@ -285,7 +357,6 @@ export default function GoLivePage() {
     
     const hlsUrl = `https://stream.mux.com/${streamCredentials.playbackId}.m3u8`;
     
-    // Wait for HLS.js to load
     const initHls = () => {
       if (typeof window === 'undefined' || !window.Hls) {
         setTimeout(initHls, 500);
@@ -293,7 +364,6 @@ export default function GoLivePage() {
       }
       
       const Hls = window.Hls;
-      
       destroyHls();
       
       if (Hls.isSupported()) {
@@ -449,20 +519,20 @@ export default function GoLivePage() {
     } catch {}
   };
 
-  // Go Live - Make stream public
+  // ==========================================
+  // GO LIVE - With thumbnail & auto feed post
+  // ==========================================
   const goLive = async () => {
     if (!title.trim()) {
       toast.error('Please enter a title for your stream');
       return;
     }
 
-    // For camera mode, need camera access
     if (streamMode === STREAM_MODES.CAMERA && !mediaStreamRef.current) {
       toast.error('Camera not available. Please allow camera access or use OBS.');
       return;
     }
 
-    // For software mode, need OBS connected
     if (streamMode === STREAM_MODES.SOFTWARE && !obsConnected) {
       toast.error('Please connect your streaming software first');
       return;
@@ -472,12 +542,21 @@ export default function GoLivePage() {
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
       
+      // Upload thumbnail if selected
+      let thumbnailUrl = null;
+      if (thumbnail) {
+        toast.info('Uploading thumbnail...');
+        thumbnailUrl = await uploadThumbnail();
+      }
+      
       if (streamMode === STREAM_MODES.SOFTWARE && streamId) {
-        // Activate existing stream
+        // Activate existing stream (OBS mode)
         const response = await api.post(`/api/live/${streamId}/activate`, {
           title,
           description,
-          privacy
+          privacy,
+          thumbnail: thumbnailUrl,
+          postToFeed: true // Always post to feed
         }, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -486,7 +565,7 @@ export default function GoLivePage() {
           setIsLive(true);
           setIsPreview(false);
           setStreamDuration(0);
-          toast.success('🔴 You are now LIVE!');
+          toast.success('🔴 You are now LIVE! Posted to feed.');
         }
       } else {
         // Start new stream (camera mode)
@@ -495,7 +574,9 @@ export default function GoLivePage() {
           description,
           streamType: 'camera',
           privacy,
-          lowLatency: true
+          lowLatency: true,
+          thumbnail: thumbnailUrl,
+          postToFeed: true
         }, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -511,7 +592,7 @@ export default function GoLivePage() {
             setMuxDetails(response.data.mux);
           }
           
-          toast.success('🔴 You are now LIVE!');
+          toast.success('🔴 You are now LIVE! Posted to feed.');
         }
       }
     } catch (error) {
@@ -625,7 +706,6 @@ export default function GoLivePage() {
 
   const selectedPrivacy = PRIVACY_OPTIONS.find(p => p.value === privacy);
   
-  // Can go live?
   const canGoLive = title.trim() && (
     (streamMode === STREAM_MODES.CAMERA && mediaStreamRef.current) ||
     (streamMode === STREAM_MODES.SOFTWARE && obsConnected)
@@ -637,7 +717,6 @@ export default function GoLivePage() {
         <title>{isLive ? '🔴 LIVE' : 'Go Live'} | CYBEV</title>
       </Head>
       
-      {/* HLS.js for preview */}
       <Script 
         src="https://cdn.jsdelivr.net/npm/hls.js@latest" 
         strategy="beforeInteractive"
@@ -663,7 +742,6 @@ export default function GoLivePage() {
               </div>
             </div>
             
-            {/* Live Stats */}
             {isLive && (
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 text-white">
@@ -681,7 +759,6 @@ export default function GoLivePage() {
               </div>
             )}
             
-            {/* Action Buttons */}
             <div className="flex items-center gap-2">
               {isLive ? (
                 <button
@@ -707,7 +784,7 @@ export default function GoLivePage() {
         </header>
 
         <main className="max-w-6xl mx-auto px-4 py-6">
-          {/* Mode Selector - Only show before going live */}
+          {/* Mode Selector */}
           {!isLive && (
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-3">
@@ -715,7 +792,6 @@ export default function GoLivePage() {
                 <h2 className="text-white font-semibold">Choose how to stream</h2>
               </div>
               <div className="grid grid-cols-2 gap-4 max-w-2xl">
-                {/* Camera Mode */}
                 <button
                   onClick={() => { setStreamMode(STREAM_MODES.CAMERA); resetStreamCredentials(); }}
                   className={`p-4 rounded-xl border-2 transition-all ${
@@ -725,9 +801,7 @@ export default function GoLivePage() {
                   }`}
                 >
                   <div className="flex items-center gap-3 mb-2">
-                    <div className={`p-2 rounded-lg ${
-                      streamMode === STREAM_MODES.CAMERA ? 'bg-purple-500' : 'bg-gray-700'
-                    }`}>
+                    <div className={`p-2 rounded-lg ${streamMode === STREAM_MODES.CAMERA ? 'bg-purple-500' : 'bg-gray-700'}`}>
                       <Camera className="w-6 h-6 text-white" />
                     </div>
                     <div className="text-left">
@@ -743,7 +817,6 @@ export default function GoLivePage() {
                   )}
                 </button>
 
-                {/* Software Mode */}
                 <button
                   onClick={() => { setStreamMode(STREAM_MODES.SOFTWARE); stopCamera(); }}
                   className={`p-4 rounded-xl border-2 transition-all ${
@@ -753,9 +826,7 @@ export default function GoLivePage() {
                   }`}
                 >
                   <div className="flex items-center gap-3 mb-2">
-                    <div className={`p-2 rounded-lg ${
-                      streamMode === STREAM_MODES.SOFTWARE ? 'bg-purple-500' : 'bg-gray-700'
-                    }`}>
+                    <div className={`p-2 rounded-lg ${streamMode === STREAM_MODES.SOFTWARE ? 'bg-purple-500' : 'bg-gray-700'}`}>
                       <Monitor className="w-6 h-6 text-white" />
                     </div>
                     <div className="text-left">
@@ -779,7 +850,6 @@ export default function GoLivePage() {
             <div className="lg:col-span-2 space-y-4">
               {/* Video Preview */}
               <div className="relative bg-black rounded-xl overflow-hidden aspect-video">
-                {/* Live Badge */}
                 {isLive && (
                   <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
                     <div className="px-3 py-1 bg-red-600 text-white text-sm font-bold rounded-lg flex items-center gap-2">
@@ -793,7 +863,6 @@ export default function GoLivePage() {
                   </div>
                 )}
 
-                {/* Preview/Status Badge */}
                 {!isLive && (
                   <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
                     <span className="px-3 py-1 bg-gray-800/80 backdrop-blur text-white text-sm rounded-lg">
@@ -808,7 +877,7 @@ export default function GoLivePage() {
                   </div>
                 )}
 
-                {/* Camera Mode Video */}
+                {/* Camera Mode */}
                 {streamMode === STREAM_MODES.CAMERA && (
                   <>
                     <video
@@ -826,17 +895,11 @@ export default function GoLivePage() {
                           <p className="text-white font-semibold mb-2">Camera Unavailable</p>
                           <p className="text-gray-400 text-sm mb-4">{cameraError}</p>
                           <div className="flex gap-2 justify-center">
-                            <button
-                              onClick={startCamera}
-                              className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm flex items-center gap-2"
-                            >
+                            <button onClick={startCamera} className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm flex items-center gap-2">
                               <RefreshCw className="w-4 h-4" />
                               Try Again
                             </button>
-                            <button
-                              onClick={() => setStreamMode(STREAM_MODES.SOFTWARE)}
-                              className="px-4 py-2 bg-gray-700 text-white rounded-lg text-sm flex items-center gap-2"
-                            >
+                            <button onClick={() => setStreamMode(STREAM_MODES.SOFTWARE)} className="px-4 py-2 bg-gray-700 text-white rounded-lg text-sm flex items-center gap-2">
                               <Monitor className="w-4 h-4" />
                               Use OBS
                             </button>
@@ -854,64 +917,36 @@ export default function GoLivePage() {
                       </div>
                     )}
 
-                    {/* Camera Controls */}
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 z-10">
-                      <button
-                        onClick={toggleVideo}
-                        className={`p-3 rounded-full transition ${videoEnabled ? 'bg-gray-700/80 text-white' : 'bg-red-600 text-white'}`}
-                      >
+                      <button onClick={toggleVideo} className={`p-3 rounded-full transition ${videoEnabled ? 'bg-gray-700/80 text-white' : 'bg-red-600 text-white'}`}>
                         {videoEnabled ? <Video className="w-6 h-6" /> : <VideoOff className="w-6 h-6" />}
                       </button>
-                      <button
-                        onClick={toggleAudio}
-                        className={`p-3 rounded-full transition ${audioEnabled ? 'bg-gray-700/80 text-white' : 'bg-red-600 text-white'}`}
-                      >
+                      <button onClick={toggleAudio} className={`p-3 rounded-full transition ${audioEnabled ? 'bg-gray-700/80 text-white' : 'bg-red-600 text-white'}`}>
                         {audioEnabled ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
                       </button>
                       {devices.video.length > 1 && (
-                        <button
-                          onClick={switchCamera}
-                          className="p-3 bg-gray-700/80 text-white rounded-full"
-                        >
+                        <button onClick={switchCamera} className="p-3 bg-gray-700/80 text-white rounded-full">
                           <SwitchCamera className="w-6 h-6" />
                         </button>
                       )}
-                      <button
-                        onClick={() => setShowDeviceSettings(!showDeviceSettings)}
-                        className={`p-3 rounded-full transition ${showDeviceSettings ? 'bg-purple-600' : 'bg-gray-700/80'} text-white`}
-                      >
+                      <button onClick={() => setShowDeviceSettings(!showDeviceSettings)} className={`p-3 rounded-full transition ${showDeviceSettings ? 'bg-purple-600' : 'bg-gray-700/80'} text-white`}>
                         <Settings className="w-6 h-6" />
                       </button>
                     </div>
                   </>
                 )}
 
-                {/* Software Mode - Preview or Setup */}
+                {/* Software Mode */}
                 {streamMode === STREAM_MODES.SOFTWARE && (
                   <>
-                    {/* OBS Preview Video */}
                     {obsConnected && obsPreviewReady && (
-                      <video
-                        ref={previewVideoRef}
-                        autoPlay
-                        muted
-                        playsInline
-                        className="w-full h-full object-contain bg-black"
-                      />
+                      <video ref={previewVideoRef} autoPlay muted playsInline className="w-full h-full object-contain bg-black" />
                     )}
                     
-                    {/* Hidden video element for HLS */}
                     {obsConnected && !obsPreviewReady && (
-                      <video
-                        ref={previewVideoRef}
-                        autoPlay
-                        muted
-                        playsInline
-                        className="hidden"
-                      />
+                      <video ref={previewVideoRef} autoPlay muted playsInline className="hidden" />
                     )}
 
-                    {/* Waiting for OBS / Setup State */}
                     {(!streamCredentials || !obsConnected) && (
                       <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
                         {!streamCredentials ? (
@@ -928,11 +963,7 @@ export default function GoLivePage() {
                               disabled={generatingCredentials}
                               className="px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 flex items-center gap-2 mx-auto"
                             >
-                              {generatingCredentials ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                              ) : (
-                                <Zap className="w-5 h-5" />
-                              )}
+                              {generatingCredentials ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
                               Generate Credentials
                             </button>
                           </div>
@@ -940,18 +971,13 @@ export default function GoLivePage() {
                           <div className="text-center p-6">
                             <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
                             <h3 className="text-white font-semibold text-lg mb-2">Waiting for OBS...</h3>
-                            <p className="text-gray-400 text-sm">
-                              Start streaming in your software to see preview
-                            </p>
-                            {checkingConnection && (
-                              <p className="text-purple-400 text-xs mt-2">Checking connection...</p>
-                            )}
+                            <p className="text-gray-400 text-sm">Start streaming in your software to see preview</p>
+                            {checkingConnection && <p className="text-purple-400 text-xs mt-2">Checking connection...</p>}
                           </div>
                         )}
                       </div>
                     )}
 
-                    {/* Loading preview */}
                     {obsConnected && !obsPreviewReady && (
                       <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
                         <div className="text-center">
@@ -964,22 +990,17 @@ export default function GoLivePage() {
                 )}
               </div>
 
-              {/* Device Settings Panel - Camera Mode */}
+              {/* Device Settings Panel */}
               {showDeviceSettings && streamMode === STREAM_MODES.CAMERA && (
                 <div className="bg-gray-800 rounded-xl p-4 space-y-4">
                   <h3 className="text-white font-semibold flex items-center gap-2">
                     <Settings className="w-5 h-5" />
                     Device Settings
                   </h3>
-                  
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-gray-400 text-sm mb-2 block">Camera</label>
-                      <select
-                        value={selectedCamera}
-                        onChange={(e) => setSelectedCamera(e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      >
+                      <select value={selectedCamera} onChange={(e) => setSelectedCamera(e.target.value)} className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg">
                         {devices.video.map(device => (
                           <option key={device.deviceId} value={device.deviceId}>
                             {device.label || `Camera ${devices.video.indexOf(device) + 1}`}
@@ -987,14 +1008,9 @@ export default function GoLivePage() {
                         ))}
                       </select>
                     </div>
-                    
                     <div>
                       <label className="text-gray-400 text-sm mb-2 block">Microphone</label>
-                      <select
-                        value={selectedMic}
-                        onChange={(e) => setSelectedMic(e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      >
+                      <select value={selectedMic} onChange={(e) => setSelectedMic(e.target.value)} className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg">
                         {devices.audio.map(device => (
                           <option key={device.deviceId} value={device.deviceId}>
                             {device.label || `Microphone ${devices.audio.indexOf(device) + 1}`}
@@ -1006,7 +1022,7 @@ export default function GoLivePage() {
                 </div>
               )}
 
-              {/* Stream Credentials Panel - Software Mode */}
+              {/* Stream Credentials Panel */}
               {streamMode === STREAM_MODES.SOFTWARE && streamCredentials && (
                 <div className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 rounded-xl p-5 border border-purple-500/30">
                   <div className="flex items-center justify-between mb-4">
@@ -1026,68 +1042,42 @@ export default function GoLivePage() {
                           Waiting...
                         </span>
                       )}
-                      <button
-                        onClick={resetStreamCredentials}
-                        className="p-1 text-gray-400 hover:text-white"
-                        title="Reset credentials"
-                      >
+                      <button onClick={resetStreamCredentials} className="p-1 text-gray-400 hover:text-white" title="Reset credentials">
                         <RotateCcw className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
                   
                   <div className="space-y-4">
-                    {/* RTMP URL */}
                     <div className="bg-black/30 rounded-lg p-3">
                       <label className="text-gray-300 text-xs mb-1 block flex items-center gap-1">
                         <Server className="w-3 h-3" />
                         Server / RTMP URL
                       </label>
                       <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={streamCredentials.rtmpUrl}
-                          readOnly
-                          className="flex-1 px-3 py-2 bg-gray-800 text-white rounded-lg text-sm font-mono"
-                        />
-                        <button
-                          onClick={() => copyToClipboard(streamCredentials.rtmpUrl, 'Server URL')}
-                          className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                        >
+                        <input type="text" value={streamCredentials.rtmpUrl} readOnly className="flex-1 px-3 py-2 bg-gray-800 text-white rounded-lg text-sm font-mono" />
+                        <button onClick={() => copyToClipboard(streamCredentials.rtmpUrl, 'Server URL')} className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
                           <Copy className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
                     
-                    {/* Stream Key */}
                     <div className="bg-black/30 rounded-lg p-3">
                       <label className="text-gray-300 text-xs mb-1 block flex items-center gap-1">
                         <Key className="w-3 h-3" />
                         Stream Key (keep secret!)
                       </label>
                       <div className="flex gap-2">
-                        <input
-                          type={showStreamKey ? 'text' : 'password'}
-                          value={streamCredentials.streamKey}
-                          readOnly
-                          className="flex-1 px-3 py-2 bg-gray-800 text-white rounded-lg text-sm font-mono"
-                        />
-                        <button
-                          onClick={() => setShowStreamKey(!showStreamKey)}
-                          className="px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
-                        >
+                        <input type={showStreamKey ? 'text' : 'password'} value={streamCredentials.streamKey} readOnly className="flex-1 px-3 py-2 bg-gray-800 text-white rounded-lg text-sm font-mono" />
+                        <button onClick={() => setShowStreamKey(!showStreamKey)} className="px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600">
                           {showStreamKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
-                        <button
-                          onClick={() => copyToClipboard(streamCredentials.streamKey, 'Stream Key')}
-                          className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                        >
+                        <button onClick={() => copyToClipboard(streamCredentials.streamKey, 'Stream Key')} className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
                           <Copy className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
                     
-                    {/* Instructions */}
                     <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-3">
                       <p className="text-blue-300 text-sm">
                         <strong>📺 How to connect:</strong><br />
@@ -1102,7 +1092,7 @@ export default function GoLivePage() {
               )}
             </div>
 
-            {/* Sidebar - Settings & Stats */}
+            {/* Sidebar */}
             <div className="space-y-4">
               {/* Stream Info */}
               <div className="bg-gray-800 rounded-xl p-4">
@@ -1135,6 +1125,60 @@ export default function GoLivePage() {
                     />
                   </div>
 
+                  {/* ==========================================
+                      THUMBNAIL UPLOAD SECTION
+                      ========================================== */}
+                  {!isLive && (
+                    <div>
+                      <label className="text-gray-400 text-sm mb-2 block flex items-center gap-2">
+                        <Image className="w-4 h-4" />
+                        Thumbnail (optional)
+                      </label>
+                      
+                      {thumbnailPreview ? (
+                        <div className="relative">
+                          <img 
+                            src={thumbnailPreview} 
+                            alt="Thumbnail preview" 
+                            className="w-full h-32 object-cover rounded-lg"
+                          />
+                          <button
+                            onClick={removeThumbnail}
+                            className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/60 backdrop-blur rounded text-white text-xs">
+                            Custom thumbnail
+                          </div>
+                        </div>
+                      ) : (
+                        <div 
+                          onClick={() => thumbnailInputRef.current?.click()}
+                          className="w-full h-32 border-2 border-dashed border-gray-600 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-purple-500 hover:bg-purple-500/5 transition"
+                        >
+                          <Upload className="w-8 h-8 text-gray-500 mb-2" />
+                          <p className="text-gray-400 text-sm">Click to upload</p>
+                          <p className="text-gray-500 text-xs">or auto-generate from stream</p>
+                        </div>
+                      )}
+                      
+                      <input
+                        ref={thumbnailInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleThumbnailSelect}
+                        className="hidden"
+                      />
+                      
+                      {!thumbnailPreview && (
+                        <p className="text-gray-500 text-xs mt-2">
+                          💡 If no thumbnail is uploaded, one will be auto-generated from your stream
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   {/* Privacy */}
                   <div>
                     <label className="text-gray-400 text-sm mb-1 block">Privacy</label>
@@ -1157,9 +1201,7 @@ export default function GoLivePage() {
                             <button
                               key={option.value}
                               onClick={() => { setPrivacy(option.value); setShowPrivacyDropdown(false); }}
-                              className={`w-full px-3 py-2 flex items-center gap-3 hover:bg-gray-600 ${
-                                privacy === option.value ? 'bg-purple-600/30' : ''
-                              }`}
+                              className={`w-full px-3 py-2 flex items-center gap-3 hover:bg-gray-600 ${privacy === option.value ? 'bg-purple-600/30' : ''}`}
                             >
                               <option.icon className="w-4 h-4 text-gray-400" />
                               <div className="text-left">
@@ -1175,7 +1217,7 @@ export default function GoLivePage() {
                 </div>
               </div>
 
-              {/* Go Live Status */}
+              {/* Go Live Status - Software Mode */}
               {!isLive && streamMode === STREAM_MODES.SOFTWARE && (
                 <div className="bg-gray-800 rounded-xl p-4">
                   <h3 className="text-white font-semibold mb-3">Ready to Go Live?</h3>
@@ -1193,10 +1235,43 @@ export default function GoLivePage() {
                       OBS connected
                     </div>
                   </div>
+                  
+                  {/* Feed Post Notice */}
+                  <div className="mt-4 pt-3 border-t border-gray-700">
+                    <p className="text-gray-400 text-xs flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-400" />
+                      Stream will be posted to your feed automatically
+                    </p>
+                  </div>
                 </div>
               )}
 
-              {/* Live Chat Preview (when live) */}
+              {/* Go Live Status - Camera Mode */}
+              {!isLive && streamMode === STREAM_MODES.CAMERA && (
+                <div className="bg-gray-800 rounded-xl p-4">
+                  <h3 className="text-white font-semibold mb-3">Ready to Go Live?</h3>
+                  <div className="space-y-2">
+                    <div className={`flex items-center gap-2 text-sm ${title.trim() ? 'text-green-400' : 'text-gray-400'}`}>
+                      {title.trim() ? <CheckCircle className="w-4 h-4" /> : <div className="w-4 h-4 border border-gray-500 rounded-full" />}
+                      Title entered
+                    </div>
+                    <div className={`flex items-center gap-2 text-sm ${!cameraError && mediaStreamRef.current ? 'text-green-400' : 'text-gray-400'}`}>
+                      {!cameraError && mediaStreamRef.current ? <CheckCircle className="w-4 h-4" /> : <div className="w-4 h-4 border border-gray-500 rounded-full" />}
+                      Camera ready
+                    </div>
+                  </div>
+                  
+                  {/* Feed Post Notice */}
+                  <div className="mt-4 pt-3 border-t border-gray-700">
+                    <p className="text-gray-400 text-xs flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-400" />
+                      Stream will be posted to your feed automatically
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Live Chat Preview */}
               {isLive && (
                 <div className="bg-gray-800 rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -1230,6 +1305,10 @@ export default function GoLivePage() {
                 <ul className="text-gray-400 text-sm space-y-2">
                   <li className="flex items-start gap-2">
                     <span className="text-purple-400">•</span>
+                    Add a thumbnail to attract more viewers
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-400">•</span>
                     Good lighting improves video quality
                   </li>
                   <li className="flex items-start gap-2">
@@ -1239,10 +1318,6 @@ export default function GoLivePage() {
                   <li className="flex items-start gap-2">
                     <span className="text-purple-400">•</span>
                     Engage with viewers in chat
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-purple-400">•</span>
-                    Use OBS for professional quality
                   </li>
                 </ul>
               </div>
@@ -1284,27 +1359,15 @@ export default function GoLivePage() {
               </div>
               
               <div className="space-y-3">
-                <button
-                  onClick={resumeExistingStream}
-                  className="w-full py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 flex items-center justify-center gap-2"
-                >
+                <button onClick={resumeExistingStream} className="w-full py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 flex items-center justify-center gap-2">
                   <Play className="w-5 h-5" />
                   Resume Stream
                 </button>
-                
-                <button
-                  onClick={endExistingAndStartNew}
-                  disabled={loading}
-                  className="w-full py-3 bg-gray-700 text-white font-semibold rounded-xl hover:bg-gray-600 flex items-center justify-center gap-2"
-                >
+                <button onClick={endExistingAndStartNew} disabled={loading} className="w-full py-3 bg-gray-700 text-white font-semibold rounded-xl hover:bg-gray-600 flex items-center justify-center gap-2">
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <RotateCcw className="w-5 h-5" />}
                   End & Start New
                 </button>
-                
-                <button
-                  onClick={() => setShowExistingStreamModal(false)}
-                  className="w-full py-3 text-gray-400 hover:text-white"
-                >
+                <button onClick={() => setShowExistingStreamModal(false)} className="w-full py-3 text-gray-400 hover:text-white">
                   Cancel
                 </button>
               </div>
