@@ -424,7 +424,7 @@ export default function LiveStreamPage() {
                   autoPlay
                   playsInline
                   muted={isMuted}
-                  poster={stream.playbackUrls?.thumbnail}
+                  poster={stream.thumbnail || stream.playbackUrls?.thumbnail || (stream.muxPlaybackId ? `https://image.mux.com/${stream.muxPlaybackId}/thumbnail.jpg` : null)}
                   onClick={() => setIsPlaying(!isPlaying)}
                 />
                 
