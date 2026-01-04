@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/live/[streamId].jsx
 // Live Stream Viewer Page with Mux HLS Support
-// Features: Video player, chat, reactions, viewer count
+// FIXED: HLS connection, Share button, Viewer count, Comments
 // ============================================
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -13,7 +13,7 @@ import {
   ArrowLeft, Heart, MessageCircle, Share2, Users, Eye,
   Send, Gift, Flag, Volume2, VolumeX, Maximize2, Minimize2,
   MoreVertical, UserPlus, Clock, Loader2, Play, Pause,
-  ThumbsUp, Sparkles, X
+  ThumbsUp, Sparkles, X, Copy, Twitter, Facebook, Link as LinkIcon
 } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'react-toastify';
@@ -24,7 +24,7 @@ const QUICK_REACTIONS = ['❤️', '🔥', '👏', '😂', '😮', '🎉', '💯
 export default function LiveStreamPage() {
   const router = useRouter();
   const { streamId } = router.query;
-  const id = streamId; // Alias for compatibility
+  const id = streamId;
   
   const [user, setUser] = useState(null);
   const [stream, setStream] = useState(null);
@@ -32,11 +32,12 @@ export default function LiveStreamPage() {
   const [isFollowing, setIsFollowing] = useState(false);
   
   // Video controls
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true); // Start muted for autoplay
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [hlsReady, setHlsReady] = useState(false);
   const [videoError, setVideoError] = useState(null);
+  const [hlsRetryCount, setHlsRetryCount] = useState(0);
   
   // Chat
   const [messages, setMessages] = useState([]);
@@ -44,9 +45,12 @@ export default function LiveStreamPage() {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [showChat, setShowChat] = useState(true);
   
-  // Viewers
+  // Viewers - FIXED: Now properly a number
   const [viewerCount, setViewerCount] = useState(0);
   const [showViewers, setShowViewers] = useState(false);
+  
+  // Share modal
+  const [showShareModal, setShowShareModal] = useState(false);
   
   // Reactions
   const [floatingReactions, setFloatingReactions] = useState([]);
@@ -56,12 +60,27 @@ export default function LiveStreamPage() {
   const chatContainerRef = useRef(null);
   const containerRef = useRef(null);
 
-  // Compute HLS URL from stream data - memoized for useEffect dependency
+  // Compute HLS URL from stream data
   const hlsUrl = useMemo(() => {
     if (!stream) return null;
     return stream.playbackUrls?.hls || 
       (stream.muxPlaybackId ? `https://stream.mux.com/${stream.muxPlaybackId}.m3u8` : null);
   }, [stream?.playbackUrls?.hls, stream?.muxPlaybackId]);
+
+  // Get thumbnail URL
+  const thumbnailUrl = useMemo(() => {
+    if (!stream) return null;
+    return stream.thumbnail || 
+      stream.playbackUrls?.thumbnail || 
+      (stream.muxPlaybackId ? `https://image.mux.com/${stream.muxPlaybackId}/thumbnail.jpg?time=5` : null);
+  }, [stream]);
+
+  // FIXED: Helper to get viewer count
+  const getViewerCount = (data) => {
+    if (typeof data === 'number') return data;
+    if (Array.isArray(data)) return data.length;
+    return 0;
+  };
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -104,52 +123,32 @@ export default function LiveStreamPage() {
       if (response.data?.success && response.data?.stream) {
         const streamData = response.data.stream;
         setStream(streamData);
-        setViewerCount(streamData.viewers || 0);
+        // FIXED: Properly get viewer count
+        setViewerCount(getViewerCount(streamData.viewers));
         setMessages(streamData.comments || []);
         
-        // Check if following streamer
         if (user && streamData.streamer?._id) {
           checkFollowStatus(streamData.streamer._id);
         }
       } else if (response.data?.stream) {
-        // Handle case where success isn't explicitly returned
         setStream(response.data.stream);
-        setViewerCount(response.data.stream.viewers || 0);
+        setViewerCount(getViewerCount(response.data.stream.viewers));
         setMessages(response.data.stream.comments || []);
       } else {
-        console.log('No stream data, using demo');
-        // Demo stream for testing
-        setStream({
-          _id: id,
-          title: 'Live Stream',
-          streamer: { _id: 'demo', name: 'Demo Streamer', username: 'demo', profilePicture: null },
-          viewers: 0,
-          startedAt: new Date(),
-          status: 'live'
-        });
+        setVideoError('Stream not found');
       }
     } catch (error) {
       console.error('Fetch stream error:', error);
-      // Demo stream for testing
-      setStream({
-        _id: id,
-        title: 'Live Stream',
-        streamer: { _id: 'demo', name: 'Demo Streamer', username: 'demo', profilePicture: null },
-        viewers: 0,
-        startedAt: new Date(),
-        status: 'live'
-      });
-      setMessages([]);
+      setVideoError('Failed to load stream');
     }
     setLoading(false);
   };
 
-  // Initialize HLS player when stream has playback URL
+  // Initialize HLS player with retry logic
   useEffect(() => {
     if (!hlsUrl || !videoRef.current) return;
     
     const initHls = () => {
-      // Check if HLS.js is loaded
       if (typeof window === 'undefined' || !window.Hls) {
         console.log('HLS.js not yet loaded, retrying...');
         setTimeout(initHls, 500);
@@ -167,7 +166,16 @@ export default function LiveStreamPage() {
         const hls = new Hls({
           enableWorker: true,
           lowLatencyMode: true,
-          backBufferLength: 90
+          backBufferLength: 90,
+          maxBufferLength: 30,
+          maxMaxBufferLength: 60,
+          // Retry configuration
+          manifestLoadingMaxRetry: 6,
+          manifestLoadingRetryDelay: 2000,
+          levelLoadingMaxRetry: 6,
+          levelLoadingRetryDelay: 2000,
+          fragLoadingMaxRetry: 6,
+          fragLoadingRetryDelay: 2000,
         });
         
         hls.loadSource(hlsUrl);
@@ -177,6 +185,7 @@ export default function LiveStreamPage() {
           console.log('✅ HLS manifest loaded');
           setHlsReady(true);
           setVideoError(null);
+          setHlsRetryCount(0);
           videoRef.current?.play().catch(() => {});
         });
         
@@ -186,7 +195,12 @@ export default function LiveStreamPage() {
             switch (data.type) {
               case Hls.ErrorTypes.NETWORK_ERROR:
                 console.log('Network error, trying to recover...');
-                hls.startLoad();
+                if (hlsRetryCount < 5) {
+                  setHlsRetryCount(prev => prev + 1);
+                  setTimeout(() => hls.startLoad(), 2000);
+                } else {
+                  setVideoError('Stream not available. The streamer may still be connecting...');
+                }
                 break;
               case Hls.ErrorTypes.MEDIA_ERROR:
                 console.log('Media error, trying to recover...');
@@ -207,6 +221,9 @@ export default function LiveStreamPage() {
         videoRef.current.addEventListener('loadedmetadata', () => {
           setHlsReady(true);
           videoRef.current?.play().catch(() => {});
+        });
+        videoRef.current.addEventListener('error', () => {
+          setVideoError('Stream not available');
         });
       } else {
         setVideoError('HLS not supported in this browser');
@@ -254,7 +271,8 @@ export default function LiveStreamPage() {
     try {
       const response = await api.get(`/api/live/${id}`);
       if (response.data?.stream) {
-        setViewerCount(response.data.stream.viewers || 0);
+        // FIXED: Properly get viewer count
+        setViewerCount(getViewerCount(response.data.stream.viewers));
       }
     } catch {}
   };
@@ -320,11 +338,17 @@ export default function LiveStreamPage() {
     
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      await api.post(`/api/live/${id}/comment`, { content: messageContent }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-    } catch {
-      // Keep optimistic message even if API fails
+      const response = await api.post(`/api/live/${id}/comment`, 
+        { content: messageContent }, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      if (response.data?.success) {
+        console.log('Comment sent successfully');
+      }
+    } catch (error) {
+      console.error('Failed to send comment:', error);
+      toast.error('Failed to send message');
     }
     setSendingMessage(false);
   };
@@ -345,6 +369,51 @@ export default function LiveStreamPage() {
       api.post(`/api/live/${id}/comment`, { content: emoji }, {
         headers: { Authorization: `Bearer ${token}` }
       }).catch(() => {});
+    }
+  };
+
+  // FIXED: Share functionality
+  const handleShare = () => {
+    setShowShareModal(true);
+  };
+
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const shareTitle = stream?.title || 'Live Stream';
+  
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success('Link copied!');
+      setShowShareModal(false);
+    } catch {
+      toast.error('Failed to copy');
+    }
+  };
+
+  const shareToTwitter = () => {
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`🔴 LIVE: ${shareTitle}`)}&url=${encodeURIComponent(shareUrl)}`;
+    window.open(url, '_blank');
+    setShowShareModal(false);
+  };
+
+  const shareToFacebook = () => {
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+    window.open(url, '_blank');
+    setShowShareModal(false);
+  };
+
+  const shareNative = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: `🔴 LIVE: ${shareTitle}`,
+          url: shareUrl
+        });
+        setShowShareModal(false);
+      } catch {}
+    } else {
+      copyLink();
     }
   };
 
@@ -372,6 +441,19 @@ export default function LiveStreamPage() {
     return `${mins}m`;
   };
 
+  // Retry HLS connection
+  const retryConnection = () => {
+    setVideoError(null);
+    setHlsRetryCount(0);
+    setHlsReady(false);
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+    // Re-trigger the useEffect by fetching stream again
+    fetchStream();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -396,26 +478,27 @@ export default function LiveStreamPage() {
   const isEnded = stream.status === 'ended' || stream.status === 'saved';
   const hasHlsStream = !!hlsUrl;
   const isMuxStream = stream.streamType === 'mux' || stream.muxPlaybackId;
-  const isCameraStream = stream.streamType === 'camera';
 
   return (
     <>
       <Head>
-        <title>{stream.title || 'Live Stream'} | CYBEV</title>
+        <title>{stream.title || 'Live Stream'} - CYBEV</title>
+        <meta property="og:title" content={stream.title || 'Live Stream'} />
+        <meta property="og:description" content={`Watch ${stream.streamer?.name || 'this'} live on CYBEV`} />
+        {thumbnailUrl && <meta property="og:image" content={thumbnailUrl} />}
       </Head>
       
       {/* Load HLS.js */}
-      <Script 
-        src="https://cdn.jsdelivr.net/npm/hls.js@latest" 
+      <Script
+        src="https://cdn.jsdelivr.net/npm/hls.js@latest"
         strategy="beforeInteractive"
       />
 
       <div ref={containerRef} className="min-h-screen bg-gray-900 flex flex-col lg:flex-row">
         {/* Video Section */}
         <div className="flex-1 flex flex-col">
-          {/* Video Player */}
-          <div className="relative aspect-video bg-black">
-            {/* HLS Video Player */}
+          {/* Video Player Container */}
+          <div className="relative bg-black aspect-video lg:aspect-auto lg:flex-1">
             {hasHlsStream && !isEnded ? (
               <div className="absolute inset-0">
                 <video
@@ -424,31 +507,50 @@ export default function LiveStreamPage() {
                   autoPlay
                   playsInline
                   muted={isMuted}
-                  poster={stream.thumbnail || stream.playbackUrls?.thumbnail || (stream.muxPlaybackId ? `https://image.mux.com/${stream.muxPlaybackId}/thumbnail.jpg` : null)}
-                  onClick={() => setIsPlaying(!isPlaying)}
+                  poster={thumbnailUrl}
+                  onClick={() => setIsMuted(!isMuted)}
                 />
                 
-                {/* Loading overlay */}
+                {/* Loading overlay - shows while connecting */}
                 {!hlsReady && !videoError && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/80">
                     <div className="text-center">
                       <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
-                      <p className="text-white">Connecting to stream...</p>
+                      <p className="text-white font-medium">Connecting to stream...</p>
+                      <p className="text-gray-400 text-sm mt-2">
+                        {hlsRetryCount > 0 ? `Attempt ${hlsRetryCount + 1}...` : 'Please wait'}
+                      </p>
                     </div>
                   </div>
                 )}
                 
-                {/* Error overlay */}
+                {/* Error overlay with retry */}
                 {videoError && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                    <div className="text-center">
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/80">
+                    <div className="text-center max-w-md px-4">
                       <p className="text-red-400 mb-2">{videoError}</p>
+                      <p className="text-gray-400 text-sm mb-4">
+                        The stream might still be initializing. Try again in a moment.
+                      </p>
                       <button 
-                        onClick={() => window.location.reload()}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-lg"
+                        onClick={retryConnection}
+                        className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
                       >
-                        Retry
+                        Retry Connection
                       </button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Unmute hint */}
+                {hlsReady && isMuted && (
+                  <div 
+                    className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                    onClick={() => setIsMuted(false)}
+                  >
+                    <div className="bg-black/60 px-4 py-2 rounded-lg flex items-center gap-2 text-white">
+                      <VolumeX className="w-5 h-5" />
+                      <span>Click to unmute</span>
                     </div>
                   </div>
                 )}
@@ -482,84 +584,41 @@ export default function LiveStreamPage() {
                   ))}
                 </div>
               </div>
-            ) : (
-              /* Fallback: No HLS stream or stream ended */
+            ) : isEnded ? (
+              /* Stream ended */
               <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
-                {isEnded ? (
-                  <div className="text-center">
-                    <Play className="w-16 h-16 text-white/50 mx-auto mb-4" />
-                    <p className="text-white/70">Stream has ended</p>
-                    {stream.recordingUrl && (
+                <div className="text-center">
+                  <Play className="w-16 h-16 text-white/50 mx-auto mb-4" />
+                  <p className="text-white/70 text-lg">Stream has ended</p>
+                  {stream.recordingUrl && (
+                    <Link href={stream.recordingUrl}>
                       <button className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
                         Watch Recording
                       </button>
-                    )}
-                  </div>
-                ) : stream.embedUrl ? (
-                  /* Embedded stream from Facebook/YouTube/Twitch */
-                  <iframe
-                    src={stream.embedUrl}
-                    className="w-full h-full"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : (
-                <>
-                  {/* Simulated live video - replace with actual video element */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-900/50 to-pink-900/50" />
-                  
-                  {/* Stream active indicator */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
-                    <div className="w-20 h-20 mb-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center overflow-hidden">
-                      {stream.streamer?.profilePicture ? (
-                        <img src={stream.streamer.profilePicture} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-white text-3xl font-bold">
-                          {stream.streamer?.name?.[0] || 'L'}
-                        </span>
-                      )}
-                    </div>
-                    <h2 className="text-white text-xl font-bold mb-2">{stream.title || 'Live Stream'}</h2>
-                    <p className="text-white/70 text-sm mb-4">
-                      {stream.streamer?.name || 'Streamer'} is live now
-                    </p>
-                    <div className="flex items-center gap-2 text-white/60 text-sm">
-                      <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                      Stream is active
-                    </div>
-                  </div>
-                  
-                  {/* Live indicator */}
-                  <div className="absolute top-4 left-4 flex items-center gap-3">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-red-600 rounded-lg text-white text-sm font-bold">
-                      <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                      LIVE
-                    </div>
-                    <div className="flex items-center gap-1 px-3 py-1.5 bg-black/50 rounded-lg text-white text-sm">
-                      <Eye className="w-4 h-4" />
-                      {viewerCount}
-                    </div>
-                    <div className="flex items-center gap-1 px-3 py-1.5 bg-black/50 rounded-lg text-white text-sm">
-                      <Clock className="w-4 h-4" />
-                      {formatDuration(stream.startedAt)}
-                    </div>
-                  </div>
-                  
-                  {/* Floating Reactions */}
-                  <div className="absolute bottom-20 right-4 flex flex-col-reverse gap-2 pointer-events-none">
-                    {floatingReactions.map(reaction => (
-                      <div
-                        key={reaction.id}
-                        className="text-4xl animate-bounce"
-                        style={{ animation: 'floatUp 2s ease-out forwards' }}
-                      >
-                        {reaction.emoji}
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
+                    </Link>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Fallback: show streamer info */
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 text-center p-4">
+                <div className="w-20 h-20 mb-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center overflow-hidden">
+                  {stream.streamer?.profilePicture ? (
+                    <img src={stream.streamer.profilePicture} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-white text-3xl font-bold">
+                      {stream.streamer?.name?.[0] || 'L'}
+                    </span>
+                  )}
+                </div>
+                <h2 className="text-white text-xl font-bold mb-2">{stream.title || 'Live Stream'}</h2>
+                <p className="text-white/70 text-sm mb-4">
+                  {stream.streamer?.name || 'Streamer'} is live
+                </p>
+                <div className="flex items-center gap-2 text-white/60 text-sm">
+                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                  Stream is active
+                </div>
               </div>
             )}
             
@@ -625,7 +684,7 @@ export default function LiveStreamPage() {
                     </h3>
                   </Link>
                   <p className="text-gray-400 text-sm">
-                    {stream.streamer?.followersCount || 0} followers
+                    {stream.streamer?.followers?.length || stream.streamer?.followersCount || 0} followers
                   </p>
                 </div>
               </div>
@@ -644,7 +703,11 @@ export default function LiveStreamPage() {
                     {isFollowing ? 'Following' : 'Follow'}
                   </button>
                 )}
-                <button className="p-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600">
+                {/* FIXED: Share button now works */}
+                <button 
+                  onClick={handleShare}
+                  className="p-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
+                >
                   <Share2 className="w-5 h-5" />
                 </button>
                 <button className="p-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600">
@@ -758,6 +821,54 @@ export default function LiveStreamPage() {
           </div>
         )}
       </div>
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={() => setShowShareModal(false)}>
+          <div className="bg-gray-800 rounded-xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-white">Share Stream</h3>
+              <button onClick={() => setShowShareModal(false)} className="text-gray-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              <button
+                onClick={shareNative}
+                className="w-full flex items-center gap-3 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              >
+                <Share2 className="w-5 h-5" />
+                Share
+              </button>
+              
+              <button
+                onClick={copyLink}
+                className="w-full flex items-center gap-3 px-4 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
+              >
+                <Copy className="w-5 h-5" />
+                Copy Link
+              </button>
+              
+              <button
+                onClick={shareToTwitter}
+                className="w-full flex items-center gap-3 px-4 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
+              >
+                <Twitter className="w-5 h-5" />
+                Share on Twitter
+              </button>
+              
+              <button
+                onClick={shareToFacebook}
+                className="w-full flex items-center gap-3 px-4 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
+              >
+                <Facebook className="w-5 h-5" />
+                Share on Facebook
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx global>{`
         @keyframes floatUp {
