@@ -39,8 +39,14 @@ export default function GoLivePage() {
       return;
     }
     
-    // Start camera preview
-    startCamera();
+    // Start camera preview after component mount
+    const initCamera = async () => {
+      // Small delay to ensure DOM is ready
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await startCamera();
+    };
+    
+    initCamera();
     
     return () => {
       stopCamera();
@@ -50,34 +56,70 @@ export default function GoLivePage() {
   const startCamera = async () => {
     try {
       setCameraError('');
+      
+      // Check if mediaDevices is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera API not supported in this browser');
+      }
+      
+      console.log('🎥 Requesting camera access...');
+      
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
           facingMode: 'user'
         },
         audio: true
       });
       
+      console.log('✅ Camera access granted');
+      
       mediaStreamRef.current = stream;
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        // Ensure video plays
+        try {
+          await videoRef.current.play();
+          console.log('✅ Video playing');
+        } catch (playError) {
+          console.log('Video autoplay blocked, user interaction needed');
+        }
       }
+      
+      return true;
     } catch (error) {
       console.error('Camera error:', error);
       let errorMsg = 'Unable to access camera';
       
-      if (error.name === 'NotAllowedError') {
-        errorMsg = 'Camera permission denied. Please allow camera access in your browser settings.';
-      } else if (error.name === 'NotFoundError') {
-        errorMsg = 'No camera found. Please connect a camera or use RTMP streaming.';
-      } else if (error.name === 'NotReadableError') {
-        errorMsg = 'Camera is in use by another application.';
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        errorMsg = 'Camera permission denied. Please allow camera access in your browser settings and refresh the page.';
+      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+        errorMsg = 'No camera found. Please connect a camera or use RTMP streaming instead.';
+      } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+        errorMsg = 'Camera is in use by another application. Please close other apps using the camera.';
+      } else if (error.name === 'OverconstrainedError') {
+        errorMsg = 'Camera constraints not supported. Trying with default settings...';
+        // Try with minimal constraints
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          mediaStreamRef.current = stream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            await videoRef.current.play();
+          }
+          setCameraError('');
+          return true;
+        } catch {
+          errorMsg = 'Failed to access camera with any settings.';
+        }
+      } else if (error.message?.includes('not supported')) {
+        errorMsg = error.message;
       }
       
       setCameraError(errorMsg);
-      toast.error(errorMsg);
+      return false;
     }
   };
 
