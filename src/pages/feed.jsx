@@ -645,6 +645,7 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
   const reactionTimeout = useRef(null);
 
   const isBlog = item.contentType === 'blog' || item.title;
+  const isLivePost = item.isLive || item.contentType === 'live';
   const authorId = item.author?._id || item.author || item.authorId?._id || item.authorId;
   const isOwner = currentUserId && (String(authorId) === String(currentUserId));
 
@@ -914,7 +915,16 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
               <span>{getRelativeTime(item.createdAt)}</span>
               <span>·</span>
               <Globe className="w-3 h-3" />
-              {isBlog && (
+              {isLivePost && (
+                <>
+                  <span>·</span>
+                  <span className="px-1.5 py-0.5 bg-red-500 text-white rounded text-xs font-bold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                    LIVE
+                  </span>
+                </>
+              )}
+              {isBlog && !isLivePost && (
                 <>
                   <span>·</span>
                   <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">Blog</span>
@@ -971,7 +981,7 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
       {/* Content */}
       <div className="px-4 pb-3">
         {item.title && (
-          <h3 onClick={() => router.push(`/blog/${item._id}`)}
+          <h3 onClick={() => router.push(isLivePost ? `/live/${item.liveStreamId || item._id}` : `/blog/${item._id}`)}
             className="text-lg font-bold text-gray-900 mb-2 cursor-pointer hover:text-purple-600">
             {item.title}
           </h3>
@@ -989,6 +999,20 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
           )}
         </p>
       </div>
+
+      {/* Watch Live Button */}
+      {isLivePost && (
+        <div className="px-4 pb-3">
+          <button
+            onClick={() => router.push(`/live/${item.liveStreamId || item._id}`)}
+            className="w-full py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:from-red-600 hover:to-pink-600 transition"
+          >
+            <Radio className="w-5 h-5" />
+            <span>Watch Live Now</span>
+            <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+          </button>
+        </div>
+      )}
 
       {/* Images */}
       {images.length > 0 && (
