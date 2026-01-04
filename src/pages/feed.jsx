@@ -348,6 +348,7 @@ function SuggestedFollows({ currentUserId }) {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [followingStates, setFollowingStates] = useState({});
+  const [followLoading, setFollowLoading] = useState({});
 
   useEffect(() => {
     fetchSuggestions();
@@ -359,8 +360,25 @@ function SuggestedFollows({ currentUserId }) {
       const response = await api.get('/api/follow/suggestions?limit=5', {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
-      if (response.data?.success) {
-        setSuggestions(response.data.suggestions || []);
+      if (response.data?.success || response.data?.suggestions) {
+        const users = response.data.suggestions || [];
+        setSuggestions(users);
+        
+        // Check follow status for each user
+        if (token && users.length > 0) {
+          const states = {};
+          for (const user of users) {
+            try {
+              const checkRes = await api.get(`/api/follow/check/${user._id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              states[user._id] = checkRes.data?.following || checkRes.data?.isFollowing || false;
+            } catch {
+              states[user._id] = false;
+            }
+          }
+          setFollowingStates(states);
+        }
       }
     } catch (error) {
       console.log('Suggestions fetch error:', error);
@@ -369,13 +387,15 @@ function SuggestedFollows({ currentUserId }) {
   };
 
   const handleFollow = async (userId, userName) => {
-    try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      if (!token) {
-        toast.info('Please login to follow');
-        return;
-      }
+    const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+    if (!token) {
+      toast.info('Please login to follow');
+      return;
+    }
 
+    setFollowLoading(prev => ({ ...prev, [userId]: true }));
+    
+    try {
       if (followingStates[userId]) {
         // Unfollow
         await api.delete(`/api/follow/${userId}`, {
@@ -392,8 +412,10 @@ function SuggestedFollows({ currentUserId }) {
         toast.success(`Following ${userName}!`);
       }
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed');
+      toast.error(error.response?.data?.error || 'Failed to update follow status');
     }
+    
+    setFollowLoading(prev => ({ ...prev, [userId]: false }));
   };
 
   if (loading || suggestions.length === 0) return null;
@@ -402,7 +424,7 @@ function SuggestedFollows({ currentUserId }) {
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-semibold text-gray-900 text-sm">Suggested for you</h3>
-        <Link href="/explore/creators">
+        <Link href="/explore">
           <span className="text-purple-600 text-xs font-medium cursor-pointer hover:underline">See All</span>
         </Link>
       </div>
@@ -421,19 +443,26 @@ function SuggestedFollows({ currentUserId }) {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900 text-sm hover:underline">{user.name || user.username}</p>
-                  <p className="text-gray-500 text-xs">{user.suggestedReason || 'Suggested for you'}</p>
+                  <p className="text-gray-500 text-xs">{user.bio ? user.bio.slice(0, 25) + '...' : 'New to CYBEV'}</p>
                 </div>
               </div>
             </Link>
             <button
               onClick={() => handleFollow(user._id, user.name || user.username)}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition ${
+              disabled={followLoading[user._id]}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition flex items-center gap-1 ${
                 followingStates[user._id]
                   ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   : 'bg-purple-600 text-white hover:bg-purple-700'
               }`}
             >
-              {followingStates[user._id] ? 'Following' : 'Follow'}
+              {followLoading[user._id] ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : followingStates[user._id] ? (
+                'Following'
+              ) : (
+                'Follow'
+              )}
             </button>
           </div>
         ))}
@@ -633,7 +662,8 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
       const response = await api.get(`/api/follow/check/${authorId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setIsFollowing(response.data?.following || false);
+      // Check both 'following' and 'isFollowing' fields for compatibility
+      setIsFollowing(response.data?.following || response.data?.isFollowing || false);
     } catch {}
   };
 
