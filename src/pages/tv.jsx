@@ -2,6 +2,7 @@
 // FILE: src/pages/tv.jsx
 // TV/Watch Page - Live Streams & Vlogs
 // Features: Admin pinning, Live indicators, RTMP support
+// FIXED: Viewer count display (was showing ObjectId)
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -58,40 +59,10 @@ export default function TVPage() {
         setLiveStreams(regular);
       }
     } catch (error) {
-      console.log('Using demo live streams');
-      // Demo data
-      const demoStreams = [
-        {
-          _id: 'l1',
-          title: 'Building a Web3 App Live!',
-          streamer: { _id: 'admin1', name: 'CYBEV Official', username: 'cybev', profilePicture: null, isAdmin: true },
-          viewers: 234,
-          thumbnail: null,
-          startedAt: new Date(Date.now() - 45 * 60000),
-          isPinned: true,
-          isAdminStream: true
-        },
-        {
-          _id: 'l2',
-          title: 'Coding Session - React Native',
-          streamer: { _id: 'u1', name: 'Sarah Dev', username: 'sarahdev', profilePicture: null },
-          viewers: 89,
-          thumbnail: null,
-          startedAt: new Date(Date.now() - 20 * 60000),
-          isPinned: false
-        },
-        {
-          _id: 'l3',
-          title: 'Q&A Session',
-          streamer: { _id: 'u2', name: 'Mike Tech', username: 'miketech', profilePicture: null },
-          viewers: 45,
-          thumbnail: null,
-          startedAt: new Date(Date.now() - 10 * 60000),
-          isPinned: false
-        }
-      ];
-      setPinnedStreams(demoStreams.filter(s => s.isPinned));
-      setLiveStreams(demoStreams.filter(s => !s.isPinned));
+      console.log('Could not fetch live streams:', error.message);
+      // Only use demo data if no streams fetched
+      setPinnedStreams([]);
+      setLiveStreams([]);
     }
   };
 
@@ -102,11 +73,8 @@ export default function TVPage() {
         setVlogs(response.data.vlogs);
       }
     } catch (error) {
-      console.log('Using demo vlogs');
-      setVlogs([
-        { _id: 'v1', caption: 'My First Vlog', user: { name: 'Creator 1' }, viewsCount: 1200, duration: 125 },
-        { _id: 'v2', caption: 'Tech Tips', user: { name: 'Creator 2' }, viewsCount: 890, duration: 180 },
-      ]);
+      console.log('Could not fetch vlogs');
+      setVlogs([]);
     }
   };
 
@@ -137,6 +105,18 @@ export default function TVPage() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // FIXED: Helper to get viewer count from various formats
+  const getViewerCount = (stream) => {
+    // If viewerCount is explicitly set as a number, use it
+    if (typeof stream.viewerCount === 'number') return stream.viewerCount;
+    // If viewers is an array, return its length
+    if (Array.isArray(stream.viewers)) return stream.viewers.length;
+    // If viewers is a number, use it
+    if (typeof stream.viewers === 'number') return stream.viewers;
+    // Default to 0
+    return 0;
+  };
+
   const formatViewers = (num) => {
     // Handle if num is an array (views array)
     const count = Array.isArray(num) ? num.length : (typeof num === 'number' ? num : 0);
@@ -159,7 +139,7 @@ export default function TVPage() {
         <title>TV | CYBEV</title>
       </Head>
 
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white pb-20">
         {/* Header */}
         <header className="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
@@ -195,7 +175,7 @@ export default function TVPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 py-4 border-b-2 font-semibold transition ${
+                  className={`flex items-center gap-2 py-4 border-b-2 transition font-medium ${
                     activeTab === tab.id
                       ? 'border-purple-600 text-purple-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -203,7 +183,7 @@ export default function TVPage() {
                 >
                   <tab.icon className="w-4 h-4" />
                   {tab.label}
-                  {tab.count > 0 && (
+                  {tab.count !== undefined && tab.count > 0 && (
                     <span className="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
                       {tab.count}
                     </span>
@@ -214,85 +194,78 @@ export default function TVPage() {
           </div>
         </div>
 
-        <main className="max-w-4xl mx-auto px-4 py-6 pb-24">
+        {/* Content */}
+        <main className="max-w-4xl mx-auto px-4 py-6">
           {loading ? (
-            <div className="flex items-center justify-center py-20">
+            <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
             </div>
           ) : activeTab === 'live' ? (
-            /* Live Streams */
-            <div>
-              {allLiveStreams.length === 0 ? (
-                <div className="text-center py-20">
-                  <Radio className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No Live Streams</h3>
-                  <p className="text-gray-500 mb-6">Be the first to go live!</p>
-                  <Link href="/live/go-live">
-                    <button className="px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600">
-                      Start Streaming
-                    </button>
-                  </Link>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {/* Pinned Streams Section */}
-                  {pinnedStreams.length > 0 && (
-                    <div className="mb-8">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Pin className="w-4 h-4 text-purple-600" />
-                        <h2 className="font-semibold text-gray-900">Pinned Streams</h2>
-                      </div>
-                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {pinnedStreams.map(stream => (
-                          <StreamCard 
-                            key={stream._id} 
-                            stream={stream} 
-                            isAdmin={isAdmin}
-                            isPinned={true}
-                            onPin={() => handlePinStream(stream._id, true)}
-                            showOptions={showStreamOptions === stream._id}
-                            onToggleOptions={() => setShowStreamOptions(showStreamOptions === stream._id ? null : stream._id)}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Regular Live Streams */}
-                  {liveStreams.length > 0 && (
-                    <div>
-                      <h2 className="font-semibold text-gray-900 mb-4">Live Now</h2>
-                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {liveStreams.map(stream => (
-                          <StreamCard 
-                            key={stream._id} 
-                            stream={stream} 
-                            isAdmin={isAdmin}
-                            isPinned={false}
-                            onPin={() => handlePinStream(stream._id, false)}
-                            showOptions={showStreamOptions === stream._id}
-                            onToggleOptions={() => setShowStreamOptions(showStreamOptions === stream._id ? null : stream._id)}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
+            <div className="space-y-8">
+              {/* Pinned Streams */}
+              {pinnedStreams.length > 0 && (
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Pin className="w-5 h-5 text-purple-600" />
+                    Pinned Streams
+                  </h2>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {pinnedStreams.map(stream => (
+                      <StreamCard 
+                        key={stream._id} 
+                        stream={stream}
+                        isAdmin={isAdmin}
+                        isPinned={true}
+                        onPin={() => handlePinStream(stream._id, true)}
+                        showOptions={showStreamOptions === stream._id}
+                        onToggleOptions={() => setShowStreamOptions(showStreamOptions === stream._id ? null : stream._id)}
+                        getViewerCount={getViewerCount}
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
+
+              {/* Live Streams */}
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 mb-4">Live Now</h2>
+                {liveStreams.length === 0 && pinnedStreams.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-xl">
+                    <Radio className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <h3 className="text-gray-600 font-medium">No live streams right now</h3>
+                    <p className="text-gray-400 text-sm mt-1">Be the first to go live!</p>
+                    <Link href="/live/go-live">
+                      <button className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600">
+                        Start Streaming
+                      </button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {liveStreams.map(stream => (
+                      <StreamCard 
+                        key={stream._id} 
+                        stream={stream}
+                        isAdmin={isAdmin}
+                        isPinned={false}
+                        onPin={() => handlePinStream(stream._id, false)}
+                        showOptions={showStreamOptions === stream._id}
+                        onToggleOptions={() => setShowStreamOptions(showStreamOptions === stream._id ? null : stream._id)}
+                        getViewerCount={getViewerCount}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
-            /* Vlogs Tab */
             <div>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Vlogs</h2>
               {vlogs.length === 0 ? (
-                <div className="text-center py-20">
-                  <Video className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No Vlogs Yet</h3>
-                  <p className="text-gray-500 mb-6">Create your first vlog!</p>
-                  <Link href="/vlog/create">
-                    <button className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700">
-                      Create Vlog
-                    </button>
-                  </Link>
+                <div className="text-center py-12 bg-gray-50 rounded-xl">
+                  <Video className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <h3 className="text-gray-600 font-medium">No vlogs yet</h3>
+                  <p className="text-gray-400 text-sm mt-1">Create your first vlog!</p>
                 </div>
               ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -382,8 +355,8 @@ export default function TVPage() {
   );
 }
 
-// Stream Card Component
-function StreamCard({ stream, isAdmin, isPinned, onPin, showOptions, onToggleOptions }) {
+// Stream Card Component - FIXED viewer count display
+function StreamCard({ stream, isAdmin, isPinned, onPin, showOptions, onToggleOptions, getViewerCount }) {
   const router = useRouter();
   
   const formatStreamTime = (date) => {
@@ -392,6 +365,12 @@ function StreamCard({ stream, isAdmin, isPinned, onPin, showOptions, onToggleOpt
     if (mins < 60) return `${mins}m`;
     return `${Math.floor(mins / 60)}h ${mins % 60}m`;
   };
+
+  // FIXED: Get viewer count correctly
+  const viewerCount = getViewerCount ? getViewerCount(stream) : 
+    (Array.isArray(stream.viewers) ? stream.viewers.length : 
+    (typeof stream.viewers === 'number' ? stream.viewers : 
+    (stream.viewerCount || 0)));
 
   return (
     <div 
@@ -420,10 +399,10 @@ function StreamCard({ stream, isAdmin, isPinned, onPin, showOptions, onToggleOpt
           )}
         </div>
         
-        {/* Viewers */}
+        {/* Viewers - FIXED: Now shows count instead of ObjectId */}
         <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-black/50 rounded text-white text-xs">
           <Eye className="w-3 h-3" />
-          {stream.viewers || 0}
+          {viewerCount}
         </div>
         
         {/* Duration */}
