@@ -4,7 +4,7 @@
 // Features: Video player, chat, reactions, viewer count
 // ============================================
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -55,6 +55,13 @@ export default function LiveStreamPage() {
   const hlsRef = useRef(null);
   const chatContainerRef = useRef(null);
   const containerRef = useRef(null);
+
+  // Compute HLS URL from stream data - memoized for useEffect dependency
+  const hlsUrl = useMemo(() => {
+    if (!stream) return null;
+    return stream.playbackUrls?.hls || 
+      (stream.muxPlaybackId ? `https://stream.mux.com/${stream.muxPlaybackId}.m3u8` : null);
+  }, [stream?.playbackUrls?.hls, stream?.muxPlaybackId]);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -387,13 +394,9 @@ export default function LiveStreamPage() {
   }
 
   const isEnded = stream.status === 'ended' || stream.status === 'saved';
-  const hasHlsStream = stream.playbackUrls?.hls;
+  const hasHlsStream = !!hlsUrl;
   const isMuxStream = stream.streamType === 'mux' || stream.muxPlaybackId;
   const isCameraStream = stream.streamType === 'camera';
-  
-  // Get HLS URL - check multiple sources
-  const hlsUrl = stream.playbackUrls?.hls || 
-    (stream.muxPlaybackId ? `https://stream.mux.com/${stream.muxPlaybackId}.m3u8` : null);
 
   return (
     <>
