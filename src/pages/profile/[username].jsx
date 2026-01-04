@@ -9,10 +9,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import {
   ArrowLeft, Settings, Edit, Camera, Users, Eye, Heart, BookOpen,
-  Loader2, UserPlus, UserMinus, Share2, MoreHorizontal, ExternalLink
+  Loader2, UserPlus, UserMinus, Share2, MoreHorizontal, ExternalLink,
+  MapPin, Link as LinkIcon, Calendar, Briefcase
 } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'react-toastify';
+import ProfileEditModal from '@/components/ProfileEditModal';
 
 // Relative time utility
 function getRelativeTime(dateString) {
@@ -46,6 +48,7 @@ export default function ProfilePage() {
   const [uploadingProfile, setUploadingProfile] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [blogs, setBlogs] = useState([]);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [stats, setStats] = useState({
     blogs: 0,
     views: 0,
@@ -372,7 +375,15 @@ export default function ProfilePage() {
               <h1 className="text-2xl font-bold text-gray-900">
                 {profileUser.name || profileUser.username}
               </h1>
-              {!isOwnProfile && (
+              {isOwnProfile ? (
+                <button
+                  onClick={() => setShowEditModal(true)}
+                  className="flex items-center gap-1 px-4 py-1.5 rounded-full text-sm font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+                >
+                  <Edit className="w-4 h-4" />
+                  Edit Profile
+                </button>
+              ) : (
                 <button
                   onClick={handleFollow}
                   disabled={followLoading}
@@ -552,6 +563,19 @@ export default function ProfilePage() {
             <span className="text-xs mt-1">Profile</span>
           </button>
         </nav>
+        
+        {/* Edit Profile Modal */}
+        {showEditModal && (
+          <ProfileEditModal
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            user={profileUser}
+            onUpdate={(updatedUser) => {
+              setProfileUser(prev => ({ ...prev, ...updatedUser }));
+              setCurrentUser(prev => ({ ...prev, ...updatedUser }));
+            }}
+          />
+        )}
       </div>
     </>
   );
