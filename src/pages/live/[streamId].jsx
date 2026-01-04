@@ -139,7 +139,7 @@ export default function LiveStreamPage() {
 
   // Initialize HLS player when stream has playback URL
   useEffect(() => {
-    if (!stream?.playbackUrls?.hls || !videoRef.current) return;
+    if (!hlsUrl || !videoRef.current) return;
     
     const initHls = () => {
       // Check if HLS.js is loaded
@@ -163,7 +163,7 @@ export default function LiveStreamPage() {
           backBufferLength: 90
         });
         
-        hls.loadSource(stream.playbackUrls.hls);
+        hls.loadSource(hlsUrl);
         hls.attachMedia(videoRef.current);
         
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -196,7 +196,7 @@ export default function LiveStreamPage() {
         hlsRef.current = hls;
       } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
         // Safari native HLS support
-        videoRef.current.src = stream.playbackUrls.hls;
+        videoRef.current.src = hlsUrl;
         videoRef.current.addEventListener('loadedmetadata', () => {
           setHlsReady(true);
           videoRef.current?.play().catch(() => {});
@@ -214,7 +214,7 @@ export default function LiveStreamPage() {
         hlsRef.current = null;
       }
     };
-  }, [stream?.playbackUrls?.hls]);
+  }, [hlsUrl]);
 
   const joinStream = async () => {
     try {
@@ -388,6 +388,12 @@ export default function LiveStreamPage() {
 
   const isEnded = stream.status === 'ended' || stream.status === 'saved';
   const hasHlsStream = stream.playbackUrls?.hls;
+  const isMuxStream = stream.streamType === 'mux' || stream.muxPlaybackId;
+  const isCameraStream = stream.streamType === 'camera';
+  
+  // Get HLS URL - check multiple sources
+  const hlsUrl = stream.playbackUrls?.hls || 
+    (stream.muxPlaybackId ? `https://stream.mux.com/${stream.muxPlaybackId}.m3u8` : null);
 
   return (
     <>
