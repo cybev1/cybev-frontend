@@ -551,7 +551,8 @@ export default function LiveStreamPage() {
                   </div>
                 </>
               )}
-            </div>
+              </div>
+            )}
             
             {/* Video Controls */}
             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
