@@ -1,10 +1,10 @@
 // ============================================
 // FILE: src/pages/live/go-live.jsx
-// Mobile-First Live Streaming - Camera to Mux via WebRTC
-// FULL IMPLEMENTATION: Device camera → WebSocket → FFmpeg → Mux RTMP
+// Mobile-First Live Streaming - FIXED v2
+// IMPROVED: Better binary data handling, debugging
 // ============================================
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -20,13 +20,7 @@ import api from '@/lib/api';
 import { toast } from 'react-toastify';
 
 const STREAM_MODES = { CAMERA: 'camera', SOFTWARE: 'software' };
-const PRIVACY_OPTIONS = [
-  { value: 'public', label: 'Public', icon: Globe, desc: 'Anyone can watch' },
-  { value: 'followers', label: 'Followers', icon: Users, desc: 'Only followers can watch' },
-  { value: 'private', label: 'Private', icon: Lock, desc: 'Only you can watch' }
-];
 
-// Connection states
 const CONNECTION_STATES = {
   IDLE: 'idle',
   CONNECTING: 'connecting',
@@ -64,7 +58,6 @@ export default function GoLivePage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [privacy, setPrivacy] = useState('public');
-  const [showPrivacyDropdown, setShowPrivacyDropdown] = useState(false);
   
   // Thumbnail
   const [thumbnail, setThumbnail] = useState(null);
@@ -83,20 +76,23 @@ export default function GoLivePage() {
   const [connectionState, setConnectionState] = useState(CONNECTION_STATES.IDLE);
   const [rtmpUrl, setRtmpUrl] = useState(null);
   const [bytesSent, setBytesSent] = useState(0);
+  const [chunksSent, setChunksSent] = useState(0);
   const [streamStats, setStreamStats] = useState(null);
+  const [debugLog, setDebugLog] = useState([]);
   
   // Stats
   const [viewerCount, setViewerCount] = useState(0);
   
-  // Existing stream
-  const [existingStream, setExistingStream] = useState(null);
-  const [showExistingStreamModal, setShowExistingStreamModal] = useState(false);
+  // Debug logger
+  const addDebug = useCallback((msg) => {
+    console.log(`[GO-LIVE] ${msg}`);
+    setDebugLog(prev => [...prev.slice(-20), `${new Date().toLocaleTimeString()}: ${msg}`]);
+  }, []);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
       setUser(JSON.parse(userData));
-      checkExistingStream();
     } else {
       router.push('/auth/login');
     }
@@ -109,7 +105,6 @@ export default function GoLivePage() {
     };
   }, []);
 
-  // Camera mode - start camera
   useEffect(() => {
     if (streamMode === STREAM_MODES.CAMERA && !isLive) {
       const timer = setTimeout(() => startCamera(), 500);
@@ -120,7 +115,6 @@ export default function GoLivePage() {
     }
   }, [streamMode, selectedCamera, selectedMic]);
 
-  // Duration timer
   useEffect(() => {
     let interval;
     if (isLive) {
@@ -129,7 +123,6 @@ export default function GoLivePage() {
     return () => clearInterval(interval);
   }, [isLive]);
 
-  // Poll OBS connection
   useEffect(() => {
     let interval;
     if (streamMode === STREAM_MODES.SOFTWARE && streamCredentials && !isLive) {
@@ -139,7 +132,6 @@ export default function GoLivePage() {
     return () => clearInterval(interval);
   }, [streamMode, streamCredentials, isLive, hlsLoaded]);
 
-  // Stats polling when live
   useEffect(() => {
     let interval;
     if (isLive && streamId) {
@@ -163,17 +155,6 @@ export default function GoLivePage() {
       setDevices({ video: videoDevices, audio: audioDevices });
       if (videoDevices.length > 0 && !selectedCamera) setSelectedCamera(videoDevices[0].deviceId);
       if (audioDevices.length > 0 && !selectedMic) setSelectedMic(audioDevices[0].deviceId);
-    } catch {}
-  };
-
-  const checkExistingStream = async () => {
-    try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      const response = await api.get('/api/live/my-stream', { headers: { Authorization: `Bearer ${token}` } });
-      if (response.data?.hasActiveStream && response.data?.stream) {
-        setExistingStream(response.data.stream);
-        setShowExistingStreamModal(true);
-      }
     } catch {}
   };
 
@@ -210,6 +191,7 @@ export default function GoLivePage() {
   // Camera functions
   const startCamera = async () => {
     setCameraError('');
+    addDebug('Starting camera...');
     try {
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach(track => track.stop());
@@ -219,7 +201,9 @@ export default function GoLivePage() {
         video: selectedCamera 
           ? { deviceId: { exact: selectedCamera }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } }
           : { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode, frameRate: { ideal: 30 } },
-        audio: selectedMic ? { deviceId: { exact: selectedMic }, echoCancellation: true, noiseSuppression: true } : { echoCancellation: true, noiseSuppression: true }
+        audio: selectedMic 
+          ? { deviceId: { exact: selectedMic }, echoCancellation: true, noiseSuppression: true } 
+          : { echoCancellation: true, noiseSuppression: true }
       };
       
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -230,10 +214,11 @@ export default function GoLivePage() {
         await videoRef.current.play().catch(() => {});
       }
       
+      addDebug('Camera started successfully');
       enumerateDevices();
       return true;
     } catch (error) {
-      console.error('Camera error:', error);
+      addDebug(`Camera error: ${error.message}`);
       let errorMsg = 'Unable to access camera';
       if (error.name === 'NotAllowedError') errorMsg = 'Camera permission denied';
       else if (error.name === 'NotFoundError') errorMsg = 'No camera found';
@@ -244,13 +229,10 @@ export default function GoLivePage() {
   };
 
   const stopCamera = () => {
-    // Stop MediaRecorder
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
       mediaRecorderRef.current = null;
     }
-    
-    // Stop camera stream
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach(track => track.stop());
       mediaStreamRef.current = null;
@@ -261,8 +243,6 @@ export default function GoLivePage() {
   const switchCamera = async () => {
     const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
     setFacingMode(newFacingMode);
-    
-    // If currently streaming, we need to restart with new camera
     if (isLive && mediaRecorderRef.current) {
       await startCamera();
       startMediaRecorder();
@@ -283,65 +263,80 @@ export default function GoLivePage() {
     }
   };
 
-  // WebSocket connection for video streaming
+  // WebSocket connection
   const connectWebSocket = (newStreamId, newRtmpUrl) => {
     return new Promise((resolve, reject) => {
       const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
-      const wsUrl = apiUrl.replace('https', 'wss').replace('http', 'ws');
+      const wsUrl = apiUrl.replace('https://', 'wss://').replace('http://', 'ws://');
       
-      console.log('🔌 Connecting WebSocket to:', wsUrl);
+      addDebug(`Connecting to WebSocket: ${wsUrl}/webrtc`);
       setConnectionState(CONNECTION_STATES.CONNECTING);
       
       const socket = io(`${wsUrl}/webrtc`, {
-        transports: ['websocket'],
-        auth: { token }
+        transports: ['websocket', 'polling'],
+        auth: { token },
+        reconnection: true,
+        reconnectionAttempts: 5,
+        timeout: 20000
       });
       
       socket.on('connect', () => {
-        console.log('✅ WebSocket connected');
+        addDebug(`WebSocket connected: ${socket.id}`);
         socket.emit('authenticate', { 
           token, 
           streamId: newStreamId,
           rtmpUrl: newRtmpUrl
         });
       });
+
+      socket.on('welcome', (data) => {
+        addDebug(`Welcome received: ${JSON.stringify(data)}`);
+      });
       
       socket.on('authenticated', (data) => {
-        console.log('✅ WebSocket authenticated:', data);
+        addDebug(`Authenticated: ${JSON.stringify(data)}`);
         socketRef.current = socket;
         setConnectionState(CONNECTION_STATES.CONNECTED);
         resolve(socket);
       });
       
       socket.on('streaming-started', (data) => {
-        console.log('🎬 Streaming started:', data);
+        addDebug(`Streaming started: ${JSON.stringify(data)}`);
         setConnectionState(CONNECTION_STATES.STREAMING);
       });
       
       socket.on('rtmp-connected', (data) => {
-        console.log('📡 RTMP connected:', data);
+        addDebug(`RTMP connected to Mux!`);
         toast.success('Connected to streaming server!');
       });
       
-      socket.on('stats', (stats) => {
-        setStreamStats(stats);
+      socket.on('warning', (data) => {
+        addDebug(`Warning: ${data.message}`);
+      });
+      
+      socket.on('pong', (data) => {
+        setStreamStats(data);
       });
       
       socket.on('error', (error) => {
-        console.error('❌ WebSocket error:', error);
+        addDebug(`Error: ${error.message}`);
         setConnectionState(CONNECTION_STATES.ERROR);
         toast.error(error.message || 'Streaming error');
-        reject(new Error(error.message));
       });
       
       socket.on('stream-ended', (data) => {
-        console.log('🛑 Stream ended:', data);
+        addDebug(`Stream ended: ${data.reason}`);
         setConnectionState(CONNECTION_STATES.IDLE);
       });
       
-      socket.on('disconnect', () => {
-        console.log('🔌 WebSocket disconnected');
+      socket.on('connect_error', (error) => {
+        addDebug(`Connection error: ${error.message}`);
+        setConnectionState(CONNECTION_STATES.ERROR);
+      });
+      
+      socket.on('disconnect', (reason) => {
+        addDebug(`Disconnected: ${reason}`);
         if (isLive) {
           setConnectionState(CONNECTION_STATES.ERROR);
         }
@@ -350,9 +345,10 @@ export default function GoLivePage() {
       // Timeout
       setTimeout(() => {
         if (!socketRef.current) {
+          addDebug('Connection timeout');
           reject(new Error('Connection timeout'));
         }
-      }, 15000);
+      }, 20000);
     });
   };
 
@@ -365,61 +361,86 @@ export default function GoLivePage() {
     setConnectionState(CONNECTION_STATES.IDLE);
   };
 
-  // MediaRecorder for capturing video
+  // MediaRecorder - IMPROVED binary handling
   const startMediaRecorder = () => {
     if (!mediaStreamRef.current || !socketRef.current) {
-      console.error('Cannot start MediaRecorder: missing stream or socket');
+      addDebug('Cannot start MediaRecorder: missing stream or socket');
+      return;
+    }
+
+    // Find supported mime type
+    const mimeTypes = [
+      'video/webm;codecs=vp8,opus',
+      'video/webm;codecs=vp9,opus',
+      'video/webm',
+      'video/mp4'
+    ];
+    
+    let selectedMimeType = '';
+    for (const mimeType of mimeTypes) {
+      if (MediaRecorder.isTypeSupported(mimeType)) {
+        selectedMimeType = mimeType;
+        break;
+      }
+    }
+
+    if (!selectedMimeType) {
+      addDebug('No supported mime type found!');
+      toast.error('Your browser does not support video recording');
       return;
     }
 
     const options = {
-      mimeType: 'video/webm;codecs=vp8,opus',
-      videoBitsPerSecond: 2500000, // 2.5 Mbps
-      audioBitsPerSecond: 128000   // 128 kbps
+      mimeType: selectedMimeType,
+      videoBitsPerSecond: 2000000,
+      audioBitsPerSecond: 128000
     };
 
-    // Check supported mime types
-    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-      options.mimeType = 'video/webm';
-      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        options.mimeType = 'video/mp4';
-      }
-    }
-
-    console.log('🎥 Starting MediaRecorder with:', options.mimeType);
+    addDebug(`Starting MediaRecorder with: ${selectedMimeType}`);
 
     const recorder = new MediaRecorder(mediaStreamRef.current, options);
     mediaRecorderRef.current = recorder;
 
-    recorder.ondataavailable = (event) => {
-      if (event.data && event.data.size > 0 && socketRef.current) {
-        // Convert blob to ArrayBuffer and send
-        event.data.arrayBuffer().then(buffer => {
-          if (socketRef.current && socketRef.current.connected) {
-            socketRef.current.emit('video-data', buffer);
-            setBytesSent(prev => prev + event.data.size);
+    recorder.ondataavailable = async (event) => {
+      if (event.data && event.data.size > 0 && socketRef.current && socketRef.current.connected) {
+        try {
+          // Convert Blob to Uint8Array for reliable transmission
+          const arrayBuffer = await event.data.arrayBuffer();
+          const uint8Array = new Uint8Array(arrayBuffer);
+          
+          // Send as array (Socket.IO handles this better than ArrayBuffer)
+          socketRef.current.emit('video-data', uint8Array);
+          
+          setBytesSent(prev => prev + event.data.size);
+          setChunksSent(prev => prev + 1);
+          
+          // Ping every 10 chunks
+          if ((chunksSent + 1) % 10 === 0) {
+            socketRef.current.emit('ping');
           }
-        });
+        } catch (error) {
+          addDebug(`Data send error: ${error.message}`);
+        }
       }
     };
 
     recorder.onerror = (error) => {
-      console.error('MediaRecorder error:', error);
+      addDebug(`MediaRecorder error: ${error}`);
       toast.error('Recording error');
     };
 
     recorder.onstart = () => {
-      console.log('🎬 MediaRecorder started');
-      // Tell server to start FFmpeg
+      addDebug('MediaRecorder started, sending start-streaming event');
       socketRef.current.emit('start-streaming');
     };
 
     recorder.onstop = () => {
-      console.log('🛑 MediaRecorder stopped');
+      addDebug('MediaRecorder stopped');
     };
 
-    // Start recording with timeslice (send data every 1 second)
+    // Start recording - send data every 1 second
     recorder.start(1000);
+    addDebug('MediaRecorder.start(1000) called');
   };
 
   const stopMediaRecorder = () => {
@@ -514,12 +535,14 @@ export default function GoLivePage() {
     }
 
     setLoading(true);
+    addDebug('Starting Go Live process...');
     
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
       let thumbnailUrl = thumbnail ? await uploadThumbnail() : null;
 
-      // Step 1: Create stream and get RTMP credentials
+      // Step 1: Create stream
+      addDebug('Creating stream...');
       const response = await api.post('/api/webrtc/start-stream', {
         title,
         description,
@@ -534,16 +557,19 @@ export default function GoLivePage() {
       setStreamId(newStreamId);
       setRtmpUrl(newRtmpUrl);
 
-      console.log('📺 Stream created:', newStreamId);
-      console.log('📡 RTMP URL:', newRtmpUrl);
+      addDebug(`Stream created: ${newStreamId}`);
+      addDebug(`RTMP URL: ${newRtmpUrl.substring(0, 50)}...`);
 
       // Step 2: Connect WebSocket
+      addDebug('Connecting WebSocket...');
       await connectWebSocket(newStreamId, newRtmpUrl);
+      addDebug('WebSocket connected and authenticated');
 
-      // Step 3: Start MediaRecorder to capture and send video
+      // Step 3: Start MediaRecorder
+      addDebug('Starting MediaRecorder...');
       startMediaRecorder();
 
-      // Step 4: Update thumbnail if uploaded
+      // Step 4: Update thumbnail
       if (thumbnailUrl) {
         await api.put(`/api/live/${newStreamId}`, { thumbnail: thumbnailUrl }, {
           headers: { Authorization: `Bearer ${token}` }
@@ -553,10 +579,12 @@ export default function GoLivePage() {
       setIsLive(true);
       setStreamDuration(0);
       setBytesSent(0);
+      setChunksSent(0);
       toast.success('🔴 You are now LIVE!');
+      addDebug('GO LIVE SUCCESS!');
 
     } catch (error) {
-      console.error('Go live error:', error);
+      addDebug(`Go live error: ${error.message}`);
       toast.error(error.message || 'Failed to start stream');
       disconnectWebSocket();
       setConnectionState(CONNECTION_STATES.ERROR);
@@ -603,7 +631,6 @@ export default function GoLivePage() {
     setLoading(false);
   };
 
-  // GO LIVE handler
   const goLive = async () => {
     if (streamMode === STREAM_MODES.CAMERA) {
       await goLiveCamera();
@@ -615,18 +642,13 @@ export default function GoLivePage() {
   // End Stream
   const endStream = async () => {
     setLoading(true);
+    addDebug('Ending stream...');
     
     try {
-      // Stop MediaRecorder first
       stopMediaRecorder();
-      
-      // Disconnect WebSocket
       disconnectWebSocket();
-      
-      // Stop camera
       stopCamera();
       
-      // API call to end stream
       if (streamId) {
         const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
         
@@ -646,21 +668,11 @@ export default function GoLivePage() {
       
       setTimeout(() => router.push('/tv'), 2000);
     } catch (error) {
-      console.error('End stream error:', error);
+      addDebug(`End stream error: ${error.message}`);
       toast.error('Failed to end stream properly');
     }
     
     setLoading(false);
-  };
-
-  const cleanupExistingStream = async () => {
-    try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      await api.post('/api/live/cleanup', {}, { headers: { Authorization: `Bearer ${token}` } });
-      setShowExistingStreamModal(false);
-      setExistingStream(null);
-      toast.success('Previous stream cleaned up');
-    } catch { toast.error('Failed to cleanup'); }
   };
 
   const copyToClipboard = async (text, label) => {
@@ -685,22 +697,21 @@ export default function GoLivePage() {
     return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
   };
 
-  // Connection status indicator
+  // Connection status component
   const ConnectionStatus = () => {
     const states = {
-      [CONNECTION_STATES.IDLE]: { color: 'gray', text: 'Not connected', icon: WifiOff },
-      [CONNECTION_STATES.CONNECTING]: { color: 'yellow', text: 'Connecting...', icon: Wifi },
-      [CONNECTION_STATES.CONNECTED]: { color: 'blue', text: 'Connected', icon: Wifi },
-      [CONNECTION_STATES.STREAMING]: { color: 'green', text: 'Streaming', icon: Radio },
-      [CONNECTION_STATES.ERROR]: { color: 'red', text: 'Error', icon: AlertCircle }
+      [CONNECTION_STATES.IDLE]: { color: 'bg-gray-500', text: 'Not connected' },
+      [CONNECTION_STATES.CONNECTING]: { color: 'bg-yellow-500', text: 'Connecting...' },
+      [CONNECTION_STATES.CONNECTED]: { color: 'bg-blue-500', text: 'Connected' },
+      [CONNECTION_STATES.STREAMING]: { color: 'bg-green-500', text: 'Streaming' },
+      [CONNECTION_STATES.ERROR]: { color: 'bg-red-500', text: 'Error' }
     };
     
     const state = states[connectionState] || states[CONNECTION_STATES.IDLE];
-    const Icon = state.icon;
     
     return (
-      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm bg-${state.color}-500/20 text-${state.color}-400`}>
-        <Icon className="w-4 h-4" />
+      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${state.color} text-white`}>
+        <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
         <span>{state.text}</span>
       </div>
     );
@@ -743,9 +754,7 @@ export default function GoLivePage() {
               <div className="flex items-center gap-4 text-white text-sm">
                 <div className="flex items-center gap-1"><Eye className="w-4 h-4" />{viewerCount}</div>
                 <div className="flex items-center gap-1"><Clock className="w-4 h-4" />{formatDuration(streamDuration)}</div>
-                {streamMode === STREAM_MODES.CAMERA && (
-                  <div className="text-gray-400">{formatBytes(bytesSent)} sent</div>
-                )}
+                <div className="text-gray-400">{formatBytes(bytesSent)} sent</div>
               </div>
             )}
           </div>
@@ -851,15 +860,8 @@ export default function GoLivePage() {
                   </>
                 ) : (
                   <>
-                    {/* OBS Preview */}
                     {obsConnected && obsPreviewReady ? (
-                      <video
-                        ref={previewVideoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        className="w-full h-full object-contain"
-                      />
+                      <video ref={previewVideoRef} autoPlay playsInline muted className="w-full h-full object-contain" />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="text-center p-6">
@@ -867,7 +869,7 @@ export default function GoLivePage() {
                             <>
                               <Key className="w-12 h-12 text-gray-500 mx-auto mb-3" />
                               <p className="text-white mb-2">Generate Stream Key</p>
-                              <p className="text-gray-400 text-sm">Click below to get your OBS credentials</p>
+                              <p className="text-gray-400 text-sm">Click below to get OBS credentials</p>
                             </>
                           ) : obsConnected ? (
                             <>
@@ -936,6 +938,16 @@ export default function GoLivePage() {
                       {generatingCredentials ? 'Generating...' : 'Generate Stream Key'}
                     </button>
                   )}
+                </div>
+              )}
+
+              {/* Debug Log */}
+              {streamMode === STREAM_MODES.CAMERA && debugLog.length > 0 && (
+                <div className="mt-4 bg-gray-800 rounded-xl p-4 max-h-40 overflow-y-auto">
+                  <h4 className="text-gray-400 text-xs mb-2">Debug Log</h4>
+                  {debugLog.map((log, i) => (
+                    <div key={i} className="text-gray-500 text-xs font-mono">{log}</div>
+                  ))}
                 </div>
               )}
             </div>
@@ -1013,7 +1025,7 @@ export default function GoLivePage() {
                 </div>
               )}
 
-              {/* Stream Stats (when live with camera) */}
+              {/* Stream Stats */}
               {isLive && streamMode === STREAM_MODES.CAMERA && (
                 <div className="bg-gray-800 rounded-xl p-4">
                   <h3 className="text-white font-semibold mb-3">Stream Stats</h3>
@@ -1021,6 +1033,10 @@ export default function GoLivePage() {
                     <div className="flex justify-between">
                       <span>Data sent:</span>
                       <span>{formatBytes(bytesSent)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Chunks:</span>
+                      <span>{chunksSent}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Duration:</span>
@@ -1043,20 +1059,6 @@ export default function GoLivePage() {
           </div>
         </div>
       </div>
-
-      {/* Existing Stream Modal */}
-      {showExistingStreamModal && existingStream && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold text-white mb-4">Existing Stream</h3>
-            <p className="text-gray-300 mb-4">You have an active stream: <strong>{existingStream.title || 'Untitled'}</strong></p>
-            <div className="flex gap-3">
-              <button onClick={() => router.push(`/live/${existingStream._id}`)} className="flex-1 py-2 bg-purple-600 text-white rounded-lg">Continue</button>
-              <button onClick={cleanupExistingStream} className="flex-1 py-2 bg-gray-700 text-white rounded-lg">Start Fresh</button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
