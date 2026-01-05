@@ -1,8 +1,7 @@
 // ============================================
 // FILE: src/pages/tv.jsx
 // TV/Watch Page - Live Streams & Vlogs
-// Features: Admin pinning, Live indicators, RTMP support
-// FIXED: Viewer count display (was showing ObjectId)
+// FIXED: Auto-thumbnail from Mux, Viewer count
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -52,7 +51,6 @@ export default function TVPage() {
     try {
       const response = await api.get('/api/live/active');
       if (response.data?.streams) {
-        // Separate pinned and regular streams
         const pinned = response.data.streams.filter(s => s.isPinned);
         const regular = response.data.streams.filter(s => !s.isPinned);
         setPinnedStreams(pinned);
@@ -60,7 +58,6 @@ export default function TVPage() {
       }
     } catch (error) {
       console.log('Could not fetch live streams:', error.message);
-      // Only use demo data if no streams fetched
       setPinnedStreams([]);
       setLiveStreams([]);
     }
@@ -79,56 +76,31 @@ export default function TVPage() {
   };
 
   const handlePinStream = async (streamId, currentlyPinned) => {
-    if (!isAdmin) {
-      toast.error('Only admins can pin streams');
-      return;
-    }
-    
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      await api.post(`/api/live/${streamId}/pin`, { isPinned: !currentlyPinned }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      toast.success(currentlyPinned ? 'Stream unpinned' : 'Stream pinned to top!');
+      await api.post(`/api/live/${streamId}/pin`, 
+        { isPinned: !currentlyPinned },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(currentlyPinned ? 'Stream unpinned' : 'Stream pinned to top');
       fetchLiveStreams();
+      setShowStreamOptions(null);
     } catch (error) {
       toast.error('Failed to update pin status');
     }
-    setShowStreamOptions(null);
   };
 
-  const formatDuration = (seconds) => {
-    if (!seconds || typeof seconds !== 'number') return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // FIXED: Helper to get viewer count from various formats
   const getViewerCount = (stream) => {
-    // If viewerCount is explicitly set as a number, use it
     if (typeof stream.viewerCount === 'number') return stream.viewerCount;
-    // If viewers is an array, return its length
     if (Array.isArray(stream.viewers)) return stream.viewers.length;
-    // If viewers is a number, use it
     if (typeof stream.viewers === 'number') return stream.viewers;
-    // Default to 0
     return 0;
   };
 
-  const formatViewers = (num) => {
-    // Handle if num is an array (views array)
-    const count = Array.isArray(num) ? num.length : (typeof num === 'number' ? num : 0);
-    if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+  const formatViewers = (count) => {
+    if (count >= 1000000) return `${(count/1000000).toFixed(1)}M`;
+    if (count >= 1000) return `${(count/1000).toFixed(1)}K`;
     return count.toString();
-  };
-
-  const formatStreamTime = (date) => {
-    if (!date) return '';
-    const mins = Math.floor((Date.now() - new Date(date)) / 60000);
-    if (mins < 60) return `${mins}m`;
-    return `${Math.floor(mins / 60)}h ${mins % 60}m`;
   };
 
   const allLiveStreams = [...pinnedStreams, ...liveStreams];
@@ -136,17 +108,17 @@ export default function TVPage() {
   return (
     <>
       <Head>
-        <title>TV | CYBEV</title>
+        <title>TV - Live Streams & Vlogs | CYBEV</title>
       </Head>
 
-      <div className="min-h-screen bg-white pb-20">
+      <div className="min-h-screen bg-gray-100 pb-20">
         {/* Header */}
-        <header className="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Link href="/feed">
-                <button className="p-2 hover:bg-gray-100 rounded-full">
-                  <ArrowLeft className="w-5 h-5 text-gray-700" />
+                <button className="p-2 hover:bg-gray-100 rounded-full -ml-2">
+                  <ArrowLeft className="w-5 h-5 text-gray-600" />
                 </button>
               </Link>
               <div className="flex items-center gap-2">
@@ -265,36 +237,26 @@ export default function TVPage() {
                 <div className="text-center py-12 bg-gray-50 rounded-xl">
                   <Video className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                   <h3 className="text-gray-600 font-medium">No vlogs yet</h3>
-                  <p className="text-gray-400 text-sm mt-1">Create your first vlog!</p>
+                  <p className="text-gray-400 text-sm mt-1">Upload your first vlog</p>
                 </div>
               ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {vlogs.map(vlog => (
-                    <Link href={`/vlog/${vlog._id}`} key={vlog._id}>
+                    <Link key={vlog._id} href={`/vlog/${vlog._id}`}>
                       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition cursor-pointer">
-                        <div className="aspect-video bg-gradient-to-br from-purple-500 to-pink-500 relative">
-                          {vlog.thumbnailUrl && (
-                            <img src={vlog.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                        <div className="aspect-video bg-gray-200 relative">
+                          {vlog.thumbnail && (
+                            <img src={vlog.thumbnail} alt="" className="w-full h-full object-cover" />
                           )}
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-12 h-12 bg-white/30 backdrop-blur rounded-full flex items-center justify-center">
-                              <Play className="w-6 h-6 text-white fill-white" />
-                            </div>
+                          <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 rounded text-white text-xs">
+                            {vlog.duration || '0:00'}
                           </div>
-                          {vlog.duration && (
-                            <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/70 rounded text-white text-xs">
-                              {formatDuration(vlog.duration)}
-                            </div>
-                          )}
                         </div>
                         <div className="p-3">
-                          <h3 className="font-semibold text-gray-900 line-clamp-2">
-                            {typeof vlog.caption === 'string' ? vlog.caption : (vlog.title || 'Untitled')}
-                          </h3>
-                          <p className="text-gray-500 text-sm mt-1">
-                            {vlog.user?.name || vlog.user?.username || vlog.creator?.name || 'Unknown'}
-                          </p>
-                          <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                          <h3 className="font-semibold text-gray-900 line-clamp-2">{vlog.title}</h3>
+                          <div className="flex items-center gap-2 mt-2 text-gray-500 text-sm">
+                            <span>{vlog.author?.name}</span>
+                            <span>•</span>
                             <span className="flex items-center gap-1">
                               <Eye className="w-3 h-3" />
                               {formatViewers(vlog.viewsCount || vlog.views?.length || 0)}
@@ -355,7 +317,7 @@ export default function TVPage() {
   );
 }
 
-// Stream Card Component - FIXED viewer count display
+// Stream Card Component - FIXED: Auto-thumbnail from Mux
 function StreamCard({ stream, isAdmin, isPinned, onPin, showOptions, onToggleOptions, getViewerCount }) {
   const router = useRouter();
   
@@ -366,11 +328,30 @@ function StreamCard({ stream, isAdmin, isPinned, onPin, showOptions, onToggleOpt
     return `${Math.floor(mins / 60)}h ${mins % 60}m`;
   };
 
-  // FIXED: Get viewer count correctly
+  // Get viewer count correctly
   const viewerCount = getViewerCount ? getViewerCount(stream) : 
     (Array.isArray(stream.viewers) ? stream.viewers.length : 
     (typeof stream.viewers === 'number' ? stream.viewers : 
     (stream.viewerCount || 0)));
+
+  // FIXED: Get thumbnail with Mux fallback
+  const getThumbnail = () => {
+    // 1. Custom uploaded thumbnail
+    if (stream.thumbnail) return stream.thumbnail;
+    
+    // 2. Mux auto-generated thumbnail from playbackUrls
+    if (stream.playbackUrls?.thumbnail) return stream.playbackUrls.thumbnail;
+    
+    // 3. Generate from Mux playback ID
+    if (stream.muxPlaybackId) {
+      return `https://image.mux.com/${stream.muxPlaybackId}/thumbnail.jpg?time=5`;
+    }
+    
+    // 4. No thumbnail available
+    return null;
+  };
+
+  const thumbnailUrl = getThumbnail();
 
   return (
     <div 
@@ -379,10 +360,26 @@ function StreamCard({ stream, isAdmin, isPinned, onPin, showOptions, onToggleOpt
       }`}
       onClick={() => router.push(`/live/${stream._id}`)}
     >
-      {/* Thumbnail */}
+      {/* Thumbnail - FIXED: Now uses Mux auto-thumbnail */}
       <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 relative">
-        {stream.thumbnail && (
-          <img src={stream.thumbnail} alt="" className="w-full h-full object-cover" />
+        {thumbnailUrl ? (
+          <img 
+            src={thumbnailUrl} 
+            alt={stream.title || 'Live Stream'} 
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback if thumbnail fails to load
+              e.target.style.display = 'none';
+            }}
+          />
+        ) : (
+          // Animated placeholder for streams without thumbnail
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <Radio className="w-8 h-8 text-red-500 animate-pulse mx-auto" />
+              <span className="text-gray-400 text-xs mt-1 block">Live</span>
+            </div>
+          </div>
         )}
         
         {/* Live Badge */}
@@ -399,7 +396,7 @@ function StreamCard({ stream, isAdmin, isPinned, onPin, showOptions, onToggleOpt
           )}
         </div>
         
-        {/* Viewers - FIXED: Now shows count instead of ObjectId */}
+        {/* Viewers */}
         <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-black/50 rounded text-white text-xs">
           <Eye className="w-3 h-3" />
           {viewerCount}
@@ -433,12 +430,6 @@ function StreamCard({ stream, isAdmin, isPinned, onPin, showOptions, onToggleOpt
                 <button className="w-full px-3 py-2 text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2 text-sm">
                   <Flag className="w-4 h-4" />
                   Report
-                </button>
-                <button className="w-full px-3 py-2 text-left text-red-600 hover:bg-gray-50 flex items-center gap-2 text-sm">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  End Stream
                 </button>
               </div>
             )}
