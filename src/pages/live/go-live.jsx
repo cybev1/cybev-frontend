@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/live/go-live.jsx
-// Facebook Live-Style Streaming - Camera + OBS Support
-// FIXED: OBS preview loading, WebRTC status checking
+// Mobile-First Live Streaming - Camera to Mux via WebRTC
+// FULL IMPLEMENTATION: Device camera → WebSocket → FFmpeg → Mux RTMP
 // ============================================
 
 import { useState, useEffect, useRef } from 'react';
@@ -9,13 +9,12 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Script from 'next/script';
+import io from 'socket.io-client';
 import { 
-  ArrowLeft, Radio, Video, Mic, MicOff, VideoOff, Settings, Users, 
-  MessageCircle, Share2, X, Loader2, Copy, ExternalLink, Camera,
-  Monitor, Smartphone, RefreshCw, ChevronDown, Eye, Clock, Heart,
-  Zap, Globe, Lock, CheckCircle, AlertCircle, Wifi, WifiOff,
-  RotateCcw, SwitchCamera, Sparkles, Play, Key, Server, EyeOff,
-  Upload, Trash2, StopCircle
+  ArrowLeft, Radio, Video, Mic, MicOff, VideoOff, Users, 
+  Loader2, Copy, Camera, Monitor, RefreshCw, Eye, Clock,
+  Globe, Lock, CheckCircle, AlertCircle, SwitchCamera, 
+  Key, Server, EyeOff, Upload, Trash2, StopCircle, Wifi, WifiOff
 } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'react-toastify';
@@ -27,11 +26,22 @@ const PRIVACY_OPTIONS = [
   { value: 'private', label: 'Private', icon: Lock, desc: 'Only you can watch' }
 ];
 
+// Connection states
+const CONNECTION_STATES = {
+  IDLE: 'idle',
+  CONNECTING: 'connecting',
+  CONNECTED: 'connected',
+  STREAMING: 'streaming',
+  ERROR: 'error'
+};
+
 export default function GoLivePage() {
   const router = useRouter();
   const videoRef = useRef(null);
   const previewVideoRef = useRef(null);
   const mediaStreamRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const socketRef = useRef(null);
   const hlsRef = useRef(null);
   
   const [user, setUser] = useState(null);
@@ -61,16 +71,19 @@ export default function GoLivePage() {
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const thumbnailInputRef = useRef(null);
   
-  // OBS
+  // OBS Mode
   const [streamCredentials, setStreamCredentials] = useState(null);
   const [showStreamKey, setShowStreamKey] = useState(false);
   const [generatingCredentials, setGeneratingCredentials] = useState(false);
   const [obsConnected, setObsConnected] = useState(false);
   const [obsPreviewReady, setObsPreviewReady] = useState(false);
-  const [muxStreamStatus, setMuxStreamStatus] = useState('idle'); // idle, active, disconnected
+  const [hlsLoaded, setHlsLoaded] = useState(false);
   
-  // WebRTC
-  const [webrtcSupported, setWebrtcSupported] = useState(false);
+  // WebRTC Camera Mode
+  const [connectionState, setConnectionState] = useState(CONNECTION_STATES.IDLE);
+  const [rtmpUrl, setRtmpUrl] = useState(null);
+  const [bytesSent, setBytesSent] = useState(0);
+  const [streamStats, setStreamStats] = useState(null);
   
   // Stats
   const [viewerCount, setViewerCount] = useState(0);
@@ -79,20 +92,21 @@ export default function GoLivePage() {
   const [existingStream, setExistingStream] = useState(null);
   const [showExistingStreamModal, setShowExistingStreamModal] = useState(false);
 
-  // HLS.js loaded state
-  const [hlsLoaded, setHlsLoaded] = useState(false);
-
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
       setUser(JSON.parse(userData));
       checkExistingStream();
-      checkWebRTCSupport();
     } else {
       router.push('/auth/login');
     }
     enumerateDevices();
-    return () => { stopCamera(); destroyHls(); };
+    
+    return () => {
+      stopCamera();
+      disconnectWebSocket();
+      destroyHls();
+    };
   }, []);
 
   // Camera mode - start camera
@@ -102,6 +116,7 @@ export default function GoLivePage() {
       return () => clearTimeout(timer);
     } else if (streamMode === STREAM_MODES.SOFTWARE) {
       stopCamera();
+      disconnectWebSocket();
     }
   }, [streamMode, selectedCamera, selectedMic]);
 
@@ -118,9 +133,7 @@ export default function GoLivePage() {
   useEffect(() => {
     let interval;
     if (streamMode === STREAM_MODES.SOFTWARE && streamCredentials && !isLive) {
-      // Check immediately
       checkOBSConnection();
-      // Then poll every 3 seconds
       interval = setInterval(checkOBSConnection, 3000);
     }
     return () => clearInterval(interval);
@@ -134,17 +147,6 @@ export default function GoLivePage() {
     }
     return () => clearInterval(interval);
   }, [isLive, streamId]);
-
-  const checkWebRTCSupport = async () => {
-    try {
-      const response = await api.get('/api/webrtc/status');
-      console.log('WebRTC status:', response.data);
-      setWebrtcSupported(response.data?.webrtc?.available || false);
-    } catch (error) {
-      console.log('WebRTC not available:', error.message);
-      setWebrtcSupported(false);
-    }
-  };
 
   const destroyHls = () => {
     if (hlsRef.current) {
@@ -175,7 +177,7 @@ export default function GoLivePage() {
     } catch {}
   };
 
-  // Thumbnail
+  // Thumbnail handling
   const handleThumbnailSelect = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -205,126 +207,6 @@ export default function GoLivePage() {
     } catch { return null; }
   };
 
-  // Generate OBS credentials
-  const generateStreamCredentials = async () => {
-    setGeneratingCredentials(true);
-    try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      const response = await api.post('/api/live/generate-key', {
-        keyType: 'one-time',
-        title: title || 'My Stream'
-      }, { headers: { Authorization: `Bearer ${token}` } });
-
-      console.log('Generated credentials:', response.data);
-
-      if (response.data?.success) {
-        setStreamCredentials({
-          streamKey: response.data.streamKey,
-          rtmpUrl: response.data.rtmpUrl || 'rtmps://global-live.mux.com:443/app',
-          playbackId: response.data.playbackId,
-          muxStreamId: response.data.muxStreamId,
-          streamId: response.data.streamId
-        });
-        setStreamId(response.data.streamId);
-        toast.success('Stream credentials generated! Copy them to OBS.');
-      }
-    } catch (error) {
-      console.error('Generate credentials error:', error);
-      toast.error(error.response?.data?.error || 'Failed to generate credentials');
-    }
-    setGeneratingCredentials(false);
-  };
-
-  // Check if OBS is connected to Mux
-  const checkOBSConnection = async () => {
-    if (!streamCredentials?.muxStreamId || isLive) return;
-    
-    try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      const response = await api.get(`/api/live/check-connection/${streamCredentials.muxStreamId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      console.log('OBS connection check:', response.data);
-      
-      const connected = response.data?.connected;
-      const status = response.data?.status || 'idle';
-      
-      setObsConnected(connected);
-      setMuxStreamStatus(status);
-      
-      // Only try to initialize HLS if connected and HLS.js is loaded
-      if (connected && !obsPreviewReady && hlsLoaded) {
-        console.log('OBS connected, initializing preview...');
-        initializeHLSPreview(streamCredentials.playbackId);
-      }
-    } catch (error) {
-      console.log('Connection check error:', error.message);
-    }
-  };
-
-  // Initialize HLS preview for OBS
-  const initializeHLSPreview = (playbackId) => {
-    if (!playbackId || !previewVideoRef.current) {
-      console.log('Cannot init HLS: missing playbackId or video ref');
-      return;
-    }
-    
-    if (typeof window === 'undefined' || !window.Hls) {
-      console.log('HLS.js not loaded yet');
-      return;
-    }
-
-    const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
-    console.log('Initializing HLS preview:', hlsUrl);
-
-    const Hls = window.Hls;
-    
-    if (Hls.isSupported()) {
-      // Destroy existing instance
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-      }
-
-      const hls = new Hls({
-        enableWorker: true,
-        lowLatencyMode: true,
-        backBufferLength: 90
-      });
-
-      hls.loadSource(hlsUrl);
-      hls.attachMedia(previewVideoRef.current);
-
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        console.log('✅ HLS Preview loaded successfully');
-        setObsPreviewReady(true);
-        previewVideoRef.current?.play().catch(e => console.log('Autoplay prevented:', e));
-      });
-
-      hls.on(Hls.Events.ERROR, (event, data) => {
-        console.log('HLS error:', data.type, data.details);
-        if (data.fatal) {
-          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-            console.log('Network error - stream may not be ready yet');
-            // Retry after delay
-            setTimeout(() => hls.startLoad(), 3000);
-          } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-            hls.recoverMediaError();
-          }
-        }
-      });
-
-      hlsRef.current = hls;
-    } else if (previewVideoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
-      // Safari native
-      previewVideoRef.current.src = hlsUrl;
-      previewVideoRef.current.addEventListener('loadedmetadata', () => {
-        setObsPreviewReady(true);
-        previewVideoRef.current?.play().catch(() => {});
-      });
-    }
-  };
-
   // Camera functions
   const startCamera = async () => {
     setCameraError('');
@@ -335,9 +217,9 @@ export default function GoLivePage() {
       
       const constraints = {
         video: selectedCamera 
-          ? { deviceId: { exact: selectedCamera }, width: { ideal: 1280 }, height: { ideal: 720 } }
-          : { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode },
-        audio: selectedMic ? { deviceId: { exact: selectedMic } } : true
+          ? { deviceId: { exact: selectedCamera }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } }
+          : { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode, frameRate: { ideal: 30 } },
+        audio: selectedMic ? { deviceId: { exact: selectedMic }, echoCancellation: true, noiseSuppression: true } : { echoCancellation: true, noiseSuppression: true }
       };
       
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -355,13 +237,20 @@ export default function GoLivePage() {
       let errorMsg = 'Unable to access camera';
       if (error.name === 'NotAllowedError') errorMsg = 'Camera permission denied';
       else if (error.name === 'NotFoundError') errorMsg = 'No camera found';
-      else if (error.name === 'NotReadableError') errorMsg = 'Camera in use';
+      else if (error.name === 'NotReadableError') errorMsg = 'Camera in use by another app';
       setCameraError(errorMsg);
       return false;
     }
   };
 
   const stopCamera = () => {
+    // Stop MediaRecorder
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current = null;
+    }
+    
+    // Stop camera stream
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach(track => track.stop());
       mediaStreamRef.current = null;
@@ -369,19 +258,235 @@ export default function GoLivePage() {
     if (videoRef.current) videoRef.current.srcObject = null;
   };
 
-  const switchCamera = () => setFacingMode(facingMode === 'user' ? 'environment' : 'user');
-  
+  const switchCamera = async () => {
+    const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
+    setFacingMode(newFacingMode);
+    
+    // If currently streaming, we need to restart with new camera
+    if (isLive && mediaRecorderRef.current) {
+      await startCamera();
+      startMediaRecorder();
+    }
+  };
+
   const toggleVideo = () => {
     if (mediaStreamRef.current) {
       const track = mediaStreamRef.current.getVideoTracks()[0];
       if (track) { track.enabled = !videoEnabled; setVideoEnabled(!videoEnabled); }
     }
   };
-  
+
   const toggleAudio = () => {
     if (mediaStreamRef.current) {
       const track = mediaStreamRef.current.getAudioTracks()[0];
       if (track) { track.enabled = !audioEnabled; setAudioEnabled(!audioEnabled); }
+    }
+  };
+
+  // WebSocket connection for video streaming
+  const connectWebSocket = (newStreamId, newRtmpUrl) => {
+    return new Promise((resolve, reject) => {
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
+      const wsUrl = apiUrl.replace('https', 'wss').replace('http', 'ws');
+      
+      console.log('🔌 Connecting WebSocket to:', wsUrl);
+      setConnectionState(CONNECTION_STATES.CONNECTING);
+      
+      const socket = io(`${wsUrl}/webrtc`, {
+        transports: ['websocket'],
+        auth: { token }
+      });
+      
+      socket.on('connect', () => {
+        console.log('✅ WebSocket connected');
+        socket.emit('authenticate', { 
+          token, 
+          streamId: newStreamId,
+          rtmpUrl: newRtmpUrl
+        });
+      });
+      
+      socket.on('authenticated', (data) => {
+        console.log('✅ WebSocket authenticated:', data);
+        socketRef.current = socket;
+        setConnectionState(CONNECTION_STATES.CONNECTED);
+        resolve(socket);
+      });
+      
+      socket.on('streaming-started', (data) => {
+        console.log('🎬 Streaming started:', data);
+        setConnectionState(CONNECTION_STATES.STREAMING);
+      });
+      
+      socket.on('rtmp-connected', (data) => {
+        console.log('📡 RTMP connected:', data);
+        toast.success('Connected to streaming server!');
+      });
+      
+      socket.on('stats', (stats) => {
+        setStreamStats(stats);
+      });
+      
+      socket.on('error', (error) => {
+        console.error('❌ WebSocket error:', error);
+        setConnectionState(CONNECTION_STATES.ERROR);
+        toast.error(error.message || 'Streaming error');
+        reject(new Error(error.message));
+      });
+      
+      socket.on('stream-ended', (data) => {
+        console.log('🛑 Stream ended:', data);
+        setConnectionState(CONNECTION_STATES.IDLE);
+      });
+      
+      socket.on('disconnect', () => {
+        console.log('🔌 WebSocket disconnected');
+        if (isLive) {
+          setConnectionState(CONNECTION_STATES.ERROR);
+        }
+      });
+      
+      // Timeout
+      setTimeout(() => {
+        if (!socketRef.current) {
+          reject(new Error('Connection timeout'));
+        }
+      }, 15000);
+    });
+  };
+
+  const disconnectWebSocket = () => {
+    if (socketRef.current) {
+      socketRef.current.emit('stop-streaming');
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+    setConnectionState(CONNECTION_STATES.IDLE);
+  };
+
+  // MediaRecorder for capturing video
+  const startMediaRecorder = () => {
+    if (!mediaStreamRef.current || !socketRef.current) {
+      console.error('Cannot start MediaRecorder: missing stream or socket');
+      return;
+    }
+
+    const options = {
+      mimeType: 'video/webm;codecs=vp8,opus',
+      videoBitsPerSecond: 2500000, // 2.5 Mbps
+      audioBitsPerSecond: 128000   // 128 kbps
+    };
+
+    // Check supported mime types
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+      options.mimeType = 'video/webm';
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options.mimeType = 'video/mp4';
+      }
+    }
+
+    console.log('🎥 Starting MediaRecorder with:', options.mimeType);
+
+    const recorder = new MediaRecorder(mediaStreamRef.current, options);
+    mediaRecorderRef.current = recorder;
+
+    recorder.ondataavailable = (event) => {
+      if (event.data && event.data.size > 0 && socketRef.current) {
+        // Convert blob to ArrayBuffer and send
+        event.data.arrayBuffer().then(buffer => {
+          if (socketRef.current && socketRef.current.connected) {
+            socketRef.current.emit('video-data', buffer);
+            setBytesSent(prev => prev + event.data.size);
+          }
+        });
+      }
+    };
+
+    recorder.onerror = (error) => {
+      console.error('MediaRecorder error:', error);
+      toast.error('Recording error');
+    };
+
+    recorder.onstart = () => {
+      console.log('🎬 MediaRecorder started');
+      // Tell server to start FFmpeg
+      socketRef.current.emit('start-streaming');
+    };
+
+    recorder.onstop = () => {
+      console.log('🛑 MediaRecorder stopped');
+    };
+
+    // Start recording with timeslice (send data every 1 second)
+    recorder.start(1000);
+  };
+
+  const stopMediaRecorder = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current = null;
+    }
+  };
+
+  // OBS Mode functions
+  const generateStreamCredentials = async () => {
+    setGeneratingCredentials(true);
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      const response = await api.post('/api/live/generate-key', {
+        keyType: 'one-time',
+        title: title || 'My Stream'
+      }, { headers: { Authorization: `Bearer ${token}` } });
+
+      if (response.data?.success) {
+        setStreamCredentials({
+          streamKey: response.data.streamKey,
+          rtmpUrl: response.data.rtmpUrl || 'rtmps://global-live.mux.com:443/app',
+          playbackId: response.data.playbackId,
+          muxStreamId: response.data.muxStreamId,
+          streamId: response.data.streamId
+        });
+        setStreamId(response.data.streamId);
+        toast.success('Stream credentials generated!');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to generate credentials');
+    }
+    setGeneratingCredentials(false);
+  };
+
+  const checkOBSConnection = async () => {
+    if (!streamCredentials?.muxStreamId || isLive) return;
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      const response = await api.get(`/api/live/check-connection/${streamCredentials.muxStreamId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const connected = response.data?.connected;
+      setObsConnected(connected);
+      if (connected && !obsPreviewReady && hlsLoaded) {
+        initializeHLSPreview(streamCredentials.playbackId);
+      }
+    } catch {}
+  };
+
+  const initializeHLSPreview = (playbackId) => {
+    if (!playbackId || !previewVideoRef.current || !window.Hls) return;
+    
+    const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
+    const Hls = window.Hls;
+    
+    if (Hls.isSupported()) {
+      if (hlsRef.current) hlsRef.current.destroy();
+      const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+      hls.loadSource(hlsUrl);
+      hls.attachMedia(previewVideoRef.current);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        setObsPreviewReady(true);
+        previewVideoRef.current?.play().catch(() => {});
+      });
+      hlsRef.current = hls;
     }
   };
 
@@ -396,19 +501,78 @@ export default function GoLivePage() {
     } catch {}
   };
 
-  // Go Live
-  const goLive = async () => {
+  // GO LIVE - Camera Mode
+  const goLiveCamera = async () => {
     if (!title.trim()) {
       toast.error('Please enter a title');
       return;
     }
 
-    if (streamMode === STREAM_MODES.CAMERA && !mediaStreamRef.current) {
+    if (!mediaStreamRef.current) {
       toast.error('Camera not available');
       return;
     }
 
-    if (streamMode === STREAM_MODES.SOFTWARE && !obsConnected) {
+    setLoading(true);
+    
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+      let thumbnailUrl = thumbnail ? await uploadThumbnail() : null;
+
+      // Step 1: Create stream and get RTMP credentials
+      const response = await api.post('/api/webrtc/start-stream', {
+        title,
+        description,
+        privacy
+      }, { headers: { Authorization: `Bearer ${token}` } });
+
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || 'Failed to create stream');
+      }
+
+      const { streamId: newStreamId, rtmpUrl: newRtmpUrl, playbackUrl } = response.data;
+      setStreamId(newStreamId);
+      setRtmpUrl(newRtmpUrl);
+
+      console.log('📺 Stream created:', newStreamId);
+      console.log('📡 RTMP URL:', newRtmpUrl);
+
+      // Step 2: Connect WebSocket
+      await connectWebSocket(newStreamId, newRtmpUrl);
+
+      // Step 3: Start MediaRecorder to capture and send video
+      startMediaRecorder();
+
+      // Step 4: Update thumbnail if uploaded
+      if (thumbnailUrl) {
+        await api.put(`/api/live/${newStreamId}`, { thumbnail: thumbnailUrl }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+
+      setIsLive(true);
+      setStreamDuration(0);
+      setBytesSent(0);
+      toast.success('🔴 You are now LIVE!');
+
+    } catch (error) {
+      console.error('Go live error:', error);
+      toast.error(error.message || 'Failed to start stream');
+      disconnectWebSocket();
+      setConnectionState(CONNECTION_STATES.ERROR);
+    }
+    
+    setLoading(false);
+  };
+
+  // GO LIVE - OBS Mode
+  const goLiveOBS = async () => {
+    if (!title.trim()) {
+      toast.error('Please enter a title');
+      return;
+    }
+
+    if (!obsConnected) {
       toast.error('Please connect OBS first');
       return;
     }
@@ -419,64 +583,73 @@ export default function GoLivePage() {
       const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
       let thumbnailUrl = thumbnail ? await uploadThumbnail() : null;
 
-      if (streamMode === STREAM_MODES.SOFTWARE && streamId) {
-        // Activate existing OBS stream
-        const response = await api.post(`/api/live/${streamId}/activate`, {
-          title,
-          description,
-          privacy,
-          thumbnail: thumbnailUrl,
-          postToFeed: true
-        }, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await api.post(`/api/live/${streamId}/activate`, {
+        title,
+        description,
+        privacy,
+        thumbnail: thumbnailUrl,
+        postToFeed: true
+      }, { headers: { Authorization: `Bearer ${token}` } });
 
-        if (response.data?.success) {
-          setIsLive(true);
-          setStreamDuration(0);
-          toast.success('🔴 You are now LIVE!');
-        }
-      } else {
-        // Camera mode - create new stream
-        const response = await api.post('/api/live/start', {
-          title,
-          description,
-          streamType: 'camera',
-          privacy,
-          thumbnail: thumbnailUrl,
-          postToFeed: true
-        }, { headers: { Authorization: `Bearer ${token}` } });
-
-        if (response.data?.success) {
-          setStreamId(response.data.streamId);
-          setIsLive(true);
-          setStreamDuration(0);
-          toast.info('Stream started! Note: Device camera streaming is in preview mode.');
-        }
+      if (response.data?.success) {
+        setIsLive(true);
+        setStreamDuration(0);
+        toast.success('🔴 You are now LIVE!');
       }
     } catch (error) {
-      console.error('Go live error:', error);
       toast.error(error.response?.data?.error || 'Failed to start stream');
     }
     
     setLoading(false);
   };
 
+  // GO LIVE handler
+  const goLive = async () => {
+    if (streamMode === STREAM_MODES.CAMERA) {
+      await goLiveCamera();
+    } else {
+      await goLiveOBS();
+    }
+  };
+
   // End Stream
   const endStream = async () => {
-    if (!streamId) return;
     setLoading(true);
     
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      await api.post(`/api/live/${streamId}/end`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      // Stop MediaRecorder first
+      stopMediaRecorder();
+      
+      // Disconnect WebSocket
+      disconnectWebSocket();
+      
+      // Stop camera
+      stopCamera();
+      
+      // API call to end stream
+      if (streamId) {
+        const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+        
+        if (streamMode === STREAM_MODES.CAMERA) {
+          await api.post(`/api/webrtc/stop-stream/${streamId}`, {}, { 
+            headers: { Authorization: `Bearer ${token}` } 
+          });
+        } else {
+          await api.post(`/api/live/${streamId}/end`, {}, { 
+            headers: { Authorization: `Bearer ${token}` } 
+          });
+        }
+      }
       
       setIsLive(false);
-      stopCamera();
       toast.success('Stream ended! Recording will be available soon.');
       
       setTimeout(() => router.push('/tv'), 2000);
     } catch (error) {
-      toast.error('Failed to end stream');
+      console.error('End stream error:', error);
+      toast.error('Failed to end stream properly');
     }
+    
     setLoading(false);
   };
 
@@ -506,6 +679,33 @@ export default function GoLivePage() {
       : `${m}:${sec.toString().padStart(2, '0')}`;
   };
 
+  const formatBytes = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+  };
+
+  // Connection status indicator
+  const ConnectionStatus = () => {
+    const states = {
+      [CONNECTION_STATES.IDLE]: { color: 'gray', text: 'Not connected', icon: WifiOff },
+      [CONNECTION_STATES.CONNECTING]: { color: 'yellow', text: 'Connecting...', icon: Wifi },
+      [CONNECTION_STATES.CONNECTED]: { color: 'blue', text: 'Connected', icon: Wifi },
+      [CONNECTION_STATES.STREAMING]: { color: 'green', text: 'Streaming', icon: Radio },
+      [CONNECTION_STATES.ERROR]: { color: 'red', text: 'Error', icon: AlertCircle }
+    };
+    
+    const state = states[connectionState] || states[CONNECTION_STATES.IDLE];
+    const Icon = state.icon;
+    
+    return (
+      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm bg-${state.color}-500/20 text-${state.color}-400`}>
+        <Icon className="w-4 h-4" />
+        <span>{state.text}</span>
+      </div>
+    );
+  };
+
   return (
     <>
       <Head>
@@ -515,10 +715,7 @@ export default function GoLivePage() {
       <Script
         src="https://cdn.jsdelivr.net/npm/hls.js@latest"
         strategy="beforeInteractive"
-        onLoad={() => {
-          console.log('✅ HLS.js loaded');
-          setHlsLoaded(true);
-        }}
+        onLoad={() => setHlsLoaded(true)}
       />
 
       <div className="min-h-screen bg-gray-900">
@@ -546,6 +743,9 @@ export default function GoLivePage() {
               <div className="flex items-center gap-4 text-white text-sm">
                 <div className="flex items-center gap-1"><Eye className="w-4 h-4" />{viewerCount}</div>
                 <div className="flex items-center gap-1"><Clock className="w-4 h-4" />{formatDuration(streamDuration)}</div>
+                {streamMode === STREAM_MODES.CAMERA && (
+                  <div className="text-gray-400">{formatBytes(bytesSent)} sent</div>
+                )}
               </div>
             )}
           </div>
@@ -567,11 +767,9 @@ export default function GoLivePage() {
                         : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                     }`}
                   >
-                    <Smartphone className="w-5 h-5" />
+                    <Camera className="w-5 h-5" />
                     Device Camera
-                    {webrtcSupported && (
-                      <span className="px-1.5 py-0.5 bg-green-500/20 text-green-400 text-xs rounded">Ready</span>
-                    )}
+                    <span className="px-1.5 py-0.5 bg-green-500/20 text-green-400 text-xs rounded">Mobile</span>
                   </button>
                   <button
                     onClick={() => setStreamMode(STREAM_MODES.SOFTWARE)}
@@ -597,6 +795,7 @@ export default function GoLivePage() {
                       playsInline
                       muted
                       className={`w-full h-full object-cover ${!videoEnabled ? 'hidden' : ''}`}
+                      style={{ transform: facingMode === 'user' ? 'scaleX(-1)' : 'none' }}
                     />
                     
                     {!videoEnabled && (
@@ -615,6 +814,23 @@ export default function GoLivePage() {
                             <button onClick={() => setStreamMode(STREAM_MODES.SOFTWARE)} className="px-4 py-2 bg-gray-700 text-white rounded-lg">Use OBS</button>
                           </div>
                         </div>
+                      </div>
+                    )}
+                    
+                    {/* Live indicator */}
+                    {isLive && (
+                      <div className="absolute top-4 left-4">
+                        <span className="px-3 py-1.5 bg-red-500 text-white text-sm font-bold rounded-lg flex items-center gap-2">
+                          <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                          LIVE
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* Connection status */}
+                    {isLive && (
+                      <div className="absolute top-4 right-4">
+                        <ConnectionStatus />
                       </div>
                     )}
                     
@@ -657,35 +873,19 @@ export default function GoLivePage() {
                             <>
                               <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-3" />
                               <p className="text-white mb-2">Loading preview...</p>
-                              <p className="text-gray-400 text-sm">OBS is connected, loading video feed...</p>
                             </>
                           ) : (
                             <>
                               <Server className="w-12 h-12 text-gray-500 mx-auto mb-3" />
-                              <p className="text-white mb-2">Waiting for OBS connection...</p>
-                              <p className="text-gray-400 text-sm mb-2">Copy credentials below and paste in OBS</p>
-                              <p className="text-yellow-400 text-xs">Status: {muxStreamStatus}</p>
+                              <p className="text-white mb-2">Waiting for OBS...</p>
+                              <p className="text-gray-400 text-sm">Start streaming in OBS</p>
                             </>
                           )}
                         </div>
                       </div>
                     )}
-                    
-                    {/* Hidden video for HLS */}
-                    {!obsPreviewReady && (
-                      <video ref={previewVideoRef} className="hidden" />
-                    )}
+                    <video ref={previewVideoRef} className={obsPreviewReady ? '' : 'hidden'} />
                   </>
-                )}
-                
-                {/* Live indicator */}
-                {isLive && (
-                  <div className="absolute top-4 left-4">
-                    <span className="px-3 py-1.5 bg-red-500 text-white text-sm font-bold rounded-lg flex items-center gap-2">
-                      <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                      LIVE
-                    </span>
-                  </div>
                 )}
               </div>
 
@@ -693,8 +893,7 @@ export default function GoLivePage() {
               {streamMode === STREAM_MODES.SOFTWARE && !isLive && (
                 <div className="mt-4 bg-gray-800 rounded-xl p-4">
                   <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-                    <Key className="w-5 h-5" />
-                    Stream Credentials
+                    <Key className="w-5 h-5" />Stream Credentials
                   </h3>
                   
                   {streamCredentials ? (
@@ -703,7 +902,7 @@ export default function GoLivePage() {
                         <label className="text-gray-400 text-sm">Server URL</label>
                         <div className="flex items-center gap-2 mt-1">
                           <input type="text" value={streamCredentials.rtmpUrl} readOnly className="flex-1 px-3 py-2 bg-gray-700 text-white rounded-lg text-sm" />
-                          <button onClick={() => copyToClipboard(streamCredentials.rtmpUrl, 'URL')} className="p-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600">
+                          <button onClick={() => copyToClipboard(streamCredentials.rtmpUrl, 'URL')} className="p-2 bg-gray-700 text-white rounded-lg">
                             <Copy className="w-4 h-4" />
                           </button>
                         </div>
@@ -713,29 +912,18 @@ export default function GoLivePage() {
                         <label className="text-gray-400 text-sm">Stream Key</label>
                         <div className="flex items-center gap-2 mt-1">
                           <input type={showStreamKey ? 'text' : 'password'} value={streamCredentials.streamKey} readOnly className="flex-1 px-3 py-2 bg-gray-700 text-white rounded-lg text-sm font-mono" />
-                          <button onClick={() => setShowStreamKey(!showStreamKey)} className="p-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600">
+                          <button onClick={() => setShowStreamKey(!showStreamKey)} className="p-2 bg-gray-700 text-white rounded-lg">
                             {showStreamKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
-                          <button onClick={() => copyToClipboard(streamCredentials.streamKey, 'Key')} className="p-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600">
+                          <button onClick={() => copyToClipboard(streamCredentials.streamKey, 'Key')} className="p-2 bg-gray-700 text-white rounded-lg">
                             <Copy className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
                       
-                      {/* Connection status */}
                       <div className={`flex items-center gap-2 p-3 rounded-lg ${obsConnected ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                        {obsConnected ? (
-                          <><CheckCircle className="w-5 h-5" />OBS Connected - Ready to go live!</>
-                        ) : (
-                          <><AlertCircle className="w-5 h-5" />Waiting for OBS... Start streaming in OBS to continue</>
-                        )}
-                      </div>
-                      
-                      {/* Debug info */}
-                      <div className="text-xs text-gray-500">
-                        Playback ID: {streamCredentials.playbackId || 'N/A'} | 
-                        Status: {muxStreamStatus} | 
-                        HLS.js: {hlsLoaded ? 'Ready' : 'Loading'}
+                        {obsConnected ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+                        {obsConnected ? 'OBS Connected!' : 'Waiting for OBS...'}
                       </div>
                     </div>
                   ) : (
@@ -759,29 +947,12 @@ export default function GoLivePage() {
                 
                 <div className="mb-4">
                   <label className="text-gray-400 text-sm">Title *</label>
-                  <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Stream title" disabled={isLive} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50" />
+                  <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What's this stream about?" disabled={isLive} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50" />
                 </div>
                 
                 <div className="mb-4">
                   <label className="text-gray-400 text-sm">Description</label>
-                  <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" disabled={isLive} rows={3} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 resize-none" />
-                </div>
-                
-                <div className="mb-4">
-                  <label className="text-gray-400 text-sm">Privacy</label>
-                  <div className="relative mt-1">
-                    <button onClick={() => !isLive && setShowPrivacyDropdown(!showPrivacyDropdown)} disabled={isLive} className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg flex items-center justify-between disabled:opacity-50">
-                      <span>{PRIVACY_OPTIONS.find(p => p.value === privacy)?.label}</span>
-                      <ChevronDown className="w-4 h-4" />
-                    </button>
-                    {showPrivacyDropdown && (
-                      <div className="absolute z-10 w-full mt-1 bg-gray-700 rounded-lg shadow-lg overflow-hidden">
-                        {PRIVACY_OPTIONS.map(o => (
-                          <button key={o.value} onClick={() => { setPrivacy(o.value); setShowPrivacyDropdown(false); }} className="w-full px-3 py-2 text-left text-white hover:bg-gray-600">{o.label}</button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Tell viewers more..." disabled={isLive} rows={3} className="w-full mt-1 px-3 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 resize-none" />
                 </div>
                 
                 {!isLive && (
@@ -812,7 +983,11 @@ export default function GoLivePage() {
                   {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <><StopCircle className="w-6 h-6" />End Stream</>}
                 </button>
               ) : (
-                <button onClick={goLive} disabled={loading || !title.trim() || (streamMode === STREAM_MODES.SOFTWARE && !obsConnected)} className="w-full py-4 bg-red-600 text-white rounded-xl font-bold text-lg hover:bg-red-700 disabled:opacity-50 flex items-center justify-center gap-2">
+                <button 
+                  onClick={goLive} 
+                  disabled={loading || !title.trim() || (streamMode === STREAM_MODES.SOFTWARE && !obsConnected) || (streamMode === STREAM_MODES.CAMERA && !mediaStreamRef.current)} 
+                  className="w-full py-4 bg-red-600 text-white rounded-xl font-bold text-lg hover:bg-red-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
                   {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <><Radio className="w-6 h-6" />Go Live</>}
                 </button>
               )}
@@ -820,7 +995,7 @@ export default function GoLivePage() {
               {/* Checklist */}
               {!isLive && (
                 <div className="bg-gray-800 rounded-xl p-4">
-                  <h3 className="text-white font-semibold mb-3">Ready?</h3>
+                  <h3 className="text-white font-semibold mb-3">Checklist</h3>
                   <div className="space-y-2 text-sm">
                     <div className={title.trim() ? 'text-green-400' : 'text-gray-400'}>
                       {title.trim() ? <CheckCircle className="w-4 h-4 inline mr-2" /> : '○ '}Title added
@@ -834,7 +1009,33 @@ export default function GoLivePage() {
                         {obsConnected ? <CheckCircle className="w-4 h-4 inline mr-2" /> : '○ '}OBS connected
                       </div>
                     )}
-                    <div className="text-blue-400"><Sparkles className="w-4 h-4 inline mr-2" />Posts to feed</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Stream Stats (when live with camera) */}
+              {isLive && streamMode === STREAM_MODES.CAMERA && (
+                <div className="bg-gray-800 rounded-xl p-4">
+                  <h3 className="text-white font-semibold mb-3">Stream Stats</h3>
+                  <div className="space-y-2 text-sm text-gray-300">
+                    <div className="flex justify-between">
+                      <span>Data sent:</span>
+                      <span>{formatBytes(bytesSent)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Duration:</span>
+                      <span>{formatDuration(streamDuration)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Viewers:</span>
+                      <span>{viewerCount}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Status:</span>
+                      <span className={connectionState === CONNECTION_STATES.STREAMING ? 'text-green-400' : 'text-yellow-400'}>
+                        {connectionState}
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -848,7 +1049,7 @@ export default function GoLivePage() {
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full">
             <h3 className="text-xl font-bold text-white mb-4">Existing Stream</h3>
-            <p className="text-gray-300 mb-4">Active stream: <strong>{existingStream.title || 'Untitled'}</strong></p>
+            <p className="text-gray-300 mb-4">You have an active stream: <strong>{existingStream.title || 'Untitled'}</strong></p>
             <div className="flex gap-3">
               <button onClick={() => router.push(`/live/${existingStream._id}`)} className="flex-1 py-2 bg-purple-600 text-white rounded-lg">Continue</button>
               <button onClick={cleanupExistingStream} className="flex-1 py-2 bg-gray-700 text-white rounded-lg">Start Fresh</button>
