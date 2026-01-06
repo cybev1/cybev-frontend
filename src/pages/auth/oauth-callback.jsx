@@ -26,7 +26,9 @@ export default function OAuthCallback() {
       if (error) {
         setStatus('error');
         setMessage(decodeURIComponent(errorMessage || 'Authentication failed'));
-        toast.error('Sign in failed');
+        if (toast?.error) {
+          toast.error('Sign in failed');
+        }
         
         // Redirect to login after 3 seconds
         setTimeout(() => {
@@ -40,6 +42,8 @@ export default function OAuthCallback() {
           // Store the token
           localStorage.setItem('token', token);
           localStorage.setItem('cybev_token', token);
+          
+          console.log('OAuth callback - Token received, fetching user...');
 
           // Fetch user data
           const response = await fetch(
@@ -50,36 +54,48 @@ export default function OAuthCallback() {
               }
             }
           );
+          
+          console.log('OAuth callback - Response status:', response.status);
 
           if (!response.ok) {
             throw new Error('Failed to fetch user data');
           }
 
           const data = await response.json();
+          console.log('OAuth callback - User data:', data);
           
-          if (data.ok && data.user) {
-            localStorage.setItem('user', JSON.stringify(data.user));
+          // Handle different response formats (ok, success, or direct user object)
+          const user = data.user || data.data || data;
+          const isSuccess = data.ok || data.success || (user && user._id);
+          
+          if (isSuccess && user) {
+            localStorage.setItem('user', JSON.stringify(user));
             
             setStatus('success');
             setMessage(isNew === '1' ? 'Account created!' : 'Welcome back!');
-            toast.success(isNew === '1' ? 'Account created successfully!' : 'Welcome back!');
+            if (toast?.success) {
+              toast.success(isNew === '1' ? 'Account created successfully!' : 'Welcome back!');
+            }
 
             // Redirect based on onboarding status
             setTimeout(() => {
-              if (isNew === '1' || !data.user.hasCompletedOnboarding) {
+              if (isNew === '1' || !user.hasCompletedOnboarding) {
                 router.push('/onboarding');
               } else {
                 router.push('/feed');
               }
             }, 1500);
           } else {
+            console.error('OAuth callback - Invalid data structure:', data);
             throw new Error('Invalid user data');
           }
         } catch (err) {
           console.error('OAuth callback error:', err);
           setStatus('error');
           setMessage('Failed to complete sign in');
-          toast.error('Something went wrong');
+          if (toast?.error) {
+            toast.error('Something went wrong');
+          }
           
           setTimeout(() => {
             router.push('/auth/login');
