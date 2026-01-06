@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/_app.jsx
-// PATH: cybev-frontend/src/pages/_app.jsx
-// PURPOSE: Main app wrapper with providers and PWA support
+// Main App Wrapper with Theme & Auth Providers
+// VERSION: 5.0 - With Dark Mode Support
 // ============================================
 
 import '../styles/globals.css';
@@ -10,8 +10,44 @@ import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import { SocketProvider } from '@/context/SocketContext';
 import { Web3Provider } from '@/context/Web3Context';
+import { ThemeProvider } from '@/context/ThemeContext';
 import { InstallPrompt, OfflineIndicator } from '@/components/PWA/InstallPrompt';
 import { useEffect } from 'react';
+import Head from 'next/head';
+import Script from 'next/script';
+
+// Prevent flash of unstyled content
+const ThemeScript = () => {
+  const script = `
+    (function() {
+      try {
+        var theme = localStorage.getItem('cybev_theme');
+        var user = localStorage.getItem('user');
+        var userTheme = null;
+        
+        if (user) {
+          try {
+            userTheme = JSON.parse(user).preferences?.theme;
+          } catch (e) {}
+        }
+        
+        var selectedTheme = theme || userTheme || 'system';
+        var isDark = selectedTheme === 'dark' || 
+          (selectedTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {}
+    })();
+  `;
+  
+  return (
+    <script
+      dangerouslySetInnerHTML={{ __html: script }}
+    />
+  );
+};
 
 export default function App({ Component, pageProps }) {
   // Register service worker on mount
@@ -34,31 +70,49 @@ export default function App({ Component, pageProps }) {
   }, []);
 
   return (
-    <Web3Provider>
-      <SocketProvider>
-        {/* Offline status indicator */}
-        <OfflineIndicator />
+    <>
+      <Head>
+        {/* Prevent theme flash */}
+        <ThemeScript />
         
-        {/* Main app content */}
-        <Component {...pageProps} />
+        {/* Dynamic theme color */}
+        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)" />
         
-        {/* PWA Install prompt */}
-        <InstallPrompt />
-        
-        {/* Toast notifications */}
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop
-          closeOnClick
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="dark"
-          toastClassName="bg-gray-800 text-white"
-        />
-      </SocketProvider>
-    </Web3Provider>
+        {/* Default meta tags */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+      </Head>
+
+      <ThemeProvider>
+        <Web3Provider>
+          <SocketProvider>
+            {/* Offline status indicator */}
+            <OfflineIndicator />
+            
+            {/* Main app content */}
+            <Component {...pageProps} />
+            
+            {/* PWA Install prompt */}
+            <InstallPrompt />
+            
+            {/* Toast notifications - adapts to theme */}
+            <ToastContainer
+              position="top-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop
+              closeOnClick
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="colored"
+              toastClassName="!rounded-xl"
+            />
+          </SocketProvider>
+        </Web3Provider>
+      </ThemeProvider>
+    </>
   );
 }
