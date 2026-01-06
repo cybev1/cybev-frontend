@@ -1,23 +1,52 @@
+// ============================================
+// FILE: src/pages/auth/signup.jsx
+// CYBEV Signup Page - Clean, Accessible Design
+// VERSION: 5.0 - Better UX, Social Auth Ready
+// ============================================
+
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import {
   Mail,
   Lock,
   User,
   UserCircle,
   ArrowRight,
+  ArrowLeft,
   Sparkles,
   AlertCircle,
-  Zap,
-  Heart,
-  Globe,
-  Shield,
-  CheckCircle,
   Eye,
-  EyeOff
+  EyeOff,
+  CheckCircle,
+  Loader2
 } from 'lucide-react';
+
+// Social Icons as components
+const GoogleIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24">
+    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+  </svg>
+);
+
+const FacebookIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#1877F2">
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+  </svg>
+);
+
+const AppleIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+  </svg>
+);
 
 export default function Signup() {
   const router = useRouter();
@@ -29,8 +58,8 @@ export default function Signup() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [fieldFocus, setFieldFocus] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [socialLoading, setSocialLoading] = useState('');
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
@@ -76,412 +105,310 @@ export default function Signup() {
       return;
     }
 
-    console.log('📤 Sending registration to:', `${API_URL}/api/auth/register`);
-
     try {
-      const response = await axios.post(`${API_URL}/api/auth/register`, formData, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      console.log('✅ Registration successful:', response.data);
+      const response = await axios.post(`${API_URL}/api/auth/register`, formData);
       
       if (response.data.token) {
-        // Save token and user data
         localStorage.setItem('token', response.data.token);
+        localStorage.setItem('cybev_token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
         
-        // Check if email is verified
+        toast.success('Account created successfully!');
+        
         if (!response.data.user.isEmailVerified) {
-          console.log('📧 Email not verified - redirecting to notice page');
           router.push('/auth/verify-email-notice');
         } else {
-          console.log('✅ Email already verified - proceeding to onboarding');
           router.push('/onboarding');
         }
       }
-      
     } catch (err) {
-      console.error('❌ Registration error:', err.response?.data);
+      const errorMsg = err.response?.data?.error || err.response?.data?.message || 'Registration failed';
       
-      // Handle specific errors
-      if (err.response?.data?.error === 'Email already exists') {
-        setError('This email is already registered. Try signing in instead, or use a different email.');
-      } else if (err.response?.data?.error?.includes('username')) {
+      if (errorMsg.toLowerCase().includes('email') && errorMsg.toLowerCase().includes('exists')) {
+        setError('This email is already registered. Try signing in instead.');
+      } else if (errorMsg.toLowerCase().includes('username')) {
         setError('This username is taken. Please try a different one.');
-      } else if (err.response?.data?.message === 'User already exists') {
-        setError('An account with this email or username already exists. Try signing in instead.');
       } else {
-        setError(err.response?.data?.error || err.response?.data?.message || 'Registration failed. Please try again.');
+        setError(errorMsg);
       }
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
+  // Social auth handlers
+  const handleGoogleAuth = async () => {
+    setSocialLoading('google');
+    try {
+      // Redirect to Google OAuth endpoint
+      window.location.href = `${API_URL}/api/auth/google`;
+    } catch (err) {
+      toast.error('Google sign-in is not available yet');
+      setSocialLoading('');
+    }
+  };
+
+  const handleFacebookAuth = async () => {
+    setSocialLoading('facebook');
+    try {
+      window.location.href = `${API_URL}/api/auth/facebook`;
+    } catch (err) {
+      toast.error('Facebook sign-in is not available yet');
+      setSocialLoading('');
+    }
+  };
+
+  const handleAppleAuth = async () => {
+    setSocialLoading('apple');
+    try {
+      window.location.href = `${API_URL}/api/auth/apple`;
+    } catch (err) {
+      toast.error('Apple sign-in is not available yet');
+      setSocialLoading('');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center px-4 py-8 relative overflow-hidden">
-      {/* Animated Background */}
-      <motion.div
-        animate={{
-          scale: [1, 1.2, 1],
-          rotate: [0, 90, 0],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "linear"
-        }}
-        className="absolute top-1/4 -left-48 w-96 h-96 bg-blue-300/20 rounded-full blur-3xl"
-      />
-      <motion.div
-        animate={{
-          scale: [1.2, 1, 1.2],
-          rotate: [90, 0, 90],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "linear"
-        }}
-        className="absolute bottom-1/4 -right-48 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl"
-      />
+    <>
+      <Head>
+        <title>Sign Up | CYBEV</title>
+        <meta name="description" content="Create your CYBEV account and start sharing your story" />
+      </Head>
 
-      <div className="max-w-md w-full relative z-10">
-        {/* Back Button */}
-        <motion.button 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          whileHover={{ x: -5 }}
-          onClick={() => router.push('/auth/choice')} 
-          className="mb-6 text-gray-600 hover:text-blue-600 transition flex items-center gap-2 font-semibold"
-        >
-          <ArrowRight className="w-4 h-4 rotate-180" />
-          Back
-        </motion.button>
-
-        {/* Main Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border-2 border-blue-100"
-        >
-          {/* Header */}
-          <div className="text-center mb-8">
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ 
-                type: "spring",
-                stiffness: 200,
-                damping: 15
-              }}
-              className="relative inline-block mb-4"
-            >
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-600 via-purple-600 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg">
-                <Sparkles className="w-8 h-8 text-white" strokeWidth={2.5} />
+      <div className="min-h-screen bg-gray-50 flex">
+        {/* Left Side - Branding (Hidden on mobile) */}
+        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 p-12 flex-col justify-between">
+          <div>
+            <Link href="/" className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                <span className="text-2xl font-black text-white">C</span>
               </div>
-              <motion.div
-                animate={{
-                  scale: [1, 1.3, 1],
-                  opacity: [0.5, 0, 0.5]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                }}
-                className="absolute inset-0 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl"
-              />
-            </motion.div>
-
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-3xl font-black mb-2"
-            >
-              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
-                Create Your Account
-              </span>
-            </motion.h2>
-
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="text-gray-600"
-            >
-              Join the creator revolution 🚀
-            </motion.p>
+              <span className="text-2xl font-black text-white">CYBEV</span>
+            </Link>
           </div>
+          
+          <div className="space-y-6">
+            <h1 className="text-4xl font-black text-white leading-tight">
+              Join thousands of creators sharing their stories
+            </h1>
+            <p className="text-xl text-purple-100">
+              Write blogs, go live, connect with your audience - all in one place.
+            </p>
+            
+            <div className="space-y-4 pt-6">
+              {[
+                'AI-powered blog writing',
+                'Live streaming from any device',
+                'Build your community',
+                'Free to get started'
+              ].map((feature, i) => (
+                <div key={i} className="flex items-center gap-3 text-white/90">
+                  <CheckCircle className="w-5 h-5 text-green-300" />
+                  <span>{feature}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <p className="text-purple-200 text-sm">
+            © {new Date().getFullYear()} CYBEV. All rights reserved.
+          </p>
+        </div>
 
-          {/* Error Message */}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-xl text-red-600 text-sm flex items-start gap-3"
-            >
-              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <div>
-                <strong className="block mb-1">Oops!</strong>
-                {error}
-                {error.includes('email is already registered') && (
-                  <button
-                    onClick={() => router.push('/auth/login')}
-                    className="block mt-2 text-blue-600 font-semibold hover:underline"
-                  >
-                    → Sign in instead
-                  </button>
-                )}
+        {/* Right Side - Form */}
+        <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+          <div className="w-full max-w-md">
+            {/* Mobile Logo */}
+            <Link href="/" className="lg:hidden flex items-center gap-3 mb-8">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
+                <span className="text-xl font-bold text-white">C</span>
               </div>
-            </motion.div>
-          )}
+              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">CYBEV</span>
+            </Link>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Name */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Full Name *
-              </label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <motion.input
-                  whileFocus={{ scale: 1.01 }}
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  onFocus={() => setFieldFocus('name')}
-                  onBlur={() => setFieldFocus('')}
-                  className={`w-full pl-12 pr-4 py-3.5 rounded-xl border-2 transition-all ${
-                    fieldFocus === 'name'
-                      ? 'border-blue-500 shadow-lg shadow-blue-100'
-                      : 'border-gray-200'
-                  } focus:outline-none`}
-                  placeholder="John Doe"
-                  required
-                />
-              </div>
-            </motion.div>
-
-            {/* Username */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.45 }}
-            >
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Username *
-              </label>
-              <div className="relative">
-                <UserCircle className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <motion.input
-                  whileFocus={{ scale: 1.01 }}
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => setFormData({
-                    ...formData, 
-                    username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '')
-                  })}
-                  onFocus={() => setFieldFocus('username')}
-                  onBlur={() => setFieldFocus('')}
-                  className={`w-full pl-12 pr-4 py-3.5 rounded-xl border-2 transition-all ${
-                    fieldFocus === 'username'
-                      ? 'border-blue-500 shadow-lg shadow-blue-100'
-                      : 'border-gray-200'
-                  } focus:outline-none`}
-                  placeholder="johndoe"
-                  required
-                  minLength={3}
-                />
-              </div>
-              <p className="text-xs text-gray-500 mt-1.5">Lowercase letters, numbers, and underscores only</p>
-            </motion.div>
-
-            {/* Email */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Email Address *
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <motion.input
-                  whileFocus={{ scale: 1.01 }}
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  onFocus={() => setFieldFocus('email')}
-                  onBlur={() => setFieldFocus('')}
-                  className={`w-full pl-12 pr-4 py-3.5 rounded-xl border-2 transition-all ${
-                    fieldFocus === 'email'
-                      ? 'border-blue-500 shadow-lg shadow-blue-100'
-                      : 'border-gray-200'
-                  } focus:outline-none`}
-                  placeholder="john@example.com"
-                  required
-                />
-              </div>
-              <p className="text-xs text-gray-500 mt-1.5">
-                💡 Gmail tip: Use youremail+anything@gmail.com for multiple accounts
+            {/* Header */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Create your account</h2>
+              <p className="text-gray-600">
+                Already have an account?{' '}
+                <Link href="/auth/login" className="text-purple-600 font-semibold hover:text-purple-700">
+                  Sign in
+                </Link>
               </p>
-            </motion.div>
-
-            {/* Password */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.55 }}
-            >
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Password *
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <motion.input
-                  whileFocus={{ scale: 1.01 }}
-                  type={showPassword ? "text" : "password"}
-                  value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  onFocus={() => setFieldFocus('password')}
-                  onBlur={() => setFieldFocus('')}
-                  className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 transition-all ${
-                    fieldFocus === 'password'
-                      ? 'border-blue-500 shadow-lg shadow-blue-100'
-                      : 'border-gray-200'
-                  } focus:outline-none`}
-                  placeholder="••••••••"
-                  required
-                  minLength={6}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-              <p className="text-xs text-gray-500 mt-1.5">Minimum 6 characters</p>
-            </motion.div>
-
-            {/* Submit Button */}
-            <motion.button
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              type="submit"
-              disabled={loading}
-              className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-500 hover:from-blue-700 hover:via-purple-700 hover:to-cyan-600 text-white font-bold text-lg shadow-xl hover:shadow-2xl hover:shadow-blue-200 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                >
-                  <Zap className="w-5 h-5" />
-                </motion.div>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5" />
-                  Create Account
-                  <ArrowRight className="w-5 h-5" />
-                </>
-              )}
-            </motion.button>
-          </form>
-
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t-2 border-gray-200"></div>
             </div>
-            <div className="relative flex justify-center">
-              <span className="px-4 bg-white text-sm font-semibold text-gray-500">
-                Or continue with
-              </span>
+
+            {/* Social Auth Buttons */}
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              <button
+                onClick={handleGoogleAuth}
+                disabled={!!socialLoading}
+                className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50"
+              >
+                {socialLoading === 'google' ? <Loader2 className="w-5 h-5 animate-spin" /> : <GoogleIcon />}
+              </button>
+              <button
+                onClick={handleFacebookAuth}
+                disabled={!!socialLoading}
+                className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50"
+              >
+                {socialLoading === 'facebook' ? <Loader2 className="w-5 h-5 animate-spin" /> : <FacebookIcon />}
+              </button>
+              <button
+                onClick={handleAppleAuth}
+                disabled={!!socialLoading}
+                className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50"
+              >
+                {socialLoading === 'apple' ? <Loader2 className="w-5 h-5 animate-spin" /> : <AppleIcon />}
+              </button>
+            </div>
+
+            {/* Divider */}
+            <div className="relative mb-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center">
+                <span className="px-4 bg-gray-50 text-sm text-gray-500">or continue with email</span>
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3"
+              >
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm text-red-800">{error}</p>
+                  {error.includes('already registered') && (
+                    <Link href="/auth/login" className="text-sm font-semibold text-red-700 hover:underline mt-1 inline-block">
+                      Go to Sign In →
+                    </Link>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="John Doe"
+                    className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-gray-900 placeholder-gray-400"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Username */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">@</span>
+                  <input
+                    type="text"
+                    value={formData.username}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') 
+                    })}
+                    placeholder="johndoe"
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-gray-900 placeholder-gray-400"
+                    required
+                    minLength={3}
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Letters, numbers, and underscores only</p>
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="john@example.com"
+                    className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-gray-900 placeholder-gray-400"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    placeholder="••••••••"
+                    className="w-full pl-12 pr-12 py-3 bg-white border border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-gray-900 placeholder-gray-400"
+                    required
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
+              </div>
+
+              {/* Terms */}
+              <p className="text-xs text-gray-500">
+                By signing up, you agree to our{' '}
+                <a href="/terms" className="text-purple-600 hover:underline">Terms of Service</a>
+                {' '}and{' '}
+                <a href="/privacy" className="text-purple-600 hover:underline">Privacy Policy</a>
+              </p>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-purple-200"
+              >
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    Create Account
+                    <ArrowRight className="w-5 h-5" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Sign In Link - Prominent */}
+            <div className="mt-8 pt-6 border-t border-gray-200 text-center">
+              <p className="text-gray-600">
+                Already have an account?{' '}
+                <Link href="/auth/login" className="text-purple-600 font-semibold hover:text-purple-700">
+                  Sign in here
+                </Link>
+              </p>
             </div>
           </div>
-
-          {/* Social Login */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="grid grid-cols-3 gap-3"
-          >
-            {[
-              { icon: '🔵', name: 'Google', color: 'hover:border-blue-400 hover:bg-blue-50' },
-              { icon: '💰', name: 'Wallet', color: 'hover:border-purple-400 hover:bg-purple-50' },
-              { icon: '🐦', name: 'Twitter', color: 'hover:border-cyan-400 hover:bg-cyan-50' }
-            ].map((social, index) => (
-              <motion.button
-                key={index}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.8 + index * 0.1 }}
-                whileHover={{ scale: 1.05, y: -3 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => alert(`${social.name} auth coming soon!`)}
-                className={`p-4 rounded-xl bg-white border-2 border-gray-200 ${social.color} shadow-md hover:shadow-lg transition-all`}
-              >
-                <span className="text-3xl">{social.icon}</span>
-              </motion.button>
-            ))}
-          </motion.div>
-
-          {/* Trust Badges */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.9 }}
-            className="mt-6 pt-6 border-t-2 border-gray-100"
-          >
-            <div className="flex items-center justify-center gap-6 text-xs text-gray-500">
-              <div className="flex items-center gap-1">
-                <Shield className="w-4 h-4 text-green-600" />
-                <span className="font-semibold">Secure</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Globe className="w-4 h-4 text-blue-600" />
-                <span className="font-semibold">Web3 Ready</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Zap className="w-4 h-4 text-orange-600" />
-                <span className="font-semibold">AI Powered</span>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-
-        {/* Sign In Link */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="text-center text-sm text-gray-600 mt-6"
-        >
-          Already have an account?{' '}
-          <button 
-            onClick={() => router.push('/auth/login')} 
-            className="text-blue-600 font-bold hover:underline"
-          >
-            Sign In
-          </button>
-        </motion.p>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
