@@ -619,14 +619,19 @@ export default function LandingPage() {
               <div>
                 <h4 className="font-bold mb-4">Company</h4>
                 <ul className="space-y-2 text-sm text-gray-400">
-                  <li><a href="#" className="hover:text-white transition">About</a></li>
-                  <li><a href="#" className="hover:text-white transition">Privacy</a></li>
-                  <li><a href="#" className="hover:text-white transition">Terms</a></li>
+                  <li><a href="/about" className="hover:text-white transition">About</a></li>
+                  <li><a href="/privacy" className="hover:text-white transition">Privacy Policy</a></li>
+                  <li><a href="/terms" className="hover:text-white transition">Terms of Service</a></li>
+                  <li><a href="mailto:support@cybev.io" className="hover:text-white transition">Contact</a></li>
                 </ul>
               </div>
             </div>
-            <div className="border-t border-gray-800 pt-8 text-center text-sm text-gray-500">
-              <p>© {new Date().getFullYear()} CYBEV. Built for Creators. 💜</p>
+            <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+              <p className="text-sm text-gray-500">© {new Date().getFullYear()} CYBEV. Built for Creators. 💜</p>
+              <div className="flex items-center gap-6 text-sm text-gray-400">
+                <a href="/privacy" className="hover:text-white transition">Privacy Policy</a>
+                <a href="/terms" className="hover:text-white transition">Terms of Service</a>
+              </div>
             </div>
           </div>
         </footer>
