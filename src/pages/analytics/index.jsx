@@ -1,454 +1,562 @@
 // ============================================
 // FILE: src/pages/analytics/index.jsx
-// PATH: cybev-frontend/src/pages/analytics/index.jsx
-// PURPOSE: Creator analytics dashboard - views, earnings, growth
+// Creator Analytics Dashboard
+// VERSION: 1.0
 // ============================================
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 import Head from 'next/head';
-import AppLayout from '@/components/Layout/AppLayout';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   BarChart3,
   TrendingUp,
   TrendingDown,
-  Eye,
-  Heart,
   Users,
-  DollarSign,
-  FileText,
-  Sparkles,
-  Calendar,
-  ArrowUp,
-  ArrowDown,
-  Clock,
-  Share2,
+  Heart,
   MessageCircle,
-  Loader2,
+  Eye,
+  FileText,
+  Film,
+  BookOpen,
+  Calendar,
   ChevronDown,
-  Download,
-  RefreshCw
+  ArrowUpRight,
+  Loader2,
+  RefreshCw,
+  Sparkles
 } from 'lucide-react';
-import api from '@/lib/api';
+import {
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend
+} from 'recharts';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
+
+// Period options
+const PERIODS = [
+  { value: '7d', label: 'Last 7 days' },
+  { value: '30d', label: 'Last 30 days' },
+  { value: '90d', label: 'Last 90 days' },
+  { value: '1y', label: 'Last year' },
+  { value: 'all', label: 'All time' }
+];
 
 // Stat Card Component
-function StatCard({ title, value, change, changeType, icon: Icon, color, subtitle }) {
+function StatCard({ title, value, change, icon: Icon, color, subtitle }) {
+  const isPositive = change >= 0;
+  
   return (
-    <div className="bg-gray-800/50 rounded-xl p-5 border border-purple-500/20 hover:border-purple-500/40 transition-colors">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-gray-400 text-sm">{title}</span>
-        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${color}`}>
-          <Icon className="w-5 h-5 text-white" />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800"
+    >
+      <div className="flex items-start justify-between mb-4">
+        <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center`}>
+          <Icon className="w-6 h-6 text-white" />
         </div>
-      </div>
-      <p className="text-2xl font-bold text-white mb-1">{value}</p>
-      {subtitle && <p className="text-gray-500 text-sm">{subtitle}</p>}
-      {change !== undefined && (
-        <div className={`flex items-center gap-1 text-sm mt-2 ${
-          changeType === 'up' ? 'text-green-400' : changeType === 'down' ? 'text-red-400' : 'text-gray-400'
-        }`}>
-          {changeType === 'up' ? <ArrowUp className="w-3 h-3" /> : changeType === 'down' ? <ArrowDown className="w-3 h-3" /> : null}
-          <span>{change} vs last period</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Simple Chart Component
-function SimpleBarChart({ data, label }) {
-  const maxValue = Math.max(...data.map(d => d.value), 1);
-
-  return (
-    <div className="space-y-2">
-      <p className="text-gray-400 text-sm mb-4">{label}</p>
-      <div className="flex items-end gap-2 h-40">
-        {data.map((item, i) => (
-          <div key={i} className="flex-1 flex flex-col items-center gap-2">
-            <div
-              className="w-full bg-gradient-to-t from-purple-600 to-pink-600 rounded-t-lg transition-all duration-300 hover:opacity-80"
-              style={{ height: `${(item.value / maxValue) * 100}%`, minHeight: item.value > 0 ? '4px' : '0' }}
-            />
-            <span className="text-gray-500 text-xs">{item.label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Top Content Row
-function ContentRow({ item, index }) {
-  return (
-    <div className="flex items-center gap-4 py-3 border-b border-gray-700/50 last:border-0">
-      <span className="text-gray-500 w-6 text-center">{index + 1}</span>
-      {item.image ? (
-        <img src={item.image} alt="" className="w-12 h-12 rounded-lg object-cover" />
-      ) : (
-        <div className="w-12 h-12 bg-gray-700 rounded-lg flex items-center justify-center">
-          <FileText className="w-5 h-5 text-gray-400" />
-        </div>
-      )}
-      <div className="flex-1 min-w-0">
-        <p className="text-white font-medium truncate">{item.title || 'Untitled'}</p>
-        <p className="text-gray-400 text-sm">{item.type}</p>
-      </div>
-      <div className="text-right">
-        <p className="text-white font-medium">{item.views?.toLocaleString() || 0}</p>
-        <p className="text-gray-500 text-sm">views</p>
-      </div>
-    </div>
-  );
-}
-
-export default function Analytics() {
-  const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState('7d');
-  const [stats, setStats] = useState(null);
-  const [earnings, setEarnings] = useState(null);
-  const [topContent, setTopContent] = useState([]);
-  const [chartData, setChartData] = useState([]);
-
-  // Sample data for demo
-  const sampleStats = {
-    totalViews: 45678,
-    viewsChange: '+12.5%',
-    totalLikes: 3456,
-    likesChange: '+8.2%',
-    followers: 1234,
-    followersChange: '+15',
-    engagement: 4.8,
-    engagementChange: '+0.3%',
-    shares: 567,
-    comments: 234
-  };
-
-  const sampleEarnings = {
-    tips: { total: 1250, count: 45 },
-    subscriptions: { monthlyRevenue: 450, subscriberCount: 30 },
-    contentSales: { total: 890, count: 12 },
-    availableBalance: 2590
-  };
-
-  const sampleTopContent = [
-    { title: 'The Future of Web3', type: 'Blog', views: 12500, image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=200' },
-    { title: 'Cosmic Dream #001', type: 'NFT', views: 8900, image: 'https://images.unsplash.com/photo-1634017839464-5c339bbe3c9c?w=200' },
-    { title: 'Building a Better Platform', type: 'Blog', views: 6700, image: null },
-    { title: 'Digital Art Collection', type: 'NFT', views: 4500, image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200' },
-    { title: 'My Journey into Crypto', type: 'Post', views: 3200, image: null }
-  ];
-
-  const sampleChartData = [
-    { label: 'Mon', value: 120 },
-    { label: 'Tue', value: 180 },
-    { label: 'Wed', value: 150 },
-    { label: 'Thu', value: 220 },
-    { label: 'Fri', value: 280 },
-    { label: 'Sat', value: 190 },
-    { label: 'Sun', value: 240 }
-  ];
-
-  useEffect(() => {
-    const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-    if (!token) {
-      router.push('/auth/login');
-      return;
-    }
-
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      try { setUser(JSON.parse(userData)); } catch (e) {}
-    }
-
-    fetchAnalytics();
-  }, [router, period]);
-
-  const fetchAnalytics = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      
-      // Fetch analytics
-      const analyticsRes = await api.get(`/api/analytics?period=${period}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (analyticsRes.data.ok) {
-        setStats(analyticsRes.data.stats);
-        setChartData(analyticsRes.data.chartData);
-        setTopContent(analyticsRes.data.topContent);
-      } else {
-        setStats(sampleStats);
-        setChartData(sampleChartData);
-        setTopContent(sampleTopContent);
-      }
-
-      // Fetch earnings
-      const earningsRes = await api.get('/api/monetization/earnings', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (earningsRes.data.ok) {
-        setEarnings(earningsRes.data.earnings);
-      } else {
-        setEarnings(sampleEarnings);
-      }
-    } catch (error) {
-      console.log('Using sample data');
-      setStats(sampleStats);
-      setEarnings(sampleEarnings);
-      setChartData(sampleChartData);
-      setTopContent(sampleTopContent);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
-        </div>
-      </AppLayout>
-    );
-  }
-
-  return (
-    <AppLayout>
-      <Head>
-        <title>Analytics - CYBEV</title>
-      </Head>
-
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-              <BarChart3 className="w-8 h-8 text-purple-400" />
-              Analytics
-            </h1>
-            <p className="text-gray-400 mt-1">Track your performance and earnings</p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Period Selector */}
-            <div className="relative">
-              <select
-                value={period}
-                onChange={(e) => setPeriod(e.target.value)}
-                className="appearance-none bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 pr-10 text-white focus:border-purple-500 focus:outline-none"
-              >
-                <option value="24h">Last 24 Hours</option>
-                <option value="7d">Last 7 Days</option>
-                <option value="30d">Last 30 Days</option>
-                <option value="90d">Last 90 Days</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            </div>
-
-            <button
-              onClick={fetchAnalytics}
-              className="p-2 bg-gray-800 text-gray-400 rounded-lg hover:bg-gray-700 hover:text-white transition-colors"
-            >
-              <RefreshCw className="w-5 h-5" />
-            </button>
-
-            <button className="p-2 bg-gray-800 text-gray-400 rounded-lg hover:bg-gray-700 hover:text-white transition-colors">
-              <Download className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard
-            title="Total Views"
-            value={stats?.totalViews?.toLocaleString() || '0'}
-            change={stats?.viewsChange}
-            changeType="up"
-            icon={Eye}
-            color="bg-blue-500"
-          />
-          <StatCard
-            title="Total Likes"
-            value={stats?.totalLikes?.toLocaleString() || '0'}
-            change={stats?.likesChange}
-            changeType="up"
-            icon={Heart}
-            color="bg-pink-500"
-          />
-          <StatCard
-            title="Followers"
-            value={stats?.followers?.toLocaleString() || '0'}
-            change={stats?.followersChange}
-            changeType="up"
-            icon={Users}
-            color="bg-purple-500"
-          />
-          <StatCard
-            title="Engagement Rate"
-            value={`${stats?.engagement || 0}%`}
-            change={stats?.engagementChange}
-            changeType="up"
-            icon={TrendingUp}
-            color="bg-green-500"
-          />
-        </div>
-
-        {/* Earnings Section */}
-        {earnings && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* Earnings Overview */}
-            <div className="bg-gray-800/50 rounded-2xl p-6 border border-purple-500/20">
-              <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-green-400" />
-                Earnings Overview
-              </h2>
-
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-gray-900/50 rounded-xl p-4">
-                  <p className="text-gray-400 text-sm">Tips Received</p>
-                  <p className="text-2xl font-bold text-white">{earnings.tips?.total || 0} CYBEV</p>
-                  <p className="text-gray-500 text-sm">{earnings.tips?.count || 0} tips</p>
-                </div>
-                <div className="bg-gray-900/50 rounded-xl p-4">
-                  <p className="text-gray-400 text-sm">Subscriptions</p>
-                  <p className="text-2xl font-bold text-white">{earnings.subscriptions?.monthlyRevenue || 0} CYBEV</p>
-                  <p className="text-gray-500 text-sm">{earnings.subscriptions?.subscriberCount || 0} subscribers</p>
-                </div>
-                <div className="bg-gray-900/50 rounded-xl p-4">
-                  <p className="text-gray-400 text-sm">Content Sales</p>
-                  <p className="text-2xl font-bold text-white">{earnings.contentSales?.total || 0} CYBEV</p>
-                  <p className="text-gray-500 text-sm">{earnings.contentSales?.count || 0} sales</p>
-                </div>
-                <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl p-4">
-                  <p className="text-white/80 text-sm">Available Balance</p>
-                  <p className="text-2xl font-bold text-white">{earnings.availableBalance || 0} CYBEV</p>
-                  <button className="text-white/80 text-sm underline mt-1">Withdraw</button>
-                </div>
-              </div>
-            </div>
-
-            {/* Views Chart */}
-            <div className="bg-gray-800/50 rounded-2xl p-6 border border-purple-500/20">
-              <h2 className="text-lg font-bold text-white mb-4">Views Over Time</h2>
-              <SimpleBarChart data={chartData} label="Daily Views" />
-            </div>
+        {change !== undefined && (
+          <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-sm font-medium ${
+            isPositive 
+              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+              : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+          }`}>
+            {isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+            {Math.abs(change)}%
           </div>
         )}
+      </div>
+      <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+        {typeof value === 'number' ? value.toLocaleString() : value}
+      </p>
+      <p className="text-gray-500 dark:text-gray-400 text-sm">{title}</p>
+      {subtitle && (
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{subtitle}</p>
+      )}
+    </motion.div>
+  );
+}
 
-        {/* Content Performance */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Top Content */}
-          <div className="bg-gray-800/50 rounded-2xl p-6 border border-purple-500/20">
-            <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-purple-400" />
-              Top Performing Content
-            </h2>
+// Top Content Item
+function ContentItem({ item, index }) {
+  const typeIcons = {
+    post: FileText,
+    blog: BookOpen,
+    vlog: Film
+  };
+  const Icon = typeIcons[item.type] || FileText;
 
-            {topContent.length > 0 ? (
-              <div>
-                {topContent.map((item, i) => (
-                  <ContentRow key={i} item={item} index={i} />
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-400 text-center py-8">No content yet</p>
-            )}
-          </div>
-
-          {/* Engagement Breakdown */}
-          <div className="bg-gray-800/50 rounded-2xl p-6 border border-purple-500/20">
-            <h2 className="text-lg font-bold text-white mb-4">Engagement Breakdown</h2>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-pink-500/20 rounded-lg flex items-center justify-center">
-                    <Heart className="w-5 h-5 text-pink-400" />
-                  </div>
-                  <span className="text-gray-300">Likes</span>
-                </div>
-                <span className="text-white font-bold">{stats?.totalLikes?.toLocaleString() || 0}</span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                    <MessageCircle className="w-5 h-5 text-blue-400" />
-                  </div>
-                  <span className="text-gray-300">Comments</span>
-                </div>
-                <span className="text-white font-bold">{stats?.comments?.toLocaleString() || 0}</span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                    <Share2 className="w-5 h-5 text-green-400" />
-                  </div>
-                  <span className="text-gray-300">Shares</span>
-                </div>
-                <span className="text-white font-bold">{stats?.shares?.toLocaleString() || 0}</span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                    <Users className="w-5 h-5 text-purple-400" />
-                  </div>
-                  <span className="text-gray-300">New Followers</span>
-                </div>
-                <span className="text-white font-bold">{stats?.followersChange || '+0'}</span>
-              </div>
-            </div>
-
-            <div className="mt-6 pt-6 border-t border-gray-700">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-400">Avg. Engagement Rate</span>
-                <span className="text-green-400 font-bold">{stats?.engagement || 0}%</span>
-              </div>
-              <div className="w-full bg-gray-700 rounded-full h-2">
-                <div
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full"
-                  style={{ width: `${Math.min(stats?.engagement || 0, 100)}%` }}
-                />
-              </div>
-            </div>
-          </div>
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.05 }}
+      className="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl transition-colors"
+    >
+      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+        <span className="text-sm font-bold text-purple-600 dark:text-purple-400">#{index + 1}</span>
+      </div>
+      
+      {item.thumbnail ? (
+        <img 
+          src={item.thumbnail} 
+          alt="" 
+          className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+        />
+      ) : (
+        <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+          <Icon className="w-6 h-6 text-gray-400" />
         </div>
-
-        {/* Recent Activity */}
-        <div className="mt-6 bg-gray-800/50 rounded-2xl p-6 border border-purple-500/20">
-          <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-purple-400" />
-            Recent Activity
-          </h2>
-
-          <div className="space-y-3">
-            {[
-              { icon: Heart, text: 'Someone liked your post "The Future of Web3"', time: '2 hours ago', color: 'text-pink-400' },
-              { icon: Users, text: 'You gained a new follower: @cryptofan', time: '3 hours ago', color: 'text-purple-400' },
-              { icon: DollarSign, text: 'You received a 50 CYBEV tip', time: '5 hours ago', color: 'text-green-400' },
-              { icon: MessageCircle, text: 'New comment on your NFT listing', time: '6 hours ago', color: 'text-blue-400' },
-              { icon: Sparkles, text: 'Your NFT "Cosmic Dream" was featured', time: '1 day ago', color: 'text-yellow-400' }
-            ].map((activity, i) => (
-              <div key={i} className="flex items-center gap-3 py-2">
-                <div className={`w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center`}>
-                  <activity.icon className={`w-4 h-4 ${activity.color}`} />
-                </div>
-                <div className="flex-1">
-                  <p className="text-gray-300 text-sm">{activity.text}</p>
-                </div>
-                <span className="text-gray-500 text-sm">{activity.time}</span>
-              </div>
-            ))}
-          </div>
+      )}
+      
+      <div className="flex-1 min-w-0">
+        <p className="font-medium text-gray-900 dark:text-white truncate">
+          {item.title || item.content || 'Untitled'}
+        </p>
+        <div className="flex items-center gap-3 mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <span className="flex items-center gap-1">
+            <Heart className="w-4 h-4" /> {item.likes}
+          </span>
+          <span className="flex items-center gap-1">
+            <MessageCircle className="w-4 h-4" /> {item.comments}
+          </span>
+          <span className="flex items-center gap-1">
+            <Eye className="w-4 h-4" /> {item.views}
+          </span>
         </div>
       </div>
-    </AppLayout>
+      
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+        item.type === 'post' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
+        item.type === 'blog' ? 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400' :
+        'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+      }`}>
+        {item.type}
+      </span>
+    </motion.div>
+  );
+}
+
+// Period Selector
+function PeriodSelector({ value, onChange }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const selected = PERIODS.find(p => p.value === value);
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl hover:border-purple-500 transition-colors"
+      >
+        <Calendar className="w-4 h-4 text-gray-500" />
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{selected?.label}</span>
+        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden z-50"
+            >
+              {PERIODS.map((period) => (
+                <button
+                  key={period.value}
+                  onClick={() => {
+                    onChange(period.value);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
+                    value === period.value ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600' : 'text-gray-700 dark:text-gray-300'
+                  }`}
+                >
+                  {period.label}
+                </button>
+              ))}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// Custom Tooltip for Charts
+function CustomTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  
+  return (
+    <div className="bg-white dark:bg-gray-900 p-3 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+      <p className="font-medium text-gray-900 dark:text-white mb-2">{label}</p>
+      {payload.map((entry, index) => (
+        <p key={index} className="text-sm" style={{ color: entry.color }}>
+          {entry.name}: {entry.value.toLocaleString()}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+export default function AnalyticsDashboard() {
+  const router = useRouter();
+  const [period, setPeriod] = useState('30d');
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [data, setData] = useState({
+    overview: null,
+    chart: null,
+    topContent: [],
+    breakdown: [],
+    reactions: [],
+    followerGrowth: []
+  });
+
+  // Fetch all analytics data
+  const fetchData = async (showRefresh = false) => {
+    if (showRefresh) setRefreshing(true);
+    else setLoading(true);
+
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      const [overview, chart, content, breakdown, reactions, growth] = await Promise.all([
+        axios.get(`${API_URL}/api/creator-analytics/overview?period=${period}`, { headers }),
+        axios.get(`${API_URL}/api/creator-analytics/engagement-chart?period=${period}`, { headers }),
+        axios.get(`${API_URL}/api/creator-analytics/top-content?period=${period}&limit=5`, { headers }),
+        axios.get(`${API_URL}/api/creator-analytics/content-breakdown`, { headers }),
+        axios.get(`${API_URL}/api/creator-analytics/reaction-breakdown?period=${period}`, { headers }),
+        axios.get(`${API_URL}/api/creator-analytics/follower-growth?period=${period}`, { headers })
+      ]);
+
+      setData({
+        overview: overview.data.overview,
+        chart: chart.data.chart?.data || [],
+        topContent: content.data.content || [],
+        breakdown: breakdown.data.breakdown || [],
+        reactions: reactions.data.reactions || [],
+        followerGrowth: growth.data.growth || []
+      });
+    } catch (error) {
+      console.error('Failed to fetch analytics:', error);
+      toast.error('Failed to load analytics');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [period]);
+
+  // Check auth
+  useEffect(() => {
+    if (!localStorage.getItem('token')) {
+      router.push('/auth/login');
+    }
+  }, []);
+
+  const { overview, chart, topContent, breakdown, reactions, followerGrowth } = data;
+
+  // Chart colors
+  const COLORS = ['#9333ea', '#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+
+  return (
+    <>
+      <Head>
+        <title>Analytics | CYBEV</title>
+        <meta name="description" content="View your creator analytics and performance metrics" />
+      </Head>
+
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+        {/* Header */}
+        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+          <div className="max-w-7xl mx-auto px-4 py-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <BarChart3 className="w-7 h-7 text-purple-600" />
+                  Creator Analytics
+                </h1>
+                <p className="text-gray-500 dark:text-gray-400 mt-1">
+                  Track your content performance and audience growth
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => fetchData(true)}
+                  disabled={refreshing}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-5 h-5 text-gray-500 ${refreshing ? 'animate-spin' : ''}`} />
+                </button>
+                <PeriodSelector value={period} onChange={setPeriod} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {/* Overview Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCard
+                  title="Total Followers"
+                  value={overview?.followers?.total || 0}
+                  change={overview?.followers?.change}
+                  icon={Users}
+                  color="bg-gradient-to-br from-purple-500 to-purple-600"
+                  subtitle={`+${overview?.followers?.new || 0} this period`}
+                />
+                <StatCard
+                  title="Total Content"
+                  value={overview?.content?.total || 0}
+                  change={overview?.content?.change}
+                  icon={FileText}
+                  color="bg-gradient-to-br from-pink-500 to-pink-600"
+                  subtitle={`${overview?.content?.posts || 0} posts, ${overview?.content?.blogs || 0} blogs`}
+                />
+                <StatCard
+                  title="Total Likes"
+                  value={overview?.engagement?.likes || 0}
+                  icon={Heart}
+                  color="bg-gradient-to-br from-red-500 to-red-600"
+                  subtitle={`${overview?.engagement?.comments || 0} comments`}
+                />
+                <StatCard
+                  title="Engagement Rate"
+                  value={`${overview?.engagement?.rate || 0}%`}
+                  icon={TrendingUp}
+                  color="bg-gradient-to-br from-green-500 to-green-600"
+                  subtitle={`${overview?.engagement?.views?.toLocaleString() || 0} total views`}
+                />
+              </div>
+
+              {/* Charts Row */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Engagement Chart */}
+                <div className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Engagement Over Time
+                  </h3>
+                  <div className="h-72">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={chart}>
+                        <defs>
+                          <linearGradient id="colorLikes" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#9333ea" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#9333ea" stopOpacity={0}/>
+                          </linearGradient>
+                          <linearGradient id="colorComments" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#ec4899" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#ec4899" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis 
+                          dataKey="label" 
+                          stroke="#9ca3af"
+                          fontSize={12}
+                          tickLine={false}
+                        />
+                        <YAxis 
+                          stroke="#9ca3af"
+                          fontSize={12}
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Area
+                          type="monotone"
+                          dataKey="likes"
+                          name="Likes"
+                          stroke="#9333ea"
+                          fillOpacity={1}
+                          fill="url(#colorLikes)"
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="comments"
+                          name="Comments"
+                          stroke="#ec4899"
+                          fillOpacity={1}
+                          fill="url(#colorComments)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Content Breakdown */}
+                <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Content Breakdown
+                  </h3>
+                  <div className="h-48">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={breakdown}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={80}
+                          paddingAngle={5}
+                          dataKey="value"
+                        >
+                          {breakdown.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color || COLORS[index]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex justify-center gap-4 mt-4">
+                    {breakdown.map((item, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: item.color || COLORS[index] }}
+                        />
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {item.name} ({item.value})
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Follower Growth & Top Content */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Follower Growth */}
+                <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Follower Growth
+                  </h3>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={followerGrowth}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis 
+                          dataKey="label" 
+                          stroke="#9ca3af"
+                          fontSize={12}
+                          tickLine={false}
+                        />
+                        <YAxis 
+                          stroke="#9ca3af"
+                          fontSize={12}
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Bar 
+                          dataKey="new" 
+                          name="New Followers"
+                          fill="#9333ea" 
+                          radius={[4, 4, 0, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Top Content */}
+                <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Top Performing Content
+                    </h3>
+                    <Link 
+                      href="/profile"
+                      className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                    >
+                      View all <ArrowUpRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                  
+                  {topContent.length > 0 ? (
+                    <div className="space-y-2">
+                      {topContent.map((item, index) => (
+                        <ContentItem key={item.id} item={item} index={index} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+                      <Sparkles className="w-12 h-12 mb-3 opacity-50" />
+                      <p>No content in this period</p>
+                      <Link 
+                        href="/create"
+                        className="mt-3 text-purple-600 hover:text-purple-700 font-medium"
+                      >
+                        Create your first post →
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Reactions Breakdown */}
+              {reactions.length > 0 && (
+                <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Reaction Types
+                  </h3>
+                  <div className="flex flex-wrap gap-4">
+                    {reactions.map((reaction, index) => (
+                      <div 
+                        key={index}
+                        className="flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-800 rounded-xl"
+                      >
+                        <span className="text-2xl">{reaction.emoji}</span>
+                        <div>
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            {reaction.count.toLocaleString()}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {reaction.percentage}%
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   );
 }
