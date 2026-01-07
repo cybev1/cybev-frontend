@@ -2,6 +2,7 @@
 // FILE: src/pages/blog/[id].jsx
 // Blog Detail Page with SSR for Social Sharing
 // FIXED: Server-side rendering for OG meta tags
+// FIXED: Replaced BookmarkCheck with Bookmark (fill style)
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -10,7 +11,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import {
   ArrowLeft, Heart, MessageSquare, Share2, Bookmark, Clock, Eye,
-  Copy, Twitter, Facebook, Linkedin, Send, Loader2, BookmarkCheck
+  Copy, Twitter, Facebook, Linkedin, Send, Loader2
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -433,7 +434,7 @@ export default function BlogDetailPage({ blog, ogData }) {
             <Link href="/feed"><h1 className="text-xl font-bold text-purple-600 cursor-pointer">CYBEV</h1></Link>
             <div className="flex items-center gap-2">
               <button onClick={handleBookmark} className={`p-2 rounded-full hover:bg-gray-100 ${bookmarked ? 'text-purple-600' : 'text-gray-600'}`}>
-                {bookmarked ? <BookmarkCheck className="w-5 h-5" /> : <Bookmark className="w-5 h-5" />}
+                <Bookmark className={`w-5 h-5 ${bookmarked ? 'fill-current' : ''}`} />
               </button>
               <div className="relative">
                 <button onClick={() => setShowShareMenu(!showShareMenu)} className="p-2 rounded-full hover:bg-gray-100 text-gray-600">
@@ -450,36 +451,20 @@ export default function BlogDetailPage({ blog, ogData }) {
                       Share to My Timeline
                     </button>
                     
-                    {typeof navigator !== 'undefined' && navigator.share && (
-                      <button onClick={() => handleShare('native')} className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-3 text-gray-700">
-                        <Share2 className="w-4 h-4 text-purple-600" /> Share...
-                      </button>
-                    )}
-                    <button onClick={() => handleShare('copy')} className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-3 text-gray-700">
-                      <Copy className="w-4 h-4 text-gray-600" /> Copy Link
+                    <button onClick={() => handleShare('copy')} className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 text-gray-700">
+                      <Copy className="w-5 h-5 text-gray-500" /> Copy link
                     </button>
-                    <div className="border-t border-gray-100 my-1"></div>
-                    <button onClick={() => handleShare('facebook')} className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-3 text-gray-700">
-                      <Facebook className="w-4 h-4 text-blue-600" /> Facebook
+                    <button onClick={() => handleShare('twitter')} className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 text-gray-700">
+                      <Twitter className="w-5 h-5 text-blue-400" /> Twitter
                     </button>
-                    <button onClick={() => handleShare('twitter')} className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-3 text-gray-700">
-                      <Twitter className="w-4 h-4 text-sky-500" /> Twitter / X
+                    <button onClick={() => handleShare('facebook')} className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 text-gray-700">
+                      <Facebook className="w-5 h-5 text-blue-600" /> Facebook
                     </button>
-                    <button onClick={() => handleShare('linkedin')} className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-3 text-gray-700">
-                      <Linkedin className="w-4 h-4 text-blue-700" /> LinkedIn
+                    <button onClick={() => handleShare('linkedin')} className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 text-gray-700">
+                      <Linkedin className="w-5 h-5 text-blue-700" /> LinkedIn
                     </button>
-                    <button onClick={() => handleShare('whatsapp')} className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-3 text-gray-700">
-                      <span className="w-4 h-4">📱</span> WhatsApp
-                    </button>
-                    <button onClick={() => handleShare('telegram')} className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-3 text-gray-700">
-                      <span className="w-4 h-4">✈️</span> Telegram
-                    </button>
-                    <button onClick={() => handleShare('reddit')} className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-3 text-gray-700">
-                      <span className="w-4 h-4">🔴</span> Reddit
-                    </button>
-                    <div className="border-t border-gray-100 my-1"></div>
-                    <button onClick={() => handleShare('email')} className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-3 text-gray-700">
-                      <span className="w-4 h-4">📧</span> Email
+                    <button onClick={() => handleShare('whatsapp')} className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 text-gray-700">
+                      <span className="text-green-500">💬</span> WhatsApp
                     </button>
                   </div>
                 )}
@@ -488,46 +473,47 @@ export default function BlogDetailPage({ blog, ogData }) {
           </div>
         </header>
         
+        {/* Main Content */}
         <main className="max-w-4xl mx-auto px-4 py-6">
           {/* Featured Image */}
-          {ogData.image && !ogData.image.includes('og-default') && (
-            <div className="relative aspect-video mb-6 rounded-xl overflow-hidden bg-gray-200">
-              <img src={ogData.image} alt={blog.title} className="w-full h-full object-cover" />
+          {blog.featuredImage && !blog.featuredImage.includes('og-default') && (
+            <div className="rounded-2xl overflow-hidden mb-6 shadow-lg">
+              <img src={blog.featuredImage} alt={blog.title} className="w-full h-64 md:h-96 object-cover" />
             </div>
           )}
           
-          {blog.isAIGenerated && (
-            <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full mb-4">✨ AI Generated</span>
-          )}
+          {/* Title & Meta */}
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 leading-tight mb-4">{blog.title}</h1>
           
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 leading-tight">{blog.title}</h1>
-          
-          {/* Author & Meta with Views/Shares */}
-          <div className="flex flex-wrap items-center gap-4 mb-6 pb-6 border-b border-gray-200">
-            <Link href={`/profile/${blog.author?._id || 'user'}`}>
-              <div className="flex items-center gap-3 cursor-pointer">
-                <img src={authorAvatar} alt={blog.author?.name} className="w-10 h-10 rounded-full object-cover" />
-                <div>
-                  <p className="font-semibold text-gray-900 hover:text-purple-600">{blog.author?.name}</p>
-                  <p className="text-sm text-gray-500">{formatDate(blog.createdAt)}</p>
-                </div>
-              </div>
+          {/* Author Info */}
+          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-200">
+            <Link href={`/profile/${blog.author?._id || ''}`}>
+              <img src={authorAvatar} alt={blog.author?.name} className="w-12 h-12 rounded-full object-cover cursor-pointer hover:opacity-80" />
             </Link>
-            <div className="flex items-center gap-4 text-sm text-gray-500 ml-auto">
-              <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{blog.readTime}</span>
-              <span className="flex items-center gap-1"><Eye className="w-4 h-4" />{viewCount} views</span>
-              <span className="flex items-center gap-1"><Share2 className="w-4 h-4" />{shareCount} shares</span>
+            <div className="flex-1">
+              <Link href={`/profile/${blog.author?._id || ''}`}>
+                <p className="font-semibold text-gray-900 hover:text-purple-600 cursor-pointer">{blog.author?.name}</p>
+              </Link>
+              <div className="flex items-center gap-3 text-sm text-gray-500">
+                <span>{formatDate(blog.createdAt)}</span>
+                <span>·</span>
+                <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{blog.readTime}</span>
+                {blog.isAIGenerated && (
+                  <>
+                    <span>·</span>
+                    <span className="flex items-center gap-1 text-purple-600">✨ AI Generated</span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
           
-          {/* Content */}
-          <article className="mb-8">
-            <div className="prose prose-lg max-w-none blog-content" dangerouslySetInnerHTML={{ __html: markdownToHtml(blog.content) }} />
-          </article>
+          {/* Blog Content */}
+          <article className="prose prose-lg max-w-none blog-content" dangerouslySetInnerHTML={{ __html: markdownToHtml(blog.content) }} />
           
           {/* Tags */}
           {blog.tags?.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-6 pb-6 border-b border-gray-200">
+            <div className="flex flex-wrap gap-2 mt-8 mb-6">
               {blog.tags.map((tag, idx) => (
                 <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full hover:bg-gray-200 cursor-pointer">#{tag}</span>
               ))}
