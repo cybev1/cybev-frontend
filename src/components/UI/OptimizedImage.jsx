@@ -1,223 +1,195 @@
 // ============================================
 // FILE: src/components/UI/OptimizedImage.jsx
-// Lazy Loading Image Component with Blur Placeholder
-// VERSION: 1.0
+// Optimized Image Component with Lazy Loading
 // ============================================
 
 import { useState, useRef, useEffect } from 'react';
-import { ImageOff } from 'lucide-react';
+import Image from 'next/image';
 
-// Cloudinary transformation helper
-const getCloudinaryUrl = (url, options = {}) => {
-  if (!url || !url.includes('cloudinary.com')) return url;
+// Cloudinary transformations
+const cloudinaryLoader = ({ src, width, quality }) => {
+  if (!src) return '';
   
-  const { width, height, quality = 'auto', format = 'auto' } = options;
+  // If it's a Cloudinary URL, add transformations
+  if (src.includes('cloudinary.com')) {
+    const parts = src.split('/upload/');
+    if (parts.length === 2) {
+      const transforms = `f_auto,q_${quality || 75},w_${width}`;
+      return `${parts[0]}/upload/${transforms}/${parts[1]}`;
+    }
+  }
   
-  // Find /upload/ in URL and insert transformations after it
-  const uploadIndex = url.indexOf('/upload/');
-  if (uploadIndex === -1) return url;
-  
-  let transforms = `f_${format},q_${quality}`;
-  if (width) transforms += `,w_${width}`;
-  if (height) transforms += `,h_${height}`;
-  transforms += ',c_limit'; // Maintain aspect ratio
-  
-  return url.slice(0, uploadIndex + 8) + transforms + '/' + url.slice(uploadIndex + 8);
+  // Return as-is for other URLs
+  return src;
 };
-
-// Generate blur placeholder
-const shimmer = (w, h) => `
-<svg width="${w}" height="${h}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <defs>
-    <linearGradient id="g">
-      <stop stop-color="#f3f4f6" offset="20%" />
-      <stop stop-color="#e5e7eb" offset="50%" />
-      <stop stop-color="#f3f4f6" offset="70%" />
-    </linearGradient>
-  </defs>
-  <rect width="${w}" height="${h}" fill="#f3f4f6" />
-  <rect id="r" width="${w}" height="${h}" fill="url(#g)" />
-  <animate xlink:href="#r" attributeName="x" from="-${w}" to="${w}" dur="1s" repeatCount="indefinite"  />
-</svg>`;
-
-const toBase64 = (str) =>
-  typeof window === 'undefined'
-    ? Buffer.from(str).toString('base64')
-    : window.btoa(str);
 
 export default function OptimizedImage({
   src,
-  alt = '',
+  alt,
   width,
   height,
+  fill = false,
+  priority = false,
   className = '',
   objectFit = 'cover',
-  priority = false,
-  quality = 'auto',
-  sizes = '100vw',
   placeholder = 'blur',
-  fallback = null,
-  onClick,
+  fallback = '/placeholder-image.png',
   onLoad,
-  ...props
+  onError
 }) {
+  const [imgSrc, setImgSrc] = useState(src || fallback);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [isInView, setIsInView] = useState(priority);
   const imgRef = useRef(null);
 
-  // Intersection Observer for lazy loading
   useEffect(() => {
-    if (priority || !imgRef.current) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          observer.disconnect();
-        }
-      },
-      {
-        rootMargin: '200px', // Start loading 200px before in view
-        threshold: 0
-      }
-    );
-
-    observer.observe(imgRef.current);
-    return () => observer.disconnect();
-  }, [priority]);
-
-  // Get optimized URL
-  const optimizedSrc = getCloudinaryUrl(src, {
-    width: width ? Math.min(width * 2, 2000) : undefined, // 2x for retina, max 2000
-    height: height ? Math.min(height * 2, 2000) : undefined,
-    quality
-  });
-
-  // Low quality placeholder
-  const placeholderSrc = getCloudinaryUrl(src, {
-    width: 20,
-    quality: 10
-  });
+    setImgSrc(src || fallback);
+    setHasError(false);
+  }, [src, fallback]);
 
   const handleLoad = (e) => {
     setIsLoaded(true);
     onLoad?.(e);
   };
 
-  const handleError = () => {
+  const handleError = (e) => {
     setHasError(true);
+    setImgSrc(fallback);
+    onError?.(e);
   };
 
-  if (hasError) {
-    return fallback || (
-      <div
-        className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 ${className}`}
-        style={{ width, height }}
-      >
-        <ImageOff className="w-8 h-8 text-gray-400" />
+  // Generate blur placeholder
+  const blurDataURL = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAUH/8QAIhAAAgEDBAMBAAAAAAAAAAAAAQIDAAQRBQYSIRMxQVH/xAAVAQEBAAAAAAAAAAAAAAAAAAADBP/EABkRAAIDAQAAAAAAAAAAAAAAAAECAAMRIf/aAAwDAQACEQMRAD8AzfW9U3C02ym5otSvorYPwEEZCly3nA4jPXWKzj+69w/v2of1/wAr9pSjJdmJqQ4g2f/Z';
+
+  // If using fill, return fill variant
+  if (fill) {
+    return (
+      <div className={`relative overflow-hidden ${className}`}>
+        <Image
+          ref={imgRef}
+          src={imgSrc}
+          alt={alt || ''}
+          fill
+          priority={priority}
+          placeholder={placeholder}
+          blurDataURL={blurDataURL}
+          className={`object-${objectFit} transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={handleLoad}
+          onError={handleError}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          loader={cloudinaryLoader}
+        />
+        {!isLoaded && !hasError && (
+          <div className="absolute inset-0 bg-gray-200 dark:bg-gray-800 animate-pulse" />
+        )}
       </div>
     );
   }
 
+  // Regular sized image
   return (
-    <div
-      ref={imgRef}
-      className={`relative overflow-hidden ${className}`}
-      style={{ width, height }}
-      onClick={onClick}
-    >
-      {/* Blur placeholder */}
-      {placeholder === 'blur' && !isLoaded && (
-        <div
-          className="absolute inset-0 animate-pulse"
-          style={{
-            backgroundImage: `url("data:image/svg+xml;base64,${toBase64(shimmer(width || 700, height || 400))}")`,
-            backgroundSize: 'cover'
-          }}
-        />
-      )}
-      
-      {/* Main image */}
-      {isInView && (
-        <img
-          src={optimizedSrc}
-          alt={alt}
-          width={width}
-          height={height}
-          loading={priority ? 'eager' : 'lazy'}
-          decoding="async"
-          onLoad={handleLoad}
-          onError={handleError}
-          className={`transition-opacity duration-300 ${
-            isLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          style={{
-            objectFit,
-            width: '100%',
-            height: '100%'
-          }}
-          {...props}
+    <div className={`relative overflow-hidden ${className}`}>
+      <Image
+        ref={imgRef}
+        src={imgSrc}
+        alt={alt || ''}
+        width={width}
+        height={height}
+        priority={priority}
+        placeholder={placeholder}
+        blurDataURL={blurDataURL}
+        className={`transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'} object-${objectFit}`}
+        onLoad={handleLoad}
+        onError={handleError}
+        loader={cloudinaryLoader}
+      />
+      {!isLoaded && !hasError && (
+        <div 
+          className="absolute inset-0 bg-gray-200 dark:bg-gray-800 animate-pulse"
+          style={{ width, height }}
         />
       )}
     </div>
   );
 }
 
-// Avatar variant with circular shape
-export function OptimizedAvatar({
-  src,
-  name = '',
-  size = 40,
+// Avatar variant with circular styling
+export function Avatar({ 
+  src, 
+  name, 
+  size = 40, 
   className = '',
-  ...props
+  showOnline = false,
+  isOnline = false
 }) {
-  const initials = name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-
   const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'U')}&background=7c3aed&color=fff&size=${size * 2}`;
 
   return (
-    <OptimizedImage
-      src={src || fallbackUrl}
-      alt={name}
-      width={size}
-      height={size}
-      className={`rounded-full ${className}`}
-      fallback={
-        <div
-          className={`flex items-center justify-center rounded-full bg-purple-600 text-white font-medium ${className}`}
-          style={{ width: size, height: size, fontSize: size * 0.4 }}
-        >
-          {initials || 'U'}
-        </div>
-      }
-      {...props}
-    />
+    <div className={`relative inline-block ${className}`}>
+      <OptimizedImage
+        src={src || fallbackUrl}
+        alt={name || 'User'}
+        width={size}
+        height={size}
+        className="rounded-full"
+        objectFit="cover"
+        fallback={fallbackUrl}
+      />
+      {showOnline && (
+        <span 
+          className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-gray-900 ${
+            isOnline ? 'bg-green-500' : 'bg-gray-400'
+          }`}
+        />
+      )}
+    </div>
   );
 }
 
-// Thumbnail variant for cards
-export function OptimizedThumbnail({
+// Thumbnail variant for blog cards
+export function Thumbnail({
   src,
-  alt = '',
+  alt,
   aspectRatio = '16/9',
-  className = '',
-  ...props
+  className = ''
 }) {
   return (
-    <div className={`relative ${className}`} style={{ aspectRatio }}>
+    <div 
+      className={`relative overflow-hidden ${className}`}
+      style={{ aspectRatio }}
+    >
       <OptimizedImage
         src={src}
         alt={alt}
-        className="absolute inset-0 w-full h-full"
+        fill
+        className="rounded-lg"
         objectFit="cover"
-        {...props}
       />
+    </div>
+  );
+}
+
+// Background image variant
+export function BackgroundImage({
+  src,
+  alt,
+  children,
+  overlay = true,
+  className = ''
+}) {
+  return (
+    <div className={`relative overflow-hidden ${className}`}>
+      <OptimizedImage
+        src={src}
+        alt={alt || ''}
+        fill
+        priority
+        objectFit="cover"
+      />
+      {overlay && (
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+      )}
+      <div className="relative z-10">{children}</div>
     </div>
   );
 }

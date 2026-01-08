@@ -1,7 +1,6 @@
 // ============================================
 // FILE: src/pages/_document.jsx
-// PATH: cybev-frontend/src/pages/_document.jsx
-// PURPOSE: Custom document with PWA meta tags
+// Optimized Document with Performance & SEO
 // ============================================
 
 import { Html, Head, Main, NextScript } from 'next/document';
@@ -10,9 +9,22 @@ export default function Document() {
   return (
     <Html lang="en">
       <Head>
-        {/* Primary Meta Tags */}
-        <meta charSet="utf-8" />
-        <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+        {/* Preconnect to critical origins */}
+        <link rel="preconnect" href="https://api.cybev.io" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://stream.mux.com" />
+        
+        {/* Favicon & App Icons */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.json" />
+        
+        {/* Theme Color */}
+        <meta name="theme-color" content="#7c3aed" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#1f2937" media="(prefers-color-scheme: dark)" />
         
         {/* PWA Meta Tags */}
         <meta name="application-name" content="CYBEV" />
@@ -20,116 +32,91 @@ export default function Document() {
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="CYBEV" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="format-detection" content="telephone=no" />
-        <meta name="msapplication-TileColor" content="#8b5cf6" />
+        <meta name="msapplication-TileColor" content="#7c3aed" />
         <meta name="msapplication-tap-highlight" content="no" />
-        <meta name="theme-color" content="#8b5cf6" />
         
-        {/* PWA Manifest */}
-        <link rel="manifest" href="/manifest.json" />
-        
-        {/* Favicon */}
-        <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
-        <link rel="shortcut icon" href="/favicon.ico" />
-        
-        {/* Apple Touch Icons */}
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-        <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png" />
-        <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167x167.png" />
-        
-        {/* Apple Splash Screens */}
+        {/* Fonts - Preload critical font */}
         <link
-          rel="apple-touch-startup-image"
-          href="/splash/apple-splash-2048-2732.png"
-          media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+          rel="preload"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          as="style"
         />
-        <link
-          rel="apple-touch-startup-image"
-          href="/splash/apple-splash-1668-2388.png"
-          media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
-        />
-        <link
-          rel="apple-touch-startup-image"
-          href="/splash/apple-splash-1536-2048.png"
-          media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
-        />
-        <link
-          rel="apple-touch-startup-image"
-          href="/splash/apple-splash-1125-2436.png"
-          media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
-        />
-        <link
-          rel="apple-touch-startup-image"
-          href="/splash/apple-splash-1242-2688.png"
-          media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
-        />
-        <link
-          rel="apple-touch-startup-image"
-          href="/splash/apple-splash-828-1792.png"
-          media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
-        />
-        <link
-          rel="apple-touch-startup-image"
-          href="/splash/apple-splash-1170-2532.png"
-          media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
-        />
-        <link
-          rel="apple-touch-startup-image"
-          href="/splash/apple-splash-1179-2556.png"
-          media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
-        />
-        
-        {/* Microsoft Tiles */}
-        <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
-        <meta name="msapplication-config" content="/browserconfig.xml" />
-        
-        {/* Open Graph Default */}
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="CYBEV" />
-        <meta property="og:image" content="https://cybev.io/og-default.png" />
-        
-        {/* Twitter Default */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@cybev_io" />
-        
-        {/* Preconnect to important origins */}
-        <link rel="preconnect" href="https://api.cybev.io" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        
-        {/* DNS Prefetch */}
-        <link rel="dns-prefetch" href="https://api.cybev.io" />
-        <link rel="dns-prefetch" href="https://images.unsplash.com" />
-        
-        {/* Fonts */}
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
+        
+        {/* Structured Data - Organization */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'CYBEV',
+              url: 'https://cybev.io',
+              logo: 'https://cybev.io/logo.png',
+              sameAs: [
+                'https://twitter.com/cybev_io',
+                'https://facebook.com/cybev',
+                'https://instagram.com/cybev_io'
+              ],
+              description: 'The ultimate platform for creators. Write blogs, share posts, go live, earn tokens, and build your community.'
+            })
+          }}
+        />
+        
+        {/* Structured Data - WebSite */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: 'CYBEV',
+              url: 'https://cybev.io',
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: {
+                  '@type': 'EntryPoint',
+                  urlTemplate: 'https://cybev.io/search?q={search_term_string}'
+                },
+                'query-input': 'required name=search_term_string'
+              }
+            })
+          }}
+        />
       </Head>
-      <body className="bg-gray-900 text-white antialiased">
+      <body className="antialiased">
         <Main />
         <NextScript />
         
-        {/* Service Worker Registration Script */}
+        {/* Performance: Defer non-critical scripts */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              // Register Service Worker
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js').then(
-                    function(registration) {
-                      console.log('[App] ServiceWorker registered:', registration.scope);
-                    },
-                    function(err) {
-                      console.log('[App] ServiceWorker registration failed:', err);
-                    }
-                  );
+                  navigator.serviceWorker.register('/sw.js').catch(function() {});
                 });
               }
-            `,
+              
+              // Prefetch on hover
+              document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('a[href^="/"]').forEach(function(link) {
+                  link.addEventListener('mouseenter', function() {
+                    var href = this.getAttribute('href');
+                    if (href && !document.querySelector('link[href="' + href + '"]')) {
+                      var prefetch = document.createElement('link');
+                      prefetch.rel = 'prefetch';
+                      prefetch.href = href;
+                      document.head.appendChild(prefetch);
+                    }
+                  });
+                });
+              });
+            `
           }}
         />
       </body>

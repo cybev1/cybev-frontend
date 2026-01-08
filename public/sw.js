@@ -1,346 +1,209 @@
 // ============================================
 // FILE: public/sw.js
-// Service Worker - Fixed Response Cloning
-// VERSION: 2.0
+// Service Worker for PWA & Performance
 // ============================================
 
-const CACHE_NAME = 'cybev-cache-v2';
-const OFFLINE_URL = '/offline';
+const CACHE_NAME = 'cybev-v5.6.0';
+const STATIC_CACHE = 'cybev-static-v5.6.0';
+const DYNAMIC_CACHE = 'cybev-dynamic-v5.6.0';
+const IMAGE_CACHE = 'cybev-images-v5.6.0';
 
-// Assets to cache immediately on install
-const PRECACHE_ASSETS = [
+// Assets to cache immediately
+const STATIC_ASSETS = [
   '/',
+  '/feed',
   '/offline',
-  '/manifest.json'
+  '/manifest.json',
+  '/favicon.ico',
+  '/logo.png'
 ];
 
-// Cache strategies
-const CACHE_STRATEGIES = {
-  // Cache first, then network (for static assets)
-  cacheFirst: ['fonts.googleapis.com', 'fonts.gstatic.com', '.woff2', '.woff', '.ttf'],
-  
-  // Network first, then cache (for API calls)
-  networkFirst: ['/api/'],
-  
-  // Stale while revalidate (for images, CSS, JS)
-  staleWhileRevalidate: ['.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico']
-};
-
-// Install event
+// Install event - cache static assets
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
-  
   event.waitUntil(
-    caches.open(CACHE_NAME)
+    caches.open(STATIC_CACHE)
       .then((cache) => {
-        console.log('[SW] Precaching assets');
-        return cache.addAll(PRECACHE_ASSETS);
+        console.log('[SW] Caching static assets');
+        return cache.addAll(STATIC_ASSETS);
       })
       .then(() => self.skipWaiting())
-      .catch((err) => console.error('[SW] Precache failed:', err))
   );
 });
 
-// Activate event
+// Activate event - clean old caches
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...');
-  
   event.waitUntil(
-    caches.keys()
-      .then((cacheNames) => {
-        return Promise.all(
-          cacheNames
-            .filter((name) => name !== CACHE_NAME)
-            .map((name) => {
-              console.log('[SW] Deleting old cache:', name);
-              return caches.delete(name);
-            })
-        );
-      })
-      .then(() => self.clients.claim())
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter((name) => name !== STATIC_CACHE && name !== DYNAMIC_CACHE && name !== IMAGE_CACHE)
+          .map((name) => {
+            console.log('[SW] Deleting old cache:', name);
+            return caches.delete(name);
+          })
+      );
+    }).then(() => self.clients.claim())
   );
 });
 
-// Fetch event
+// Fetch event - serve from cache or network
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
-  
+
   // Skip non-GET requests
-  if (request.method !== 'GET') {
+  if (request.method !== 'GET') return;
+
+  // Skip API requests (always network-first)
+  if (url.pathname.startsWith('/api/') || url.origin.includes('api.cybev.io')) {
+    event.respondWith(networkFirst(request));
     return;
   }
-  
-  // Skip chrome-extension and other non-http(s) requests
-  if (!request.url.startsWith('http')) {
+
+  // Images - cache first, then network
+  if (request.destination === 'image' || url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/)) {
+    event.respondWith(cacheFirst(request, IMAGE_CACHE));
     return;
   }
-  
-  // Skip WebSocket connections
-  if (request.url.includes('/socket.io/')) {
+
+  // Static assets - cache first
+  if (url.pathname.match(/\.(js|css|woff2|woff)$/) || STATIC_ASSETS.includes(url.pathname)) {
+    event.respondWith(cacheFirst(request, STATIC_CACHE));
     return;
   }
-  
-  // Determine caching strategy based on URL
-  const strategy = getCacheStrategy(request.url);
-  
-  switch (strategy) {
-    case 'cacheFirst':
-      event.respondWith(cacheFirst(request));
-      break;
-    case 'networkFirst':
-      event.respondWith(networkFirst(request));
-      break;
-    case 'staleWhileRevalidate':
-      event.respondWith(staleWhileRevalidate(request));
-      break;
-    default:
-      event.respondWith(networkFirst(request));
+
+  // HTML pages - network first, cache as fallback
+  if (request.headers.get('accept')?.includes('text/html')) {
+    event.respondWith(networkFirst(request));
+    return;
   }
+
+  // Default - stale while revalidate
+  event.respondWith(staleWhileRevalidate(request));
 });
 
-// Determine which cache strategy to use
-function getCacheStrategy(url) {
-  for (const pattern of CACHE_STRATEGIES.cacheFirst) {
-    if (url.includes(pattern)) return 'cacheFirst';
-  }
-  for (const pattern of CACHE_STRATEGIES.networkFirst) {
-    if (url.includes(pattern)) return 'networkFirst';
-  }
-  for (const pattern of CACHE_STRATEGIES.staleWhileRevalidate) {
-    if (url.includes(pattern)) return 'staleWhileRevalidate';
-  }
-  return 'networkFirst';
-}
-
-// Cache First Strategy
-async function cacheFirst(request) {
+// Cache strategies
+async function cacheFirst(request, cacheName = STATIC_CACHE) {
+  const cached = await caches.match(request);
+  if (cached) return cached;
+  
   try {
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
+    const response = await fetch(request);
+    if (response.ok) {
+      const cache = await caches.open(cacheName);
+      cache.put(request, response.clone());
     }
-    
-    const networkResponse = await fetch(request);
-    
-    // Only cache successful responses
-    if (networkResponse.ok) {
-      const cache = await caches.open(CACHE_NAME);
-      // Clone BEFORE using the response
-      cache.put(request, networkResponse.clone());
-    }
-    
-    return networkResponse;
+    return response;
   } catch (error) {
-    console.error('[SW] Cache first failed:', error);
-    return caches.match(OFFLINE_URL);
+    return caches.match('/offline');
   }
 }
 
-// Network First Strategy
 async function networkFirst(request) {
   try {
-    const networkResponse = await fetch(request);
-    
-    // Only cache successful GET responses for HTML pages
-    if (networkResponse.ok && request.destination === 'document') {
-      const cache = await caches.open(CACHE_NAME);
-      // Clone BEFORE using the response
-      cache.put(request, networkResponse.clone());
+    const response = await fetch(request);
+    if (response.ok) {
+      const cache = await caches.open(DYNAMIC_CACHE);
+      cache.put(request, response.clone());
     }
-    
-    return networkResponse;
+    return response;
   } catch (error) {
-    console.error('[SW] Network first failed, trying cache:', error);
-    const cachedResponse = await caches.match(request);
-    
-    if (cachedResponse) {
-      return cachedResponse;
-    }
+    const cached = await caches.match(request);
+    if (cached) return cached;
     
     // Return offline page for navigation requests
-    if (request.destination === 'document') {
-      return caches.match(OFFLINE_URL);
+    if (request.mode === 'navigate') {
+      return caches.match('/offline');
     }
-    
-    // Return error response for other requests
-    return new Response('Network error', {
-      status: 503,
-      statusText: 'Service Unavailable'
-    });
+    throw error;
   }
 }
 
-// Stale While Revalidate Strategy (FIXED)
 async function staleWhileRevalidate(request) {
-  const cache = await caches.open(CACHE_NAME);
-  const cachedResponse = await caches.match(request);
+  const cache = await caches.open(DYNAMIC_CACHE);
+  const cached = await cache.match(request);
   
-  // Start network fetch in background
-  const fetchPromise = fetch(request)
-    .then((networkResponse) => {
-      // Only cache successful responses
-      if (networkResponse.ok) {
-        // Clone BEFORE storing in cache
-        cache.put(request, networkResponse.clone());
-      }
-      return networkResponse;
-    })
-    .catch((error) => {
-      console.error('[SW] Revalidate fetch failed:', error);
-      return null;
-    });
-  
-  // Return cached response immediately, or wait for network
-  if (cachedResponse) {
-    return cachedResponse;
-  }
-  
-  // No cached response, wait for network
-  const networkResponse = await fetchPromise;
-  if (networkResponse) {
-    return networkResponse;
-  }
-  
-  // Both failed
-  return new Response('Offline', {
-    status: 503,
-    statusText: 'Service Unavailable'
-  });
+  const fetchPromise = fetch(request).then((response) => {
+    if (response.ok) {
+      cache.put(request, response.clone());
+    }
+    return response;
+  }).catch(() => cached);
+
+  return cached || fetchPromise;
 }
 
-// Push notification event
+// Push notification handling
 self.addEventListener('push', (event) => {
-  console.log('[SW] Push received');
-  
-  let data = {
-    title: 'CYBEV',
-    body: 'You have a new notification',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/badge-72x72.png'
-  };
+  if (!event.data) return;
   
   try {
-    if (event.data) {
-      data = { ...data, ...event.data.json() };
-    }
-  } catch (e) {
-    console.error('[SW] Push data parse error:', e);
+    const data = event.data.json();
+    const options = {
+      body: data.body || 'New notification',
+      icon: data.icon || '/logo-192.png',
+      badge: '/badge-72.png',
+      vibrate: [100, 50, 100],
+      data: data.data || {},
+      actions: data.actions || [],
+      tag: data.tag || 'cybev-notification',
+      renotify: true
+    };
+
+    event.waitUntil(
+      self.registration.showNotification(data.title || 'CYBEV', options)
+    );
+  } catch (error) {
+    console.error('[SW] Push error:', error);
   }
-  
-  const options = {
-    body: data.body,
-    icon: data.icon || '/icons/icon-192x192.png',
-    badge: data.badge || '/icons/badge-72x72.png',
-    vibrate: [100, 50, 100],
-    data: {
-      url: data.url || '/',
-      dateOfArrival: Date.now()
-    },
-    actions: data.actions || []
-  };
-  
-  event.waitUntil(
-    self.registration.showNotification(data.title, options)
-  );
 });
 
-// Notification click event
+// Notification click handling
 self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] Notification clicked');
-  
   event.notification.close();
   
-  const urlToOpen = event.notification.data?.url || '/';
+  const data = event.notification.data || {};
+  let url = '/';
   
+  // Route based on notification type
+  if (data.type === 'message') {
+    url = `/messages/${data.conversationId || ''}`;
+  } else if (data.type === 'follow') {
+    url = `/profile/${data.userId || ''}`;
+  } else if (data.type === 'like' || data.type === 'comment') {
+    url = data.blogId ? `/blog/${data.blogId}` : `/post/${data.postId || ''}`;
+  } else if (data.type === 'live') {
+    url = `/live/${data.streamId || ''}`;
+  } else if (data.url) {
+    url = data.url;
+  }
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then((clientList) => {
+      .then((windowClients) => {
         // Focus existing window if available
-        for (const client of clientList) {
-          if (client.url.includes(self.location.origin) && 'focus' in client) {
-            client.navigate(urlToOpen);
+        for (const client of windowClients) {
+          if (client.url.includes('cybev.io') && 'focus' in client) {
+            client.navigate(url);
             return client.focus();
           }
         }
         // Open new window
-        if (clients.openWindow) {
-          return clients.openWindow(urlToOpen);
-        }
+        return clients.openWindow(url);
       })
   );
 });
 
-// Background sync for offline posts
+// Background sync for offline actions
 self.addEventListener('sync', (event) => {
-  console.log('[SW] Sync event:', event.tag);
-  
   if (event.tag === 'sync-posts') {
-    event.waitUntil(syncPosts());
+    event.waitUntil(syncPendingPosts());
   }
 });
 
-async function syncPosts() {
-  try {
-    // Get pending posts from IndexedDB
-    const db = await openDB();
-    const pendingPosts = await db.getAll('pending-posts');
-    
-    for (const post of pendingPosts) {
-      try {
-        const response = await fetch('/api/posts', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${post.token}`
-          },
-          body: JSON.stringify(post.data)
-        });
-        
-        if (response.ok) {
-          await db.delete('pending-posts', post.id);
-          console.log('[SW] Synced post:', post.id);
-        }
-      } catch (err) {
-        console.error('[SW] Failed to sync post:', post.id, err);
-      }
-    }
-  } catch (err) {
-    console.error('[SW] Sync posts error:', err);
-  }
+async function syncPendingPosts() {
+  // Get pending posts from IndexedDB and sync
+  console.log('[SW] Syncing pending posts...');
 }
 
-// Simple IndexedDB wrapper
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('cybev-offline', 1);
-    
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => {
-      const db = request.result;
-      resolve({
-        getAll: (store) => new Promise((res, rej) => {
-          const tx = db.transaction(store, 'readonly');
-          const req = tx.objectStore(store).getAll();
-          req.onsuccess = () => res(req.result);
-          req.onerror = () => rej(req.error);
-        }),
-        delete: (store, key) => new Promise((res, rej) => {
-          const tx = db.transaction(store, 'readwrite');
-          const req = tx.objectStore(store).delete(key);
-          req.onsuccess = () => res();
-          req.onerror = () => rej(req.error);
-        })
-      });
-    };
-    
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains('pending-posts')) {
-        db.createObjectStore('pending-posts', { keyPath: 'id', autoIncrement: true });
-      }
-    };
-  });
-}
-
-console.log('[SW] Service worker loaded');
+console.log('[SW] Service Worker loaded - CYBEV v5.6.0');

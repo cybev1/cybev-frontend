@@ -1,51 +1,99 @@
 // ============================================
 // FILE: next.config.js
-// Next.js Configuration with Performance Optimizations
-// VERSION: 2.0
+// Optimized Next.js Configuration
 // ============================================
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // React strict mode for better debugging
+  // Enable React Strict Mode for better development
   reactStrictMode: true,
-
+  
   // Enable SWC minification (faster than Terser)
   swcMinify: true,
-
-  // Optimize images
+  
+  // Compress responses
+  compress: true,
+  
+  // Generate ETags for caching
+  generateEtags: true,
+  
+  // Powered by header (disable for security)
+  poweredByHeader: false,
+  
+  // Trailing slashes
+  trailingSlash: false,
+  
+  // Image optimization
   images: {
-    domains: [
-      'res.cloudinary.com',
-      'cloudinary.com',
-      'images.unsplash.com',
-      'ui-avatars.com',
-      'lh3.googleusercontent.com',
-      'platform-lookaside.fbsbx.com',
-      'graph.facebook.com',
-      'image.mux.com',
-      'stream.mux.com',
-      'cybev.io',
-      'api.cybev.io'
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**'
+      },
+      {
+        protocol: 'https',
+        hostname: 'image.mux.com',
+        pathname: '/**'
+      },
+      {
+        protocol: 'https',
+        hostname: 'ui-avatars.com',
+        pathname: '/**'
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '/**'
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.pexels.com',
+        pathname: '/**'
+      },
+      {
+        protocol: 'https',
+        hostname: '*.googleusercontent.com',
+        pathname: '/**'
+      },
+      {
+        protocol: 'https',
+        hostname: '*.fbcdn.net',
+        pathname: '/**'
+      }
     ],
     formats: ['image/avif', 'image/webp'],
-    minimumCacheTTL: 86400, // 24 hours
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384]
   },
-
+  
+  // Experimental features
+  experimental: {
+    // Optimize package imports
+    optimizePackageImports: [
+      'lucide-react',
+      '@heroicons/react',
+      'date-fns',
+      'lodash'
+    ],
+    // Scroll restoration
+    scrollRestoration: true
+  },
+  
   // Compiler options
   compiler: {
     // Remove console.log in production
     removeConsole: process.env.NODE_ENV === 'production' ? {
       exclude: ['error', 'warn']
-    } : false,
+    } : false
   },
-
+  
   // Headers for caching and security
   async headers() {
     return [
       {
-        source: '/:all*(svg|jpg|png|webp|avif|gif|ico)',
+        source: '/:all*(svg|jpg|jpeg|png|gif|ico|webp|avif)',
         headers: [
           {
             key: 'Cache-Control',
@@ -54,7 +102,7 @@ const nextConfig = {
         ]
       },
       {
-        source: '/_next/static/:path*',
+        source: '/:all*(js|css)',
         headers: [
           {
             key: 'Cache-Control',
@@ -72,7 +120,6 @@ const nextConfig = {
         ]
       },
       {
-        // Security headers for all routes
         source: '/:path*',
         headers: [
           {
@@ -103,7 +150,7 @@ const nextConfig = {
       }
     ];
   },
-
+  
   // Redirects
   async redirects() {
     return [
@@ -129,92 +176,87 @@ const nextConfig = {
       }
     ];
   },
-
+  
   // Rewrites for cleaner URLs
   async rewrites() {
     return [
       {
         source: '/sitemap.xml',
-        destination: '/api/sitemap.xml'
+        destination: '/api/sitemap'
       },
       {
-        source: '/@:username',
+        source: '/robots.txt',
+        destination: '/api/robots'
+      },
+      {
+        source: '/u/:username',
         destination: '/profile/:username'
+      },
+      {
+        source: '/b/:id',
+        destination: '/blog/:id'
+      },
+      {
+        source: '/s/:streamId',
+        destination: '/live/:streamId'
       }
     ];
   },
-
-  // Experimental features
-  experimental: {
-    // Enable optimized loading
-    optimizePackageImports: [
-      'lucide-react',
-      '@heroicons/react',
-      'date-fns',
-      'lodash'
-    ],
-    // Scroll restoration
-    scrollRestoration: true
-  },
-
+  
   // Webpack customization
   webpack: (config, { dev, isServer }) => {
-    // Optimize production builds
+    // Production optimizations
     if (!dev && !isServer) {
-      // Split chunks more aggressively
+      // Split chunks for better caching
       config.optimization.splitChunks = {
         chunks: 'all',
         minSize: 20000,
         maxSize: 244000,
-        minChunks: 1,
-        maxAsyncRequests: 30,
-        maxInitialRequests: 30,
         cacheGroups: {
-          defaultVendors: {
-            test: /[\\/]node_modules[\\/]/,
-            priority: -10,
-            reuseExistingChunk: true,
-            name(module) {
-              const packageName = module.context.match(
-                /[\\/]node_modules[\\/](.*?)([\\/]|$)/
-              )?.[1];
-              return `vendor.${packageName?.replace('@', '')}`;
-            }
+          default: false,
+          vendors: false,
+          framework: {
+            chunks: 'all',
+            name: 'framework',
+            test: /(?<!node_modules.*)[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-subscription)[\\/]/,
+            priority: 40,
+            enforce: true
           },
-          default: {
+          lib: {
+            test(module) {
+              return module.size() > 160000 &&
+                /node_modules[/\\]/.test(module.identifier());
+            },
+            name(module) {
+              const hash = require('crypto')
+                .createHash('sha1')
+                .update(module.identifier())
+                .digest('hex')
+                .substring(0, 8);
+              return `lib-${hash}`;
+            },
+            priority: 30,
+            minChunks: 1,
+            reuseExistingChunk: true
+          },
+          commons: {
+            name: 'commons',
             minChunks: 2,
-            priority: -20,
+            priority: 20
+          },
+          shared: {
+            name(module, chunks) {
+              return `shared-${chunks.map(c => c.name).join('-')}`;
+            },
+            priority: 10,
+            minChunks: 2,
             reuseExistingChunk: true
           }
         }
       };
     }
-
-    // SVG as React components
-    config.module.rules.push({
-      test: /\.svg$/,
-      use: ['@svgr/webpack']
-    });
-
+    
     return config;
-  },
-
-  // Output configuration
-  output: 'standalone',
-
-  // Powered by header
-  poweredByHeader: false,
-
-  // Trailing slashes
-  trailingSlash: false,
-
-  // Disable x-powered-by
-  generateEtags: true,
-
-  // Environment variables
-  env: {
-    NEXT_PUBLIC_APP_NAME: 'CYBEV',
-    NEXT_PUBLIC_APP_URL: 'https://cybev.io'
   }
 };
 

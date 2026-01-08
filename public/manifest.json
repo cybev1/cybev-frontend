@@ -1,16 +1,15 @@
 {
-  "name": "CYBEV - Web3 Social Blogging",
+  "name": "CYBEV - Create, Connect, Inspire",
   "short_name": "CYBEV",
-  "description": "Create, share, and monetize your content with AI-powered tools, live streaming, and cryptocurrency rewards.",
+  "description": "The ultimate platform for creators. Write blogs, share posts, go live, earn tokens, and build your community.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#7c3aed",
   "orientation": "portrait-primary",
+  "background_color": "#0f0f0f",
+  "theme_color": "#7c3aed",
   "scope": "/",
   "lang": "en",
-  "dir": "ltr",
-  "categories": ["social", "news", "entertainment", "lifestyle"],
+  "categories": ["social", "entertainment", "lifestyle"],
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
@@ -63,52 +62,56 @@
   ],
   "screenshots": [
     {
-      "src": "/screenshots/feed.png",
-      "sizes": "1080x1920",
+      "src": "/screenshots/home.png",
+      "sizes": "1280x720",
       "type": "image/png",
-      "form_factor": "narrow",
-      "label": "CYBEV Feed"
+      "form_factor": "wide",
+      "label": "Home Screen"
     },
     {
-      "src": "/screenshots/blog.png",
-      "sizes": "1080x1920",
+      "src": "/screenshots/feed.png",
+      "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "AI Blog Generator"
+      "label": "Feed"
     }
   ],
   "shortcuts": [
     {
-      "name": "Create Post",
-      "short_name": "Post",
-      "description": "Create a new post",
-      "url": "/create",
-      "icons": [{ "src": "/icons/shortcut-post.png", "sizes": "96x96" }]
+      "name": "Feed",
+      "short_name": "Feed",
+      "url": "/feed",
+      "icons": [{ "src": "/icons/feed.png", "sizes": "96x96" }]
     },
     {
       "name": "Go Live",
       "short_name": "Live",
-      "description": "Start a live stream",
       "url": "/live/go-live",
-      "icons": [{ "src": "/icons/shortcut-live.png", "sizes": "96x96" }]
+      "icons": [{ "src": "/icons/live.png", "sizes": "96x96" }]
     },
     {
-      "name": "AI Blog",
+      "name": "Write Blog",
       "short_name": "Blog",
-      "description": "Generate AI blog post",
-      "url": "/studio/ai-blog",
-      "icons": [{ "src": "/icons/shortcut-blog.png", "sizes": "96x96" }]
+      "url": "/blog/create",
+      "icons": [{ "src": "/icons/blog.png", "sizes": "96x96" }]
     },
     {
       "name": "Messages",
       "short_name": "Chat",
-      "description": "View messages",
       "url": "/messages",
-      "icons": [{ "src": "/icons/shortcut-messages.png", "sizes": "96x96" }]
+      "icons": [{ "src": "/icons/chat.png", "sizes": "96x96" }]
     }
   ],
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=io.cybev.app",
+      "id": "io.cybev.app"
+    }
+  ],
+  "prefer_related_applications": false,
   "share_target": {
-    "action": "/create",
+    "action": "/share",
     "method": "POST",
     "enctype": "multipart/form-data",
     "params": {
@@ -123,22 +126,10 @@
       ]
     }
   },
-  "prefer_related_applications": false,
-  "related_applications": [
-    {
-      "platform": "play",
-      "url": "https://play.google.com/store/apps/details?id=io.cybev.app",
-      "id": "io.cybev.app"
-    }
-  ],
   "protocol_handlers": [
     {
       "protocol": "web+cybev",
-      "url": "/%s"
+      "url": "/handle?url=%s"
     }
-  ],
-  "handle_links": "preferred",
-  "launch_handler": {
-    "client_mode": "navigate-existing"
-  }
+  ]
 }
