@@ -1,555 +1,693 @@
 // ============================================
 // FILE: src/pages/settings/notifications.jsx
-// PATH: cybev-frontend/src/pages/settings/notifications.jsx
-// PURPOSE: Push notification settings and preferences
+// Consolidated Notification Settings
+// VERSION: 2.0
+// Merges: notifications.jsx, notification-preferences.jsx, push-notifications.jsx
 // ============================================
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import Link from 'next/link';
-import AppLayout from '@/components/Layout/AppLayout';
+import axios from 'axios';
 import {
   Bell,
-  BellOff,
-  Smartphone,
-  Monitor,
   Mail,
-  MessageCircle,
+  Smartphone,
+  MessageSquare,
   Heart,
   UserPlus,
-  AtSign,
-  DollarSign,
-  Sparkles,
-  Coins,
   Radio,
+  Calendar,
+  DollarSign,
+  Shield,
   Moon,
-  Sun,
-  Trash2,
-  ChevronLeft,
-  Check,
-  X,
+  Clock,
+  Save,
   Loader2,
+  ChevronRight,
   AlertCircle,
-  Info
+  Check,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
-import api from '@/lib/api';
 
-// Toggle Switch Component
-function Toggle({ enabled, onChange, disabled }) {
-  return (
-    <button
-      onClick={() => !disabled && onChange(!enabled)}
-      disabled={disabled}
-      className={`w-12 h-6 rounded-full transition-colors relative ${
-        enabled ? 'bg-purple-500' : 'bg-gray-600'
-      } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-    >
-      <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${
-        enabled ? 'translate-x-6' : 'translate-x-0.5'
-      }`} />
-    </button>
-  );
-}
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
-// Setting Row Component
-function SettingRow({ icon: Icon, title, description, enabled, onChange, disabled }) {
-  return (
-    <div className="flex items-center justify-between py-4 border-b border-gray-700/50 last:border-0">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center">
-          <Icon className="w-5 h-5 text-purple-400" />
-        </div>
-        <div>
-          <p className="text-white font-medium">{title}</p>
-          {description && <p className="text-gray-400 text-sm">{description}</p>}
-        </div>
-      </div>
-      <Toggle enabled={enabled} onChange={onChange} disabled={disabled} />
-    </div>
-  );
-}
+// Notification categories
+const NOTIFICATION_CATEGORIES = [
+  {
+    id: 'social',
+    label: 'Social',
+    icon: Heart,
+    color: 'text-pink-500',
+    settings: [
+      { key: 'likes', label: 'Likes on your posts', default: true },
+      { key: 'comments', label: 'Comments on your posts', default: true },
+      { key: 'mentions', label: 'Mentions and tags', default: true },
+      { key: 'shares', label: 'Shares of your content', default: true },
+      { key: 'replies', label: 'Replies to your comments', default: true }
+    ]
+  },
+  {
+    id: 'follows',
+    label: 'Followers',
+    icon: UserPlus,
+    color: 'text-blue-500',
+    settings: [
+      { key: 'newFollower', label: 'New followers', default: true },
+      { key: 'followRequest', label: 'Follow requests', default: true },
+      { key: 'followAccepted', label: 'Accepted follow requests', default: false }
+    ]
+  },
+  {
+    id: 'messages',
+    label: 'Messages',
+    icon: MessageSquare,
+    color: 'text-green-500',
+    settings: [
+      { key: 'directMessage', label: 'Direct messages', default: true },
+      { key: 'groupMessage', label: 'Group chat messages', default: true },
+      { key: 'messageRequest', label: 'Message requests', default: true }
+    ]
+  },
+  {
+    id: 'live',
+    label: 'Live & Events',
+    icon: Radio,
+    color: 'text-red-500',
+    settings: [
+      { key: 'liveStart', label: 'When someone you follow goes live', default: true },
+      { key: 'scheduledStream', label: 'Upcoming scheduled streams', default: true },
+      { key: 'eventReminder', label: 'Event reminders', default: true },
+      { key: 'eventInvite', label: 'Event invitations', default: true }
+    ]
+  },
+  {
+    id: 'monetization',
+    label: 'Earnings & Tips',
+    icon: DollarSign,
+    color: 'text-yellow-500',
+    settings: [
+      { key: 'tipReceived', label: 'Tips received', default: true },
+      { key: 'newSubscriber', label: 'New subscribers', default: true },
+      { key: 'payoutReady', label: 'Payout ready', default: true },
+      { key: 'earningsUpdate', label: 'Weekly earnings summary', default: true }
+    ]
+  },
+  {
+    id: 'system',
+    label: 'System',
+    icon: Shield,
+    color: 'text-purple-500',
+    settings: [
+      { key: 'securityAlert', label: 'Security alerts', default: true },
+      { key: 'loginAlert', label: 'New device login', default: true },
+      { key: 'accountUpdate', label: 'Account updates', default: true },
+      { key: 'newsletter', label: 'Product updates & news', default: false }
+    ]
+  }
+];
 
-// Device Card Component
-function DeviceCard({ device, onRemove }) {
-  const getDeviceIcon = () => {
-    if (device.device?.type === 'mobile') return Smartphone;
-    return Monitor;
-  };
-  
-  const Icon = getDeviceIcon();
-  
-  return (
-    <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-xl border border-gray-700">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
-          <Icon className="w-5 h-5 text-purple-400" />
-        </div>
-        <div>
-          <p className="text-white font-medium">
-            {device.device?.browser || 'Unknown Browser'} on {device.device?.os || 'Unknown OS'}
-          </p>
-          <p className="text-gray-400 text-sm">
-            Last used: {new Date(device.lastUsed).toLocaleDateString()}
-          </p>
-        </div>
-      </div>
-      <button
-        onClick={() => onRemove(device)}
-        className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-      >
-        <Trash2 className="w-5 h-5" />
-      </button>
-    </div>
-  );
-}
-
-export default function NotificationSettings() {
+export default function NotificationSettingsPage() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState('preferences');
   const [pushSupported, setPushSupported] = useState(false);
-  const [pushPermission, setPushPermission] = useState('default');
-  const [devices, setDevices] = useState([]);
-  
-  // Preferences state
-  const [preferences, setPreferences] = useState({
-    push: {
-      enabled: true,
-      likes: true,
-      comments: true,
-      follows: true,
-      mentions: true,
-      messages: true,
-      tips: true,
-      nftSales: true,
-      stakingRewards: true,
-      liveStreams: true,
-      marketing: false
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
+
+  // Settings state
+  const [settings, setSettings] = useState({
+    // Delivery channels
+    channels: {
+      push: true,
+      email: true,
+      inApp: true
     },
-    email: {
-      enabled: true,
-      digest: 'daily',
-      marketing: false
-    },
-    quiet: {
+    // Category settings
+    categories: {},
+    // Quiet hours
+    quietHours: {
       enabled: false,
-      startTime: '22:00',
-      endTime: '08:00'
-    }
+      start: '22:00',
+      end: '08:00'
+    },
+    // Digest preferences
+    digest: {
+      enabled: false,
+      frequency: 'daily', // daily, weekly
+      time: '09:00'
+    },
+    // Sound
+    sound: true
   });
 
   useEffect(() => {
-    const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-    if (!token) {
-      router.push('/auth/login');
-      return;
-    }
+    fetchSettings();
+    checkPushSupport();
+  }, []);
 
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      try { setUser(JSON.parse(userData)); } catch (e) {}
-    }
-
-    // Check push notification support
-    if ('Notification' in window && 'serviceWorker' in navigator) {
-      setPushSupported(true);
-      setPushPermission(Notification.permission);
-    }
-
-    fetchPreferences();
-    fetchDevices();
-  }, [router]);
-
-  const fetchPreferences = async () => {
-    setLoading(true);
+  const fetchSettings = async () => {
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      const response = await api.get('/api/push/preferences', {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/auth/login');
+        return;
+      }
+
+      const res = await axios.get(`${API_URL}/api/notifications/preferences`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      if (response.data.ok) {
-        setPreferences(response.data.preferences);
+      if (res.data.ok && res.data.preferences) {
+        setSettings(prev => ({
+          ...prev,
+          ...res.data.preferences
+        }));
       }
     } catch (error) {
-      console.log('Using default preferences');
+      console.error('Fetch settings error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchDevices = async () => {
-    try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      const response = await api.get('/api/push/subscriptions', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (response.data.ok) {
-        setDevices(response.data.subscriptions);
-      }
-    } catch (error) {
-      console.log('No devices found');
+  const checkPushSupport = async () => {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      setPushSupported(true);
+      
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      setPushEnabled(!!subscription);
     }
   };
 
-  const savePreferences = async (newPrefs) => {
+  const saveSettings = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      await api.put('/api/push/preferences', newPrefs, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setPreferences(newPrefs);
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API_URL}/api/notifications/preferences`,
+        settings,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Show success toast
+      alert('Settings saved!');
     } catch (error) {
-      console.error('Failed to save preferences');
+      console.error('Save settings error:', error);
+      alert('Failed to save settings');
     } finally {
       setSaving(false);
     }
   };
 
-  const updatePushSetting = (key, value) => {
-    const newPrefs = {
-      ...preferences,
-      push: { ...preferences.push, [key]: value }
-    };
-    savePreferences(newPrefs);
+  const toggleCategory = (categoryId, settingKey) => {
+    setSettings(prev => ({
+      ...prev,
+      categories: {
+        ...prev.categories,
+        [categoryId]: {
+          ...prev.categories[categoryId],
+          [settingKey]: !prev.categories[categoryId]?.[settingKey]
+        }
+      }
+    }));
   };
 
-  const updateEmailSetting = (key, value) => {
-    const newPrefs = {
-      ...preferences,
-      email: { ...preferences.email, [key]: value }
-    };
-    savePreferences(newPrefs);
+  const toggleChannel = (channel) => {
+    setSettings(prev => ({
+      ...prev,
+      channels: {
+        ...prev.channels,
+        [channel]: !prev.channels[channel]
+      }
+    }));
   };
 
-  const updateQuietSetting = (key, value) => {
-    const newPrefs = {
-      ...preferences,
-      quiet: { ...preferences.quiet, [key]: value }
-    };
-    savePreferences(newPrefs);
-  };
-
-  const requestPushPermission = async () => {
+  const enablePush = async () => {
+    if (!pushSupported) return;
+    
+    setPushLoading(true);
     try {
       const permission = await Notification.requestPermission();
-      setPushPermission(permission);
-
+      
       if (permission === 'granted') {
-        // Register service worker and subscribe
         const registration = await navigator.serviceWorker.ready;
+        
+        // Get VAPID public key from server
+        const keyRes = await axios.get(`${API_URL}/api/push/vapid-key`);
+        const vapidKey = keyRes.data.publicKey;
+        
         const subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+          applicationServerKey: urlBase64ToUint8Array(vapidKey)
         });
 
         // Send subscription to server
-        const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-        await api.post('/api/push/subscribe', {
-          subscription: subscription.toJSON(),
-          device: {
-            type: /Mobile|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
-            browser: navigator.userAgent.split(' ').pop()?.split('/')[0] || 'Unknown',
-            os: navigator.platform
-          }
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const token = localStorage.getItem('token');
+        await axios.post(
+          `${API_URL}/api/push/subscribe`,
+          { subscription },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
 
-        fetchDevices();
-        alert('Push notifications enabled!');
+        setPushEnabled(true);
+        setSettings(prev => ({
+          ...prev,
+          channels: { ...prev.channels, push: true }
+        }));
       }
     } catch (error) {
-      console.error('Push permission error:', error);
+      console.error('Enable push error:', error);
       alert('Failed to enable push notifications');
+    } finally {
+      setPushLoading(false);
     }
   };
 
-  const removeDevice = async (device) => {
-    if (!confirm('Remove this device?')) return;
-
+  const disablePush = async () => {
+    setPushLoading(true);
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      await api.post('/api/push/unsubscribe', {
-        endpoint: device.endpoint
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      setDevices(devices.filter(d => d._id !== device._id));
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      
+      if (subscription) {
+        await subscription.unsubscribe();
+        
+        const token = localStorage.getItem('token');
+        await axios.post(
+          `${API_URL}/api/push/unsubscribe`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+      
+      setPushEnabled(false);
+      setSettings(prev => ({
+        ...prev,
+        channels: { ...prev.channels, push: false }
+      }));
     } catch (error) {
-      alert('Failed to remove device');
+      console.error('Disable push error:', error);
+    } finally {
+      setPushLoading(false);
     }
+  };
+
+  // Convert VAPID key
+  const urlBase64ToUint8Array = (base64String) => {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
   };
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
-        </div>
-      </AppLayout>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+      </div>
     );
   }
 
   return (
-    <AppLayout>
+    <>
       <Head>
-        <title>Notification Settings - CYBEV</title>
+        <title>Notification Settings | CYBEV</title>
       </Head>
 
-      <div className="max-w-2xl mx-auto px-4 py-6">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link href="/settings">
-            <button className="p-2 hover:bg-gray-800 rounded-lg transition-colors">
-              <ChevronLeft className="w-6 h-6 text-gray-400" />
-            </button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-white">Notification Settings</h1>
-            <p className="text-gray-400">Manage how you receive notifications</p>
-          </div>
-        </div>
-
-        {/* Push Notification Status */}
-        <div className="bg-gray-800/50 rounded-2xl p-6 border border-purple-500/20 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
-                <Bell className="w-6 h-6 text-purple-400" />
+        <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 z-10">
+          <div className="max-w-2xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <button onClick={() => router.back()} className="text-gray-600 dark:text-gray-400">
+                  ←
+                </button>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Bell className="w-5 h-5" />
+                  Notifications
+                </h1>
               </div>
-              <div>
-                <h2 className="text-lg font-bold text-white">Push Notifications</h2>
-                <p className="text-gray-400 text-sm">
-                  {!pushSupported ? 'Not supported in this browser' :
-                   pushPermission === 'granted' ? 'Enabled on this device' :
-                   pushPermission === 'denied' ? 'Blocked by browser' :
-                   'Not enabled yet'}
-                </p>
-              </div>
-            </div>
-
-            {pushSupported && pushPermission !== 'granted' && pushPermission !== 'denied' && (
               <button
-                onClick={requestPushPermission}
-                className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                onClick={saveSettings}
+                disabled={saving}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium disabled:opacity-50 flex items-center gap-2"
               >
-                Enable
+                {saving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                Save
               </button>
-            )}
-
-            {pushPermission === 'denied' && (
-              <div className="flex items-center gap-2 text-yellow-400">
-                <AlertCircle className="w-5 h-5" />
-                <span className="text-sm">Blocked</span>
-              </div>
-            )}
-          </div>
-
-          {pushPermission === 'denied' && (
-            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
-              <p className="text-yellow-400 text-sm flex items-start gap-2">
-                <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                Push notifications are blocked. To enable them, click the lock icon in your browser's address bar and allow notifications.
-              </p>
             </div>
-          )}
-        </div>
 
-        {/* Registered Devices */}
-        {devices.length > 0 && (
-          <div className="bg-gray-800/50 rounded-2xl p-6 border border-purple-500/20 mb-6">
-            <h3 className="text-white font-bold mb-4">Registered Devices</h3>
-            <div className="space-y-3">
-              {devices.map((device) => (
-                <DeviceCard key={device._id} device={device} onRemove={removeDevice} />
+            {/* Tabs */}
+            <div className="flex gap-4 mt-4">
+              {['preferences', 'channels', 'schedule'].map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-2 rounded-lg font-medium capitalize ${
+                    activeTab === tab
+                      ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  {tab}
+                </button>
               ))}
             </div>
           </div>
-        )}
-
-        {/* Push Notification Types */}
-        <div className="bg-gray-800/50 rounded-2xl p-6 border border-purple-500/20 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-white font-bold">Push Notifications</h3>
-            <Toggle
-              enabled={preferences.push.enabled}
-              onChange={(v) => updatePushSetting('enabled', v)}
-            />
-          </div>
-
-          <div className={preferences.push.enabled ? '' : 'opacity-50 pointer-events-none'}>
-            <SettingRow
-              icon={Heart}
-              title="Likes"
-              description="When someone likes your content"
-              enabled={preferences.push.likes}
-              onChange={(v) => updatePushSetting('likes', v)}
-              disabled={!preferences.push.enabled}
-            />
-            <SettingRow
-              icon={MessageCircle}
-              title="Comments"
-              description="When someone comments on your posts"
-              enabled={preferences.push.comments}
-              onChange={(v) => updatePushSetting('comments', v)}
-              disabled={!preferences.push.enabled}
-            />
-            <SettingRow
-              icon={UserPlus}
-              title="New Followers"
-              description="When someone follows you"
-              enabled={preferences.push.follows}
-              onChange={(v) => updatePushSetting('follows', v)}
-              disabled={!preferences.push.enabled}
-            />
-            <SettingRow
-              icon={AtSign}
-              title="Mentions"
-              description="When someone mentions you"
-              enabled={preferences.push.mentions}
-              onChange={(v) => updatePushSetting('mentions', v)}
-              disabled={!preferences.push.enabled}
-            />
-            <SettingRow
-              icon={Mail}
-              title="Direct Messages"
-              description="When you receive a new message"
-              enabled={preferences.push.messages}
-              onChange={(v) => updatePushSetting('messages', v)}
-              disabled={!preferences.push.enabled}
-            />
-            <SettingRow
-              icon={DollarSign}
-              title="Tips & Donations"
-              description="When you receive a tip"
-              enabled={preferences.push.tips}
-              onChange={(v) => updatePushSetting('tips', v)}
-              disabled={!preferences.push.enabled}
-            />
-            <SettingRow
-              icon={Sparkles}
-              title="NFT Sales"
-              description="When your NFT is sold"
-              enabled={preferences.push.nftSales}
-              onChange={(v) => updatePushSetting('nftSales', v)}
-              disabled={!preferences.push.enabled}
-            />
-            <SettingRow
-              icon={Coins}
-              title="Staking Rewards"
-              description="When you earn staking rewards"
-              enabled={preferences.push.stakingRewards}
-              onChange={(v) => updatePushSetting('stakingRewards', v)}
-              disabled={!preferences.push.enabled}
-            />
-            <SettingRow
-              icon={Radio}
-              title="Live Streams"
-              description="When someone you follow goes live"
-              enabled={preferences.push.liveStreams}
-              onChange={(v) => updatePushSetting('liveStreams', v)}
-              disabled={!preferences.push.enabled}
-            />
-          </div>
         </div>
 
-        {/* Email Notifications */}
-        <div className="bg-gray-800/50 rounded-2xl p-6 border border-purple-500/20 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-white font-bold">Email Notifications</h3>
-            <Toggle
-              enabled={preferences.email.enabled}
-              onChange={(v) => updateEmailSetting('enabled', v)}
-            />
-          </div>
+        <div className="max-w-2xl mx-auto px-4 py-6">
+          {/* Preferences Tab */}
+          {activeTab === 'preferences' && (
+            <div className="space-y-6">
+              {NOTIFICATION_CATEGORIES.map(category => (
+                <div 
+                  key={category.id}
+                  className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 overflow-hidden"
+                >
+                  <div className="p-4 border-b dark:border-gray-700 flex items-center gap-3">
+                    <category.icon className={`w-5 h-5 ${category.color}`} />
+                    <h3 className="font-medium text-gray-900 dark:text-white">
+                      {category.label}
+                    </h3>
+                  </div>
+                  <div className="divide-y dark:divide-gray-700">
+                    {category.settings.map(setting => (
+                      <div 
+                        key={setting.key}
+                        className="p-4 flex items-center justify-between"
+                      >
+                        <span className="text-gray-700 dark:text-gray-300">
+                          {setting.label}
+                        </span>
+                        <button
+                          onClick={() => toggleCategory(category.id, setting.key)}
+                          className={`w-12 h-6 rounded-full transition-colors ${
+                            settings.categories[category.id]?.[setting.key] ?? setting.default
+                              ? 'bg-purple-600'
+                              : 'bg-gray-300 dark:bg-gray-600'
+                          }`}
+                        >
+                          <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                            settings.categories[category.id]?.[setting.key] ?? setting.default
+                              ? 'translate-x-6'
+                              : 'translate-x-0.5'
+                          }`} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
-          <div className={preferences.email.enabled ? '' : 'opacity-50 pointer-events-none'}>
-            <div className="py-4 border-b border-gray-700/50">
-              <p className="text-white font-medium mb-2">Email Digest</p>
-              <p className="text-gray-400 text-sm mb-3">How often to receive summary emails</p>
-              <div className="flex gap-2">
-                {['none', 'daily', 'weekly'].map((option) => (
+          {/* Channels Tab */}
+          {activeTab === 'channels' && (
+            <div className="space-y-4">
+              {/* Push Notifications */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+                      <Smartphone className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900 dark:text-white">
+                        Push Notifications
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Get instant alerts on your device
+                      </p>
+                    </div>
+                  </div>
+                  {pushSupported ? (
+                    <button
+                      onClick={pushEnabled ? disablePush : enablePush}
+                      disabled={pushLoading}
+                      className={`px-4 py-2 rounded-lg font-medium ${
+                        pushEnabled
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                          : 'bg-purple-600 text-white'
+                      }`}
+                    >
+                      {pushLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : pushEnabled ? (
+                        <>
+                          <Check className="w-4 h-4 inline mr-1" />
+                          Enabled
+                        </>
+                      ) : (
+                        'Enable'
+                      )}
+                    </button>
+                  ) : (
+                    <span className="text-sm text-gray-500">Not supported</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Email Notifications */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                      <Mail className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900 dark:text-white">
+                        Email Notifications
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Receive updates via email
+                      </p>
+                    </div>
+                  </div>
                   <button
-                    key={option}
-                    onClick={() => updateEmailSetting('digest', option)}
-                    disabled={!preferences.email.enabled}
-                    className={`px-4 py-2 rounded-lg capitalize transition-colors ${
-                      preferences.email.digest === option
-                        ? 'bg-purple-500 text-white'
-                        : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                    onClick={() => toggleChannel('email')}
+                    className={`w-12 h-6 rounded-full transition-colors ${
+                      settings.channels.email ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'
                     }`}
                   >
-                    {option}
+                    <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                      settings.channels.email ? 'translate-x-6' : 'translate-x-0.5'
+                    }`} />
                   </button>
-                ))}
+                </div>
+              </div>
+
+              {/* In-App Notifications */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                      <Bell className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900 dark:text-white">
+                        In-App Notifications
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        See notifications inside the app
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => toggleChannel('inApp')}
+                    className={`w-12 h-6 rounded-full transition-colors ${
+                      settings.channels.inApp ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'
+                    }`}
+                  >
+                    <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                      settings.channels.inApp ? 'translate-x-6' : 'translate-x-0.5'
+                    }`} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Sound */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
+                      {settings.sound ? (
+                        <Volume2 className="w-5 h-5 text-orange-600" />
+                      ) : (
+                        <VolumeX className="w-5 h-5 text-orange-600" />
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900 dark:text-white">
+                        Notification Sounds
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Play sound for notifications
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSettings(prev => ({ ...prev, sound: !prev.sound }))}
+                    className={`w-12 h-6 rounded-full transition-colors ${
+                      settings.sound ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'
+                    }`}
+                  >
+                    <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                      settings.sound ? 'translate-x-6' : 'translate-x-0.5'
+                    }`} />
+                  </button>
+                </div>
               </div>
             </div>
+          )}
 
-            <SettingRow
-              icon={Mail}
-              title="Marketing Emails"
-              description="Product updates and promotions"
-              enabled={preferences.email.marketing}
-              onChange={(v) => updateEmailSetting('marketing', v)}
-              disabled={!preferences.email.enabled}
-            />
-          </div>
-        </div>
+          {/* Schedule Tab */}
+          {activeTab === 'schedule' && (
+            <div className="space-y-4">
+              {/* Quiet Hours */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <Moon className="w-5 h-5 text-indigo-500" />
+                    <div>
+                      <h3 className="font-medium text-gray-900 dark:text-white">
+                        Quiet Hours
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Pause notifications during set times
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSettings(prev => ({
+                      ...prev,
+                      quietHours: { ...prev.quietHours, enabled: !prev.quietHours.enabled }
+                    }))}
+                    className={`w-12 h-6 rounded-full transition-colors ${
+                      settings.quietHours.enabled ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'
+                    }`}
+                  >
+                    <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                      settings.quietHours.enabled ? 'translate-x-6' : 'translate-x-0.5'
+                    }`} />
+                  </button>
+                </div>
 
-        {/* Quiet Hours */}
-        <div className="bg-gray-800/50 rounded-2xl p-6 border border-purple-500/20">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <Moon className="w-5 h-5 text-purple-400" />
-              <div>
-                <h3 className="text-white font-bold">Quiet Hours</h3>
-                <p className="text-gray-400 text-sm">Pause notifications during specific hours</p>
+                {settings.quietHours.enabled && (
+                  <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t dark:border-gray-700">
+                    <div>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                        Start Time
+                      </label>
+                      <input
+                        type="time"
+                        value={settings.quietHours.start}
+                        onChange={(e) => setSettings(prev => ({
+                          ...prev,
+                          quietHours: { ...prev.quietHours, start: e.target.value }
+                        }))}
+                        className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                        End Time
+                      </label>
+                      <input
+                        type="time"
+                        value={settings.quietHours.end}
+                        onChange={(e) => setSettings(prev => ({
+                          ...prev,
+                          quietHours: { ...prev.quietHours, end: e.target.value }
+                        }))}
+                        className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-            <Toggle
-              enabled={preferences.quiet.enabled}
-              onChange={(v) => updateQuietSetting('enabled', v)}
-            />
-          </div>
 
-          {preferences.quiet.enabled && (
-            <div className="flex items-center gap-4 pt-4 border-t border-gray-700/50">
-              <div className="flex-1">
-                <label className="block text-gray-400 text-sm mb-2">Start Time</label>
-                <input
-                  type="time"
-                  value={preferences.quiet.startTime}
-                  onChange={(e) => updateQuietSetting('startTime', e.target.value)}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                />
-              </div>
-              <div className="flex-1">
-                <label className="block text-gray-400 text-sm mb-2">End Time</label>
-                <input
-                  type="time"
-                  value={preferences.quiet.endTime}
-                  onChange={(e) => updateQuietSetting('endTime', e.target.value)}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                />
+              {/* Email Digest */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-blue-500" />
+                    <div>
+                      <h3 className="font-medium text-gray-900 dark:text-white">
+                        Email Digest
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Get a summary instead of individual emails
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSettings(prev => ({
+                      ...prev,
+                      digest: { ...prev.digest, enabled: !prev.digest.enabled }
+                    }))}
+                    className={`w-12 h-6 rounded-full transition-colors ${
+                      settings.digest.enabled ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'
+                    }`}
+                  >
+                    <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                      settings.digest.enabled ? 'translate-x-6' : 'translate-x-0.5'
+                    }`} />
+                  </button>
+                </div>
+
+                {settings.digest.enabled && (
+                  <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t dark:border-gray-700">
+                    <div>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                        Frequency
+                      </label>
+                      <select
+                        value={settings.digest.frequency}
+                        onChange={(e) => setSettings(prev => ({
+                          ...prev,
+                          digest: { ...prev.digest, frequency: e.target.value }
+                        }))}
+                        className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      >
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                        Delivery Time
+                      </label>
+                      <input
+                        type="time"
+                        value={settings.digest.time}
+                        onChange={(e) => setSettings(prev => ({
+                          ...prev,
+                          digest: { ...prev.digest, time: e.target.value }
+                        }))}
+                        className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
         </div>
-
-        {/* Saving Indicator */}
-        {saving && (
-          <div className="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-xl">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            Saving...
-          </div>
-        )}
       </div>
-    </AppLayout>
+    </>
   );
 }
