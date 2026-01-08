@@ -1,15 +1,49 @@
-# Allow all crawlers
+# CYBEV Robots.txt
+# https://cybev.io/robots.txt
+
 User-agent: *
 Allow: /
 
-# Disallow admin and private pages
-Disallow: /api/
+# Allow crawling of main pages
+Allow: /
+Allow: /feed
+Allow: /explore
+Allow: /live
+Allow: /tv
+Allow: /blog
+Allow: /blog/*
+Allow: /marketplace
+Allow: /nft
+Allow: /groups
+Allow: /search
+Allow: /profile/*
+
+# Disallow private/auth pages
 Disallow: /auth/
-Disallow: /settings/
+Disallow: /settings
+Disallow: /messages
+Disallow: /notifications
 Disallow: /dashboard
+Disallow: /admin
+Disallow: /wallet
+Disallow: /earnings
+Disallow: /analytics
+Disallow: /studio
+
+# Disallow API routes
+Disallow: /api/
+
+# Disallow user-specific pages that need authentication
+Disallow: /create
+Disallow: /post/create
+Disallow: /vlog/create
+Disallow: /live/go-live
+Disallow: /live/start
+Disallow: /onboarding
+
+# Crawl delay (be nice to our servers)
+Crawl-delay: 1
 
 # Sitemap location
+Sitemap: https://cybev.io/api/sitemap.xml
 Sitemap: https://cybev.io/sitemap.xml
-
-# Crawl delay (be nice to servers)
-Crawl-delay: 1

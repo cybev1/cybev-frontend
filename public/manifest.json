@@ -1,16 +1,16 @@
 {
-  "name": "CYBEV - Web3 Content Platform",
+  "name": "CYBEV - Web3 Social Blogging",
   "short_name": "CYBEV",
-  "description": "Create, share, and earn with blockchain-powered content",
-  "start_url": "/feed",
+  "description": "Create, share, and monetize your content with AI-powered tools, live streaming, and cryptocurrency rewards.",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f0a1a",
-  "theme_color": "#8b5cf6",
+  "background_color": "#0a0a0a",
+  "theme_color": "#7c3aed",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
   "dir": "ltr",
-  "categories": ["social", "entertainment", "finance"],
+  "categories": ["social", "news", "entertainment", "lifestyle"],
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
@@ -63,18 +63,18 @@
   ],
   "screenshots": [
     {
-      "src": "/screenshots/feed-mobile.png",
-      "sizes": "390x844",
+      "src": "/screenshots/feed.png",
+      "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "CYBEV Feed"
     },
     {
-      "src": "/screenshots/feed-desktop.png",
-      "sizes": "1920x1080",
+      "src": "/screenshots/blog.png",
+      "sizes": "1080x1920",
       "type": "image/png",
-      "form_factor": "wide",
-      "label": "CYBEV Desktop View"
+      "form_factor": "narrow",
+      "label": "AI Blog Generator"
     }
   ],
   "shortcuts": [
@@ -82,40 +82,63 @@
       "name": "Create Post",
       "short_name": "Post",
       "description": "Create a new post",
-      "url": "/post/create",
-      "icons": [{ "src": "/icons/shortcut-create.png", "sizes": "96x96" }]
+      "url": "/create",
+      "icons": [{ "src": "/icons/shortcut-post.png", "sizes": "96x96" }]
     },
     {
-      "name": "Write Blog",
+      "name": "Go Live",
+      "short_name": "Live",
+      "description": "Start a live stream",
+      "url": "/live/go-live",
+      "icons": [{ "src": "/icons/shortcut-live.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "AI Blog",
       "short_name": "Blog",
-      "description": "Write a new blog article",
-      "url": "/blog/create",
+      "description": "Generate AI blog post",
+      "url": "/studio/ai-blog",
       "icons": [{ "src": "/icons/shortcut-blog.png", "sizes": "96x96" }]
     },
     {
-      "name": "NFT Marketplace",
-      "short_name": "NFTs",
-      "description": "Browse NFT marketplace",
-      "url": "/nft",
-      "icons": [{ "src": "/icons/shortcut-nft.png", "sizes": "96x96" }]
-    },
-    {
-      "name": "Wallet",
-      "short_name": "Wallet",
-      "description": "View your wallet",
-      "url": "/wallet",
-      "icons": [{ "src": "/icons/shortcut-wallet.png", "sizes": "96x96" }]
+      "name": "Messages",
+      "short_name": "Chat",
+      "description": "View messages",
+      "url": "/messages",
+      "icons": [{ "src": "/icons/shortcut-messages.png", "sizes": "96x96" }]
     }
   ],
-  "related_applications": [],
-  "prefer_related_applications": false,
   "share_target": {
-    "action": "/post/create",
-    "method": "GET",
+    "action": "/create",
+    "method": "POST",
+    "enctype": "multipart/form-data",
     "params": {
       "title": "title",
       "text": "text",
-      "url": "url"
+      "url": "url",
+      "files": [
+        {
+          "name": "media",
+          "accept": ["image/*", "video/*"]
+        }
+      ]
     }
+  },
+  "prefer_related_applications": false,
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=io.cybev.app",
+      "id": "io.cybev.app"
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+cybev",
+      "url": "/%s"
+    }
+  ],
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
   }
 }
