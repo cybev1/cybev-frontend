@@ -1,6 +1,7 @@
 // ============================================
 // FILE: src/pages/studio/index.jsx
-// Studio Hub - FIXED with proper AI Generator link
+// Studio Dashboard - Shows user's sites & content
+// VERSION: 6.4.2
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -9,223 +10,241 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import AppLayout from '@/components/Layout/AppLayout';
 import {
-  PenTool,
-  Wand2,
-  Globe,
-  Video,
-  Image as ImageIcon,
-  FileText,
-  Plus,
-  ExternalLink,
-  Settings,
-  MoreHorizontal,
-  Loader2,
-  Eye,
-  Edit3,
-  Trash2,
-  Layout,
-  Sparkles,
-  BookOpen,
-  Radio,
-  Home,
-  Compass
+  Globe, Plus, Settings, Eye, Trash2, ExternalLink, Loader2,
+  PenTool, Video, Image as ImageIcon, BarChart3, Sparkles,
+  Layout, FileText, Calendar, Clock, MoreHorizontal, Edit3,
+  Copy, Check, AlertCircle, Rocket, Zap, Users
 } from 'lucide-react';
-import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
-const STUDIO_TOOLS = [
+// Quick action cards
+const QUICK_ACTIONS = [
   {
-    id: 'ai-generator',
-    name: 'AI Content Generator',
-    description: 'Generate blog posts, articles & content with AI',
-    icon: Wand2,
-    href: '/studio/ai-blog',
+    id: 'website',
+    title: 'Create Website',
+    description: 'Build a stunning website with AI',
+    icon: Globe,
+    href: '/studio/sites/new',
     color: 'from-purple-500 to-pink-500',
     badge: 'Popular'
   },
   {
-    id: 'blog-create',
-    name: 'Write Blog Post',
-    description: 'Create a new blog post manually',
+    id: 'blog',
+    title: 'Write with AI',
+    description: 'Generate blog posts instantly',
     icon: PenTool,
-    href: '/blog/create',
+    href: '/studio/ai-blog',
     color: 'from-blue-500 to-cyan-500'
   },
   {
-    id: 'website-builder',
-    name: 'Website Builder',
-    description: 'Build and manage your websites',
-    icon: Globe,
-    href: '/studio/sites/new',
-    color: 'from-green-500 to-emerald-500'
-  },
-  {
     id: 'vlog',
-    name: 'Create Vlog',
+    title: 'Create Vlog',
     description: 'Upload and share video content',
     icon: Video,
     href: '/vlog/create',
     color: 'from-red-500 to-orange-500'
   },
   {
-    id: 'go-live',
-    name: 'Go Live',
-    description: 'Start a live stream',
-    icon: Radio,
-    href: '/live/go-live',
-    color: 'from-pink-500 to-rose-500',
-    badge: 'Live'
-  },
-  {
     id: 'nft',
-    name: 'Create NFT',
-    description: 'Mint your content as NFT',
+    title: 'Mint NFT',
+    description: 'Turn your content into NFTs',
     icon: Sparkles,
     href: '/nft/create',
-    color: 'from-yellow-500 to-amber-500'
+    color: 'from-amber-500 to-yellow-500'
   }
 ];
 
-function WebsiteCard({ site, onDelete }) {
-  const router = useRouter();
+function SiteCard({ site, onDelete }) {
+  const [showMenu, setShowMenu] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const handleDelete = async (e) => {
-    e.stopPropagation();
-    if (!confirm('Delete this website?')) return;
+  const siteUrl = `https://${site.subdomain}.cybev.io`;
+
+  const copyUrl = () => {
+    navigator.clipboard.writeText(siteUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this website?')) return;
     setDeleting(true);
     await onDelete(site._id);
     setDeleting(false);
   };
 
+  const getStatusColor = () => {
+    switch (site.status) {
+      case 'published': return 'bg-green-100 text-green-700';
+      case 'draft': return 'bg-yellow-100 text-yellow-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
   return (
-    <div className="bg-white/5 rounded-xl border border-purple-500/20 overflow-hidden hover:border-purple-500/40 transition-all group">
-      {/* Preview */}
-      <div className="h-32 bg-gradient-to-br from-purple-600/20 to-pink-600/20 relative">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden group hover:shadow-md transition">
+      {/* Preview Image */}
+      <div className="relative aspect-video bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30">
         {site.thumbnail ? (
-          <img src={site.thumbnail} alt="" className="w-full h-full object-cover" />
+          <img src={site.thumbnail} alt={site.name} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Globe className="w-12 h-12 text-purple-500/50" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Globe className="w-12 h-12 text-purple-300 dark:text-purple-600" />
           </div>
         )}
         
-        {/* Status Badge */}
-        <div className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs font-medium ${
-          site.isPublished 
-            ? 'bg-green-500/20 text-green-400' 
-            : 'bg-yellow-500/20 text-yellow-400'
-        }`}>
-          {site.isPublished ? 'Published' : 'Draft'}
-        </div>
-
         {/* Hover Actions */}
-        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-          <Link href={`/studio/sites/${site.subdomain || site._id}/edit`}>
-            <button className="p-2 bg-white/20 rounded-lg text-white hover:bg-white/30">
-              <Edit3 className="w-5 h-5" />
+        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-3">
+          <Link href={`/studio/sites/${site._id}/edit`}>
+            <button className="px-4 py-2 bg-white text-gray-900 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-100">
+              <Edit3 className="w-4 h-4" />
+              Edit
             </button>
           </Link>
-          <a
-            href={`https://${site.subdomain}.cybev.io`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-2 bg-white/20 rounded-lg text-white hover:bg-white/30"
-          >
-            <ExternalLink className="w-5 h-5" />
+          <a href={siteUrl} target="_blank" rel="noopener noreferrer">
+            <button className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium flex items-center gap-2 hover:bg-purple-700">
+              <Eye className="w-4 h-4" />
+              View
+            </button>
           </a>
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className="p-2 bg-red-500/20 rounded-lg text-red-400 hover:bg-red-500/30"
-          >
-            {deleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
-          </button>
+        </div>
+
+        {/* Status Badge */}
+        <div className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor()}`}>
+          {site.status || 'Draft'}
         </div>
       </div>
 
       {/* Info */}
       <div className="p-4">
-        <h3 className="text-white font-semibold truncate">{site.name || 'Untitled Site'}</h3>
-        <p className="text-gray-500 text-sm truncate">
-          {site.subdomain}.cybev.io
-        </p>
+        <div className="flex items-start justify-between mb-2">
+          <div>
+            <h3 className="font-semibold text-gray-900 dark:text-white">{site.name}</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{site.subdomain}.cybev.io</p>
+          </div>
+          
+          <div className="relative">
+            <button 
+              onClick={() => setShowMenu(!showMenu)}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+            >
+              <MoreHorizontal className="w-5 h-5 text-gray-500" />
+            </button>
+            
+            {showMenu && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                <div className="absolute right-0 top-10 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 z-20 py-1">
+                  <Link href={`/studio/sites/${site._id}/edit`}>
+                    <button className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">
+                      <Edit3 className="w-4 h-4" />
+                      Edit Site
+                    </button>
+                  </Link>
+                  <a href={siteUrl} target="_blank" rel="noopener noreferrer">
+                    <button className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">
+                      <ExternalLink className="w-4 h-4" />
+                      Open Site
+                    </button>
+                  </a>
+                  <button 
+                    onClick={copyUrl}
+                    className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                  >
+                    {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                    {copied ? 'Copied!' : 'Copy URL'}
+                  </button>
+                  <Link href={`/studio/sites/${site._id}/settings`}>
+                    <button className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">
+                      <Settings className="w-4 h-4" />
+                      Settings
+                    </button>
+                  </Link>
+                  <hr className="my-1 border-gray-100 dark:border-gray-700" />
+                  <button 
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+                  >
+                    {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                    Delete Site
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {site.description && (
+          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
+            {site.description}
+          </p>
+        )}
+
+        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+          <span className="flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            {new Date(site.updatedAt || site.createdAt).toLocaleDateString()}
+          </span>
+          <span className="flex items-center gap-1">
+            <Eye className="w-3 h-3" />
+            {site.views || 0} views
+          </span>
+        </div>
       </div>
     </div>
   );
 }
 
-function BlogPostCard({ post }) {
-  return (
-    <Link href={`/blog/edit/${post._id}`}>
-      <div className="bg-white/5 rounded-xl border border-purple-500/20 p-4 hover:border-purple-500/40 transition-all cursor-pointer">
-        <div className="flex items-start gap-3">
-          {post.coverImage ? (
-            <img src={post.coverImage} alt="" className="w-16 h-16 rounded-lg object-cover" />
-          ) : (
-            <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
-              <FileText className="w-6 h-6 text-purple-500" />
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <h3 className="text-white font-medium truncate">{post.title || 'Untitled'}</h3>
-            <p className="text-gray-500 text-sm">
-              {new Date(post.createdAt).toLocaleDateString()}
-            </p>
-            <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs ${
-              post.isPublished 
-                ? 'bg-green-500/20 text-green-400' 
-                : 'bg-yellow-500/20 text-yellow-400'
-            }`}>
-              {post.isPublished ? 'Published' : 'Draft'}
-            </span>
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
 export default function StudioPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [websites, setWebsites] = useState([]);
+  const [sites, setSites] = useState([]);
   const [blogs, setBlogs] = useState([]);
-  const [activeSection, setActiveSection] = useState('tools');
-
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('sites');
 
   const getAuth = () => {
     const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
     return { headers: { Authorization: `Bearer ${token}` } };
   };
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [sitesRes, blogsRes] = await Promise.all([
-        axios.get(`${API_URL}/api/sites/my`, getAuth()).catch(() => ({ data: { sites: [] } })),
-        axios.get(`${API_URL}/api/blogs/my`, getAuth()).catch(() => ({ data: { blogs: [] } }))
-      ]);
+  useEffect(() => {
+    fetchSites();
+    fetchBlogs();
+  }, []);
 
-      setWebsites(sitesRes.data.sites || []);
-      setBlogs(blogsRes.data.blogs || blogsRes.data.posts || []);
+  const fetchSites = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/sites/my`, getAuth());
+      const data = await res.json();
+      setSites(data.sites || data || []);
     } catch (err) {
-      console.error('Fetch data error:', err);
-    } finally {
-      setLoading(false);
+      console.error('Fetch sites error:', err);
+    }
+    setLoading(false);
+  };
+
+  const fetchBlogs = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/blogs/my`, getAuth());
+      const data = await res.json();
+      setBlogs(data.blogs || data || []);
+    } catch (err) {
+      console.error('Fetch blogs error:', err);
     }
   };
 
-  const handleDeleteSite = async (siteId) => {
+  const deleteSite = async (siteId) => {
     try {
-      await axios.delete(`${API_URL}/api/sites/${siteId}`, getAuth());
-      setWebsites(websites.filter(s => s._id !== siteId));
+      await fetch(`${API_URL}/api/sites/${siteId}`, {
+        method: 'DELETE',
+        ...getAuth()
+      });
+      setSites(sites.filter(s => s._id !== siteId));
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete');
+      console.error('Delete site error:', err);
     }
   };
 
@@ -235,150 +254,156 @@ export default function StudioPage() {
         <title>Studio - CYBEV</title>
       </Head>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Navigation Bar */}
-        <div className="flex items-center gap-4 mb-6 pb-4 border-b border-purple-500/20">
-          <Link href="/feed">
-            <button className="flex items-center gap-2 px-4 py-2 bg-white/5 text-gray-400 rounded-lg hover:bg-white/10 hover:text-white transition-colors">
-              <Home className="w-4 h-4" />
-              Feed
-            </button>
-          </Link>
-          <Link href="/explore">
-            <button className="flex items-center gap-2 px-4 py-2 bg-white/5 text-gray-400 rounded-lg hover:bg-white/10 hover:text-white transition-colors">
-              <Compass className="w-4 h-4" />
-              Explore
-            </button>
-          </Link>
-          <div className="flex items-center gap-2 px-4 py-2 bg-purple-600/20 text-purple-400 rounded-lg">
-            <Layout className="w-4 h-4" />
-            Studio
-          </div>
-        </div>
-
+      <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Creator Studio</h1>
-          <p className="text-gray-400">Create, manage, and publish your content</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Creator Studio
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Build websites, write content, and manage your creations
+          </p>
         </div>
 
-        {/* Quick Create Tools */}
-        <div className="mb-10">
-          <h2 className="text-xl font-bold text-white mb-4">Create Something New</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {STUDIO_TOOLS.map((tool) => (
-              <Link key={tool.id} href={tool.href}>
-                <div className="bg-white/5 rounded-2xl border border-purple-500/20 p-6 hover:border-purple-500/40 hover:bg-white/10 transition-all cursor-pointer group relative">
-                  {tool.badge && (
-                    <span className="absolute top-4 right-4 px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs font-medium rounded-full">
-                      {tool.badge}
-                    </span>
-                  )}
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                    <tool.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-white mb-1">{tool.name}</h3>
-                  <p className="text-gray-400 text-sm">{tool.description}</p>
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {QUICK_ACTIONS.map((action) => (
+            <Link key={action.id} href={action.href}>
+              <div className="relative bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition cursor-pointer group">
+                {action.badge && (
+                  <span className="absolute top-3 right-3 px-2 py-0.5 bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 text-xs font-medium rounded-full">
+                    {action.badge}
+                  </span>
+                )}
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center mb-4 group-hover:scale-110 transition`}>
+                  <action.icon className="w-6 h-6 text-white" />
                 </div>
-              </Link>
-            ))}
-          </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{action.title}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{action.description}</p>
+              </div>
+            </Link>
+          ))}
         </div>
 
-        {/* My Content */}
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* My Websites */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-white">My Websites</h2>
+        {/* Tabs */}
+        <div className="flex items-center gap-4 border-b border-gray-200 dark:border-gray-700 mb-6">
+          <button
+            onClick={() => setActiveTab('sites')}
+            className={`pb-4 px-2 font-medium transition ${
+              activeTab === 'sites'
+                ? 'text-purple-600 border-b-2 border-purple-600'
+                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Globe className="w-5 h-5" />
+              Websites
+              {sites.length > 0 && (
+                <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs">
+                  {sites.length}
+                </span>
+              )}
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('blogs')}
+            className={`pb-4 px-2 font-medium transition ${
+              activeTab === 'blogs'
+                ? 'text-purple-600 border-b-2 border-purple-600'
+                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Blog Posts
+              {blogs.length > 0 && (
+                <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs">
+                  {blogs.length}
+                </span>
+              )}
+            </div>
+          </button>
+        </div>
+
+        {/* Content */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+          </div>
+        ) : activeTab === 'sites' ? (
+          sites.length === 0 ? (
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center shadow-sm border border-gray-100 dark:border-gray-700">
+              <div className="w-20 h-20 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Globe className="w-10 h-10 text-purple-500" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                No websites yet
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                Create your first website with our AI-powered builder. Choose from templates or let AI design for you.
+              </p>
               <Link href="/studio/sites/new">
-                <button className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700">
-                  <Plus className="w-4 h-4" />
-                  New Site
+                <button className="px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 flex items-center gap-2 mx-auto">
+                  <Plus className="w-5 h-5" />
+                  Create Your First Website
                 </button>
               </Link>
             </div>
-
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
-              </div>
-            ) : websites.length === 0 ? (
-              <div className="bg-white/5 rounded-xl border border-purple-500/20 p-8 text-center">
-                <Globe className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-400 mb-4">No websites yet</p>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Your Websites
+                </h2>
                 <Link href="/studio/sites/new">
-                  <button className="px-4 py-2 bg-purple-600 text-white rounded-lg">
-                    Create Your First Website
+                  <button className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 flex items-center gap-2">
+                    <Plus className="w-4 h-4" />
+                    New Website
                   </button>
                 </Link>
               </div>
-            ) : (
-              <div className="grid gap-4">
-                {websites.slice(0, 4).map(site => (
-                  <WebsiteCard key={site._id} site={site} onDelete={handleDeleteSite} />
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {sites.map((site) => (
+                  <SiteCard key={site._id} site={site} onDelete={deleteSite} />
                 ))}
-                {websites.length > 4 && (
-                  <Link href="/studio/sites">
-                    <button className="w-full py-3 text-purple-400 hover:text-purple-300 font-medium">
-                      View all {websites.length} websites →
-                    </button>
-                  </Link>
-                )}
               </div>
-            )}
-          </div>
-
-          {/* My Blog Posts */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-white">My Blog Posts</h2>
-              <Link href="/blog/create">
-                <button className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700">
-                  <Plus className="w-4 h-4" />
-                  New Post
+            </>
+          )
+        ) : (
+          blogs.length === 0 ? (
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center shadow-sm border border-gray-100 dark:border-gray-700">
+              <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                <PenTool className="w-10 h-10 text-blue-500" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                No blog posts yet
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                Start writing with AI assistance or create from scratch.
+              </p>
+              <Link href="/studio/ai-blog">
+                <button className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 flex items-center gap-2 mx-auto">
+                  <Sparkles className="w-5 h-5" />
+                  Write with AI
                 </button>
               </Link>
             </div>
-
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
-              </div>
-            ) : blogs.length === 0 ? (
-              <div className="bg-white/5 rounded-xl border border-purple-500/20 p-8 text-center">
-                <BookOpen className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-400 mb-4">No blog posts yet</p>
-                <div className="flex justify-center gap-3">
-                  <Link href="/studio/ai-blog">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg">
-                      <Wand2 className="w-4 h-4" />
-                      Write with AI
-                    </button>
-                  </Link>
-                  <Link href="/blog/create">
-                    <button className="px-4 py-2 bg-white/10 text-white rounded-lg">
-                      Write Manually
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {blogs.map((blog) => (
+                <div key={blog._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{blog.title}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4">{blog.excerpt || blog.content?.slice(0, 100)}</p>
+                  <Link href={`/blog/${blog._id}`}>
+                    <button className="text-purple-600 text-sm font-medium hover:underline">
+                      View Post →
                     </button>
                   </Link>
                 </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {blogs.slice(0, 5).map(post => (
-                  <BlogPostCard key={post._id} post={post} />
-                ))}
-                {blogs.length > 5 && (
-                  <Link href="/blog">
-                    <button className="w-full py-3 text-purple-400 hover:text-purple-300 font-medium">
-                      View all {blogs.length} posts →
-                    </button>
-                  </Link>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+              ))}
+            </div>
+          )
+        )}
       </div>
     </AppLayout>
   );

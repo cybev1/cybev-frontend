@@ -368,7 +368,7 @@ function BlockRenderer({ block, isEditing, onUpdate }) {
 
 export default function SiteEditor() {
   const router = useRouter();
-  const { subdomain: id } = router.query; // Use subdomain as id
+  const { id } = router.query;
   
   const [site, setSite] = useState(null);
   const [loading, setLoading] = useState(true);
