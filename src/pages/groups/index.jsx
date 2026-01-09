@@ -1,6 +1,7 @@
 // ============================================
 // FILE: src/pages/groups/index.jsx
-// Groups Discovery & Listing Page
+// Groups Discovery & Listing Page - FIXED
+// FIX: Changed Grid3X3 to LayoutGrid (valid icon)
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -18,7 +19,7 @@ import {
   ChevronRight,
   Loader2,
   Filter,
-  Grid3X3,
+  LayoutGrid,
   List,
   TrendingUp,
   Clock,
@@ -343,7 +344,7 @@ export default function GroupsPage() {
                     onClick={() => setViewMode('grid')}
                     className={`p-2 ${viewMode === 'grid' ? 'bg-purple-600 text-white' : 'bg-white/5 text-gray-400'}`}
                   >
-                    <Grid3X3 className="w-5 h-5" />
+                    <LayoutGrid className="w-5 h-5" />
                   </button>
                   <button
                     type="button"
