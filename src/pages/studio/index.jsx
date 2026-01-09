@@ -1,389 +1,385 @@
 // ============================================
 // FILE: src/pages/studio/index.jsx
-// Enhanced Studio - Creative Hub
-// VERSION: 2.0
+// Studio Hub - FIXED with proper AI Generator link
 // ============================================
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import axios from 'axios';
+import { useRouter } from 'next/router';
+import AppLayout from '@/components/Layout/AppLayout';
 import {
-  Plus,
-  FileText,
-  Video,
+  PenTool,
+  Wand2,
   Globe,
-  Image,
-  Sparkles,
-  Radio,
-  Calendar,
-  BarChart3,
-  Settings,
-  ArrowRight,
-  Loader2,
+  Video,
+  Image as ImageIcon,
+  FileText,
+  Plus,
   ExternalLink,
+  Settings,
+  MoreHorizontal,
+  Loader2,
   Eye,
-  Edit,
+  Edit3,
   Trash2,
-  MoreVertical
+  Layout,
+  Sparkles,
+  BookOpen,
+  Radio,
+  Home,
+  Compass
 } from 'lucide-react';
+import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
-const QUICK_ACTIONS = [
-  { 
-    id: 'post', 
-    label: 'Quick Post', 
-    description: 'Share a thought or update',
-    icon: FileText, 
-    color: 'bg-blue-500',
-    href: '/create'
+const STUDIO_TOOLS = [
+  {
+    id: 'ai-generator',
+    name: 'AI Content Generator',
+    description: 'Generate blog posts, articles & content with AI',
+    icon: Wand2,
+    href: '/studio/ai-blog',
+    color: 'from-purple-500 to-pink-500',
+    badge: 'Popular'
   },
-  { 
-    id: 'blog', 
-    label: 'Blog Article', 
-    description: 'Write a long-form article',
-    icon: FileText, 
-    color: 'bg-purple-500',
-    href: '/studio/sites'
+  {
+    id: 'blog-create',
+    name: 'Write Blog Post',
+    description: 'Create a new blog post manually',
+    icon: PenTool,
+    href: '/blog/create',
+    color: 'from-blue-500 to-cyan-500'
   },
-  { 
-    id: 'vlog', 
-    label: 'Video Post', 
-    description: 'Upload a video',
-    icon: Video, 
-    color: 'bg-red-500',
-    href: '/vlog/create'
-  },
-  { 
-    id: 'website', 
-    label: 'Create Website', 
-    description: 'Build your own site',
-    icon: Globe, 
-    color: 'bg-gradient-to-r from-purple-500 to-pink-500',
+  {
+    id: 'website-builder',
+    name: 'Website Builder',
+    description: 'Build and manage your websites',
+    icon: Globe,
     href: '/studio/sites/new',
-    featured: true
+    color: 'from-green-500 to-emerald-500'
   },
-  { 
-    id: 'live', 
-    label: 'Go Live', 
-    description: 'Start streaming',
-    icon: Radio, 
-    color: 'bg-green-500',
-    href: '/live/go-live'
+  {
+    id: 'vlog',
+    name: 'Create Vlog',
+    description: 'Upload and share video content',
+    icon: Video,
+    href: '/vlog/create',
+    color: 'from-red-500 to-orange-500'
   },
-  { 
-    id: 'nft', 
-    label: 'Mint NFT', 
-    description: 'Create digital collectible',
-    icon: Image, 
-    color: 'bg-orange-500',
-    href: '/nft/create'
+  {
+    id: 'go-live',
+    name: 'Go Live',
+    description: 'Start a live stream',
+    icon: Radio,
+    href: '/live/go-live',
+    color: 'from-pink-500 to-rose-500',
+    badge: 'Live'
+  },
+  {
+    id: 'nft',
+    name: 'Create NFT',
+    description: 'Mint your content as NFT',
+    icon: Sparkles,
+    href: '/nft/create',
+    color: 'from-yellow-500 to-amber-500'
   }
 ];
+
+function WebsiteCard({ site, onDelete }) {
+  const router = useRouter();
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async (e) => {
+    e.stopPropagation();
+    if (!confirm('Delete this website?')) return;
+    setDeleting(true);
+    await onDelete(site._id);
+    setDeleting(false);
+  };
+
+  return (
+    <div className="bg-white/5 rounded-xl border border-purple-500/20 overflow-hidden hover:border-purple-500/40 transition-all group">
+      {/* Preview */}
+      <div className="h-32 bg-gradient-to-br from-purple-600/20 to-pink-600/20 relative">
+        {site.thumbnail ? (
+          <img src={site.thumbnail} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Globe className="w-12 h-12 text-purple-500/50" />
+          </div>
+        )}
+        
+        {/* Status Badge */}
+        <div className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs font-medium ${
+          site.isPublished 
+            ? 'bg-green-500/20 text-green-400' 
+            : 'bg-yellow-500/20 text-yellow-400'
+        }`}>
+          {site.isPublished ? 'Published' : 'Draft'}
+        </div>
+
+        {/* Hover Actions */}
+        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+          <Link href={`/studio/sites/${site.subdomain || site._id}/edit`}>
+            <button className="p-2 bg-white/20 rounded-lg text-white hover:bg-white/30">
+              <Edit3 className="w-5 h-5" />
+            </button>
+          </Link>
+          <a
+            href={`https://${site.subdomain}.cybev.io`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 bg-white/20 rounded-lg text-white hover:bg-white/30"
+          >
+            <ExternalLink className="w-5 h-5" />
+          </a>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="p-2 bg-red-500/20 rounded-lg text-red-400 hover:bg-red-500/30"
+          >
+            {deleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="p-4">
+        <h3 className="text-white font-semibold truncate">{site.name || 'Untitled Site'}</h3>
+        <p className="text-gray-500 text-sm truncate">
+          {site.subdomain}.cybev.io
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function BlogPostCard({ post }) {
+  return (
+    <Link href={`/blog/edit/${post._id}`}>
+      <div className="bg-white/5 rounded-xl border border-purple-500/20 p-4 hover:border-purple-500/40 transition-all cursor-pointer">
+        <div className="flex items-start gap-3">
+          {post.coverImage ? (
+            <img src={post.coverImage} alt="" className="w-16 h-16 rounded-lg object-cover" />
+          ) : (
+            <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
+              <FileText className="w-6 h-6 text-purple-500" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <h3 className="text-white font-medium truncate">{post.title || 'Untitled'}</h3>
+            <p className="text-gray-500 text-sm">
+              {new Date(post.createdAt).toLocaleDateString()}
+            </p>
+            <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs ${
+              post.isPublished 
+                ? 'bg-green-500/20 text-green-400' 
+                : 'bg-yellow-500/20 text-yellow-400'
+            }`}>
+              {post.isPublished ? 'Published' : 'Draft'}
+            </span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export default function StudioPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [sites, setSites] = useState([]);
-  const [stats, setStats] = useState({
-    totalViews: 0,
-    totalPosts: 0,
-    totalSites: 0,
-    followers: 0
-  });
-  const [recentContent, setRecentContent] = useState([]);
+  const [websites, setWebsites] = useState([]);
+  const [blogs, setBlogs] = useState([]);
+  const [activeSection, setActiveSection] = useState('tools');
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  const getAuth = () => {
+    const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+    return { headers: { Authorization: `Bearer ${token}` } };
+  };
+
   const fetchData = async () => {
+    setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        router.push('/auth/login');
-        return;
-      }
-
-      const headers = { Authorization: `Bearer ${token}` };
-
-      // Fetch sites and stats in parallel
-      const [sitesRes, analyticsRes] = await Promise.all([
-        axios.get(`${API_URL}/api/sites`, { headers }).catch(() => ({ data: { sites: [] } })),
-        axios.get(`${API_URL}/api/analytics/dashboard?period=30d`, { headers }).catch(() => ({ data: {} }))
+      const [sitesRes, blogsRes] = await Promise.all([
+        axios.get(`${API_URL}/api/sites/my`, getAuth()).catch(() => ({ data: { sites: [] } })),
+        axios.get(`${API_URL}/api/blogs/my`, getAuth()).catch(() => ({ data: { blogs: [] } }))
       ]);
 
-      setSites(sitesRes.data.sites || []);
-      
-      if (analyticsRes.data.dashboard) {
-        const d = analyticsRes.data.dashboard.overview;
-        setStats({
-          totalViews: d.views?.current || 0,
-          totalPosts: 0,
-          totalSites: sitesRes.data.sites?.length || 0,
-          followers: d.followers?.current || 0
-        });
-      }
-    } catch (error) {
-      console.error('Fetch studio data error:', error);
+      setWebsites(sitesRes.data.sites || []);
+      setBlogs(blogsRes.data.blogs || blogsRes.data.posts || []);
+    } catch (err) {
+      console.error('Fetch data error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
-      </div>
-    );
-  }
+  const handleDeleteSite = async (siteId) => {
+    try {
+      await axios.delete(`${API_URL}/api/sites/${siteId}`, getAuth());
+      setWebsites(websites.filter(s => s._id !== siteId));
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to delete');
+    }
+  };
 
   return (
-    <>
+    <AppLayout>
       <Head>
-        <title>Studio | CYBEV</title>
+        <title>Studio - CYBEV</title>
       </Head>
 
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-          <div className="max-w-6xl mx-auto px-4 py-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                  <Sparkles className="w-6 h-6" />
-                  Creator Studio
-                </h1>
-                <p className="text-purple-100 mt-1">Your creative command center</p>
-              </div>
-              <Link
-                href="/studio/sites/new"
-                className="flex items-center gap-2 px-4 py-2 bg-white text-purple-600 rounded-lg font-medium hover:bg-purple-50 transition"
-              >
-                <Plus className="w-5 h-5" />
-                New Website
-              </Link>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-              <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <div className="text-2xl font-bold">{stats.totalViews.toLocaleString()}</div>
-                <div className="text-purple-200 text-sm">Total Views</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <div className="text-2xl font-bold">{stats.totalSites}</div>
-                <div className="text-purple-200 text-sm">Websites</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <div className="text-2xl font-bold">{stats.followers.toLocaleString()}</div>
-                <div className="text-purple-200 text-sm">Followers</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <Link href="/analytics" className="flex items-center gap-2 text-white hover:underline">
-                  <BarChart3 className="w-5 h-5" />
-                  View Analytics
-                </Link>
-              </div>
-            </div>
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Navigation Bar */}
+        <div className="flex items-center gap-4 mb-6 pb-4 border-b border-purple-500/20">
+          <Link href="/feed">
+            <button className="flex items-center gap-2 px-4 py-2 bg-white/5 text-gray-400 rounded-lg hover:bg-white/10 hover:text-white transition-colors">
+              <Home className="w-4 h-4" />
+              Feed
+            </button>
+          </Link>
+          <Link href="/explore">
+            <button className="flex items-center gap-2 px-4 py-2 bg-white/5 text-gray-400 rounded-lg hover:bg-white/10 hover:text-white transition-colors">
+              <Compass className="w-4 h-4" />
+              Explore
+            </button>
+          </Link>
+          <div className="flex items-center gap-2 px-4 py-2 bg-purple-600/20 text-purple-400 rounded-lg">
+            <Layout className="w-4 h-4" />
+            Studio
           </div>
         </div>
 
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          {/* Quick Actions */}
-          <section className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Create Something
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {QUICK_ACTIONS.map(action => (
-                <Link
-                  key={action.id}
-                  href={action.href}
-                  className={`relative p-4 rounded-xl border transition-all hover:shadow-lg hover:-translate-y-1 ${
-                    action.featured
-                      ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white border-transparent'
-                      : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
-                  }`}
-                >
-                  {action.featured && (
-                    <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-yellow-400 text-yellow-900 text-xs font-bold rounded-full">
-                      NEW
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">Creator Studio</h1>
+          <p className="text-gray-400">Create, manage, and publish your content</p>
+        </div>
+
+        {/* Quick Create Tools */}
+        <div className="mb-10">
+          <h2 className="text-xl font-bold text-white mb-4">Create Something New</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {STUDIO_TOOLS.map((tool) => (
+              <Link key={tool.id} href={tool.href}>
+                <div className="bg-white/5 rounded-2xl border border-purple-500/20 p-6 hover:border-purple-500/40 hover:bg-white/10 transition-all cursor-pointer group relative">
+                  {tool.badge && (
+                    <span className="absolute top-4 right-4 px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs font-medium rounded-full">
+                      {tool.badge}
                     </span>
                   )}
-                  <action.icon className={`w-8 h-8 mb-2 ${
-                    action.featured ? 'text-white' : 'text-gray-600 dark:text-gray-400'
-                  }`} />
-                  <div className={`font-medium ${
-                    action.featured ? 'text-white' : 'text-gray-900 dark:text-white'
-                  }`}>
-                    {action.label}
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                    <tool.icon className="w-6 h-6 text-white" />
                   </div>
-                  <div className={`text-xs mt-1 ${
-                    action.featured ? 'text-purple-100' : 'text-gray-500'
-                  }`}>
-                    {action.description}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
+                  <h3 className="text-lg font-semibold text-white mb-1">{tool.name}</h3>
+                  <p className="text-gray-400 text-sm">{tool.description}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
 
+        {/* My Content */}
+        <div className="grid lg:grid-cols-2 gap-8">
           {/* My Websites */}
-          <section className="mb-8">
+          <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                My Websites
-              </h2>
-              <Link 
-                href="/studio/sites"
-                className="text-purple-600 hover:text-purple-700 text-sm font-medium flex items-center gap-1"
-              >
-                View All <ArrowRight className="w-4 h-4" />
+              <h2 className="text-xl font-bold text-white">My Websites</h2>
+              <Link href="/studio/sites/new">
+                <button className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700">
+                  <Plus className="w-4 h-4" />
+                  New Site
+                </button>
               </Link>
             </div>
 
-            {sites.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-8 text-center">
-                <Globe className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="font-medium text-gray-900 dark:text-white mb-2">
-                  No websites yet
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  Create your first website with our AI-powered builder
-                </p>
-                <Link
-                  href="/studio/sites/new"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  Create Website with AI
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
+              </div>
+            ) : websites.length === 0 ? (
+              <div className="bg-white/5 rounded-xl border border-purple-500/20 p-8 text-center">
+                <Globe className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-400 mb-4">No websites yet</p>
+                <Link href="/studio/sites/new">
+                  <button className="px-4 py-2 bg-purple-600 text-white rounded-lg">
+                    Create Your First Website
+                  </button>
                 </Link>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {sites.slice(0, 6).map(site => (
-                  <div 
-                    key={site._id}
-                    className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 overflow-hidden hover:shadow-lg transition"
-                  >
-                    <div className="h-32 bg-gradient-to-br from-purple-500 to-pink-500 relative">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Globe className="w-12 h-12 text-white/30" />
-                      </div>
-                      <div className="absolute top-2 right-2">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          site.status === 'published'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-yellow-100 text-yellow-700'
-                        }`}>
-                          {site.status}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-medium text-gray-900 dark:text-white truncate">
-                        {site.name}
-                      </h3>
-                      <p className="text-sm text-gray-500 truncate">
-                        {site.url}
-                      </p>
-                      <div className="flex items-center justify-between mt-3 pt-3 border-t dark:border-gray-700">
-                        <div className="text-sm text-gray-500 flex items-center gap-1">
-                          <Eye className="w-4 h-4" />
-                          {site.stats?.views || 0} views
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Link
-                            href={`/studio/sites/${site._id}`}
-                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-                          >
-                            <Edit className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                          </Link>
-                          <a
-                            href={site.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-                          >
-                            <ExternalLink className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+              <div className="grid gap-4">
+                {websites.slice(0, 4).map(site => (
+                  <WebsiteCard key={site._id} site={site} onDelete={handleDeleteSite} />
                 ))}
-
-                {/* Create New Card */}
-                <Link
-                  href="/studio/sites/new"
-                  className="bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 p-8 flex flex-col items-center justify-center text-center hover:border-purple-500 dark:hover:border-purple-500 transition"
-                >
-                  <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mb-3">
-                    <Plus className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div className="font-medium text-gray-900 dark:text-white">
-                    Create New Website
-                  </div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    Build with AI or choose a template
-                  </div>
-                </Link>
+                {websites.length > 4 && (
+                  <Link href="/studio/sites">
+                    <button className="w-full py-3 text-purple-400 hover:text-purple-300 font-medium">
+                      View all {websites.length} websites →
+                    </button>
+                  </Link>
+                )}
               </div>
             )}
-          </section>
+          </div>
 
-          {/* Quick Links */}
-          <section>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              More Tools
-            </h2>
-            <div className="grid md:grid-cols-3 gap-4">
-              <Link
-                href="/studio/ai-blog"
-                className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-4 hover:shadow-lg transition flex items-center gap-4"
-              >
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="font-medium text-gray-900 dark:text-white">AI Content Generator</div>
-                  <div className="text-sm text-gray-500">Generate blog posts with AI</div>
-                </div>
-              </Link>
-
-              <Link
-                href="/live/schedule"
-                className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-4 hover:shadow-lg transition flex items-center gap-4"
-              >
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-500 rounded-lg flex items-center justify-center">
-                  <Calendar className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="font-medium text-gray-900 dark:text-white">Schedule Stream</div>
-                  <div className="text-sm text-gray-500">Plan your live streams</div>
-                </div>
-              </Link>
-
-              <Link
-                href="/analytics"
-                className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-4 hover:shadow-lg transition flex items-center gap-4"
-              >
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-                  <BarChart3 className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="font-medium text-gray-900 dark:text-white">Analytics</div>
-                  <div className="text-sm text-gray-500">Track your performance</div>
-                </div>
+          {/* My Blog Posts */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white">My Blog Posts</h2>
+              <Link href="/blog/create">
+                <button className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700">
+                  <Plus className="w-4 h-4" />
+                  New Post
+                </button>
               </Link>
             </div>
-          </section>
+
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
+              </div>
+            ) : blogs.length === 0 ? (
+              <div className="bg-white/5 rounded-xl border border-purple-500/20 p-8 text-center">
+                <BookOpen className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-400 mb-4">No blog posts yet</p>
+                <div className="flex justify-center gap-3">
+                  <Link href="/studio/ai-blog">
+                    <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg">
+                      <Wand2 className="w-4 h-4" />
+                      Write with AI
+                    </button>
+                  </Link>
+                  <Link href="/blog/create">
+                    <button className="px-4 py-2 bg-white/10 text-white rounded-lg">
+                      Write Manually
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {blogs.slice(0, 5).map(post => (
+                  <BlogPostCard key={post._id} post={post} />
+                ))}
+                {blogs.length > 5 && (
+                  <Link href="/blog">
+                    <button className="w-full py-3 text-purple-400 hover:text-purple-300 font-medium">
+                      View all {blogs.length} posts →
+                    </button>
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </>
+    </AppLayout>
   );
 }
