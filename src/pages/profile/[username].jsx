@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/profile/[username].jsx
-// User Profile Page with Follow System
-// VERSION: 6.4.2
+// User Profile Page with Follow System - FIXED
+// FIX: Changed Grid3X3 to Grid (valid icon)
 // ============================================
 
 import { useState, useEffect, useRef } from 'react';
@@ -18,7 +18,7 @@ import {
   MapPin,
   Link as LinkIcon,
   Calendar,
-  Grid3X3,
+  Grid,
   Bookmark,
   Heart,
   MessageCircle,
@@ -404,7 +404,7 @@ export default function ProfilePage() {
         {/* Tabs */}
         <div className="flex gap-1 border-b border-purple-500/20 mb-6">
           {[
-            { id: 'posts', icon: Grid3X3, label: 'Posts' },
+            { id: 'posts', icon: Grid, label: 'Posts' },
             { id: 'saved', icon: Bookmark, label: 'Saved' },
             { id: 'liked', icon: Heart, label: 'Liked' }
           ].map(tab => (
