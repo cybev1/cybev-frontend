@@ -1,6 +1,7 @@
 // ============================================
 // FILE: pages/blog/edit/[id].jsx
 // Blog Edit Page - Edit existing blog posts
+// FIXED: /dashboard → /feed redirects
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -18,32 +19,32 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-// Dynamic import for rich text editor (avoid SSR issues)
 const ReactQuill = dynamic(() => import('react-quill'), { 
   ssr: false,
   loading: () => <div className="h-64 bg-white/5 rounded-lg animate-pulse" />
 });
 import 'react-quill/dist/quill.snow.css';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://cybev-backend-production.up.railway.app';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
 const CATEGORIES = [
-  'Technology',
-  'Business & Finance',
-  'Health & Wellness',
-  'Lifestyle',
-  'Education',
-  'Entertainment',
-  'Food & Cooking',
-  'Travel',
-  'Science',
-  'Sports',
-  'Fashion & Beauty',
-  'Personal Development',
-  'News & Politics',
-  'Environment',
-  'Other'
+  'Technology', 'Business & Finance', 'Health & Wellness', 'Lifestyle',
+  'Education', 'Entertainment', 'Food & Cooking', 'Travel', 'Science',
+  'Sports', 'Fashion & Beauty', 'Personal Development', 'News & Politics',
+  'Environment', 'Other'
 ];
+
+const quillModules = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    [{ align: [] }],
+    ['link', 'image', 'video'],
+    ['blockquote', 'code-block'],
+    ['clean']
+  ]
+};
 
 export default function EditBlog() {
   const router = useRouter();
@@ -67,11 +68,8 @@ export default function EditBlog() {
   
   const [tagInput, setTagInput] = useState('');
 
-  // Fetch blog data
   useEffect(() => {
-    if (id) {
-      fetchBlog();
-    }
+    if (id) fetchBlog();
   }, [id]);
 
   const fetchBlog = async () => {
@@ -81,29 +79,21 @@ export default function EditBlog() {
       
       const token = localStorage.getItem('token');
       if (!token) {
-        router.push('/login');
+        router.push('/auth/login');
         return;
       }
 
-      // Try multiple endpoints
       let response = await fetch(`${API_URL}/api/blogs/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      // If not found, try content routes
       if (!response.ok && response.status === 404) {
         response = await fetch(`${API_URL}/api/content/blogs/${id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { 'Authorization': `Bearer ${token}` }
         });
       }
 
-      if (!response.ok) {
-        throw new Error('Blog not found');
-      }
+      if (!response.ok) throw new Error('Blog not found');
 
       const data = await response.json();
       const blogData = data.blog || data.data || data;
@@ -133,7 +123,7 @@ export default function EditBlog() {
       
       const token = localStorage.getItem('token');
       if (!token) {
-        router.push('/login');
+        router.push('/auth/login');
         return;
       }
 
@@ -171,9 +161,9 @@ export default function EditBlog() {
 
       setSuccess('Blog updated successfully!');
       
-      // Redirect after short delay
+      // FIXED: Redirect to /feed instead of /dashboard
       setTimeout(() => {
-        router.push('/dashboard');
+        router.push('/feed');
       }, 1500);
       
     } catch (err) {
@@ -191,15 +181,13 @@ export default function EditBlog() {
       
       const token = localStorage.getItem('token');
       if (!token) {
-        router.push('/login');
+        router.push('/auth/login');
         return;
       }
 
       const response = await fetch(`${API_URL}/api/blogs/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
 
       if (!response.ok) {
@@ -207,8 +195,8 @@ export default function EditBlog() {
         throw new Error(data.error || 'Failed to delete blog');
       }
 
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // FIXED: Redirect to /feed instead of /dashboard
+      router.push('/feed');
       
     } catch (err) {
       console.error('Error deleting blog:', err);
@@ -222,19 +210,13 @@ export default function EditBlog() {
   const addTag = () => {
     const tag = tagInput.trim().toLowerCase();
     if (tag && !blog.tags.includes(tag) && blog.tags.length < 10) {
-      setBlog(prev => ({
-        ...prev,
-        tags: [...prev.tags, tag]
-      }));
+      setBlog(prev => ({ ...prev, tags: [...prev.tags, tag] }));
       setTagInput('');
     }
   };
 
   const removeTag = (tagToRemove) => {
-    setBlog(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }));
+    setBlog(prev => ({ ...prev, tags: prev.tags.filter(tag => tag !== tagToRemove) }));
   };
 
   const handleKeyPress = (e) => {
@@ -244,25 +226,10 @@ export default function EditBlog() {
     }
   };
 
-  // Quill editor modules
-  const quillModules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      ['blockquote', 'code-block'],
-      ['link', 'image'],
-      ['clean']
-    ]
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
-          <p className="text-white/70">Loading blog...</p>
-        </div>
+        <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
       </div>
     );
   }
@@ -270,17 +237,16 @@ export default function EditBlog() {
   return (
     <>
       <Head>
-        <title>Edit Blog | CYBEV</title>
+        <title>Edit Blog - CYBEV</title>
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 py-8 px-4">
         <div className="max-w-4xl mx-auto">
-          
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <button
               onClick={() => router.back()}
-              className="flex items-center gap-2 text-white/70 hover:text-white transition-colors"
+              className="flex items-center gap-2 text-white hover:text-purple-400 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               Back
@@ -335,21 +301,21 @@ export default function EditBlog() {
           {/* Edit Form */}
           <div className="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-6 space-y-6">
             
-            {/* Title */}
+            {/* Title - FIXED: White text */}
             <div>
-              <label className="block text-white/70 mb-2 text-sm">Title</label>
+              <label className="block text-white mb-2 text-sm">Title</label>
               <input
                 type="text"
                 value={blog.title}
                 onChange={(e) => setBlog(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="Enter blog title..."
-                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-purple-500 text-lg"
+                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 text-lg"
               />
             </div>
 
             {/* Featured Image */}
             <div>
-              <label className="block text-white/70 mb-2 text-sm flex items-center gap-2">
+              <label className="block text-white mb-2 text-sm flex items-center gap-2">
                 <Image className="w-4 h-4" />
                 Featured Image URL
               </label>
@@ -358,7 +324,7 @@ export default function EditBlog() {
                 value={blog.featuredImage}
                 onChange={(e) => setBlog(prev => ({ ...prev, featuredImage: e.target.value }))}
                 placeholder="https://example.com/image.jpg"
-                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-purple-500"
+                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
               />
               {blog.featuredImage && (
                 <div className="mt-3">
@@ -375,34 +341,34 @@ export default function EditBlog() {
             {/* Category & Status */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-white/70 mb-2 text-sm">Category</label>
+                <label className="block text-white mb-2 text-sm">Category</label>
                 <select
                   value={blog.category}
                   onChange={(e) => setBlog(prev => ({ ...prev, category: e.target.value }))}
                   className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
                 >
                   {CATEGORIES.map(cat => (
-                    <option key={cat} value={cat} className="bg-gray-900">{cat}</option>
+                    <option key={cat} value={cat} className="bg-gray-900 text-white">{cat}</option>
                   ))}
                 </select>
               </div>
               
               <div>
-                <label className="block text-white/70 mb-2 text-sm">Status</label>
+                <label className="block text-white mb-2 text-sm">Status</label>
                 <select
                   value={blog.status}
                   onChange={(e) => setBlog(prev => ({ ...prev, status: e.target.value }))}
                   className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
                 >
-                  <option value="published" className="bg-gray-900">Published</option>
-                  <option value="draft" className="bg-gray-900">Draft</option>
+                  <option value="published" className="bg-gray-900 text-white">Published</option>
+                  <option value="draft" className="bg-gray-900 text-white">Draft</option>
                 </select>
               </div>
             </div>
 
             {/* Tags */}
             <div>
-              <label className="block text-white/70 mb-2 text-sm flex items-center gap-2">
+              <label className="block text-white mb-2 text-sm flex items-center gap-2">
                 <Tag className="w-4 h-4" />
                 Tags ({blog.tags.length}/10)
               </label>
@@ -413,7 +379,7 @@ export default function EditBlog() {
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Add a tag..."
-                  className="flex-1 px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-purple-500"
+                  className="flex-1 px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
                 />
                 <button
                   onClick={addTag}
@@ -444,7 +410,7 @@ export default function EditBlog() {
 
             {/* Content Editor */}
             <div>
-              <label className="block text-white/70 mb-2 text-sm">Content</label>
+              <label className="block text-white mb-2 text-sm">Content</label>
               <div className="bg-white rounded-lg">
                 <ReactQuill
                   value={blog.content}
@@ -465,7 +431,7 @@ export default function EditBlog() {
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 max-w-md w-full">
             <h3 className="text-xl font-bold text-white mb-4">Delete Blog Post?</h3>
-            <p className="text-white/70 mb-6">
+            <p className="text-gray-400 mb-6">
               Are you sure you want to delete "{blog.title}"? This action cannot be undone.
             </p>
             <div className="flex gap-3">
@@ -511,6 +477,7 @@ export default function EditBlog() {
         }
         .ql-editor {
           min-height: 300px;
+          color: #111827;
         }
         .ql-editor.ql-blank::before {
           color: #9ca3af;

@@ -1,17 +1,18 @@
+// ============================================
+// FILE: src/components/MobileBottomNav.jsx
+// PURPOSE: Mobile-first bottom navigation
+// FIXED: /dashboard → /feed, proper dark mode text colors
+// ============================================
+
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { TrendingUp, FileText, Sparkles, Bell, User } from 'lucide-react';
 
-/**
- * Mobile-first bottom navigation.
- * - Large tap targets
- * - Safe-area padding for iOS
- * - Optimized for mobile WebView shells (Capacitor/Cordova/React Native WebView)
- */
 export default function MobileBottomNav() {
   const router = useRouter();
-  const [profileHref, setProfileHref] = useState('/dashboard');
+  // FIXED: Default to /feed instead of /dashboard
+  const [profileHref, setProfileHref] = useState('/feed');
 
   useEffect(() => {
     try {
@@ -26,10 +27,9 @@ export default function MobileBottomNav() {
   }, []);
 
   const pathname = useMemo(() => router.pathname || '', [router.pathname]);
-  const asPath = useMemo(() => router.asPath || '', [router.asPath]);
 
   const isActive = (key) => {
-    if (key === 'feed') return pathname === '/feed';
+    if (key === 'feed') return pathname === '/feed' || pathname === '/';
     if (key === 'blog') return pathname.startsWith('/blog');
     if (key === 'studio') return pathname === '/studio' || pathname.startsWith('/studio/');
     if (key === 'notifications') return pathname === '/notifications';
@@ -62,9 +62,8 @@ export default function MobileBottomNav() {
                     className={[
                       'flex flex-col items-center justify-center gap-1 py-3',
                       'touch-manipulation select-none',
-                      active
-                        ? 'text-white'
-                        : 'text-gray-300',
+                      // FIXED: Always use white text for visibility on dark background
+                      active ? 'text-white' : 'text-gray-300',
                     ].join(' ')}
                     style={{ minHeight: 56 }}
                     data-active={active ? 'true' : 'false'}
@@ -77,8 +76,10 @@ export default function MobileBottomNav() {
                           : 'bg-white/5',
                       ].join(' ')}
                     >
-                      <Icon className="w-5 h-5" />
+                      {/* FIXED: Icon always white for visibility */}
+                      <Icon className="w-5 h-5 text-white" />
                     </div>
+                    {/* FIXED: Label text always visible */}
                     <div className={['text-[11px] font-semibold', active ? 'text-white' : 'text-gray-300'].join(' ')}>
                       {label}
                     </div>

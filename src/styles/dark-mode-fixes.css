@@ -1,0 +1,209 @@
+/* ============================================
+ * FILE: src/styles/dark-mode-fixes.css
+ * PURPOSE: Fix text visibility issues in dark mode
+ * ADD TO: globals.css or import in _app.js
+ * ============================================ */
+
+/* ===========================================
+ * GLOBAL TEXT COLOR FIXES FOR DARK MODE
+ * Ensures text is always visible on dark backgrounds
+ * =========================================== */
+
+/* Force white text on dark backgrounds */
+.dark body,
+body.dark,
+[data-theme="dark"] body {
+  color: #ffffff;
+}
+
+/* Ensure all text in dark containers is white */
+.bg-gray-900 *,
+.bg-gray-800 *,
+.bg-black *,
+[class*="from-gray-900"] *,
+[class*="via-purple-900"] *,
+.backdrop-blur-xl *,
+.bg-black\/40 *,
+.bg-white\/5 * {
+  --tw-text-opacity: 1;
+}
+
+/* Fix black text appearing on dark backgrounds */
+.bg-gray-900 p,
+.bg-gray-900 span,
+.bg-gray-900 h1,
+.bg-gray-900 h2,
+.bg-gray-900 h3,
+.bg-gray-900 h4,
+.bg-gray-900 h5,
+.bg-gray-900 h6,
+.bg-gray-900 label,
+.bg-gray-900 div:not([class*="bg-"]) {
+  color: inherit;
+}
+
+/* Ensure form inputs have proper text colors */
+input:not([type="submit"]):not([type="button"]),
+textarea,
+select {
+  color: inherit;
+}
+
+/* Dark mode input styles */
+.dark input,
+.dark textarea,
+.dark select,
+input[class*="bg-white/5"],
+textarea[class*="bg-white/5"],
+select[class*="bg-white/5"] {
+  color: #ffffff !important;
+}
+
+/* Fix placeholder colors */
+.dark ::placeholder,
+input[class*="bg-white/5"]::placeholder,
+textarea[class*="bg-white/5"]::placeholder {
+  color: #9ca3af !important;
+  opacity: 1;
+}
+
+/* Ensure dropdown options are visible */
+.dark option,
+select option {
+  background-color: #1f2937;
+  color: #ffffff;
+}
+
+/* Fix text on gradient backgrounds */
+[class*="bg-gradient-to-"] span,
+[class*="bg-gradient-to-"] p,
+[class*="bg-gradient-to-"] div {
+  color: #ffffff;
+}
+
+/* Navigation text fixes */
+.mobile-nav-item .label,
+.mobile-nav .label {
+  color: #9ca3af;
+}
+
+.mobile-nav-item.active .label,
+.mobile-nav .active .label {
+  color: #a78bfa;
+}
+
+/* Card text fixes */
+.bg-gray-800\/50 p,
+.bg-gray-800\/50 span,
+.bg-gray-800\/30 p,
+.bg-gray-800\/30 span {
+  color: inherit;
+}
+
+/* Button text always white on gradient */
+button[class*="from-purple-600"] {
+  color: #ffffff !important;
+}
+
+/* Fix modal/dialog text */
+.bg-gray-900 .text-white,
+.bg-black .text-white {
+  color: #ffffff !important;
+}
+
+/* Ensure links are visible */
+a:not([class]) {
+  color: #a78bfa;
+}
+
+/* Fix alert/error/success text */
+.text-red-400,
+.text-green-400,
+.text-yellow-400,
+.text-blue-400,
+.text-purple-400,
+.text-pink-400 {
+  opacity: 1;
+}
+
+/* ===========================================
+ * MOBILE BOTTOM NAV FIXES
+ * =========================================== */
+
+.mobile-nav {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.mobile-nav .icon {
+  width: 24px;
+  height: 24px;
+}
+
+.mobile-nav .label {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* ===========================================
+ * SAFE AREA FIXES FOR iOS
+ * =========================================== */
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.main-content {
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 768px) {
+  .main-content {
+    padding-bottom: 0;
+  }
+}
+
+/* ===========================================
+ * QUILL EDITOR DARK MODE SUPPORT
+ * =========================================== */
+
+/* The editor content should remain with dark text on white bg */
+.ql-editor {
+  color: #111827 !important;
+  background: #ffffff;
+}
+
+.ql-toolbar {
+  background: #f9fafb;
+}
+
+/* ===========================================
+ * LIGHT MODE OVERRIDES
+ * When user prefers light mode, ensure dark text
+ * =========================================== */
+
+@media (prefers-color-scheme: light) {
+  .bg-white p,
+  .bg-white span,
+  .bg-gray-50 p,
+  .bg-gray-50 span,
+  .bg-gray-100 p,
+  .bg-gray-100 span {
+    color: #111827;
+  }
+}
+
+/* ===========================================
+ * UTILITY CLASSES FOR GUARANTEED VISIBILITY
+ * =========================================== */
+
+.text-force-white {
+  color: #ffffff !important;
+}
+
+.text-force-dark {
+  color: #111827 !important;
+}
+
+.text-force-gray {
+  color: #9ca3af !important;
+}

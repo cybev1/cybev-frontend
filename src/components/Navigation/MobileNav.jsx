@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/components/Navigation/MobileNav.jsx
-// PATH: cybev-frontend/src/components/Navigation/MobileNav.jsx
 // PURPOSE: Mobile bottom navigation bar
+// FIXED: Removed /dashboard, uses /feed and /studio
 // ============================================
 
 import { useRouter } from 'next/router';
@@ -12,10 +12,8 @@ import {
   PlusSquare,
   Bell,
   User,
-  LayoutDashboard,
-  Newspaper,
-  Wallet,
-  MessageCircle
+  Sparkles,
+  Wallet
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -97,14 +95,14 @@ export default function MobileNav() {
   );
 }
 
-// Alternative expanded nav for logged in users
+// Alternative expanded nav - FIXED: Uses /feed and /studio
 export function MobileNavExpanded() {
   const router = useRouter();
   const currentPath = router.pathname;
 
   const navItems = [
-    { label: 'Home', href: '/feed', icon: Home },
-    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { label: 'Feed', href: '/feed', icon: Home },
+    { label: 'Studio', href: '/studio', icon: Sparkles },
     { label: 'Create', href: '/post/create', icon: PlusSquare, isAction: true },
     { label: 'Wallet', href: '/wallet', icon: Wallet },
     { label: 'Profile', href: '/profile', icon: User }

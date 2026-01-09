@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/components/Layout/AppLayout.jsx
-// PATH: cybev-frontend/src/components/Layout/AppLayout.jsx
 // PURPOSE: Main app layout with navigation, admin link for admins, PWA support
+// FIXED: /dashboard → /feed, dark mode text colors
 // ============================================
 
 import { useRouter } from 'next/router';
@@ -20,7 +20,8 @@ import {
   MessageCircle,
   Shield,
   Wallet,
-  PenSquare
+  PenSquare,
+  Sparkles
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import NotificationBell from '@/components/notificationBell';
@@ -30,7 +31,6 @@ import MobileNav from '@/components/Navigation/MobileNav';
 function CybevLogo({ size = 40, showText = true }) {
   return (
     <div className="flex items-center gap-3">
-      {/* Logo Icon */}
       <div 
         className="relative rounded-xl overflow-hidden flex-shrink-0"
         style={{ width: size, height: size }}
@@ -40,31 +40,16 @@ function CybevLogo({ size = 40, showText = true }) {
           className="w-full h-full"
           style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #ec4899 100%)' }}
         >
-          {/* Rounded background is handled by parent div */}
-          
-          {/* C Letter */}
           <path 
-            d="M52 25 
-               C 38 25, 22 36, 22 50 
-               C 22 64, 38 75, 52 75
-               L 52 62
-               C 42 62, 32 57, 32 50
-               C 32 43, 42 38, 52 38
-               Z"
+            d="M52 25 C 38 25, 22 36, 22 50 C 22 64, 38 75, 52 75 L 52 62 C 42 62, 32 57, 32 50 C 32 43, 42 38, 52 38 Z"
             fill="white"
           />
-          
-          {/* Blockchain dots */}
           <circle cx="62" cy="32" r="5" fill="white" opacity="0.95"/>
           <circle cx="62" cy="68" r="5" fill="white" opacity="0.95"/>
           <circle cx="72" cy="50" r="3.5" fill="white" opacity="0.75"/>
-          
-          {/* Connecting line */}
           <line x1="62" y1="38" x2="62" y2="62" stroke="white" strokeWidth="2.5" opacity="0.5"/>
         </svg>
       </div>
-      
-      {/* Text */}
       {showText && (
         <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent hidden sm:block">
           CYBEV
@@ -81,7 +66,6 @@ export default function AppLayout({ children }) {
   const [tokenBalance, setTokenBalance] = useState(0);
 
   useEffect(() => {
-    // Get user from localStorage
     const userData = localStorage.getItem('user');
     if (userData) {
       try {
@@ -101,16 +85,13 @@ export default function AppLayout({ children }) {
     router.push('/auth/login');
   };
 
-  // Check if user is admin - check both role and isAdmin flag
   const isAdmin = user?.role === 'admin' || user?.isAdmin === true;
-
-  // Dynamic profile link
   const profileLink = user?.username ? `/profile/${user.username}` : '/profile';
 
+  // FIXED: Changed /dashboard to /feed
   const navLinks = [
-    { path: '/dashboard', icon: Home, label: 'Dashboard' },
-    { path: '/feed', icon: TrendingUp, label: 'Feed' },
-    { path: '/studio', icon: PenSquare, label: 'Create' },
+    { path: '/feed', icon: Home, label: 'Feed' },
+    { path: '/studio', icon: Sparkles, label: 'Studio' },
     { path: profileLink, icon: User, label: 'Profile' },
   ];
 
@@ -118,7 +99,7 @@ export default function AppLayout({ children }) {
     if (path.includes('/profile/') || path === '/profile') {
       return router.pathname.startsWith('/profile');
     }
-    return router.pathname === path;
+    return router.pathname === path || router.pathname.startsWith(path + '/');
   };
 
   return (
@@ -127,8 +108,8 @@ export default function AppLayout({ children }) {
       <nav className="bg-black/40 backdrop-blur-xl border-b border-purple-500/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/dashboard">
+            {/* Logo - FIXED: Links to /feed */}
+            <Link href="/feed">
               <div className="cursor-pointer">
                 <CybevLogo size={40} showText={true} />
               </div>
@@ -154,24 +135,20 @@ export default function AppLayout({ children }) {
 
             {/* Right Side Actions */}
             <div className="hidden md:flex items-center gap-2">
-              {/* Search */}
               <Link href="/search">
                 <button className="p-2 hover:bg-purple-500/10 rounded-lg transition-colors" title="Search">
-                  <Search className="w-5 h-5 text-gray-400" />
+                  <Search className="w-5 h-5 text-gray-400 hover:text-white" />
                 </button>
               </Link>
 
-              {/* Notifications */}
               <NotificationBell />
 
-              {/* Messages */}
               <Link href="/messages">
                 <button className="p-2 hover:bg-purple-500/10 rounded-lg transition-colors relative" title="Messages">
-                  <MessageCircle className="w-5 h-5 text-gray-400" />
+                  <MessageCircle className="w-5 h-5 text-gray-400 hover:text-white" />
                 </button>
               </Link>
 
-              {/* Token Balance */}
               <Link href="/wallet">
                 <div className="bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 border border-yellow-500/20 px-3 py-1.5 rounded-lg flex items-center gap-2 cursor-pointer hover:border-yellow-500/40 transition-colors">
                   <Coins className="w-4 h-4 text-yellow-400" />
@@ -179,7 +156,6 @@ export default function AppLayout({ children }) {
                 </div>
               </Link>
 
-              {/* Admin Link - Only show for admins */}
               {isAdmin && (
                 <Link href="/admin">
                   <button 
@@ -192,14 +168,12 @@ export default function AppLayout({ children }) {
                 </Link>
               )}
 
-              {/* Settings */}
               <Link href="/settings">
                 <button className="p-2 hover:bg-purple-500/10 rounded-lg transition-colors" title="Settings">
-                  <Settings className="w-5 h-5 text-gray-400" />
+                  <Settings className="w-5 h-5 text-gray-400 hover:text-white" />
                 </button>
               </Link>
 
-              {/* Logout */}
               <button
                 onClick={handleLogout}
                 className="p-2 hover:bg-red-500/10 rounded-lg transition-colors"
@@ -248,7 +222,7 @@ export default function AppLayout({ children }) {
                 <Link href="/search">
                   <button 
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-purple-500/10"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-purple-500/10"
                   >
                     <Search className="w-5 h-5" />
                     <span>Search</span>
@@ -258,7 +232,7 @@ export default function AppLayout({ children }) {
                 <Link href="/notifications">
                   <button 
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-purple-500/10"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-purple-500/10"
                   >
                     <Bell className="w-5 h-5" />
                     <span>Notifications</span>
@@ -268,7 +242,7 @@ export default function AppLayout({ children }) {
                 <Link href="/messages">
                   <button 
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-purple-500/10"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-purple-500/10"
                   >
                     <MessageCircle className="w-5 h-5" />
                     <span>Messages</span>
@@ -278,7 +252,7 @@ export default function AppLayout({ children }) {
                 <Link href="/wallet">
                   <button 
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-purple-500/10"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-purple-500/10"
                   >
                     <Wallet className="w-5 h-5" />
                     <span>Wallet</span>
@@ -286,7 +260,6 @@ export default function AppLayout({ children }) {
                   </button>
                 </Link>
 
-                {/* Admin Link - Mobile */}
                 {isAdmin && (
                   <Link href="/admin">
                     <button 
@@ -303,7 +276,7 @@ export default function AppLayout({ children }) {
                 <Link href="/settings">
                   <button 
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-purple-500/10"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-purple-500/10"
                   >
                     <Settings className="w-5 h-5" />
                     <span>Settings</span>
@@ -331,11 +304,10 @@ export default function AppLayout({ children }) {
         {children}
       </main>
 
-      {/* Mobile Bottom Navigation - PWA optimized */}
+      {/* Mobile Bottom Navigation */}
       <MobileNav />
     </div>
   );
 }
 
-// Export the logo component for use elsewhere
 export { CybevLogo };

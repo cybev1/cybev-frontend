@@ -1,6 +1,7 @@
 // ============================================
 // FILE: src/pages/admin/index.jsx
 // PURPOSE: Comprehensive Admin Dashboard
+// FIXED: /dashboard → /feed redirects
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -46,6 +47,7 @@ function StatCard({ title, value, change, changeType, icon: Icon, color, link })
           </div>
         )}
       </div>
+      {/* FIXED: White text for visibility on dark background */}
       <p className="text-gray-400 text-sm mb-1">{title}</p>
       <p className="text-2xl font-bold text-white">{value}</p>
     </div>
@@ -61,6 +63,7 @@ function QuickAction({ title, description, icon: Icon, color, onClick, badge }) 
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
+            {/* FIXED: White text */}
             <p className="text-white font-medium">{title}</p>
             {badge && <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">{badge}</span>}
           </div>
@@ -91,7 +94,12 @@ function ActivityItem({ type, user, action, target, time, status }) {
         <Icon className={`w-4 h-4 ${statusColor}`} />
       </div>
       <div className="flex-1">
-        <p className="text-white text-sm"><span className="font-medium">{user}</span> <span className="text-gray-400">{action}</span> <span className="font-medium">{target}</span></p>
+        {/* FIXED: White text for visibility */}
+        <p className="text-white text-sm">
+          <span className="font-medium">{user}</span>{' '}
+          <span className="text-gray-400">{action}</span>{' '}
+          <span className="font-medium">{target}</span>
+        </p>
         <p className="text-gray-500 text-xs mt-1">{time}</p>
       </div>
     </div>
@@ -102,7 +110,10 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [stats, setStats] = useState({ totalUsers: 0, activeUsers: 0, totalPosts: 0, totalBlogs: 0, pendingReports: 0, totalRevenue: 0, newUsersToday: 0, postsToday: 0 });
+  const [stats, setStats] = useState({ 
+    totalUsers: 0, activeUsers: 0, totalPosts: 0, totalBlogs: 0, 
+    pendingReports: 0, totalRevenue: 0, newUsersToday: 0, postsToday: 0 
+  });
   const [recentActivity, setRecentActivity] = useState([]);
   const [systemHealth] = useState({ api: 'healthy', database: 'healthy', storage: 'healthy', cdn: 'healthy' });
 
@@ -113,10 +124,14 @@ export default function AdminDashboard() {
       const userData = localStorage.getItem('user');
       if (!userData) { router.push('/auth/login'); return; }
       const user = JSON.parse(userData);
-      if (user.role !== 'admin' && !user.isAdmin) { router.push('/dashboard'); return; }
+      // FIXED: Redirect to /feed instead of /dashboard
+      if (user.role !== 'admin' && !user.isAdmin) { router.push('/feed'); return; }
       setIsAdmin(true);
       await fetchDashboardData();
-    } catch { router.push('/dashboard'); }
+    } catch { 
+      // FIXED: Redirect to /feed instead of /dashboard
+      router.push('/feed'); 
+    }
   };
 
   const fetchDashboardData = async () => {
@@ -147,7 +162,15 @@ export default function AdminDashboard() {
     finally { setLoading(false); }
   };
 
-  if (!isAdmin) return <AppLayout><div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 text-purple-500 animate-spin" /></div></AppLayout>;
+  if (!isAdmin) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -158,11 +181,19 @@ export default function AdminDashboard() {
             <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl flex items-center justify-center">
               <Shield className="w-7 h-7 text-white" />
             </div>
-            <div><h1 className="text-2xl font-bold text-white">Admin Dashboard</h1><p className="text-gray-400">Manage your platform</p></div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
+              <p className="text-gray-400">Manage your platform</p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={fetchDashboardData} className="p-2 hover:bg-gray-700 rounded-lg"><RefreshCw className={`w-5 h-5 text-gray-400 ${loading ? 'animate-spin' : ''}`} /></button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"><Download className="w-4 h-4" />Export</button>
+            <button onClick={fetchDashboardData} className="p-2 hover:bg-gray-700 rounded-lg">
+              <RefreshCw className={`w-5 h-5 text-gray-400 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            <button className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600">
+              <Download className="w-4 h-4" />
+              Export
+            </button>
           </div>
         </div>
 
@@ -174,10 +205,22 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50"><p className="text-gray-400 text-sm">Active Now</p><p className="text-xl font-bold text-green-400">{stats.activeUsers}</p></div>
-          <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50"><p className="text-gray-400 text-sm">New Users Today</p><p className="text-xl font-bold text-blue-400">+{stats.newUsersToday}</p></div>
-          <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50"><p className="text-gray-400 text-sm">Posts Today</p><p className="text-xl font-bold text-purple-400">{stats.postsToday}</p></div>
-          <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50"><p className="text-gray-400 text-sm">Total Blogs</p><p className="text-xl font-bold text-pink-400">{stats.totalBlogs}</p></div>
+          <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
+            <p className="text-gray-400 text-sm">Active Now</p>
+            <p className="text-xl font-bold text-green-400">{stats.activeUsers}</p>
+          </div>
+          <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
+            <p className="text-gray-400 text-sm">New Users Today</p>
+            <p className="text-xl font-bold text-blue-400">+{stats.newUsersToday}</p>
+          </div>
+          <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
+            <p className="text-gray-400 text-sm">Posts Today</p>
+            <p className="text-xl font-bold text-purple-400">{stats.postsToday}</p>
+          </div>
+          <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
+            <p className="text-gray-400 text-sm">Total Blogs</p>
+            <p className="text-xl font-bold text-pink-400">{stats.totalBlogs}</p>
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -193,6 +236,7 @@ export default function AdminDashboard() {
               <QuickAction title="Push Notifications" description="Send to users" icon={Bell} color="bg-pink-500" onClick={() => router.push('/admin/notifications')} />
               <QuickAction title="Monetization" description="Subscriptions & ads" icon={TrendingUp} color="bg-emerald-500" onClick={() => router.push('/admin/monetization')} />
             </div>
+            
             <div className="mt-8">
               <h2 className="text-lg font-semibold text-white mb-4">System Health</h2>
               <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 p-4">
@@ -200,22 +244,33 @@ export default function AdminDashboard() {
                   {Object.entries(systemHealth).map(([key, status]) => (
                     <div key={key} className="flex items-center gap-3">
                       <div className={`w-3 h-3 rounded-full ${status === 'healthy' ? 'bg-green-400' : 'bg-red-400'}`} />
-                      <div><p className="text-white text-sm font-medium capitalize">{key}</p><p className={`text-xs ${status === 'healthy' ? 'text-green-400' : 'text-red-400'}`}>{status}</p></div>
+                      <div>
+                        <p className="text-white text-sm font-medium capitalize">{key}</p>
+                        <p className={`text-xs ${status === 'healthy' ? 'text-green-400' : 'text-red-400'}`}>{status}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
           </div>
+          
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-white">Recent Activity</h2>
-              <Link href="/admin/activity"><span className="text-purple-400 text-sm hover:text-purple-300">View all</span></Link>
+              <Link href="/admin/activity">
+                <span className="text-purple-400 text-sm hover:text-purple-300">View all</span>
+              </Link>
             </div>
             <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 overflow-hidden">
               <div className="divide-y divide-gray-700/50">
-                {loading ? <div className="p-8 flex justify-center"><Loader2 className="w-6 h-6 text-purple-500 animate-spin" /></div> :
-                  recentActivity.map((a, i) => <ActivityItem key={i} {...a} />)}
+                {loading ? (
+                  <div className="p-8 flex justify-center">
+                    <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
+                  </div>
+                ) : (
+                  recentActivity.map((a, i) => <ActivityItem key={i} {...a} />)
+                )}
               </div>
             </div>
           </div>
