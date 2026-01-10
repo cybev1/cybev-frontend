@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/studio/index.jsx
 // Studio Dashboard - Shows user's sites & content
-// VERSION: 6.4.2
+// VERSION: 6.5.0 - Added Publish/Unpublish buttons
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -13,7 +13,7 @@ import {
   Globe, Plus, Settings, Eye, Trash2, ExternalLink, Loader2,
   PenTool, Video, Image as ImageIcon, BarChart3, Sparkles,
   Layout, FileText, Calendar, Clock, MoreHorizontal, Edit3,
-  Copy, Check, AlertCircle, Rocket, Zap, Users
+  Copy, Check, AlertCircle, Rocket, Zap, Users, Upload, EyeOff
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
@@ -55,12 +55,14 @@ const QUICK_ACTIONS = [
   }
 ];
 
-function SiteCard({ site, onDelete }) {
+function SiteCard({ site, onDelete, onPublish }) {
   const [showMenu, setShowMenu] = useState(false);
   const [copied, setCopied] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
   const siteUrl = `https://${site.subdomain}.cybev.io`;
+  const isPublished = site.status === 'published';
 
   const copyUrl = () => {
     navigator.clipboard.writeText(siteUrl);
@@ -69,17 +71,25 @@ function SiteCard({ site, onDelete }) {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this website?')) return;
+    if (!confirm('Are you sure you want to delete this website? This action cannot be undone.')) return;
     setDeleting(true);
+    setShowMenu(false);
     await onDelete(site._id);
     setDeleting(false);
   };
 
+  const handlePublish = async () => {
+    setPublishing(true);
+    setShowMenu(false);
+    await onPublish(site._id, !isPublished);
+    setPublishing(false);
+  };
+
   const getStatusColor = () => {
     switch (site.status) {
-      case 'published': return 'bg-green-100 text-green-700';
-      case 'draft': return 'bg-yellow-100 text-yellow-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'published': return 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400';
+      case 'draft': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-400';
+      default: return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400';
     }
   };
 
@@ -103,18 +113,36 @@ function SiteCard({ site, onDelete }) {
               Edit
             </button>
           </Link>
-          <a href={siteUrl} target="_blank" rel="noopener noreferrer">
-            <button className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium flex items-center gap-2 hover:bg-purple-700">
-              <Eye className="w-4 h-4" />
-              View
+          {isPublished ? (
+            <a href={siteUrl} target="_blank" rel="noopener noreferrer">
+              <button className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium flex items-center gap-2 hover:bg-purple-700">
+                <Eye className="w-4 h-4" />
+                View
+              </button>
+            </a>
+          ) : (
+            <button 
+              onClick={handlePublish}
+              disabled={publishing}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium flex items-center gap-2 hover:bg-green-700 disabled:opacity-50"
+            >
+              {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
+              Publish
             </button>
-          </a>
+          )}
         </div>
 
         {/* Status Badge */}
         <div className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor()}`}>
-          {site.status || 'Draft'}
+          {site.status === 'published' ? 'Published' : 'Draft'}
         </div>
+
+        {/* Loading overlay */}
+        {(deleting || publishing) && (
+          <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 flex items-center justify-center">
+            <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+          </div>
+        )}
       </div>
 
       {/* Info */}
@@ -137,18 +165,25 @@ function SiteCard({ site, onDelete }) {
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
                 <div className="absolute right-0 top-10 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 z-20 py-1">
+                  {/* Edit */}
                   <Link href={`/studio/sites/${site._id}/edit`}>
                     <button className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">
                       <Edit3 className="w-4 h-4" />
                       Edit Site
                     </button>
                   </Link>
-                  <a href={siteUrl} target="_blank" rel="noopener noreferrer">
-                    <button className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">
-                      <ExternalLink className="w-4 h-4" />
-                      Open Site
-                    </button>
-                  </a>
+                  
+                  {/* Open Site (only if published) */}
+                  {isPublished && (
+                    <a href={siteUrl} target="_blank" rel="noopener noreferrer">
+                      <button className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">
+                        <ExternalLink className="w-4 h-4" />
+                        Open Site
+                      </button>
+                    </a>
+                  )}
+                  
+                  {/* Copy URL */}
                   <button 
                     onClick={copyUrl}
                     className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
@@ -156,13 +191,40 @@ function SiteCard({ site, onDelete }) {
                     {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                     {copied ? 'Copied!' : 'Copy URL'}
                   </button>
+                  
+                  {/* Settings */}
                   <Link href={`/studio/sites/${site._id}/settings`}>
                     <button className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">
                       <Settings className="w-4 h-4" />
                       Settings
                     </button>
                   </Link>
+                  
                   <hr className="my-1 border-gray-100 dark:border-gray-700" />
+                  
+                  {/* Publish / Unpublish */}
+                  <button 
+                    onClick={handlePublish}
+                    disabled={publishing}
+                    className={`w-full px-4 py-2 text-left flex items-center gap-2 ${
+                      isPublished 
+                        ? 'text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20' 
+                        : 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
+                    }`}
+                  >
+                    {publishing ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : isPublished ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Rocket className="w-4 h-4" />
+                    )}
+                    {isPublished ? 'Unpublish' : 'Publish Site'}
+                  </button>
+                  
+                  <hr className="my-1 border-gray-100 dark:border-gray-700" />
+                  
+                  {/* Delete */}
                   <button 
                     onClick={handleDelete}
                     disabled={deleting}
@@ -193,6 +255,27 @@ function SiteCard({ site, onDelete }) {
             {site.views || 0} views
           </span>
         </div>
+
+        {/* Quick Publish Button for draft sites */}
+        {!isPublished && (
+          <button
+            onClick={handlePublish}
+            disabled={publishing}
+            className="w-full mt-3 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-medium hover:from-green-600 hover:to-emerald-600 flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {publishing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Publishing...
+              </>
+            ) : (
+              <>
+                <Rocket className="w-4 h-4" />
+                Publish Now
+              </>
+            )}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -200,13 +283,13 @@ function SiteCard({ site, onDelete }) {
 
 export default function StudioPage() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState('sites');
   const [sites, setSites] = useState([]);
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('sites');
 
   const getAuth = () => {
-    const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     return { headers: { Authorization: `Bearer ${token}` } };
   };
 
@@ -238,13 +321,39 @@ export default function StudioPage() {
 
   const deleteSite = async (siteId) => {
     try {
-      await fetch(`${API_URL}/api/sites/${siteId}`, {
+      const res = await fetch(`${API_URL}/api/sites/${siteId}`, {
         method: 'DELETE',
         ...getAuth()
       });
-      setSites(sites.filter(s => s._id !== siteId));
+      if (res.ok) {
+        setSites(sites.filter(s => s._id !== siteId));
+      }
     } catch (err) {
       console.error('Delete site error:', err);
+    }
+  };
+
+  const publishSite = async (siteId, publish) => {
+    try {
+      const res = await fetch(`${API_URL}/api/sites/${siteId}/publish`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuth().headers
+        },
+        body: JSON.stringify({ publish })
+      });
+      
+      if (res.ok) {
+        // Update local state
+        setSites(sites.map(s => 
+          s._id === siteId 
+            ? { ...s, status: publish ? 'published' : 'draft' }
+            : s
+        ));
+      }
+    } catch (err) {
+      console.error('Publish site error:', err);
     }
   };
 
@@ -364,7 +473,12 @@ export default function StudioPage() {
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {sites.map((site) => (
-                  <SiteCard key={site._id} site={site} onDelete={deleteSite} />
+                  <SiteCard 
+                    key={site._id} 
+                    site={site} 
+                    onDelete={deleteSite}
+                    onPublish={publishSite}
+                  />
                 ))}
               </div>
             </>
