@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/studio/sites/[id]/edit.jsx
 // Website Editor - Full page builder
-// VERSION: 6.4.2
+// VERSION: 6.5.0 - Added Publish/Unpublish buttons
 // ============================================
 
 import { useState, useEffect, useCallback } from 'react';
@@ -14,7 +14,8 @@ import {
   Globe, ExternalLink, Copy, Smartphone, Monitor, Tablet,
   AlignLeft, AlignCenter, AlignRight, Bold, Italic,
   Square, Circle, Triangle, Star, Sparkles, Zap,
-  Menu, FileText, Users, Mail, Phone, MapPin, Link as LinkIcon
+  Menu, FileText, Users, Mail, Phone, MapPin, Link as LinkIcon,
+  Rocket, EyeOff  // Added for Publish/Unpublish
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
@@ -373,6 +374,7 @@ export default function SiteEditor() {
   const [site, setSite] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);  // NEW: Publishing state
   const [blocks, setBlocks] = useState([]);
   const [selectedBlock, setSelectedBlock] = useState(null);
   const [showAddBlock, setShowAddBlock] = useState(false);
@@ -454,6 +456,37 @@ export default function SiteEditor() {
     setSaving(false);
   };
 
+  // NEW: Publish/Unpublish function
+  const publishSite = async (publish = true) => {
+    setPublishing(true);
+    try {
+      // Save first to ensure latest changes are saved
+      await saveSite();
+      
+      // Then publish/unpublish
+      const res = await fetch(`${API_URL}/api/sites/${id}/publish`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuth().headers
+        },
+        body: JSON.stringify({ publish })
+      });
+      
+      const data = await res.json();
+      if (data.ok) {
+        setSite(prev => ({ ...prev, status: publish ? 'published' : 'draft' }));
+        // Open site in new tab after publishing
+        if (publish) {
+          window.open(`https://${site?.subdomain}.cybev.io`, '_blank');
+        }
+      }
+    } catch (err) {
+      console.error('Publish site error:', err);
+    }
+    setPublishing(false);
+  };
+
   const addBlock = (type) => {
     const newBlock = {
       id: `block-${Date.now()}`,
@@ -502,6 +535,9 @@ export default function SiteEditor() {
     }
   };
 
+  // Check if site is published
+  const isPublished = site?.status === 'published';
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -527,7 +563,17 @@ export default function SiteEditor() {
             </Link>
             
             <div>
-              <h1 className="font-semibold text-gray-900">{site?.name || 'Untitled Site'}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="font-semibold text-gray-900">{site?.name || 'Untitled Site'}</h1>
+                {/* Status Badge */}
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                  isPublished 
+                    ? 'bg-green-100 text-green-700' 
+                    : 'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {isPublished ? 'Published' : 'Draft'}
+                </span>
+              </div>
               <p className="text-sm text-gray-500">{site?.subdomain}.cybev.io</p>
             </div>
           </div>
@@ -572,23 +618,49 @@ export default function SiteEditor() {
               <Settings className="w-5 h-5 text-gray-600" />
             </button>
 
-            <a
-              href={`https://${site?.subdomain}.cybev.io`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 hover:bg-gray-100 rounded-lg"
-            >
-              <ExternalLink className="w-5 h-5 text-gray-600" />
-            </a>
+            {/* View Live Site (only if published) */}
+            {isPublished && (
+              <a
+                href={`https://${site?.subdomain}.cybev.io`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 hover:bg-gray-100 rounded-lg"
+                title="View live site"
+              >
+                <ExternalLink className="w-5 h-5 text-gray-600" />
+              </a>
+            )}
 
+            {/* Save Button */}
             <button
               onClick={saveSite}
               disabled={saving}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg flex items-center gap-2 hover:bg-purple-700 disabled:opacity-50"
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg flex items-center gap-2 hover:bg-gray-200 disabled:opacity-50"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               Save
             </button>
+
+            {/* Publish / Unpublish Button */}
+            {isPublished ? (
+              <button
+                onClick={() => publishSite(false)}
+                disabled={publishing}
+                className="px-4 py-2 bg-orange-100 text-orange-700 rounded-lg flex items-center gap-2 hover:bg-orange-200 disabled:opacity-50"
+              >
+                {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <EyeOff className="w-4 h-4" />}
+                Unpublish
+              </button>
+            ) : (
+              <button
+                onClick={() => publishSite(true)}
+                disabled={publishing}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg flex items-center gap-2 hover:bg-green-700 disabled:opacity-50"
+              >
+                {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
+                Publish
+              </button>
+            )}
           </div>
         </div>
 
