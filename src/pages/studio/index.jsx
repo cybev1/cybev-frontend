@@ -256,26 +256,53 @@ function SiteCard({ site, onDelete, onPublish }) {
           </span>
         </div>
 
-        {/* Quick Publish Button for draft sites */}
-        {!isPublished && (
+        {/* Action Buttons */}
+        <div className="flex gap-2 mt-3">
+          {/* Publish/Unpublish Button */}
+          {!isPublished ? (
+            <button
+              onClick={handlePublish}
+              disabled={publishing}
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-medium hover:from-green-600 hover:to-emerald-600 flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {publishing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Publishing...
+                </>
+              ) : (
+                <>
+                  <Rocket className="w-4 h-4" />
+                  Publish Now
+                </>
+              )}
+            </button>
+          ) : (
+            <a 
+              href={siteUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 flex items-center justify-center gap-2"
+            >
+              <ExternalLink className="w-4 h-4" />
+              View Site
+            </a>
+          )}
+          
+          {/* Delete Button */}
           <button
-            onClick={handlePublish}
-            disabled={publishing}
-            className="w-full mt-3 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-medium hover:from-green-600 hover:to-emerald-600 flex items-center justify-center gap-2 disabled:opacity-50"
+            onClick={handleDelete}
+            disabled={deleting}
+            className="px-4 py-2 bg-red-100 text-red-600 rounded-lg font-medium hover:bg-red-200 flex items-center justify-center gap-2 disabled:opacity-50"
+            title="Delete site"
           >
-            {publishing ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Publishing...
-              </>
+            {deleting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <>
-                <Rocket className="w-4 h-4" />
-                Publish Now
-              </>
+              <Trash2 className="w-4 h-4" />
             )}
           </button>
-        )}
+        </div>
       </div>
     </div>
   );
