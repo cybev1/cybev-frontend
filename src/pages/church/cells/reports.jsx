@@ -1,41 +1,412 @@
 // ============================================
-// FILE: pages/church/cells/reports.jsx
-// Cell Reports - Weekly Cell Group Reports
-// VERSION: 1.0.0
+// FILE: /church/cells/reports.jsx
+// PURPOSE: Enhanced Cell Reports with 4 Meeting Types
+// Based on Cell Ministry Manual
 // ============================================
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import {
-  FileText, Users, Heart, DollarSign, BookOpen, Calendar,
-  ArrowLeft, Loader2, Plus, CheckCircle, Clock, TrendingUp,
-  ChevronRight, Star, MapPin, Phone, BarChart3, Download,
-  Filter, Search, Eye, Edit, Trash2, Send
+  ArrowLeft, Plus, Calendar, Users, BookOpen, Heart, Mic,
+  TrendingUp, Filter, Download, ChevronDown, Check, X,
+  Clock, MapPin, Target, Award, UserPlus, Search
 } from 'lucide-react';
+import AppLayout from '@/components/Layout/AppLayout';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
+// 4 Weekly Meeting Types from Cell Ministry Manual
+const MEETING_TYPES = [
+  {
+    id: 'cell_meeting',
+    name: 'Cell Meeting',
+    icon: Users,
+    color: '#7c3aed',
+    description: 'Weekly cell fellowship and Bible study',
+    day: 'Varies'
+  },
+  {
+    id: 'outreach',
+    name: 'Outreach/Evangelism',
+    icon: Heart,
+    color: '#ef4444',
+    description: 'Soul winning and community outreach',
+    day: 'Saturdays'
+  },
+  {
+    id: 'follow_up',
+    name: 'Follow-up/Consolidation',
+    icon: UserPlus,
+    color: '#10b981',
+    description: 'New convert follow-up and discipleship',
+    day: 'Varies'
+  },
+  {
+    id: 'leaders_meeting',
+    name: "Leaders' Meeting",
+    icon: Award,
+    color: '#f59e0b',
+    description: 'Cell leader training and planning',
+    day: 'Monthly'
+  }
+];
 
-function StatCard({ icon: Icon, label, value, trend, color = 'purple' }) {
-  const colors = {
-    purple: 'from-purple-500 to-indigo-600',
-    green: 'from-green-500 to-emerald-600',
-    blue: 'from-blue-500 to-cyan-600',
-    pink: 'from-pink-500 to-rose-600',
-    orange: 'from-orange-500 to-amber-600'
+export default function CellReportsPage() {
+  const router = useRouter();
+  const { orgId, cellId } = router.query;
+
+  const [reports, setReports] = useState([]);
+  const [cells, setCells] = useState([]);
+  const [selectedCell, setSelectedCell] = useState(cellId || '');
+  const [selectedMeetingType, setSelectedMeetingType] = useState('all');
+  const [dateRange, setDateRange] = useState('month');
+  const [loading, setLoading] = useState(true);
+  const [showNewReport, setShowNewReport] = useState(false);
+  const [stats, setStats] = useState({
+    totalMeetings: 0,
+    totalAttendance: 0,
+    soulsWon: 0,
+    newMembers: 0
+  });
+
+  const API = process.env.NEXT_PUBLIC_API_URL || '';
+
+  useEffect(() => {
+    if (orgId) {
+      fetchCells();
+      fetchReports();
+    }
+  }, [orgId, selectedCell, selectedMeetingType, dateRange]);
+
+  const fetchCells = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API}/api/church/org/${orgId}/cells`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.ok) setCells(data.cells || []);
+    } catch (err) {
+      console.error('Error fetching cells:', err);
+    }
+  };
+
+  const fetchReports = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      let url = `${API}/api/church/cell-reports?orgId=${orgId}`;
+      if (selectedCell) url += `&cellId=${selectedCell}`;
+      if (selectedMeetingType !== 'all') url += `&meetingType=${selectedMeetingType}`;
+      url += `&range=${dateRange}`;
+
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setReports(data.reports || []);
+        calculateStats(data.reports || []);
+      }
+    } catch (err) {
+      console.error('Error fetching reports:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateStats = (reportsList) => {
+    const stats = reportsList.reduce((acc, report) => ({
+      totalMeetings: acc.totalMeetings + 1,
+      totalAttendance: acc.totalAttendance + (report.attendance?.total || 0),
+      soulsWon: acc.soulsWon + (report.soulsWon || 0),
+      newMembers: acc.newMembers + (report.newMembers || 0)
+    }), { totalMeetings: 0, totalAttendance: 0, soulsWon: 0, newMembers: 0 });
+    setStats(stats);
+  };
+
+  const exportReports = () => {
+    const headers = ['Date', 'Cell', 'Meeting Type', 'Attendance', 'First Timers', 'Souls Won', 'Offerings', 'Notes'];
+    const rows = reports.map(r => [
+      new Date(r.date).toLocaleDateString(),
+      r.cell?.name || '',
+      MEETING_TYPES.find(m => m.id === r.meetingType)?.name || r.meetingType,
+      r.attendance?.total || 0,
+      r.attendance?.firstTimers || 0,
+      r.soulsWon || 0,
+      r.offerings || 0,
+      r.notes || ''
+    ]);
+
+    const csv = [headers.join(','), ...rows.map(r => r.map(c => `"${c}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `cell-reports-${dateRange}.csv`;
+    link.click();
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
-      <div className="flex items-center justify-between mb-2">
-        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${colors[color]} flex items-center justify-center`}>
-          <Icon className="w-5 h-5 text-white" />
+    <AppLayout>
+      <Head>
+        <title>Cell Reports | CYBEV Church</title>
+      </Head>
+
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div className="flex items-center gap-4">
+            <Link
+              href={`/church/org/${orgId}`}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Cell Reports</h1>
+              <p className="text-gray-500">Track weekly meetings and growth</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={exportReports}
+              className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <Download className="w-4 h-4" />
+              Export
+            </button>
+            <button
+              onClick={() => setShowNewReport(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            >
+              <Plus className="w-4 h-4" />
+              New Report
+            </button>
+          </div>
         </div>
-        {trend !== undefined && (
-          <span className={`text-xs font-medium ${trend >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-            {trend >= 0 ? '+' : ''}{trend}%
-          </span>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <StatCard
+            icon={Calendar}
+            label="Total Meetings"
+            value={stats.totalMeetings}
+            color="purple"
+          />
+          <StatCard
+            icon={Users}
+            label="Total Attendance"
+            value={stats.totalAttendance}
+            color="blue"
+          />
+          <StatCard
+            icon={Heart}
+            label="Souls Won"
+            value={stats.soulsWon}
+            color="red"
+          />
+          <StatCard
+            icon={UserPlus}
+            label="New Members"
+            value={stats.newMembers}
+            color="green"
+          />
+        </div>
+
+        {/* Meeting Type Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {MEETING_TYPES.map(type => {
+            const typeReports = reports.filter(r => r.meetingType === type.id);
+            const isSelected = selectedMeetingType === type.id;
+            return (
+              <button
+                key={type.id}
+                onClick={() => setSelectedMeetingType(isSelected ? 'all' : type.id)}
+                className={`p-4 rounded-xl border-2 text-left transition ${
+                  isSelected
+                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
+                }`}
+              >
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
+                  style={{ backgroundColor: `${type.color}15` }}
+                >
+                  <type.icon className="w-5 h-5" style={{ color: type.color }} />
+                </div>
+                <p className="font-semibold text-gray-900 dark:text-white text-sm">{type.name}</p>
+                <p className="text-2xl font-bold mt-1" style={{ color: type.color }}>
+                  {typeReports.length}
+                </p>
+                <p className="text-xs text-gray-500">{type.day}</p>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-wrap gap-4 mb-6">
+          <select
+            value={selectedCell}
+            onChange={(e) => setSelectedCell(e.target.value)}
+            className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
+          >
+            <option value="">All Cells</option>
+            {cells.map(cell => (
+              <option key={cell._id} value={cell._id}>{cell.name}</option>
+            ))}
+          </select>
+
+          <select
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value)}
+            className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
+          >
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="quarter">This Quarter</option>
+            <option value="year">This Year</option>
+          </select>
+        </div>
+
+        {/* Reports List */}
+        {loading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 animate-pulse">
+                <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        ) : reports.length === 0 ? (
+          <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+            <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              No reports found
+            </h3>
+            <p className="text-gray-500 mb-6">
+              Start tracking your cell meetings
+            </p>
+            <button
+              onClick={() => setShowNewReport(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg"
+            >
+              <Plus className="w-4 h-4" />
+              Create First Report
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {reports.map(report => {
+              const meetingType = MEETING_TYPES.find(m => m.id === report.meetingType);
+              return (
+                <div
+                  key={report._id}
+                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-4">
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center"
+                        style={{ backgroundColor: `${meetingType?.color || '#7c3aed'}15` }}
+                      >
+                        {meetingType && <meetingType.icon className="w-6 h-6" style={{ color: meetingType.color }} />}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-gray-900 dark:text-white">
+                            {meetingType?.name || 'Meeting'}
+                          </h3>
+                          <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">
+                            {report.cell?.name}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-500">
+                          {new Date(report.date).toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </p>
+                        {report.venue && (
+                          <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                            <MapPin className="w-3 h-3" />
+                            {report.venue}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Stats */}
+                    <div className="flex items-center gap-6 text-sm">
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                          {report.attendance?.total || 0}
+                        </p>
+                        <p className="text-gray-500">Attendance</p>
+                      </div>
+                      {report.attendance?.firstTimers > 0 && (
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-green-600">
+                            {report.attendance.firstTimers}
+                          </p>
+                          <p className="text-gray-500">First Timers</p>
+                        </div>
+                      )}
+                      {report.soulsWon > 0 && (
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-red-500">
+                            {report.soulsWon}
+                          </p>
+                          <p className="text-gray-500">Souls Won</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {report.notes && (
+                    <p className="mt-4 text-sm text-gray-600 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700 pt-4">
+                      {report.notes}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
+      </div>
+
+      {/* New Report Modal */}
+      {showNewReport && (
+        <NewReportModal
+          orgId={orgId}
+          cells={cells}
+          onClose={() => setShowNewReport(false)}
+          onSuccess={() => {
+            setShowNewReport(false);
+            fetchReports();
+          }}
+        />
+      )}
+    </AppLayout>
+  );
+}
+
+// Stat Card Component
+function StatCard({ icon: Icon, label, value, color }) {
+  const colors = {
+    purple: 'bg-purple-50 text-purple-600',
+    blue: 'bg-blue-50 text-blue-600',
+    red: 'bg-red-50 text-red-600',
+    green: 'bg-green-50 text-green-600'
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+      <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${colors[color]}`}>
+        <Icon className="w-5 h-5" />
       </div>
       <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
       <p className="text-sm text-gray-500">{label}</p>
@@ -43,591 +414,321 @@ function StatCard({ icon: Icon, label, value, trend, color = 'purple' }) {
   );
 }
 
-function ReportCard({ report, onView, onEdit }) {
-  const statusColors = {
-    draft: 'bg-gray-100 text-gray-700',
-    submitted: 'bg-blue-100 text-blue-700',
-    approved: 'bg-green-100 text-green-700',
-    rejected: 'bg-red-100 text-red-700'
-  };
-
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-100 dark:border-gray-700 hover:shadow-lg transition group">
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <p className="font-semibold text-gray-900 dark:text-white">
-            Week {report.weekNumber}, {report.year}
-          </p>
-          <p className="text-sm text-gray-500">{report.cell?.name || 'Cell Group'}</p>
-        </div>
-        <span className={`text-xs px-2 py-1 rounded-full ${statusColors[report.status] || statusColors.draft}`}>
-          {report.status}
-        </span>
-      </div>
-
-      <div className="grid grid-cols-4 gap-4 mb-4">
-        <div className="text-center">
-          <p className="text-xl font-bold text-gray-900 dark:text-white">{report.attendance?.members || 0}</p>
-          <p className="text-xs text-gray-500">Members</p>
-        </div>
-        <div className="text-center">
-          <p className="text-xl font-bold text-gray-900 dark:text-white">{report.attendance?.visitors || 0}</p>
-          <p className="text-xs text-gray-500">Visitors</p>
-        </div>
-        <div className="text-center">
-          <p className="text-xl font-bold text-purple-600">{report.soulsWon || 0}</p>
-          <p className="text-xs text-gray-500">Souls Won</p>
-        </div>
-        <div className="text-center">
-          <p className="text-xl font-bold text-green-600">
-            {report.offering?.currency || 'GHS'} {report.offering?.amount || 0}
-          </p>
-          <p className="text-xs text-gray-500">Offering</p>
-        </div>
-      </div>
-
-      {report.testimonies?.length > 0 && (
-        <div className="mb-4">
-          <p className="text-xs text-gray-500 mb-1">Testimonies:</p>
-          <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
-            {report.testimonies[0].summary}
-          </p>
-        </div>
-      )}
-
-      <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
-        <span className="text-xs text-gray-400">
-          Submitted {new Date(report.submittedAt || report.createdAt).toLocaleDateString()}
-        </span>
-        <div className="flex gap-2">
-          <button
-            onClick={() => onView(report)}
-            className="px-3 py-1 text-sm text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg"
-          >
-            View
-          </button>
-          {report.status === 'draft' && (
-            <button
-              onClick={() => onEdit(report)}
-              className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-            >
-              Edit
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CreateReportModal({ isOpen, onClose, cells, onCreate, loading, editReport }) {
-  const [form, setForm] = useState({
+// New Report Modal
+function NewReportModal({ orgId, cells, onClose, onSuccess }) {
+  const [formData, setFormData] = useState({
     cellId: '',
-    weekNumber: Math.ceil((new Date().getDate()) / 7),
-    year: new Date().getFullYear(),
-    meetingDate: new Date().toISOString().split('T')[0],
-    topic: '',
-    scripture: '',
-    attendance: { members: 0, visitors: 0, firstTimers: 0, children: 0 },
+    meetingType: 'cell_meeting',
+    date: new Date().toISOString().split('T')[0],
+    venue: '',
+    attendance: {
+      total: 0,
+      members: 0,
+      firstTimers: 0,
+      children: 0
+    },
     soulsWon: 0,
-    offering: { amount: 0, currency: 'GHS' },
-    testimonies: [{ summary: '', memberName: '' }],
-    prayerRequests: [''],
-    challenges: '',
-    nextWeekPlan: '',
-    notes: ''
+    newMembers: 0,
+    offerings: 0,
+    topic: '',
+    notes: '',
+    testimonies: ''
   });
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (cells.length > 0 && !form.cellId) {
-      setForm(f => ({ ...f, cellId: cells[0]._id }));
-    }
-  }, [cells]);
+  const API = process.env.NEXT_PUBLIC_API_URL || '';
 
-  useEffect(() => {
-    if (editReport) {
-      setForm({
-        cellId: editReport.cell?._id || editReport.cell || '',
-        weekNumber: editReport.weekNumber || Math.ceil((new Date().getDate()) / 7),
-        year: editReport.year || new Date().getFullYear(),
-        meetingDate: editReport.meetingDate ? new Date(editReport.meetingDate).toISOString().split('T')[0] : '',
-        topic: editReport.topic || '',
-        scripture: editReport.scripture || '',
-        attendance: editReport.attendance || { members: 0, visitors: 0, firstTimers: 0, children: 0 },
-        soulsWon: editReport.soulsWon || 0,
-        offering: editReport.offering || { amount: 0, currency: 'GHS' },
-        testimonies: editReport.testimonies?.length > 0 ? editReport.testimonies : [{ summary: '', memberName: '' }],
-        prayerRequests: editReport.prayerRequests?.length > 0 ? editReport.prayerRequests : [''],
-        challenges: editReport.challenges || '',
-        nextWeekPlan: editReport.nextWeekPlan || '',
-        notes: editReport.notes || ''
-      });
-    }
-  }, [editReport]);
-
-  if (!isOpen) return null;
-
-  const handleSubmit = (e, status = 'submitted') => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onCreate({ ...form, status }, editReport?._id);
-  };
+    setSaving(true);
 
-  const updateAttendance = (field, value) => {
-    setForm(f => ({
-      ...f,
-      attendance: { ...f.attendance, [field]: parseInt(value) || 0 }
-    }));
-  };
-
-  const addTestimony = () => {
-    setForm(f => ({
-      ...f,
-      testimonies: [...f.testimonies, { summary: '', memberName: '' }]
-    }));
-  };
-
-  const updateTestimony = (index, field, value) => {
-    setForm(f => {
-      const testimonies = [...f.testimonies];
-      testimonies[index] = { ...testimonies[index], [field]: value };
-      return { ...f, testimonies };
-    });
-  };
-
-  const totalAttendance = Object.values(form.attendance).reduce((a, b) => a + b, 0);
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl shadow-xl my-8">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <FileText className="w-5 h-5 text-purple-500" />
-            {editReport ? 'Edit Cell Report' : 'New Cell Report'}
-          </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
-        </div>
-
-        <form className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
-          {/* Basic Info */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cell Group</label>
-              <select
-                value={form.cellId}
-                onChange={(e) => setForm(f => ({ ...f, cellId: e.target.value }))}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
-              >
-                {cells.map(cell => (
-                  <option key={cell._id} value={cell._id}>{cell.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Meeting Date</label>
-              <input
-                type="date"
-                value={form.meetingDate}
-                onChange={(e) => setForm(f => ({ ...f, meetingDate: e.target.value }))}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
-              />
-            </div>
-          </div>
-
-          {/* Topic & Scripture */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Topic Discussed</label>
-              <input
-                type="text"
-                value={form.topic}
-                onChange={(e) => setForm(f => ({ ...f, topic: e.target.value }))}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
-                placeholder="e.g., Faith in Action"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Scripture Reference</label>
-              <input
-                type="text"
-                value={form.scripture}
-                onChange={(e) => setForm(f => ({ ...f, scripture: e.target.value }))}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
-                placeholder="e.g., Hebrews 11:1-6"
-              />
-            </div>
-          </div>
-
-          {/* Attendance */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-              Attendance (Total: <span className="text-purple-600 font-bold">{totalAttendance}</span>)
-            </label>
-            <div className="grid grid-cols-4 gap-3">
-              {[
-                { key: 'members', label: 'Members', color: 'purple' },
-                { key: 'visitors', label: 'Visitors', color: 'blue' },
-                { key: 'firstTimers', label: 'First Timers', color: 'green' },
-                { key: 'children', label: 'Children', color: 'orange' }
-              ].map(item => (
-                <div key={item.key}>
-                  <label className="text-xs text-gray-500">{item.label}</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={form.attendance[item.key]}
-                    onChange={(e) => updateAttendance(item.key, e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-center font-bold"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Souls Won & Offering */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Souls Won 🙏
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={form.soulsWon}
-                onChange={(e) => setForm(f => ({ ...f, soulsWon: parseInt(e.target.value) || 0 }))}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Offering Collected
-              </label>
-              <div className="flex gap-2">
-                <select
-                  value={form.offering.currency}
-                  onChange={(e) => setForm(f => ({ ...f, offering: { ...f.offering, currency: e.target.value } }))}
-                  className="px-3 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
-                >
-                  <option value="GHS">GHS</option>
-                  <option value="USD">USD</option>
-                  <option value="NGN">NGN</option>
-                </select>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.offering.amount}
-                  onChange={(e) => setForm(f => ({ ...f, offering: { ...f.offering, amount: parseFloat(e.target.value) || 0 } }))}
-                  className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Testimonies */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Testimonies</label>
-              <button
-                type="button"
-                onClick={addTestimony}
-                className="text-sm text-purple-600 hover:text-purple-700"
-              >
-                + Add Testimony
-              </button>
-            </div>
-            {form.testimonies.map((testimony, i) => (
-              <div key={i} className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  value={testimony.memberName}
-                  onChange={(e) => updateTestimony(i, 'memberName', e.target.value)}
-                  className="w-1/3 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
-                  placeholder="Name"
-                />
-                <input
-                  type="text"
-                  value={testimony.summary}
-                  onChange={(e) => updateTestimony(i, 'summary', e.target.value)}
-                  className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
-                  placeholder="Testimony summary..."
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Challenges & Next Week */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Challenges</label>
-              <textarea
-                value={form.challenges}
-                onChange={(e) => setForm(f => ({ ...f, challenges: e.target.value }))}
-                rows={2}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 resize-none"
-                placeholder="Any challenges faced..."
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Next Week Plan</label>
-              <textarea
-                value={form.nextWeekPlan}
-                onChange={(e) => setForm(f => ({ ...f, nextWeekPlan: e.target.value }))}
-                rows={2}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 resize-none"
-                placeholder="Plans for next meeting..."
-              />
-            </div>
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Additional Notes</label>
-            <textarea
-              value={form.notes}
-              onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))}
-              rows={2}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 resize-none"
-              placeholder="Any other notes..."
-            />
-          </div>
-        </form>
-
-        <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-700">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-6 py-3 border border-gray-200 dark:border-gray-600 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={(e) => handleSubmit(e, 'draft')}
-            disabled={loading}
-            className="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-600"
-          >
-            Save Draft
-          </button>
-          <button
-            onClick={(e) => handleSubmit(e, 'submitted')}
-            disabled={loading || !form.cellId}
-            className="flex-1 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-            Submit Report
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function CellReports() {
-  const [loading, setLoading] = useState(true);
-  const [reports, setReports] = useState([]);
-  const [cells, setCells] = useState([]);
-  const [stats, setStats] = useState({ total: 0, souls: 0, avgAttendance: 0, totalOffering: 0 });
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editReport, setEditReport] = useState(null);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [filter, setFilter] = useState('all');
-
-  const getAuth = () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    return { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } };
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [filter]);
-
-  const fetchData = async () => {
     try {
-      // Fetch user's cells
-      const orgsRes = await fetch(`${API_URL}/api/church/org/my`, getAuth());
-      const orgsData = await orgsRes.json();
-      if (orgsData.ok) {
-        const userCells = orgsData.orgs?.filter(o => o.type === 'cell') || [];
-        setCells(userCells);
-      }
-
-      // Fetch reports
-      const params = new URLSearchParams({
-        ...(filter !== 'all' && { status: filter })
-      });
-      const reportsRes = await fetch(`${API_URL}/api/church/cell-reports?${params}`, getAuth());
-      const reportsData = await reportsRes.json();
-      if (reportsData.ok) {
-        setReports(reportsData.reports || []);
-        setStats({
-          total: reportsData.reports?.length || 0,
-          souls: reportsData.reports?.reduce((sum, r) => sum + (r.soulsWon || 0), 0) || 0,
-          avgAttendance: Math.round(
-            reportsData.reports?.reduce((sum, r) => 
-              sum + Object.values(r.attendance || {}).reduce((a, b) => a + b, 0), 0
-            ) / (reportsData.reports?.length || 1)
-          ) || 0,
-          totalOffering: reportsData.reports?.reduce((sum, r) => sum + (r.offering?.amount || 0), 0) || 0
-        });
-      }
-    } catch (err) {
-      console.error('Fetch data error:', err);
-    }
-    setLoading(false);
-  };
-
-  const handleCreateReport = async (formData, reportId) => {
-    setActionLoading(true);
-    try {
-      const url = reportId
-        ? `${API_URL}/api/church/cell-reports/${reportId}`
-        : `${API_URL}/api/church/cell-reports`;
-      
-      const res = await fetch(url, {
-        method: reportId ? 'PUT' : 'POST',
-        ...getAuth(),
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API}/api/church/cell-reports`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({
           ...formData,
-          cell: formData.cellId
+          orgId
         })
       });
 
       const data = await res.json();
       if (data.ok) {
-        setShowCreateModal(false);
-        setEditReport(null);
-        fetchData();
+        onSuccess();
       } else {
-        alert(data.error || 'Failed to save report');
+        alert(data.error || 'Failed to create report');
       }
     } catch (err) {
-      console.error('Create report error:', err);
+      console.error('Error creating report:', err);
+      alert('Error creating report');
+    } finally {
+      setSaving(false);
     }
-    setActionLoading(false);
   };
 
+  const updateAttendance = (field, value) => {
+    const newAttendance = { ...formData.attendance, [field]: parseInt(value) || 0 };
+    // Auto-calculate total
+    newAttendance.total = newAttendance.members + newAttendance.firstTimers + newAttendance.children;
+    setFormData(prev => ({ ...prev, attendance: newAttendance }));
+  };
+
+  const selectedMeetingType = MEETING_TYPES.find(m => m.id === formData.meetingType);
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Head>
-        <title>Cell Reports - CYBEV Church</title>
-      </Head>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">New Cell Report</h3>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-      {/* Header */}
-      <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <Link href="/church" className="inline-flex items-center gap-2 text-orange-200 hover:text-white mb-4">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
-          </Link>
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+          {/* Meeting Type Selection */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Meeting Type
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {MEETING_TYPES.map(type => (
+                <button
+                  key={type.id}
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, meetingType: type.id }))}
+                  className={`p-3 rounded-lg border-2 text-left flex items-center gap-3 transition ${
+                    formData.meetingType === type.id
+                      ? 'border-purple-500 bg-purple-50'
+                      : 'border-gray-200 hover:border-purple-300'
+                  }`}
+                >
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center"
+                    style={{ backgroundColor: `${type.color}15` }}
+                  >
+                    <type.icon className="w-5 h-5" style={{ color: type.color }} />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">{type.name}</p>
+                    <p className="text-xs text-gray-500">{type.day}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
 
-          <div className="flex items-center justify-between">
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            {/* Cell Selection */}
             <div>
-              <h1 className="text-3xl font-bold flex items-center gap-3">
-                <FileText className="w-8 h-8" />
-                Cell Reports
-              </h1>
-              <p className="text-orange-100 mt-1">Weekly cell group meeting reports</p>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Cell <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={formData.cellId}
+                onChange={(e) => setFormData(prev => ({ ...prev, cellId: e.target.value }))}
+                required
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+              >
+                <option value="">Select Cell</option>
+                {cells.map(cell => (
+                  <option key={cell._id} value={cell._id}>{cell.name}</option>
+                ))}
+              </select>
             </div>
 
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="px-6 py-3 bg-white text-orange-600 rounded-xl font-semibold hover:bg-orange-50 flex items-center gap-2 shadow-lg"
-            >
-              <Plus className="w-5 h-5" />
-              New Report
-            </button>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-4 gap-4 mt-6">
-            <div className="bg-white/10 backdrop-blur rounded-xl p-4">
-              <p className="text-3xl font-bold">{stats.total}</p>
-              <p className="text-orange-200 text-sm">Total Reports</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur rounded-xl p-4">
-              <p className="text-3xl font-bold">{stats.souls}</p>
-              <p className="text-orange-200 text-sm">Souls Won</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur rounded-xl p-4">
-              <p className="text-3xl font-bold">{stats.avgAttendance}</p>
-              <p className="text-orange-200 text-sm">Avg Attendance</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur rounded-xl p-4">
-              <p className="text-3xl font-bold">GHS {stats.totalOffering.toLocaleString()}</p>
-              <p className="text-orange-200 text-sm">Total Offering</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="flex gap-2 flex-wrap">
-          {[
-            { id: 'all', label: 'All Reports' },
-            { id: 'submitted', label: 'Submitted' },
-            { id: 'approved', label: 'Approved' },
-            { id: 'draft', label: 'Drafts' }
-          ].map(f => (
-            <button
-              key={f.id}
-              onClick={() => setFilter(f.id)}
-              className={`px-4 py-2 rounded-xl font-medium transition ${
-                filter === f.id
-                  ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Reports */}
-      <div className="max-w-6xl mx-auto px-4 pb-8">
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
-          </div>
-        ) : reports.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-700">
-            <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-              No Reports Yet
-            </h3>
-            <p className="text-gray-500 mb-6">
-              Submit your first cell report to track your group's progress
-            </p>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="px-6 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600"
-            >
-              Create Report
-            </button>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {reports.map(report => (
-              <ReportCard
-                key={report._id}
-                report={report}
-                onView={(r) => console.log('View', r)}
-                onEdit={(r) => { setEditReport(r); setShowCreateModal(true); }}
+            {/* Date */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Date <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                required
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg"
               />
-            ))}
+            </div>
           </div>
-        )}
-      </div>
 
-      {/* Modal */}
-      <CreateReportModal
-        isOpen={showCreateModal}
-        onClose={() => { setShowCreateModal(false); setEditReport(null); }}
-        cells={cells}
-        onCreate={handleCreateReport}
-        loading={actionLoading}
-        editReport={editReport}
-      />
+          {/* Venue */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Venue/Location
+            </label>
+            <input
+              type="text"
+              value={formData.venue}
+              onChange={(e) => setFormData(prev => ({ ...prev, venue: e.target.value }))}
+              placeholder="Meeting location"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+            />
+          </div>
+
+          {/* Attendance Section */}
+          <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <h4 className="font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Attendance
+            </h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Members</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.attendance.members}
+                  onChange={(e) => updateAttendance('members', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">First Timers</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.attendance.firstTimers}
+                  onChange={(e) => updateAttendance('firstTimers', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Children</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.attendance.children}
+                  onChange={(e) => updateAttendance('children', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Total</label>
+                <input
+                  type="number"
+                  value={formData.attendance.total}
+                  readOnly
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Souls & Growth */}
+          {(formData.meetingType === 'outreach' || formData.meetingType === 'follow_up') && (
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+              <h4 className="font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <Heart className="w-4 h-4 text-red-500" />
+                Soul Winning Results
+              </h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Souls Won</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.soulsWon}
+                    onChange={(e) => setFormData(prev => ({ ...prev, soulsWon: parseInt(e.target.value) || 0 }))}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">New Members Added</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.newMembers}
+                    onChange={(e) => setFormData(prev => ({ ...prev, newMembers: parseInt(e.target.value) || 0 }))}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Topic (for Cell Meeting or Leaders Meeting) */}
+          {(formData.meetingType === 'cell_meeting' || formData.meetingType === 'leaders_meeting') && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {formData.meetingType === 'leaders_meeting' ? 'Training Topic' : 'Bible Study Topic'}
+              </label>
+              <input
+                type="text"
+                value={formData.topic}
+                onChange={(e) => setFormData(prev => ({ ...prev, topic: e.target.value }))}
+                placeholder="Topic discussed"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+              />
+            </div>
+          )}
+
+          {/* Offerings */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Offerings Collected
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.offerings}
+              onChange={(e) => setFormData(prev => ({ ...prev, offerings: parseFloat(e.target.value) || 0 }))}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+            />
+          </div>
+
+          {/* Notes */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Notes/Highlights
+            </label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+              placeholder="Key highlights, prayer points, testimonies..."
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+            />
+          </div>
+
+          {/* Testimonies */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Testimonies
+            </label>
+            <textarea
+              value={formData.testimonies}
+              onChange={(e) => setFormData(prev => ({ ...prev, testimonies: e.target.value }))}
+              placeholder="Share testimonies from this meeting..."
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+            />
+          </div>
+
+          {/* Submit */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving || !formData.cellId}
+              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Submit Report'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
