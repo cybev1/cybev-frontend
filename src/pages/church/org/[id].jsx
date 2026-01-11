@@ -1,240 +1,34 @@
 // ============================================
-// FILE: pages/church/org/[id].jsx
-// Organization Detail - Hierarchy, Members, Stats
-// VERSION: 1.0.0
+// FILE: src/pages/church/org/[id].jsx
+// PURPOSE: Organization Detail Page (FIXED 404)
 // ============================================
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import {
-  Church, Users, Heart, Calendar, MapPin, Phone, Mail,
-  Globe, ArrowLeft, ChevronRight, ChevronDown, Plus,
-  Settings, BarChart3, UserPlus, Edit, Loader2, Star,
-  Building2, BookOpen, Clock, ExternalLink, MoreHorizontal,
-  TrendingUp, Award, Target, Layers, Share2
+  ArrowLeft, Settings, Users, Heart, Calendar, FileText, BarChart2,
+  UserPlus, BookOpen, MapPin, Phone, Mail, Globe, Edit, MoreVertical,
+  TrendingUp, Target, Award, Clock, ChevronRight, Plus, Building
 } from 'lucide-react';
+import AppLayout from '@/components/Layout/AppLayout';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
-
-const typeConfig = {
-  zone: { 
-    label: 'Zone', 
-    color: 'from-purple-500 to-indigo-600',
-    bgColor: 'bg-purple-100 dark:bg-purple-900/30',
-    textColor: 'text-purple-700 dark:text-purple-400',
-    icon: Globe
-  },
-  church: { 
-    label: 'Church', 
-    color: 'from-blue-500 to-cyan-600',
-    bgColor: 'bg-blue-100 dark:bg-blue-900/30',
-    textColor: 'text-blue-700 dark:text-blue-400',
-    icon: Church
-  },
-  fellowship: { 
-    label: 'Fellowship', 
-    color: 'from-green-500 to-emerald-600',
-    bgColor: 'bg-green-100 dark:bg-green-900/30',
-    textColor: 'text-green-700 dark:text-green-400',
-    icon: Users
-  },
-  cell: { 
-    label: 'Cell', 
-    color: 'from-orange-500 to-amber-600',
-    bgColor: 'bg-orange-100 dark:bg-orange-900/30',
-    textColor: 'text-orange-700 dark:text-orange-400',
-    icon: Building2
-  },
-  biblestudy: { 
-    label: 'Bible Study', 
-    color: 'from-pink-500 to-rose-600',
-    bgColor: 'bg-pink-100 dark:bg-pink-900/30',
-    textColor: 'text-pink-700 dark:text-pink-400',
-    icon: BookOpen
-  }
-};
-
-function StatCard({ icon: Icon, label, value, trend, color = 'purple' }) {
-  const colors = {
-    purple: 'from-purple-500 to-indigo-600',
-    green: 'from-green-500 to-emerald-600',
-    blue: 'from-blue-500 to-cyan-600',
-    pink: 'from-pink-500 to-rose-600',
-    orange: 'from-orange-500 to-amber-600'
-  };
-
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-100 dark:border-gray-700">
-      <div className="flex items-center justify-between mb-3">
-        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${colors[color]} flex items-center justify-center`}>
-          <Icon className="w-5 h-5 text-white" />
-        </div>
-        {trend !== undefined && (
-          <span className={`text-sm font-medium ${trend >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-            {trend >= 0 ? '+' : ''}{trend}%
-          </span>
-        )}
-      </div>
-      <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
-      <p className="text-sm text-gray-500">{label}</p>
-    </div>
-  );
-}
-
-function HierarchyNode({ org, level = 0, expanded, onToggle }) {
-  const config = typeConfig[org.type] || typeConfig.church;
-  const Icon = config.icon;
-  const hasChildren = org.children && org.children.length > 0;
-
-  return (
-    <div className="relative">
-      {/* Connector line */}
-      {level > 0 && (
-        <div className="absolute left-4 top-0 w-px h-6 bg-gray-200 dark:bg-gray-700 -mt-2" />
-      )}
-      
-      <div 
-        className={`flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition group ${
-          level > 0 ? 'ml-8' : ''
-        }`}
-        onClick={() => hasChildren && onToggle(org._id)}
-      >
-        {hasChildren ? (
-          <button className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600">
-            {expanded[org._id] ? (
-              <ChevronDown className="w-4 h-4" />
-            ) : (
-              <ChevronRight className="w-4 h-4" />
-            )}
-          </button>
-        ) : (
-          <div className="w-6" />
-        )}
-
-        <div className={`w-10 h-10 rounded-lg ${config.bgColor} flex items-center justify-center`}>
-          <Icon className={`w-5 h-5 ${config.textColor}`} />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <Link href={`/church/org/${org._id}`}>
-              <span className="font-medium text-gray-900 dark:text-white hover:text-purple-600 transition">
-                {org.name}
-              </span>
-            </Link>
-            <span className={`text-xs px-2 py-0.5 rounded-full ${config.bgColor} ${config.textColor}`}>
-              {config.label}
-            </span>
-          </div>
-          <p className="text-sm text-gray-500">
-            {org.memberCount || 0} members • {org.stats?.totalSouls || 0} souls
-          </p>
-        </div>
-
-        <Link href={`/church/org/${org._id}`}>
-          <button className="opacity-0 group-hover:opacity-100 px-3 py-1 text-sm text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition">
-            View
-          </button>
-        </Link>
-      </div>
-
-      {/* Children */}
-      {hasChildren && expanded[org._id] && (
-        <div className="relative">
-          {level < 4 && (
-            <div className="absolute left-4 top-0 w-px h-full bg-gray-200 dark:bg-gray-700 ml-8" />
-          )}
-          {org.children.map((child) => (
-            <HierarchyNode
-              key={child._id}
-              org={child}
-              level={level + 1}
-              expanded={expanded}
-              onToggle={onToggle}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function MemberCard({ member }) {
-  const roleColors = {
-    pastor: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-    leader: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    admin: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-    worker: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-    member: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-  };
-
-  return (
-    <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
-      <img
-        src={member.user?.profilePicture || '/default-avatar.png'}
-        alt={member.user?.name}
-        className="w-10 h-10 rounded-full object-cover"
-      />
-      <div className="flex-1 min-w-0">
-        <p className="font-medium text-gray-900 dark:text-white truncate">
-          {member.user?.name || member.user?.username || 'Unknown'}
-        </p>
-        <p className="text-sm text-gray-500">
-          Joined {new Date(member.joinedAt).toLocaleDateString()}
-        </p>
-      </div>
-      <span className={`text-xs px-2 py-1 rounded-full capitalize ${roleColors[member.role] || roleColors.member}`}>
-        {member.role}
-      </span>
-    </div>
-  );
-}
-
-function ScheduleItem({ schedule }) {
-  const dayLabels = {
-    sunday: 'Sun', monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed',
-    thursday: 'Thu', friday: 'Fri', saturday: 'Sat'
-  };
-
-  return (
-    <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-      <div className="w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex flex-col items-center justify-center">
-        <span className="text-xs text-purple-600 dark:text-purple-400 font-medium">
-          {dayLabels[schedule.day]}
-        </span>
-        <Clock className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-      </div>
-      <div className="flex-1">
-        <p className="font-medium text-gray-900 dark:text-white">{schedule.title}</p>
-        <p className="text-sm text-gray-500">{schedule.time}</p>
-      </div>
-      {schedule.isOnline && (
-        <span className="text-xs px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full">
-          Online
-        </span>
-      )}
-    </div>
-  );
-}
-
-export default function OrganizationDetail() {
+export default function OrganizationDetailPage() {
   const router = useRouter();
   const { id } = router.query;
 
-  const [loading, setLoading] = useState(true);
   const [org, setOrg] = useState(null);
-  const [children, setChildren] = useState([]);
-  const [hierarchy, setHierarchy] = useState([]);
-  const [expanded, setExpanded] = useState({});
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
-  const [recentSouls, setRecentSouls] = useState(0);
+  const [stats, setStats] = useState({
+    members: 0,
+    soulsWon: 0,
+    attendance: 0,
+    cells: 0
+  });
 
-  const getAuth = () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    return { headers: { Authorization: `Bearer ${token}` } };
-  };
+  const API = process.env.NEXT_PUBLIC_API_URL || '';
 
   useEffect(() => {
     if (id) {
@@ -244,463 +38,459 @@ export default function OrganizationDetail() {
 
   const fetchOrganization = async () => {
     try {
-      // Fetch org details
-      const res = await fetch(`${API_URL}/api/church/org/${id}`, getAuth());
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API}/api/church/organizations/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const data = await res.json();
-      
-      if (data.ok) {
-        setOrg(data.org);
-        setChildren(data.children || []);
-        setRecentSouls(data.recentSouls || 0);
-      }
 
-      // Fetch hierarchy
-      const hierRes = await fetch(`${API_URL}/api/church/org/${id}/hierarchy`, getAuth());
-      const hierData = await hierRes.json();
-      if (hierData.ok) {
-        setHierarchy(hierData.hierarchy || []);
-        // Auto-expand first level
-        const expandedInit = {};
-        hierData.hierarchy?.forEach(h => { expandedInit[h._id] = true; });
-        setExpanded(expandedInit);
+      if (data.ok && data.organization) {
+        setOrg(data.organization);
+        setStats({
+          members: data.organization.members?.length || data.organization.memberCount || 0,
+          soulsWon: data.organization.soulsWon || 0,
+          attendance: data.organization.avgAttendance || 0,
+          cells: data.organization.cells?.length || 0
+        });
+      } else {
+        console.error('Organization not found');
       }
     } catch (err) {
-      console.error('Fetch org error:', err);
+      console.error('Error fetching organization:', err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
-
-  const toggleExpand = (orgId) => {
-    setExpanded(prev => ({ ...prev, [orgId]: !prev[orgId] }));
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
-      </div>
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full" />
+        </div>
+      </AppLayout>
     );
   }
 
   if (!org) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-500 mb-4">Organization not found</p>
-          <Link href="/church">
-            <button className="px-6 py-2 bg-purple-600 text-white rounded-lg">
-              Back to Dashboard
-            </button>
+      <AppLayout>
+        <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+          <Building className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            Organization not found
+          </h2>
+          <p className="text-gray-500 mb-6">
+            This organization may have been deleted or you don't have access.
+          </p>
+          <Link
+            href="/church"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Church Dashboard
           </Link>
         </div>
-      </div>
+      </AppLayout>
     );
   }
 
-  const config = typeConfig[org.type] || typeConfig.church;
-  const Icon = config.icon;
-  const members = org.members || [];
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: BarChart2 },
+    { id: 'members', label: 'Members', icon: Users },
+    { id: 'cells', label: 'Cells', icon: Target },
+    { id: 'reports', label: 'Reports', icon: FileText },
+    { id: 'events', label: 'Events', icon: Calendar },
+    { id: 'settings', label: 'Settings', icon: Settings }
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <AppLayout>
       <Head>
-        <title>{org.name} - CYBEV Church</title>
+        <title>{org.name} | CYBEV Church</title>
       </Head>
 
-      {/* Header */}
-      <div className={`bg-gradient-to-r ${config.color} text-white`}>
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <Link href="/church" className="inline-flex items-center gap-2 text-white/70 hover:text-white mb-4">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex items-start gap-4 mb-8">
+          <Link
+            href="/church"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+          >
+            <ArrowLeft className="w-5 h-5" />
           </Link>
 
-          <div className="flex items-start gap-6">
-            {/* Logo */}
-            <div className="w-20 h-20 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
-              {org.logo ? (
-                <img src={org.logo} alt={org.name} className="w-16 h-16 rounded-xl object-cover" />
-              ) : (
-                <Icon className="w-10 h-10" />
-              )}
-            </div>
-
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold">{org.name}</h1>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">
-                  {config.label}
-                </span>
+          <div className="flex-1">
+            <div className="flex items-start justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{org.name}</h1>
+                <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
+                  <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                    {org.type || 'Church'}
+                  </span>
+                  {org.location && (
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {org.location}
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {org.motto && (
-                <p className="text-white/80 italic mb-3">"{org.motto}"</p>
-              )}
-
-              <div className="flex flex-wrap items-center gap-4 text-white/80 text-sm">
-                {org.contact?.city && (
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    {org.contact.city}{org.contact.country && `, ${org.contact.country}`}
-                  </span>
-                )}
-                {org.contact?.phone && (
-                  <span className="flex items-center gap-1">
-                    <Phone className="w-4 h-4" />
-                    {org.contact.phone}
-                  </span>
-                )}
-                {org.leader && (
-                  <span className="flex items-center gap-1">
-                    <Star className="w-4 h-4" />
-                    Led by {org.leader.name || org.leader.username}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-2 flex-shrink-0">
-              {org.siteId && (
-                <Link href={`https://${org.subdomain}.cybev.io`} target="_blank">
-                  <button className="px-4 py-2 bg-white/20 rounded-xl font-medium hover:bg-white/30 flex items-center gap-2">
-                    <ExternalLink className="w-4 h-4" />
-                    View Site
-                  </button>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/church/org/${id}/settings`}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                >
+                  <Settings className="w-5 h-5 text-gray-500" />
                 </Link>
-              )}
-              <Link href={`/church/org/${id}/settings`}>
-                <button className="px-4 py-2 bg-white text-gray-900 rounded-xl font-semibold hover:bg-gray-100 flex items-center gap-2">
-                  <Settings className="w-4 h-4" />
-                  Settings
+                <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+                  <MoreVertical className="w-5 h-5 text-gray-500" />
                 </button>
-              </Link>
+              </div>
             </div>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <StatCard icon={Users} label="Members" value={stats.members} color="blue" />
+          <StatCard icon={Heart} label="Souls Won" value={stats.soulsWon} color="red" />
+          <StatCard icon={TrendingUp} label="Avg Attendance" value={stats.attendance} color="green" />
+          <StatCard icon={Target} label="Cells" value={stats.cells} color="purple" />
+        </div>
+
+        {/* Quick Actions */}
+        <div className="flex flex-wrap gap-3 mb-8">
+          <Link
+            href={`/church/souls/add?orgId=${id}`}
+            className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+          >
+            <Heart className="w-4 h-4" />
+            Add Soul
+          </Link>
+          <Link
+            href={`/church/cells/dashboard?orgId=${id}`}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            <Target className="w-4 h-4" />
+            Cell Ministry
+          </Link>
+          <Link
+            href={`/church/cells/reports?orgId=${id}`}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            <FileText className="w-4 h-4" />
+            Submit Report
+          </Link>
+          <Link
+            href={`/church/foundation?orgId=${id}`}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            <BookOpen className="w-4 h-4" />
+            Foundation School
+          </Link>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-6 overflow-x-auto">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-3 border-b-2 whitespace-nowrap transition ${
+                activeTab === tab.id
+                  ? 'border-purple-600 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <OverviewTab org={org} stats={stats} />
+        )}
+
+        {activeTab === 'members' && (
+          <MembersTab orgId={id} />
+        )}
+
+        {activeTab === 'cells' && (
+          <CellsTab orgId={id} />
+        )}
+
+        {activeTab === 'reports' && (
+          <ReportsTab orgId={id} />
+        )}
+
+        {activeTab === 'events' && (
+          <EventsTab orgId={id} />
+        )}
+
+        {activeTab === 'settings' && (
+          <SettingsTab org={org} />
+        )}
+      </div>
+    </AppLayout>
+  );
+}
+
+// Stat Card
+function StatCard({ icon: Icon, label, value, color }) {
+  const colors = {
+    blue: 'bg-blue-50 text-blue-500',
+    red: 'bg-red-50 text-red-500',
+    green: 'bg-green-50 text-green-500',
+    purple: 'bg-purple-50 text-purple-500'
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+      <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-2 ${colors[color]}`}>
+        <Icon className="w-5 h-5" />
+      </div>
+      <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+      <p className="text-sm text-gray-500">{label}</p>
+    </div>
+  );
+}
+
+// Overview Tab
+function OverviewTab({ org, stats }) {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 space-y-6">
+        {/* About */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">About</h3>
+          <p className="text-gray-600 dark:text-gray-400">
+            {org.description || 'No description provided.'}
+          </p>
+        </div>
+
+        {/* Contact Info */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Contact Information</h3>
+          <div className="space-y-3">
+            {org.location && (
+              <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                <MapPin className="w-5 h-5" />
+                <span>{org.location}</span>
+              </div>
+            )}
+            {org.phone && (
+              <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                <Phone className="w-5 h-5" />
+                <span>{org.phone}</span>
+              </div>
+            )}
+            {org.email && (
+              <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                <Mail className="w-5 h-5" />
+                <span>{org.email}</span>
+              </div>
+            )}
+            {org.website && (
+              <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                <Globe className="w-5 h-5" />
+                <a href={org.website} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">
+                  {org.website}
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="max-w-6xl mx-auto px-4 -mt-6">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <StatCard icon={Users} label="Members" value={org.memberCount || 0} color="blue" />
-          <StatCard icon={Heart} label="Total Souls" value={org.stats?.totalSouls || 0} color="pink" />
-          <StatCard icon={Target} label="This Month" value={recentSouls} trend={12} color="green" />
-          <StatCard icon={Award} label="FS Graduates" value={org.stats?.foundationSchoolGraduates || 0} color="purple" />
-          <StatCard icon={Layers} label="Sub-Orgs" value={children.length} color="orange" />
+      {/* Side Panel */}
+      <div className="space-y-6">
+        {/* Leader */}
+        {org.leader && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Leader</h3>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                <span className="text-lg text-purple-600 font-semibold">
+                  {org.leader.name?.[0] || 'L'}
+                </span>
+              </div>
+              <div>
+                <p className="font-medium text-gray-900 dark:text-white">
+                  {org.leader.name || org.leader.username}
+                </p>
+                <p className="text-sm text-gray-500">Organization Leader</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Quick Links */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Quick Links</h3>
+          <div className="space-y-2">
+            <QuickLink href={`/church/cells/dashboard?orgId=${org._id}`} label="Cell Dashboard" />
+            <QuickLink href={`/church/cells/reports?orgId=${org._id}`} label="Cell Reports" />
+            <QuickLink href={`/church/cells/training?orgId=${org._id}`} label="Leader Training" />
+            <QuickLink href={`/church/foundation?orgId=${org._id}`} label="Foundation School" />
+            <QuickLink href={`/church/website/builder?orgId=${org._id}`} label="Website Builder" />
+          </div>
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Tabs */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 mt-6 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex gap-1 overflow-x-auto">
-            {[
-              { id: 'overview', label: 'Overview', icon: Church },
-              { id: 'hierarchy', label: 'Hierarchy', icon: Layers },
-              { id: 'members', label: 'Members', icon: Users },
-              { id: 'schedule', label: 'Schedule', icon: Calendar }
-            ].map(({ id, label, icon: TabIcon }) => (
-              <button
-                key={id}
-                onClick={() => setActiveTab(id)}
-                className={`px-6 py-4 font-medium border-b-2 transition flex items-center gap-2 whitespace-nowrap ${
-                  activeTab === id
-                    ? 'border-purple-500 text-purple-600 dark:text-purple-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <TabIcon className="w-4 h-4" />
-                {label}
-              </button>
+function QuickLink({ href, label }) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+    >
+      <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
+      <ChevronRight className="w-4 h-4 text-gray-400" />
+    </Link>
+  );
+}
+
+// Members Tab
+function MembersTab({ orgId }) {
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const API = process.env.NEXT_PUBLIC_API_URL || '';
+
+  useEffect(() => {
+    fetchMembers();
+  }, [orgId]);
+
+  const fetchMembers = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API}/api/church/org/${orgId}/members`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.ok) setMembers(data.members || []);
+    } catch (err) {
+      console.error('Error fetching members:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center py-8">Loading members...</div>;
+  }
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg font-semibold">Members ({members.length})</h3>
+        <Link
+          href={`/church/org/${orgId}/members/add`}
+          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg"
+        >
+          <UserPlus className="w-4 h-4" />
+          Add Member
+        </Link>
+      </div>
+
+      {members.length === 0 ? (
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border">
+          <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <p className="text-gray-500">No members yet</p>
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border overflow-hidden">
+          <div className="divide-y divide-gray-200 dark:divide-gray-700">
+            {members.map(member => (
+              <div key={member._id} className="p-4 flex items-center justify-between hover:bg-gray-50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                    {member.user?.name?.[0] || 'M'}
+                  </div>
+                  <div>
+                    <p className="font-medium">{member.user?.name || member.name}</p>
+                    <p className="text-sm text-gray-500">{member.role || 'Member'}</p>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </div>
-      </div>
+      )}
+    </div>
+  );
+}
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Overview Tab */}
-        {activeTab === 'overview' && (
-          <div className="grid lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              {/* Description */}
-              {org.description && (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3">About</h3>
-                  <p className="text-gray-600 dark:text-gray-400">{org.description}</p>
-                </div>
-              )}
+// Cells Tab
+function CellsTab({ orgId }) {
+  return (
+    <div className="text-center py-12">
+      <Target className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+      <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Cell Ministry</h3>
+      <p className="text-gray-500 mb-4">Manage your cells and track growth</p>
+      <Link
+        href={`/church/cells/dashboard?orgId=${orgId}`}
+        className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg"
+      >
+        Open Cell Dashboard
+      </Link>
+    </div>
+  );
+}
 
-              {/* Sub-organizations */}
-              {children.length > 0 && (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">
-                      Sub-Organizations ({children.length})
-                    </h3>
-                    <Link href={`/church/create?parentId=${id}`}>
-                      <button className="text-purple-600 text-sm font-medium hover:text-purple-700 flex items-center gap-1">
-                        <Plus className="w-4 h-4" />
-                        Add New
-                      </button>
-                    </Link>
-                  </div>
+// Reports Tab
+function ReportsTab({ orgId }) {
+  return (
+    <div className="text-center py-12">
+      <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+      <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Cell Reports</h3>
+      <p className="text-gray-500 mb-4">View and submit cell meeting reports</p>
+      <Link
+        href={`/church/cells/reports?orgId=${orgId}`}
+        className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg"
+      >
+        Open Reports
+      </Link>
+    </div>
+  );
+}
 
-                  <div className="grid md:grid-cols-2 gap-3">
-                    {children.slice(0, 6).map((child) => {
-                      const childConfig = typeConfig[child.type] || typeConfig.church;
-                      const ChildIcon = childConfig.icon;
-                      return (
-                        <Link key={child._id} href={`/church/org/${child._id}`}>
-                          <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition cursor-pointer">
-                            <div className={`w-10 h-10 rounded-lg ${childConfig.bgColor} flex items-center justify-center`}>
-                              <ChildIcon className={`w-5 h-5 ${childConfig.textColor}`} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-gray-900 dark:text-white truncate">
-                                {child.name}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {child.memberCount || 0} members
-                              </p>
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-gray-400" />
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
+// Events Tab
+function EventsTab({ orgId }) {
+  return (
+    <div className="text-center py-12">
+      <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+      <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Events</h3>
+      <p className="text-gray-500 mb-4">Create and manage church events</p>
+      <Link
+        href={`/church/org/${orgId}/events/create`}
+        className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg"
+      >
+        <Plus className="w-4 h-4" />
+        Create Event
+      </Link>
+    </div>
+  );
+}
 
-                  {children.length > 6 && (
-                    <button
-                      onClick={() => setActiveTab('hierarchy')}
-                      className="w-full mt-4 py-2 text-purple-600 font-medium hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg"
-                    >
-                      View All ({children.length})
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* Quick Actions */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Link href={`/church/souls/add?churchId=${id}`}>
-                  <div className="bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl p-4 text-white hover:shadow-lg transition cursor-pointer">
-                    <UserPlus className="w-6 h-6 mb-2" />
-                    <p className="font-medium">Add Soul</p>
-                  </div>
-                </Link>
-                <Link href={`/church/souls?orgId=${id}`}>
-                  <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl p-4 text-white hover:shadow-lg transition cursor-pointer">
-                    <Heart className="w-6 h-6 mb-2" />
-                    <p className="font-medium">Soul Tracker</p>
-                  </div>
-                </Link>
-                <Link href={`/church/attendance?orgId=${id}`}>
-                  <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-4 text-white hover:shadow-lg transition cursor-pointer">
-                    <BarChart3 className="w-6 h-6 mb-2" />
-                    <p className="font-medium">Attendance</p>
-                  </div>
-                </Link>
-                <Link href={`/church/reports?orgId=${id}`}>
-                  <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl p-4 text-white hover:shadow-lg transition cursor-pointer">
-                    <TrendingUp className="w-6 h-6 mb-2" />
-                    <p className="font-medium">Reports</p>
-                  </div>
-                </Link>
-              </div>
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Contact Info */}
-              {(org.contact?.email || org.contact?.phone || org.contact?.address) && (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Contact</h3>
-                  <div className="space-y-3">
-                    {org.contact.email && (
-                      <div className="flex items-center gap-3">
-                        <Mail className="w-5 h-5 text-gray-400" />
-                        <span className="text-gray-600 dark:text-gray-400">{org.contact.email}</span>
-                      </div>
-                    )}
-                    {org.contact.phone && (
-                      <div className="flex items-center gap-3">
-                        <Phone className="w-5 h-5 text-gray-400" />
-                        <span className="text-gray-600 dark:text-gray-400">{org.contact.phone}</span>
-                      </div>
-                    )}
-                    {org.contact.address && (
-                      <div className="flex items-start gap-3">
-                        <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                        <span className="text-gray-600 dark:text-gray-400">
-                          {org.contact.address}
-                          {org.contact.city && `, ${org.contact.city}`}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Leadership */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Leadership</h3>
-                
-                {org.leader && (
-                  <div className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl mb-3">
-                    <img
-                      src={org.leader.profilePicture || '/default-avatar.png'}
-                      alt={org.leader.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        {org.leader.name || org.leader.username}
-                      </p>
-                      <p className="text-sm text-purple-600 dark:text-purple-400">
-                        {org.type === 'zone' || org.type === 'church' ? 'Pastor' : 'Leader'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {org.assistantLeaders?.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-500">Assistant Leaders</p>
-                    {org.assistantLeaders.map((leader) => (
-                      <div key={leader._id} className="flex items-center gap-2">
-                        <img
-                          src={leader.profilePicture || '/default-avatar.png'}
-                          alt={leader.name}
-                          className="w-8 h-8 rounded-full"
-                        />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          {leader.name || leader.username}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Meeting Schedule */}
-              {org.meetingSchedule?.length > 0 && (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Schedule</h3>
-                  <div className="space-y-3">
-                    {org.meetingSchedule.slice(0, 3).map((schedule, i) => (
-                      <ScheduleItem key={i} schedule={schedule} />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Hierarchy Tab */}
-        {activeTab === 'hierarchy' && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
-                Organization Hierarchy
-              </h3>
-              <Link href={`/church/create?parentId=${id}`}>
-                <button className="px-4 py-2 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 flex items-center gap-2">
-                  <Plus className="w-4 h-4" />
-                  Add Sub-Organization
-                </button>
-              </Link>
-            </div>
-
-            {hierarchy.length === 0 ? (
-              <div className="text-center py-12">
-                <Layers className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 mb-4">No sub-organizations yet</p>
-                <Link href={`/church/create?parentId=${id}`}>
-                  <button className="px-6 py-2 bg-purple-600 text-white rounded-lg">
-                    Create First Sub-Organization
-                  </button>
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-1">
-                {hierarchy.map((child) => (
-                  <HierarchyNode
-                    key={child._id}
-                    org={child}
-                    expanded={expanded}
-                    onToggle={toggleExpand}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Members Tab */}
-        {activeTab === 'members' && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
-                Members ({members.length})
-              </h3>
-              <button className="px-4 py-2 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 flex items-center gap-2">
-                <UserPlus className="w-4 h-4" />
-                Add Member
-              </button>
-            </div>
-
-            {members.length === 0 ? (
-              <div className="text-center py-12">
-                <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">No members yet</p>
-              </div>
-            ) : (
-              <div className="grid md:grid-cols-2 gap-2">
-                {members.filter(m => m.status === 'active').map((member, i) => (
-                  <MemberCard key={i} member={member} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Schedule Tab */}
-        {activeTab === 'schedule' && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
-                Meeting Schedule
-              </h3>
-              <Link href={`/church/org/${id}/settings`}>
-                <button className="text-purple-600 font-medium hover:text-purple-700 flex items-center gap-1">
-                  <Edit className="w-4 h-4" />
-                  Edit Schedule
-                </button>
-              </Link>
-            </div>
-
-            {(!org.meetingSchedule || org.meetingSchedule.length === 0) ? (
-              <div className="text-center py-12">
-                <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 mb-4">No meetings scheduled</p>
-                <Link href={`/church/org/${id}/settings`}>
-                  <button className="px-6 py-2 bg-purple-600 text-white rounded-lg">
-                    Add Schedule
-                  </button>
-                </Link>
-              </div>
-            ) : (
-              <div className="grid md:grid-cols-2 gap-4">
-                {org.meetingSchedule.map((schedule, i) => (
-                  <ScheduleItem key={i} schedule={schedule} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+// Settings Tab
+function SettingsTab({ org }) {
+  return (
+    <div className="max-w-2xl">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Organization Settings</h3>
+        <Link
+          href={`/church/org/${org._id}/settings`}
+          className="flex items-center gap-2 text-purple-600 hover:underline"
+        >
+          <Settings className="w-4 h-4" />
+          Go to Settings Page
+        </Link>
       </div>
     </div>
   );
