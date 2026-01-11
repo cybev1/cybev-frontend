@@ -30,6 +30,15 @@ const QUICK_ACTIONS = [
     badge: 'Popular'
   },
   {
+    id: 'church',
+    title: 'Church Management',
+    description: 'Manage your church & ministry',
+    icon: Users,
+    href: '/church',
+    color: 'from-indigo-500 to-purple-600',
+    badge: 'New'
+  },
+  {
     id: 'blog',
     title: 'Write with AI',
     description: 'Generate blog posts instantly',
