@@ -1,188 +1,323 @@
-// ============================================
-// FILE: [roomId].jsx
-// PATH: cybev-frontend/src/pages/meet/[roomId].jsx
-// PURPOSE: Video Meeting Room - Jitsi (free) / Daily.co
-// VERSION: 1.0.0
-// GITHUB: https://github.com/cybev1/cybev-frontend
-// NOTE: Uses Jitsi via script tag - NO npm package needed
-// ============================================
+/**
+ * Meeting Room - Video Conference
+ * CYBEV Studio v2.0
+ * GitHub: https://github.com/cybev1/cybev-frontend/pages/meet/[roomId].jsx
+ * 
+ * Uses Jitsi Meet via CDN (FREE, no API key needed)
+ */
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Script from 'next/script';
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Users, MessageSquare, Monitor, Hand, Maximize, X, Copy } from 'lucide-react';
 
 export default function MeetingRoom() {
   const router = useRouter();
   const { roomId } = router.query;
-  const jitsiRef = useRef(null);
-  const apiRef = useRef(null);
+  const jitsiContainerRef = useRef(null);
+  const jitsiApiRef = useRef(null);
   
+  const [isLoading, setIsLoading] = useState(true);
   const [meeting, setMeeting] = useState(null);
-  const [provider, setProvider] = useState('jitsi');
-  const [providerConfig, setProviderConfig] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [jitsiReady, setJitsiReady] = useState(false);
-  const [userName, setUserName] = useState('');
-  const [audioOn, setAudioOn] = useState(true);
-  const [videoOn, setVideoOn] = useState(true);
-  const [participants, setParticipants] = useState(1);
+  const [jitsiLoaded, setJitsiLoaded] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const API = process.env.NEXT_PUBLIC_API_URL || '';
-
-  useEffect(() => { if (roomId) joinMeeting(); }, [roomId]);
-
+  // Fetch meeting details
   useEffect(() => {
-    if (jitsiReady && meeting && provider === 'jitsi' && !apiRef.current) initJitsi();
-  }, [jitsiReady, meeting, provider]);
+    if (!roomId) return;
 
-  const joinMeeting = async () => {
+    const fetchMeeting = async () => {
+      try {
+        const res = await fetch(`/api/meet/${roomId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setMeeting(data.meeting);
+        }
+      } catch (err) {
+        console.error('Failed to fetch meeting:', err);
+      }
+    };
+
+    fetchMeeting();
+  }, [roomId]);
+
+  // Initialize Jitsi when ready
+  useEffect(() => {
+    if (!jitsiLoaded || !roomId || !jitsiContainerRef.current) return;
+    if (jitsiApiRef.current) return; // Already initialized
+
+    initializeJitsi();
+  }, [jitsiLoaded, roomId]);
+
+  const initializeJitsi = () => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      
-      let name = 'Guest';
-      if (token) {
-        try {
-          const userRes = await fetch(`${API}/api/users/me`, { headers });
-          const userData = await userRes.json();
-          if (userData.ok) name = userData.user?.name || 'Guest';
-        } catch {}
-      }
-      setUserName(name);
+      const domain = 'meet.jit.si';
+      const options = {
+        roomName: `cybev-${roomId}`,
+        parentNode: jitsiContainerRef.current,
+        width: '100%',
+        height: '100%',
+        configOverwrite: {
+          startWithAudioMuted: true,
+          startWithVideoMuted: false,
+          prejoinPageEnabled: false,
+          disableDeepLinking: true,
+        },
+        interfaceConfigOverwrite: {
+          TOOLBAR_BUTTONS: [
+            'microphone', 'camera', 'desktop', 'fullscreen',
+            'fodeviceselection', 'hangup', 'chat', 'raisehand',
+            'videoquality', 'filmstrip', 'participants-pane', 'tileview'
+          ],
+          SHOW_JITSI_WATERMARK: false,
+          SHOW_WATERMARK_FOR_GUESTS: false,
+          SHOW_BRAND_WATERMARK: false,
+          BRAND_WATERMARK_LINK: '',
+          SHOW_POWERED_BY: false,
+          SHOW_PROMOTIONAL_CLOSE_PAGE: false,
+          MOBILE_APP_PROMO: false,
+        },
+      };
 
-      const res = await fetch(`${API}/api/meet/join/${roomId}`, {
-        method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name })
+      jitsiApiRef.current = new window.JitsiMeetExternalAPI(domain, options);
+
+      jitsiApiRef.current.addListener('videoConferenceJoined', () => {
+        setIsLoading(false);
+        // Record join
+        fetch(`/api/meet/join/${roomId}`, { method: 'POST' }).catch(() => {});
       });
-      const data = await res.json();
 
-      if (data.ok) {
-        setMeeting(data.meeting);
-        setProvider(data.provider || 'jitsi');
-        setProviderConfig(data.providerConfig);
-        setUserName(data.userName || name);
-      } else {
-        setError(data.error || 'Meeting not found');
-      }
+      jitsiApiRef.current.addListener('videoConferenceLeft', () => {
+        router.push('/meet');
+      });
+
+      jitsiApiRef.current.addListener('readyToClose', () => {
+        router.push('/meet');
+      });
+
+      setIsLoading(false);
     } catch (err) {
-      setError('Failed to load meeting');
-    } finally {
-      setLoading(false);
+      console.error('Failed to initialize Jitsi:', err);
+      setError('Failed to load video conference. Please refresh the page.');
+      setIsLoading(false);
     }
   };
 
-  const initJitsi = () => {
-    if (!jitsiRef.current || !window.JitsiMeetExternalAPI) return;
-    
-    const domain = providerConfig?.domain || 'meet.jit.si';
-    apiRef.current = new window.JitsiMeetExternalAPI(domain, {
-      roomName: roomId,
-      parentNode: jitsiRef.current,
-      userInfo: { displayName: userName },
-      configOverwrite: {
-        startWithAudioMuted: !audioOn,
-        startWithVideoMuted: !videoOn,
-        prejoinPageEnabled: false,
-        disableDeepLinking: true
-      },
-      interfaceConfigOverwrite: {
-        TOOLBAR_BUTTONS: ['microphone', 'camera', 'desktop', 'chat', 'raisehand', 'participants-pane', 'tileview', 'fullscreen'],
-        SHOW_JITSI_WATERMARK: false,
-        SHOW_WATERMARK_FOR_GUESTS: false,
-        MOBILE_APP_PROMO: false
-      }
-    });
-
-    apiRef.current.on('videoConferenceJoined', () => setLoading(false));
-    apiRef.current.on('videoConferenceLeft', () => handleLeave());
-    apiRef.current.on('participantJoined', () => setParticipants(p => p + 1));
-    apiRef.current.on('participantLeft', () => setParticipants(p => Math.max(1, p - 1)));
-    apiRef.current.on('audioMuteStatusChanged', ({ muted }) => setAudioOn(!muted));
-    apiRef.current.on('videoMuteStatusChanged', ({ muted }) => setVideoOn(!muted));
+  const copyLink = () => {
+    const url = `${window.location.origin}/meet/${roomId}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const toggleAudio = () => apiRef.current?.executeCommand('toggleAudio');
-  const toggleVideo = () => apiRef.current?.executeCommand('toggleVideo');
-  const toggleChat = () => apiRef.current?.executeCommand('toggleChat');
-  const toggleParticipants = () => apiRef.current?.executeCommand('toggleParticipantsPane');
-  const shareScreen = () => apiRef.current?.executeCommand('toggleShareScreen');
-  const raiseHand = () => apiRef.current?.executeCommand('toggleRaiseHand');
-  const toggleFullscreen = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
-
-  const handleLeave = async () => {
-    apiRef.current?.dispose();
-    const token = localStorage.getItem('token');
-    try {
-      await fetch(`${API}/api/meet/${roomId}/leave`, {
-        method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      });
-    } catch {}
+  const leaveMeeting = () => {
+    if (jitsiApiRef.current) {
+      jitsiApiRef.current.executeCommand('hangup');
+    }
     router.push('/meet');
   };
 
-  const copyLink = () => { navigator.clipboard.writeText(window.location.href); alert('Link copied!'); };
-
-  if (loading) return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full mx-auto mb-4" />
-        <p className="text-white">Joining meeting...</p>
-      </div>
-    </div>
-  );
-
-  if (error) return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-      <div className="text-center max-w-md">
-        <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-          <X className="w-8 h-8 text-red-500" />
-        </div>
-        <h1 className="text-xl font-bold text-white mb-2">Unable to Join</h1>
-        <p className="text-gray-400 mb-6">{error}</p>
-        <button onClick={() => router.push('/meet')} className="px-6 py-3 bg-purple-600 text-white rounded-xl">Back to Meetings</button>
-      </div>
-    </div>
-  );
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (jitsiApiRef.current) {
+        jitsiApiRef.current.dispose();
+      }
+    };
+  }, []);
 
   return (
     <>
-      <Head><title>{meeting?.title || 'Meeting'} | CYBEV Meet</title></Head>
-      <Script src="https://meet.jit.si/external_api.js" onLoad={() => setJitsiReady(true)} onError={() => setError('Failed to load video')} />
-      
-      <div className="min-h-screen bg-gray-900 flex flex-col">
-        <div className="bg-gray-800/50 backdrop-blur px-4 py-2 flex items-center justify-between z-10">
-          <h1 className="text-white font-medium truncate max-w-[200px]">{meeting?.title}</h1>
-          <div className="flex items-center gap-2">
-            <span className="text-gray-400 text-sm flex items-center gap-1"><Users className="w-4 h-4" />{participants}</span>
-            <button onClick={copyLink} className="p-2 text-gray-400 hover:text-white rounded-lg" title="Copy link"><Copy className="w-4 h-4" /></button>
+      <Head>
+        <title>{meeting?.title || 'Meeting'} - CYBEV Meet</title>
+      </Head>
+
+      {/* Load Jitsi External API */}
+      <Script
+        src="https://meet.jit.si/external_api.js"
+        onLoad={() => setJitsiLoaded(true)}
+        onError={() => setError('Failed to load video conference. Please check your connection.')}
+      />
+
+      <div style={styles.container}>
+        {/* Top Bar */}
+        <div style={styles.topBar}>
+          <div style={styles.meetingInfo}>
+            <h1 style={styles.meetingTitle}>{meeting?.title || 'Meeting'}</h1>
+            <span style={styles.roomCode}>{roomId}</span>
+          </div>
+          
+          <div style={styles.topActions}>
+            <button onClick={copyLink} style={styles.copyButton}>
+              {copied ? '✓ Copied!' : 'Copy Link'}
+            </button>
+            <button onClick={leaveMeeting} style={styles.leaveButton}>
+              Leave
+            </button>
           </div>
         </div>
 
-        <div ref={jitsiRef} className="flex-1" style={{ minHeight: 'calc(100vh - 140px)' }} />
+        {/* Video Container */}
+        <div style={styles.videoContainer}>
+          {isLoading && !error && (
+            <div style={styles.loadingOverlay}>
+              <div style={styles.spinner}></div>
+              <p style={styles.loadingText}>Connecting to meeting...</p>
+            </div>
+          )}
 
-        <div className="bg-gray-800/90 backdrop-blur px-4 py-3 flex items-center justify-center gap-2 sm:gap-4">
-          <button onClick={toggleAudio} className={`p-3 sm:p-4 rounded-full ${audioOn ? 'bg-gray-700 text-white' : 'bg-red-500 text-white'}`}>
-            {audioOn ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
-          </button>
-          <button onClick={toggleVideo} className={`p-3 sm:p-4 rounded-full ${videoOn ? 'bg-gray-700 text-white' : 'bg-red-500 text-white'}`}>
-            {videoOn ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
-          </button>
-          <button onClick={shareScreen} className="hidden sm:block p-3 sm:p-4 rounded-full bg-gray-700 text-white"><Monitor className="w-5 h-5" /></button>
-          <button onClick={toggleChat} className="p-3 sm:p-4 rounded-full bg-gray-700 text-white"><MessageSquare className="w-5 h-5" /></button>
-          <button onClick={toggleParticipants} className="p-3 sm:p-4 rounded-full bg-gray-700 text-white relative">
-            <Users className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-purple-600 rounded-full text-xs flex items-center justify-center">{participants}</span>
-          </button>
-          <button onClick={raiseHand} className="hidden sm:block p-3 sm:p-4 rounded-full bg-gray-700 text-white"><Hand className="w-5 h-5" /></button>
-          <button onClick={toggleFullscreen} className="hidden sm:block p-3 sm:p-4 rounded-full bg-gray-700 text-white"><Maximize className="w-5 h-5" /></button>
-          <button onClick={handleLeave} className="p-3 sm:p-4 rounded-full bg-red-500 text-white"><PhoneOff className="w-5 h-5" /></button>
+          {error && (
+            <div style={styles.errorContainer}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+              </svg>
+              <p style={styles.errorText}>{error}</p>
+              <button onClick={() => window.location.reload()} style={styles.retryButton}>
+                Try Again
+              </button>
+            </div>
+          )}
+
+          <div ref={jitsiContainerRef} style={styles.jitsiContainer} />
         </div>
       </div>
+
+      <style jsx global>{`
+        body {
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </>
   );
 }
+
+const styles = {
+  container: {
+    height: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    background: '#0F172A',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  },
+  topBar: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '12px 24px',
+    background: '#1E293B',
+    borderBottom: '1px solid #334155',
+  },
+  meetingInfo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+  },
+  meetingTitle: {
+    fontSize: '18px',
+    fontWeight: '600',
+    color: '#FFFFFF',
+    margin: 0,
+  },
+  roomCode: {
+    padding: '4px 12px',
+    background: '#334155',
+    color: '#94A3B8',
+    borderRadius: '6px',
+    fontSize: '13px',
+    fontFamily: 'monospace',
+  },
+  topActions: {
+    display: 'flex',
+    gap: '12px',
+  },
+  copyButton: {
+    padding: '8px 16px',
+    background: '#334155',
+    color: '#FFFFFF',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'background 0.2s',
+  },
+  leaveButton: {
+    padding: '8px 20px',
+    background: '#EF4444',
+    color: '#FFFFFF',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+  },
+  videoContainer: {
+    flex: 1,
+    position: 'relative',
+    background: '#0F172A',
+  },
+  jitsiContainer: {
+    width: '100%',
+    height: '100%',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    inset: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: '#0F172A',
+    zIndex: 10,
+  },
+  spinner: {
+    width: '48px',
+    height: '48px',
+    border: '4px solid #334155',
+    borderTopColor: '#8B5CF6',
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite',
+  },
+  loadingText: {
+    marginTop: '16px',
+    color: '#94A3B8',
+    fontSize: '16px',
+  },
+  errorContainer: {
+    position: 'absolute',
+    inset: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: '#0F172A',
+    zIndex: 10,
+  },
+  errorText: {
+    marginTop: '16px',
+    color: '#F87171',
+    fontSize: '16px',
+    textAlign: 'center',
+    maxWidth: '400px',
+  },
+  retryButton: {
+    marginTop: '16px',
+    padding: '12px 24px',
+    background: '#8B5CF6',
+    color: '#FFFFFF',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '15px',
+    fontWeight: '600',
+    cursor: 'pointer',
+  },
+};
