@@ -1,50 +1,37 @@
 /* ============================================
    CYBEV Design System v7.1.0
-   CLEAN WHITE DESIGN - SOLID BACKGROUNDS
-   BLACK TEXT - PROPER CONTRAST
-   
-   This CSS enforces readability across ALL pages
+   CRITICAL: Must include Tailwind directives!
    ============================================ */
+
+/* REQUIRED - Tailwind CSS */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* ==========================================
    CSS CUSTOM PROPERTIES
    ========================================== */
 :root {
-  /* Backgrounds */
   --bg-primary: #ffffff;
   --bg-secondary: #f9fafb;
   --bg-tertiary: #f3f4f6;
   --bg-page: #f0f2f5;
   
-  /* Text - High Contrast */
   --text-primary: #111827;
   --text-secondary: #4b5563;
   --text-tertiary: #6b7280;
   --text-muted: #9ca3af;
   
-  /* Brand */
   --brand-purple: #7c3aed;
   --brand-pink: #ec4899;
-  --brand-gradient: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
   
-  /* Borders */
   --border-light: #e5e7eb;
   --border-medium: #d1d5db;
-  
-  /* Status */
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
 }
 
 /* ==========================================
-   GLOBAL RESETS
+   BASE STYLES
    ========================================== */
-*, *::before, *::after {
-  box-sizing: border-box;
-}
-
 html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -53,372 +40,210 @@ html {
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  background-color: var(--bg-page) !important;
-  color: var(--text-primary);
-  line-height: 1.6;
+  @apply bg-gray-100 text-gray-900;
 }
 
 /* ==========================================
-   FORCE PAGE BACKGROUNDS TO BE LIGHT
-   This overrides any dark gradients
+   FORCE LIGHT BACKGROUNDS
+   Override dark gradients/backgrounds
    ========================================== */
-.min-h-screen {
-  background-color: var(--bg-page) !important;
-  background-image: none !important;
+
+/* Page backgrounds */
+.bg-gray-900 {
+  @apply !bg-white;
 }
 
-/* Remove any purple/dark gradients from page backgrounds */
-[class*="from-gray-900"],
-[class*="from-purple-900"],
-[class*="via-purple-900"],
-[class*="via-gray-900"],
-[class*="to-gray-900"],
-[class*="to-purple-900"] {
-  --tw-gradient-from: var(--bg-page) !important;
-  --tw-gradient-via: var(--bg-secondary) !important;
-  --tw-gradient-to: var(--bg-primary) !important;
+.bg-gray-800 {
+  @apply !bg-white;
 }
 
-/* ==========================================
-   TYPOGRAPHY - ENFORCE DARK TEXT
-   ========================================== */
-h1, h2, h3, h4, h5, h6 {
-  color: var(--text-primary) !important;
-  font-weight: 700;
-}
-
-p {
-  color: var(--text-secondary);
-}
-
-/* Force headings to be dark */
-.text-white.text-xl,
-.text-white.text-2xl,
-.text-white.text-3xl,
-.text-white.text-4xl,
-.text-white.text-5xl,
-.text-white.font-bold,
-.text-white.font-semibold {
-  color: var(--text-primary) !important;
-}
-
-/* Gray text improvements */
-.text-gray-100,
-.text-gray-200,
-.text-gray-300 {
-  color: var(--text-secondary) !important;
-}
-
-.text-gray-400 {
-  color: var(--text-tertiary) !important;
-}
-
-/* ==========================================
-   CARD & CONTAINER BACKGROUNDS
-   ========================================== */
-/* Force white backgrounds for cards */
-.bg-gray-800,
-.bg-gray-900,
-.bg-black\/40,
-.bg-black\/50,
-.bg-black\/60,
 .bg-gray-800\/50,
 .bg-gray-800\/80,
 .bg-gray-900\/50,
 .bg-gray-900\/80 {
-  background-color: var(--bg-primary) !important;
-  background-image: none !important;
-}
-
-/* Backdrop blur cards -> clean white */
-[class*="backdrop-blur"] {
-  background-color: var(--bg-primary) !important;
-  backdrop-filter: none !important;
+  @apply !bg-white;
 }
 
 /* ==========================================
-   BUTTONS - WHITE TEXT ON COLORED
+   FORCE DARK TEXT FOR READABILITY
    ========================================== */
-/* Primary gradient buttons - ensure white text */
-.bg-gradient-to-r.from-purple-600,
-.bg-gradient-to-r.from-purple-500,
-.bg-gradient-to-br.from-purple-600,
-.bg-purple-600,
-.bg-purple-500,
-.bg-pink-600,
-[class*="from-purple-600"][class*="to-pink-600"] {
-  color: #ffffff !important;
+
+.text-white {
+  /* Only override in specific contexts, not buttons */
 }
 
-/* Button base styles */
-button[class*="bg-purple"],
-button[class*="bg-gradient"],
-a[class*="bg-purple"],
-a[class*="bg-gradient"] {
-  color: #ffffff !important;
+.text-gray-100 {
+  @apply !text-gray-800;
 }
 
-/* Secondary buttons */
-.bg-gray-100,
-.bg-gray-50 {
-  color: var(--text-primary) !important;
+.text-gray-200 {
+  @apply !text-gray-700;
+}
+
+.text-gray-300 {
+  @apply !text-gray-600;
 }
 
 /* ==========================================
-   FORM INPUTS - LIGHT WITH DARK TEXT
+   FIX BORDERS
    ========================================== */
+.border-gray-700,
+.border-gray-800 {
+  @apply !border-gray-200;
+}
+
+.border-purple-500\/20,
+.border-purple-500\/30 {
+  @apply !border-gray-200;
+}
+
+.divide-gray-700 > * + *,
+.divide-gray-800 > * + * {
+  @apply !border-gray-200;
+}
+
+/* ==========================================
+   FIX INPUT FIELDS
+   ========================================== */
+.bg-gray-700 {
+  @apply !bg-gray-50 !text-gray-900;
+}
+
 input,
 textarea,
 select {
-  background-color: var(--bg-secondary) !important;
-  color: var(--text-primary) !important;
-  border-color: var(--border-medium) !important;
+  @apply bg-gray-50 text-gray-900 border-gray-300;
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: var(--text-muted) !important;
+  @apply text-gray-400;
 }
 
 input:focus,
 textarea:focus,
 select:focus {
-  background-color: var(--bg-primary) !important;
-  border-color: var(--brand-purple) !important;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
-}
-
-/* Fix dark input classes */
-.bg-gray-700,
-input.bg-gray-700,
-textarea.bg-gray-700 {
-  background-color: var(--bg-secondary) !important;
-  color: var(--text-primary) !important;
+  @apply bg-white border-purple-500 ring-2 ring-purple-500/20;
 }
 
 /* ==========================================
-   BORDERS - LIGHT GRAY
-   ========================================== */
-.border-gray-700,
-.border-gray-800,
-.border-gray-600,
-.border-purple-500\/20,
-.border-purple-500\/30,
-.border-white\/10,
-.border-white\/20 {
-  border-color: var(--border-light) !important;
-}
-
-/* Dividers */
-.divide-gray-700 > * + *,
-.divide-gray-800 > * + *,
-.divide-white\/10 > * + * {
-  border-color: var(--border-light) !important;
-}
-
-/* ==========================================
-   HOVER STATES - LIGHT
+   FIX HOVER STATES
    ========================================== */
 .hover\:bg-gray-700:hover,
-.hover\:bg-gray-800:hover,
-.hover\:bg-gray-600:hover {
-  background-color: var(--bg-tertiary) !important;
+.hover\:bg-gray-800:hover {
+  @apply !bg-gray-100;
 }
 
-.hover\:bg-purple-500\/10:hover,
-.hover\:bg-white\/5:hover,
-.hover\:bg-white\/10:hover {
-  background-color: var(--bg-secondary) !important;
+.hover\:bg-purple-500\/10:hover {
+  @apply !bg-purple-50;
+}
+
+/* ==========================================
+   BUTTONS - Keep white text on colored
+   ========================================== */
+.bg-purple-600,
+.bg-purple-500,
+.bg-pink-600,
+.bg-gradient-to-r {
+  @apply text-white;
 }
 
 /* ==========================================
    NAVIGATION
    ========================================== */
-/* Top navigation */
 nav,
-header,
-.nav-bar,
-[class*="fixed"][class*="top-0"] {
-  background-color: var(--bg-primary) !important;
-  border-color: var(--border-light) !important;
+header {
+  @apply bg-white border-gray-200;
 }
 
-/* Bottom mobile navigation */
-[class*="fixed"][class*="bottom-0"] {
-  background-color: var(--bg-primary) !important;
-  border-color: var(--border-light) !important;
-}
-
-/* Active nav items */
-.text-purple-400,
-.text-purple-500 {
-  color: var(--brand-purple) !important;
+/* Mobile bottom nav */
+.fixed.bottom-0 {
+  @apply bg-white border-t border-gray-200;
 }
 
 /* ==========================================
-   MODALS & OVERLAYS
+   CARDS
    ========================================== */
-/* Modal backgrounds */
-.fixed.inset-0.bg-black\/50,
-.fixed.inset-0.bg-black\/60,
-.fixed.inset-0.bg-black\/70 {
-  background-color: rgba(0, 0, 0, 0.5) !important;
-}
-
-/* Modal content */
-[class*="modal"],
-[role="dialog"] {
-  background-color: var(--bg-primary) !important;
-  color: var(--text-primary) !important;
+.rounded-xl,
+.rounded-2xl {
+  @apply bg-white border border-gray-200;
 }
 
 /* ==========================================
-   SPECIFIC COMPONENT OVERRIDES
-   ========================================== */
-
-/* Step indicators */
-.bg-gray-700.rounded-full,
-.bg-gray-800.rounded-full {
-  background-color: var(--bg-tertiary) !important;
-  color: var(--text-tertiary) !important;
-}
-
-/* Active step */
-.bg-purple-600.rounded-full {
-  background-color: var(--brand-purple) !important;
-  color: #ffffff !important;
-}
-
-/* Tags/badges on light backgrounds */
-.bg-purple-500\/20,
-.bg-purple-500\/10,
-.bg-pink-500\/20 {
-  background-color: #f3e8ff !important;
-  color: var(--brand-purple) !important;
-}
-
-/* ==========================================
-   SHADOWS
-   ========================================== */
-.shadow-purple-500\/50,
-.shadow-purple-500\/40,
-.shadow-purple-500\/30 {
-  --tw-shadow-color: rgba(124, 58, 237, 0.15) !important;
-}
-
-/* Card shadows */
-.shadow-lg,
-.shadow-xl {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04) !important;
-}
-
-/* ==========================================
-   LOADING & ANIMATIONS
-   ========================================== */
-.skeleton,
-[class*="animate-pulse"] {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%) !important;
-  background-size: 200% 100%;
-}
-
-/* Spinner */
-.animate-spin {
-  border-color: var(--border-light) !important;
-  border-top-color: var(--brand-purple) !important;
-}
-
-/* ==========================================
-   ACCESSIBILITY
-   ========================================== */
-/* Ensure focus is visible */
-*:focus-visible {
-  outline: 2px solid var(--brand-purple);
-  outline-offset: 2px;
-}
-
-/* Skip link */
-.sr-only:focus {
-  position: absolute;
-  width: auto;
-  height: auto;
-  padding: 1rem;
-  margin: 0;
-  overflow: visible;
-  clip: auto;
-  white-space: normal;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-}
-
-/* ==========================================
-   SAFE AREA INSETS (Mobile)
+   SAFE AREA INSETS
    ========================================== */
 @supports (padding: env(safe-area-inset-bottom)) {
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
-  
   .safe-top {
     padding-top: env(safe-area-inset-top);
   }
 }
 
 /* ==========================================
-   PRINT STYLES
+   ANIMATIONS
    ========================================== */
-@media print {
-  * {
-    background: white !important;
-    color: black !important;
-  }
-  
-  nav, footer, .no-print {
-    display: none !important;
-  }
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }
 
 /* ==========================================
    UTILITY CLASSES
    ========================================== */
-.text-brand {
-  color: var(--brand-purple) !important;
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
 }
 
-.bg-brand {
-  background: var(--brand-gradient) !important;
-  color: #ffffff !important;
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
-.border-brand {
-  border-color: var(--brand-purple) !important;
-}
-
-/* Ensure white text on gradient backgrounds */
-.bg-gradient-to-r,
-.bg-gradient-to-br,
-.bg-gradient-to-b {
-  /* Only for brand gradient buttons, not page backgrounds */
-}
-
-[class*="from-purple-600"][class*="to-pink-600"],
-[class*="from-purple-500"][class*="to-pink-500"] {
-  color: #ffffff !important;
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 /* ==========================================
-   DARK MODE PREVENTION
-   Always use light theme
+   PREVENT DARK MODE
    ========================================== */
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: light;
   }
-  
-  body {
-    background-color: var(--bg-page) !important;
-    color: var(--text-primary) !important;
-  }
+}
+
+/* ==========================================
+   SCROLLBAR STYLING
+   ========================================== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
 }
