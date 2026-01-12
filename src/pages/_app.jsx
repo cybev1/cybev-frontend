@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/_app.jsx
-// Main App Wrapper with Theme & Auth Providers
-// VERSION: 5.0 - With Dark Mode Support
+// Main App Wrapper - LIGHT MODE ONLY
+// VERSION: 7.1.0 - Clean White Design
 // ============================================
 
 import '../styles/globals.css';
@@ -10,46 +10,35 @@ import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import { SocketProvider } from '@/context/SocketContext';
 import { Web3Provider } from '@/context/Web3Context';
-import { ThemeProvider } from '@/context/ThemeContext';
 import { InstallPrompt, OfflineIndicator } from '@/components/PWA/InstallPrompt';
 import { useEffect } from 'react';
 import Head from 'next/head';
-import Script from 'next/script';
 
-// Prevent flash of unstyled content
-const ThemeScript = () => {
+// Force light mode - remove dark class if present
+const ForceLightMode = () => {
   const script = `
     (function() {
-      try {
-        var theme = localStorage.getItem('cybev_theme');
-        var user = localStorage.getItem('user');
-        var userTheme = null;
-        
-        if (user) {
-          try {
-            userTheme = JSON.parse(user).preferences?.theme;
-          } catch (e) {}
-        }
-        
-        var selectedTheme = theme || userTheme || 'system';
-        var isDark = selectedTheme === 'dark' || 
-          (selectedTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-        
-        if (isDark) {
-          document.documentElement.classList.add('dark');
-        }
-      } catch (e) {}
+      // Remove dark mode class - we're light mode only now
+      document.documentElement.classList.remove('dark');
+      // Prevent dark mode from being set
+      localStorage.setItem('cybev_theme', 'light');
     })();
   `;
   
   return (
-    <script
-      dangerouslySetInnerHTML={{ __html: script }}
-    />
+    <script dangerouslySetInnerHTML={{ __html: script }} />
   );
 };
 
 export default function App({ Component, pageProps }) {
+  // Force light mode on mount
+  useEffect(() => {
+    // Remove dark class if present
+    document.documentElement.classList.remove('dark');
+    // Set theme to light
+    localStorage.setItem('cybev_theme', 'light');
+  }, []);
+
   // Register service worker on mount
   useEffect(() => {
     if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
@@ -72,47 +61,45 @@ export default function App({ Component, pageProps }) {
   return (
     <>
       <Head>
-        {/* Prevent theme flash */}
-        <ThemeScript />
+        {/* Force light mode script */}
+        <ForceLightMode />
         
-        {/* Dynamic theme color */}
-        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)" />
+        {/* Fixed light theme color */}
+        <meta name="theme-color" content="#ffffff" />
         
         {/* Default meta tags */}
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="color-scheme" content="light" />
       </Head>
 
-      <ThemeProvider>
-        <Web3Provider>
-          <SocketProvider>
-            {/* Offline status indicator */}
-            <OfflineIndicator />
-            
-            {/* Main app content */}
-            <Component {...pageProps} />
-            
-            {/* PWA Install prompt */}
-            <InstallPrompt />
-            
-            {/* Toast notifications - adapts to theme */}
-            <ToastContainer
-              position="top-right"
-              autoClose={3000}
-              hideProgressBar={false}
-              newestOnTop
-              closeOnClick
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-              theme="colored"
-              toastClassName="!rounded-xl"
-            />
-          </SocketProvider>
-        </Web3Provider>
-      </ThemeProvider>
+      <Web3Provider>
+        <SocketProvider>
+          {/* Offline status indicator */}
+          <OfflineIndicator />
+          
+          {/* Main app content */}
+          <Component {...pageProps} />
+          
+          {/* PWA Install prompt */}
+          <InstallPrompt />
+          
+          {/* Toast notifications - light theme */}
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+            toastClassName="!rounded-xl !shadow-lg"
+          />
+        </SocketProvider>
+      </Web3Provider>
     </>
   );
 }
