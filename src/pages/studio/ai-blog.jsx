@@ -1,3 +1,14 @@
+// ============================================
+// FILE: src/pages/studio/ai-blog.jsx
+// PATH: cybev-frontend/src/pages/studio/ai-blog.jsx
+// PURPOSE: AI Blog Generator with SEO, images, hashtags
+// VERSION: 6.8.3 - Fixed .map() TypeError with null safety
+// PREVIOUS: 6.5.0 - Original working version
+// ROLLBACK: If issues, check API response format
+// GITHUB: https://github.com/cybev1/cybev-frontend
+// UPDATED: 2026-01-12
+// ============================================
+
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -41,6 +52,7 @@ export default function AIBlogGenerator() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
 
+  // FIXED: Ensure arrays are always defined
   const niches = [
     { id: 'technology', label: 'Technology', icon: '💻' },
     { id: 'business', label: 'Business', icon: '💼' },
@@ -65,11 +77,9 @@ export default function AIBlogGenerator() {
     { id: 'long', label: 'Long', words: '2000-3000', time: '10-15 min read' }
   ];
 
-
-
   // Handle image upload
   const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
@@ -86,7 +96,7 @@ export default function AIBlogGenerator() {
     reader.onload = (event) => {
       setFormData(prev => ({
         ...prev,
-        featuredImagePreview: event.target.result
+        featuredImagePreview: event.target?.result || null
       }));
     };
     reader.readAsDataURL(file);
@@ -116,7 +126,7 @@ export default function AIBlogGenerator() {
         }));
         console.log('✅ Image uploaded:', data.url);
       } else {
-        throw new Error(data.error);
+        throw new Error(data.error || 'Upload failed');
       }
     } catch (error) {
       console.error('❌ Upload failed:', error);
@@ -187,7 +197,6 @@ export default function AIBlogGenerator() {
         const errorText = await response.text();
         console.error('❌ API Error:', errorText);
         
-        // If route not found, show helpful message
         if (response.status === 404) {
           throw new Error(
             'Backend route not found!\n\n' +
@@ -205,18 +214,46 @@ export default function AIBlogGenerator() {
       console.log('✅ API Response:', data);
 
       if (data.success) {
-        setGeneratedBlog(data.data);
+        // FIXED: Ensure all expected fields have safe defaults
+        const blog = data.data || {};
+        const safeBlog = {
+          ...blog,
+          title: blog.title || 'Untitled Blog',
+          summary: blog.summary || '',
+          content: blog.content || '',
+          readTime: blog.readTime || '5 min',
+          viralityScore: blog.viralityScore || 50,
+          initialTokens: blog.initialTokens || 0,
+          // FIXED: Ensure hashtags is always an object with arrays
+          hashtags: typeof blog.hashtags === 'object' && blog.hashtags !== null 
+            ? Object.fromEntries(
+                Object.entries(blog.hashtags).map(([key, value]) => [
+                  key, 
+                  Array.isArray(value) ? value : []
+                ])
+              )
+            : {},
+          // FIXED: Ensure seo is always an object with safe defaults
+          seo: {
+            title: blog.seo?.title || blog.title || '',
+            description: blog.seo?.description || blog.summary || '',
+            slug: blog.seo?.slug || '',
+            // FIXED: Ensure keywords is always an array
+            keywords: Array.isArray(blog.seo?.keywords) ? blog.seo.keywords : []
+          },
+          featuredImage: blog.featuredImage || null
+        };
+        
+        setGeneratedBlog(safeBlog);
         setStep(3);
         
-        // Show success message
-        alert(`🎉 Blog created! You earned ${data.tokensEarned} tokens!\n\nVirality Score: ${data.viralityScore}/100`);
+        alert(`🎉 Blog created! You earned ${data.tokensEarned || 0} tokens!\n\nVirality Score: ${safeBlog.viralityScore}/100`);
       } else {
         throw new Error(data.error || 'Failed to generate blog');
       }
     } catch (error) {
       console.error('❌ Generation error:', error);
       
-      // Show user-friendly error
       if (error.message.includes('Failed to fetch')) {
         alert(
           '🚨 Cannot connect to backend!\n\n' +
@@ -255,9 +292,7 @@ export default function AIBlogGenerator() {
       const data = await response.json();
 
       if (data.success) {
-        alert('🎉 Blog published successfully!\n\nBlog ID: ' + data.data.blogId + '\nTokens earned: ' + data.data.tokensEarned + '\n\nYour blog is now live in the feed!');
-        
-        // Redirect to the published blog
+        alert('🎉 Blog published successfully!\n\nBlog ID: ' + (data.data?.blogId || 'N/A') + '\nTokens earned: ' + (data.data?.tokensEarned || 0) + '\n\nYour blog is now live in the feed!');
         router.push("/blog");
       } else {
         throw new Error(data.error || 'Failed to publish');
@@ -266,6 +301,60 @@ export default function AIBlogGenerator() {
       console.error('❌ Publish error:', error);
       alert('Failed to publish blog:\n\n' + error.message + '\n\nPlease try again or contact support.');
     }
+  };
+
+  // FIXED: Helper function to safely get hashtag count
+  const getHashtagCount = () => {
+    if (!generatedBlog?.hashtags || typeof generatedBlog.hashtags !== 'object') {
+      return 0;
+    }
+    return Object.values(generatedBlog.hashtags)
+      .filter(Array.isArray)
+      .flat()
+      .length;
+  };
+
+  // FIXED: Helper function to safely render hashtags
+  const renderHashtags = () => {
+    if (!generatedBlog?.hashtags || typeof generatedBlog.hashtags !== 'object') {
+      return null;
+    }
+    
+    const entries = Object.entries(generatedBlog.hashtags);
+    if (entries.length === 0) return null;
+    
+    return entries.map(([category, tags]) => {
+      // FIXED: Ensure tags is an array before mapping
+      const tagsArray = Array.isArray(tags) ? tags : [];
+      if (tagsArray.length === 0) return null;
+      
+      return (
+        <div key={category}>
+          <p className="text-purple-300 text-sm mb-2 capitalize">{category}</p>
+          <div className="flex flex-wrap gap-2">
+            {tagsArray.map((tag, idx) => (
+              <span key={idx} className="px-3 py-1 bg-pink-500/20 text-pink-300 rounded-full text-sm">
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      );
+    });
+  };
+
+  // FIXED: Helper function to safely render keywords
+  const renderKeywords = () => {
+    const keywords = generatedBlog?.seo?.keywords;
+    if (!Array.isArray(keywords) || keywords.length === 0) {
+      return <span className="text-purple-400 text-sm">No keywords generated</span>;
+    }
+    
+    return keywords.slice(0, 8).map((keyword, idx) => (
+      <span key={idx} className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-xs">
+        {keyword}
+      </span>
+    ));
   };
 
   return (
@@ -358,7 +447,6 @@ export default function AIBlogGenerator() {
                       />
                     </div>
 
-
                     <div>
                       <label className="block text-white font-semibold mb-2 flex items-center gap-2">
                         Brief Description (Optional)
@@ -367,7 +455,7 @@ export default function AIBlogGenerator() {
                         </span>
                       </label>
                       <textarea
-                        value={formData.description}
+                        value={formData.description || ''}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         placeholder="e.g., This article explores how AI is transforming content creation, focusing on automated writing tools..."
                         className="w-full px-6 py-4 rounded-2xl bg-white/10 border-2 border-white/20 text-white placeholder-purple-300 focus:border-purple-500 focus:outline-none resize-none min-h-[120px]"
@@ -375,10 +463,10 @@ export default function AIBlogGenerator() {
                       />
                       <p className="text-purple-300 text-sm mt-2 flex items-center justify-between">
                         <span>💡 Add context to help AI understand your vision</span>
-                        <span>{500 - formData.description.length} characters</span>
+                        {/* FIXED: Safe access to description.length */}
+                        <span>{500 - (formData.description?.length || 0)} characters</span>
                       </p>
                     </div>
-
 
                     <div>
                       <label className="block text-white font-semibold mb-2 flex items-center gap-2">
@@ -447,7 +535,8 @@ export default function AIBlogGenerator() {
                     <div>
                       <label className="block text-white font-semibold mb-3">Choose Niche</label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {niches.map((niche) => (
+                        {/* FIXED: niches is always an array */}
+                        {(niches || []).map((niche) => (
                           <motion.button
                             key={niche.id}
                             whileHover={{ scale: 1.05 }}
@@ -484,7 +573,8 @@ export default function AIBlogGenerator() {
                     <div>
                       <h3 className="text-white font-semibold mb-4">Tone</h3>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {tones.map((tone) => (
+                        {/* FIXED: tones is always an array */}
+                        {(tones || []).map((tone) => (
                           <motion.button
                             key={tone.id}
                             whileHover={{ scale: 1.05 }}
@@ -505,7 +595,8 @@ export default function AIBlogGenerator() {
                     <div>
                       <h3 className="text-white font-semibold mb-4">Length</h3>
                       <div className="grid grid-cols-3 gap-4">
-                        {lengths.map((length) => (
+                        {/* FIXED: lengths is always an array */}
+                        {(lengths || []).map((length) => (
                           <motion.button
                             key={length.id}
                             whileHover={{ scale: 1.05 }}
@@ -545,32 +636,31 @@ export default function AIBlogGenerator() {
                       <Check className="w-5 h-5 text-green-400" />
                       <span className="text-green-300 font-semibold">Blog Created Successfully!</span>
                     </motion.div>
-                    <h2 className="text-3xl font-bold text-white mb-2">{generatedBlog.title}</h2>
-                    <p className="text-purple-200">{generatedBlog.summary}</p>
+                    <h2 className="text-3xl font-bold text-white mb-2">{generatedBlog.title || 'Untitled'}</h2>
+                    <p className="text-purple-200">{generatedBlog.summary || ''}</p>
                   </div>
 
                   {/* Stats Grid */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div className="bg-white/5 rounded-xl p-4 border border-white/10">
                       <Eye className="w-5 h-5 text-blue-400 mb-2" />
-                      <p className="text-white font-bold">{generatedBlog.readTime}</p>
+                      <p className="text-white font-bold">{generatedBlog.readTime || '5 min'}</p>
                       <p className="text-purple-200 text-xs">Read Time</p>
                     </div>
                     <div className="bg-white/5 rounded-xl p-4 border border-white/10">
                       <TrendingUp className="w-5 h-5 text-green-400 mb-2" />
-                      <p className="text-white font-bold">{generatedBlog.viralityScore}/100</p>
+                      <p className="text-white font-bold">{generatedBlog.viralityScore || 0}/100</p>
                       <p className="text-purple-200 text-xs">Virality</p>
                     </div>
                     <div className="bg-white/5 rounded-xl p-4 border border-white/10">
                       <Coins className="w-5 h-5 text-yellow-400 mb-2" />
-                      <p className="text-white font-bold">{generatedBlog.initialTokens}</p>
+                      <p className="text-white font-bold">{generatedBlog.initialTokens || 0}</p>
                       <p className="text-purple-200 text-xs">Tokens Earned</p>
                     </div>
                     <div className="bg-white/5 rounded-xl p-4 border border-white/10">
                       <Hash className="w-5 h-5 text-pink-400 mb-2" />
-                      <p className="text-white font-bold">
-                        {Object.values(generatedBlog.hashtags || {}).flat().length}
-                      </p>
+                      {/* FIXED: Safe hashtag count */}
+                      <p className="text-white font-bold">{getHashtagCount()}</p>
                       <p className="text-purple-200 text-xs">Hashtags</p>
                     </div>
                   </div>
@@ -584,24 +674,21 @@ export default function AIBlogGenerator() {
                     <div className="space-y-3">
                       <div>
                         <p className="text-purple-300 text-sm mb-1">SEO Title</p>
-                        <p className="text-white">{generatedBlog.seo?.title}</p>
+                        <p className="text-white">{generatedBlog.seo?.title || generatedBlog.title || 'N/A'}</p>
                       </div>
                       <div>
                         <p className="text-purple-300 text-sm mb-1">Description</p>
-                        <p className="text-white text-sm">{generatedBlog.seo?.description}</p>
+                        <p className="text-white text-sm">{generatedBlog.seo?.description || generatedBlog.summary || 'N/A'}</p>
                       </div>
                       <div>
                         <p className="text-purple-300 text-sm mb-1">URL Slug</p>
-                        <p className="text-blue-400 font-mono text-sm">{generatedBlog.seo?.slug}</p>
+                        <p className="text-blue-400 font-mono text-sm">{generatedBlog.seo?.slug || 'N/A'}</p>
                       </div>
                       <div>
                         <p className="text-purple-300 text-sm mb-1">Keywords</p>
                         <div className="flex flex-wrap gap-2 mt-2">
-                          {generatedBlog.seo?.keywords?.slice(0, 8).map((keyword, idx) => (
-                            <span key={idx} className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-xs">
-                              {keyword}
-                            </span>
-                          ))}
+                          {/* FIXED: Safe keywords rendering */}
+                          {renderKeywords()}
                         </div>
                       </div>
                     </div>
@@ -615,36 +702,28 @@ export default function AIBlogGenerator() {
                         Featured Image
                       </h3>
                       <img
-                        src={generatedBlog.featuredImage.url}
-                        alt={generatedBlog.featuredImage.alt}
+                        src={generatedBlog.featuredImage.url || generatedBlog.featuredImage}
+                        alt={generatedBlog.featuredImage.alt || 'Featured image'}
                         className="w-full h-64 object-cover rounded-xl mb-3"
                       />
-                      <p className="text-purple-200 text-sm">
-                        Photo by {generatedBlog.featuredImage.credit?.photographer}
-                      </p>
+                      {generatedBlog.featuredImage.credit?.photographer && (
+                        <p className="text-purple-200 text-sm">
+                          Photo by {generatedBlog.featuredImage.credit.photographer}
+                        </p>
+                      )}
                     </div>
                   )}
 
                   {/* Hashtags */}
-                  {generatedBlog.hashtags && (
+                  {generatedBlog.hashtags && Object.keys(generatedBlog.hashtags).length > 0 && (
                     <div className="bg-white/5 rounded-xl p-6 border border-white/10">
                       <h3 className="text-white font-bold mb-4 flex items-center gap-2">
                         <Tag className="w-5 h-5 text-pink-400" />
                         Viral Hashtags
                       </h3>
                       <div className="space-y-3">
-                        {Object.entries(generatedBlog.hashtags).map(([category, tags]) => (
-                          <div key={category}>
-                            <p className="text-purple-300 text-sm mb-2 capitalize">{category}</p>
-                            <div className="flex flex-wrap gap-2">
-                              {tags.map((tag, idx) => (
-                                <span key={idx} className="px-3 py-1 bg-pink-500/20 text-pink-300 rounded-full text-sm">
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
+                        {/* FIXED: Safe hashtags rendering */}
+                        {renderHashtags()}
                       </div>
                     </div>
                   )}
@@ -657,7 +736,7 @@ export default function AIBlogGenerator() {
                     </h3>
                     <div
                       className="prose prose-invert max-w-none"
-                      dangerouslySetInnerHTML={{ __html: generatedBlog.content?.substring(0, 1000) + '...' }}
+                      dangerouslySetInnerHTML={{ __html: (generatedBlog.content || '').substring(0, 1000) + '...' }}
                     />
                   </div>
                 </motion.div>
