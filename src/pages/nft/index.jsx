@@ -1,577 +1,489 @@
 // ============================================
-// FILE: src/pages/nft/index.jsx
-// PATH: cybev-frontend/src/pages/nft/index.jsx
-// PURPOSE: NFT Marketplace - Browse, search, filter NFTs
+// FILE: src/pages/nft/create.jsx
+// CYBEV NFT Create - CLEAN WHITE DESIGN
+// VERSION: 7.1.1 - No external dependencies
 // ============================================
 
-import { useState, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import AppLayout from '@/components/Layout/AppLayout';
-import {
-  Plus,
-  Search,
-  Filter,
-  Grid,
-  List,
-  Heart,
-  Eye,
-  Clock,
-  TrendingUp,
-  Sparkles,
-  Image as ImageIcon,
-  Music,
-  Video,
-  Camera,
-  Gamepad2,
-  Package,
-  ChevronDown,
-  X,
-  Verified,
-  Gavel
-} from 'lucide-react';
+import { toast } from 'react-toastify';
 import api from '@/lib/api';
+import {
+  Upload, ArrowLeft, ArrowRight, Loader2, Check, Image as ImageIcon,
+  FileText, Tag, DollarSign, Settings, Eye, Sparkles, X, AlertCircle
+} from 'lucide-react';
 
-// NFT Card Component
-function NFTCard({ nft }) {
-  const [liked, setLiked] = useState(false);
-  const [likes, setLikes] = useState(nft.likes || 0);
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
-  const handleLike = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      const response = await api.post(`/api/nft/${nft._id}/like`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (response.data.ok) {
-        setLiked(response.data.liked);
-        setLikes(response.data.likes);
-      }
-    } catch (error) {
-      console.error('Like failed');
+const CATEGORIES = [
+  'Art', 'Music', 'Video', 'Photography', 'Collectibles',
+  'Gaming', 'Sports', 'Memes', 'Domain Names', 'Virtual Worlds'
+];
+
+export default function CreateNFTPage() {
+  const router = useRouter();
+  const fileInputRef = useRef(null);
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    category: '',
+    price: '',
+    royalty: 10,
+    properties: [],
+    unlockableContent: '',
+    isExplicit: false
+  });
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processFile(file);
     }
   };
 
-  return (
-    <Link href={`/nft/${nft._id}`}>
-      <div className="group bg-white/50 rounded-2xl overflow-hidden border border-gray-200 hover:border-purple-500/50 transition-all duration-300 hover:transform hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/10">
-        {/* Image */}
-        <div className="relative aspect-square overflow-hidden">
-          {nft.image ? (
-            <img
-              src={nft.image}
-              alt={nft.name}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-              <Sparkles className="w-16 h-16 text-white/50" />
-            </div>
-          )}
-
-          {/* Badges */}
-          <div className="absolute top-3 left-3 flex gap-2">
-            {nft.listingType === 'auction' && (
-              <span className="px-2 py-1 bg-yellow-500 text-black text-xs font-bold rounded-lg flex items-center gap-1">
-                <Gavel className="w-3 h-3" />
-                AUCTION
-              </span>
-            )}
-            {nft.isFeatured && (
-              <span className="px-2 py-1 bg-purple-500 text-gray-900 text-xs font-bold rounded-lg">
-                FEATURED
-              </span>
-            )}
-          </div>
-
-          {/* Like button */}
-          <button
-            onClick={handleLike}
-            className="absolute top-3 right-3 p-2 bg-gray-900/50 backdrop-blur-sm rounded-full hover:bg-gray-900/70 transition-colors"
-          >
-            <Heart className={`w-5 h-5 ${liked ? 'text-red-500 fill-red-500' : 'text-white'}`} />
-          </button>
-
-          {/* Quick stats overlay */}
-          <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-            <div className="flex items-center justify-between text-gray-900 text-sm">
-              <span className="flex items-center gap-1">
-                <Eye className="w-4 h-4" />
-                {nft.views || 0}
-              </span>
-              <span className="flex items-center gap-1">
-                <Heart className="w-4 h-4" />
-                {likes}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Info */}
-        <div className="p-4">
-          {/* Collection */}
-          {nft.collection && (
-            <p className="text-purple-600 text-xs mb-1 flex items-center gap-1">
-              {nft.collection.name}
-              <Verified className="w-3 h-3" />
-            </p>
-          )}
-
-          {/* Name */}
-          <h3 className="text-gray-900 font-bold truncate mb-2">{nft.name}</h3>
-
-          {/* Creator */}
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-gray-900 text-xs font-bold">
-              {nft.creator?.name?.[0] || 'C'}
-            </div>
-            <span className="text-gray-500 text-sm">@{nft.creator?.username || 'creator'}</span>
-          </div>
-
-          {/* Price */}
-          <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-            {nft.isListed ? (
-              <div>
-                <p className="text-gray-500 text-xs">
-                  {nft.listingType === 'auction' ? 'Current Bid' : 'Price'}
-                </p>
-                <p className="text-gray-900 font-bold">
-                  {nft.listingType === 'auction' 
-                    ? (nft.highestBid || nft.listingPrice) 
-                    : nft.listingPrice
-                  } CYBEV
-                </p>
-              </div>
-            ) : (
-              <div>
-                <p className="text-gray-500 text-xs">Status</p>
-                <p className="text-gray-600">Not Listed</p>
-              </div>
-            )}
-
-            {nft.isListed && (
-              <button className="px-4 py-2 bg-purple-500 text-gray-900 text-sm rounded-lg hover:bg-purple-600 transition-colors">
-                {nft.listingType === 'auction' ? 'Bid' : 'Buy'}
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-// Categories
-const CATEGORIES = [
-  { id: 'all', label: 'All', icon: Grid },
-  { id: 'art', label: 'Art', icon: ImageIcon },
-  { id: 'music', label: 'Music', icon: Music },
-  { id: 'video', label: 'Video', icon: Video },
-  { id: 'photography', label: 'Photography', icon: Camera },
-  { id: 'gaming', label: 'Gaming', icon: Gamepad2 },
-  { id: 'collectible', label: 'Collectibles', icon: Package }
-];
-
-// Sort options
-const SORT_OPTIONS = [
-  { value: 'recent', label: 'Recently Added' },
-  { value: 'price_low', label: 'Price: Low to High' },
-  { value: 'price_high', label: 'Price: High to Low' },
-  { value: 'popular', label: 'Most Viewed' },
-  { value: 'likes', label: 'Most Liked' }
-];
-
-export default function NFTMarketplace() {
-  const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [nfts, setNfts] = useState([]);
-  const [featuredNfts, setFeaturedNfts] = useState([]);
-  
-  // Filters
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [sortBy, setSortBy] = useState('recent');
-  const [showListedOnly, setShowListedOnly] = useState(false);
-  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
-  const [showFilters, setShowFilters] = useState(false);
-  
-  // Pagination
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [total, setTotal] = useState(0);
-
-  // Sample NFTs for demo
-  const sampleNfts = [
-    {
-      _id: '1',
-      name: 'Cosmic Dream #001',
-      description: 'A journey through the cosmos',
-      image: 'https://images.unsplash.com/photo-1634017839464-5c339bbe3c9c?w=500',
-      creator: { name: 'ArtistX', username: 'artistx' },
-      owner: { name: 'Collector1', username: 'collector1' },
-      category: 'art',
-      isListed: true,
-      listingPrice: 250,
-      listingType: 'fixed',
-      views: 1250,
-      likes: 89,
-      isFeatured: true
-    },
-    {
-      _id: '2',
-      name: 'Digital Symphony',
-      description: 'Music meets visual art',
-      image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500',
-      creator: { name: 'MusicMaker', username: 'musicmaker' },
-      category: 'music',
-      isListed: true,
-      listingPrice: 150,
-      listingType: 'auction',
-      highestBid: 180,
-      views: 890,
-      likes: 67
-    },
-    {
-      _id: '3',
-      name: 'Neon City',
-      description: 'Cyberpunk vibes',
-      image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=500',
-      creator: { name: 'CyberArt', username: 'cyberart' },
-      category: 'art',
-      isListed: true,
-      listingPrice: 500,
-      listingType: 'fixed',
-      views: 2100,
-      likes: 156,
-      isFeatured: true
-    },
-    {
-      _id: '4',
-      name: 'Abstract Motion',
-      description: 'Movement captured in pixels',
-      image: 'https://images.unsplash.com/photo-1549490349-8643362247b5?w=500',
-      creator: { name: 'MotionArt', username: 'motionart' },
-      category: 'video',
-      isListed: true,
-      listingPrice: 75,
-      listingType: 'fixed',
-      views: 560,
-      likes: 34
-    },
-    {
-      _id: '5',
-      name: 'Nature Essence',
-      description: 'Beauty of the natural world',
-      image: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=500',
-      creator: { name: 'PhotoPro', username: 'photopro' },
-      category: 'photography',
-      isListed: true,
-      listingPrice: 120,
-      listingType: 'fixed',
-      views: 780,
-      likes: 45
-    },
-    {
-      _id: '6',
-      name: 'Game Character #42',
-      description: 'Rare gaming collectible',
-      image: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=500',
-      creator: { name: 'GameDev', username: 'gamedev' },
-      category: 'gaming',
-      isListed: true,
-      listingPrice: 350,
-      listingType: 'auction',
-      highestBid: 420,
-      views: 1890,
-      likes: 98
-    }
-  ];
-
-  useEffect(() => {
-    const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-    if (!token) {
-      router.push('/auth/login');
+  const processFile = (file) => {
+    // Validate file size (100MB max)
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error('File too large. Max 100MB.');
       return;
     }
 
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      try {
-        setUser(JSON.parse(userData));
-      } catch (e) {}
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'audio/mpeg', 'audio/wav'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Invalid file type. Supported: JPG, PNG, GIF, WEBP, MP4, MP3, WAV');
+      return;
     }
 
-    fetchNFTs();
-    fetchFeatured();
-  }, [router]);
+    setUploadedFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setPreview(reader.result);
+    reader.readAsDataURL(file);
+  };
 
-  useEffect(() => {
-    fetchNFTs();
-  }, [selectedCategory, sortBy, showListedOnly, page]);
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
 
-  const fetchNFTs = async () => {
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processFile(file);
+    }
+  };
+
+  const removeFile = () => {
+    setUploadedFile(null);
+    setPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleMint = async () => {
+    if (!uploadedFile) {
+      toast.error('Please upload a file');
+      return;
+    }
+    if (!formData.name.trim()) {
+      toast.error('Please enter a name');
+      return;
+    }
+
     setLoading(true);
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      const params = new URLSearchParams({
-        page,
-        limit: 20,
-        sort: sortBy,
-        ...(selectedCategory !== 'all' && { category: selectedCategory }),
-        ...(showListedOnly && { listed: 'true' }),
-        ...(priceRange.min && { minPrice: priceRange.min }),
-        ...(priceRange.max && { maxPrice: priceRange.max }),
-        ...(searchQuery && { search: searchQuery })
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Please login to mint NFT');
+        router.push('/auth/login');
+        return;
+      }
+
+      // Upload file first
+      const fileFormData = new FormData();
+      fileFormData.append('file', uploadedFile);
+
+      const uploadRes = await api.post('/api/upload', fileFormData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
       });
 
-      const response = await api.get(`/api/nft?${params}`, {
+      if (!uploadRes.data.url) {
+        throw new Error('File upload failed');
+      }
+
+      // Create NFT
+      const nftRes = await api.post('/api/nfts', {
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        price: parseFloat(formData.price) || 0,
+        royalty: formData.royalty,
+        image: uploadRes.data.url,
+        properties: formData.properties,
+        unlockableContent: formData.unlockableContent,
+        isExplicit: formData.isExplicit
+      }, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      if (response.data.ok) {
-        setNfts(response.data.nfts);
-        setTotal(response.data.total);
-        setHasMore(response.data.hasMore);
+      if (nftRes.data.ok || nftRes.data.success || nftRes.data.nft) {
+        toast.success('NFT created successfully!');
+        router.push(`/nft/${nftRes.data.nft?._id || nftRes.data._id}`);
       }
-    } catch (error) {
-      console.log('Using sample NFTs');
-      setNfts(sampleNfts);
-      setTotal(sampleNfts.length);
+    } catch (err) {
+      console.error('Mint error:', err);
+      toast.error(err.response?.data?.message || 'Failed to create NFT');
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchFeatured = async () => {
-    try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      const response = await api.get('/api/nft/featured', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (response.data.ok) {
-        setFeaturedNfts(response.data.nfts);
-      }
-    } catch (error) {
-      setFeaturedNfts(sampleNfts.filter(n => n.isFeatured));
-    }
-  };
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setPage(1);
-    fetchNFTs();
-  };
-
   return (
     <AppLayout>
       <Head>
-        <title>NFT Marketplace - CYBEV</title>
+        <title>Create NFT | CYBEV</title>
       </Head>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      {/* SOLID WHITE/GRAY BACKGROUND - NO GRADIENTS */}
+      <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <Sparkles className="w-8 h-8 text-purple-600" />
-              NFT Marketplace
-            </h1>
-            <p className="text-gray-500 mt-1">Discover, collect, and trade unique digital assets</p>
-          </div>
-
-          <Link href="/nft/create">
-            <button className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-xl font-medium hover:opacity-90 transition-opacity">
-              <Plus className="w-5 h-5" />
-              Create NFT
-            </button>
-          </Link>
-        </div>
-
-        {/* Featured Section */}
-        {featuredNfts.length > 0 && selectedCategory === 'all' && !searchQuery && (
-          <div className="mb-10">
-            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-purple-600" />
-              Featured
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredNfts.slice(0, 3).map((nft) => (
-                <NFTCard key={nft._id} nft={nft} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Search and Filters */}
-        <div className="flex flex-col lg:flex-row gap-4 mb-6">
-          {/* Search */}
-          <form onSubmit={handleSearch} className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-            <input
-              type="text"
-              placeholder="Search NFTs..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/50 border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-gray-900 placeholder-gray-400 focus:border-purple-500 focus:outline-none"
-            />
-          </form>
-
-          {/* Sort */}
-          <div className="relative">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="appearance-none bg-white/50 border border-gray-200 rounded-xl px-4 py-3 pr-10 text-gray-900 focus:border-purple-500 focus:outline-none cursor-pointer"
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" />
-          </div>
-
-          {/* Filter Toggle */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-colors ${
-              showFilters ? 'bg-purple-500 text-white' : 'bg-white/50 text-gray-500 border border-gray-200'
-            }`}
-          >
-            <Filter className="w-5 h-5" />
-            Filters
-          </button>
-        </div>
-
-        {/* Filters Panel */}
-        {showFilters && (
-          <div className="bg-white/50 rounded-xl p-4 mb-6 border border-gray-200">
-            <div className="flex flex-wrap gap-4 items-center">
-              {/* Listed Only */}
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showListedOnly}
-                  onChange={(e) => setShowListedOnly(e.target.checked)}
-                  className="w-4 h-4 rounded bg-gray-700 border-gray-300 text-purple-500 focus:ring-purple-500"
-                />
-                <span className="text-gray-600">Listed Only</span>
-              </label>
-
-              {/* Price Range */}
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500">Price:</span>
-                <input
-                  type="number"
-                  placeholder="Min"
-                  value={priceRange.min}
-                  onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
-                  className="w-24 bg-gray-700 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm"
-                />
-                <span className="text-gray-500">-</span>
-                <input
-                  type="number"
-                  placeholder="Max"
-                  value={priceRange.max}
-                  onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
-                  className="w-24 bg-gray-700 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm"
-                />
-                <span className="text-gray-500">CYBEV</span>
-              </div>
-
-              {/* Apply */}
-              <button
-                onClick={() => { setPage(1); fetchNFTs(); }}
-                className="px-4 py-2 bg-purple-500 text-gray-900 rounded-lg text-sm"
-              >
-                Apply
-              </button>
-
-              {/* Clear */}
-              <button
-                onClick={() => {
-                  setPriceRange({ min: '', max: '' });
-                  setShowListedOnly(false);
-                  setSearchQuery('');
-                  setSelectedCategory('all');
-                  setPage(1);
-                }}
-                className="px-4 py-2 bg-gray-700 text-gray-600 rounded-lg text-sm"
-              >
-                Clear All
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Categories */}
-        <div className="flex gap-2 overflow-x-auto pb-4 mb-6 scrollbar-hide">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => { setSelectedCategory(cat.id); setPage(1); }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
-                selectedCategory === cat.id
-                  ? 'bg-purple-500 text-white'
-                  : 'bg-white text-gray-500 hover:bg-gray-100'
-              }`}
-            >
-              <cat.icon className="w-4 h-4" />
-              {cat.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Results Count */}
-        <p className="text-gray-500 mb-4">
-          {total} NFT{total !== 1 ? 's' : ''} found
-        </p>
-
-        {/* NFT Grid */}
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : nfts.length === 0 ? (
-          <div className="text-center py-20">
-            <Sparkles className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No NFTs found</h3>
-            <p className="text-gray-500 mb-6">Be the first to create one!</p>
-            <Link href="/nft/create">
-              <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-xl">
-                Create NFT
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-3xl mx-auto px-4 py-6">
+            <Link href="/nft">
+              <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 font-medium">
+                <ArrowLeft className="w-5 h-5" />
+                Back to NFT Gallery
               </button>
             </Link>
+            <h1 className="text-2xl font-bold text-gray-900">Create NFT</h1>
+            <p className="text-gray-600">Mint your unique digital asset on Polygon</p>
           </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {nfts.map((nft) => (
-                <NFTCard key={nft._id} nft={nft} />
+        </div>
+
+        {/* Steps Progress */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-3xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              {[
+                { num: 1, label: 'Upload' },
+                { num: 2, label: 'Details' },
+                { num: 3, label: 'Pricing' },
+                { num: 4, label: 'Review' }
+              ].map((s, i) => (
+                <div key={s.num} className="flex items-center">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                    step >= s.num ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-500'
+                  }`}>
+                    {step > s.num ? <Check className="w-4 h-4" /> : s.num}
+                  </div>
+                  <span className={`ml-2 text-sm font-medium hidden sm:block ${step >= s.num ? 'text-gray-900' : 'text-gray-400'}`}>
+                    {s.label}
+                  </span>
+                  {i < 3 && <div className={`w-8 sm:w-16 h-0.5 mx-2 sm:mx-4 ${step > s.num ? 'bg-purple-600' : 'bg-gray-200'}`} />}
+                </div>
               ))}
             </div>
+          </div>
+        </div>
 
-            {/* Load More */}
-            {hasMore && (
-              <div className="text-center mt-8">
-                <button
-                  onClick={() => setPage(page + 1)}
-                  className="px-8 py-3 bg-white text-gray-900 rounded-xl hover:bg-gray-100 transition-colors"
+        {/* Main Content */}
+        <div className="max-w-3xl mx-auto px-4 py-8">
+          {/* Step 1: Upload */}
+          {step === 1 && (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Upload your file</h2>
+              <p className="text-gray-600 mb-6">Supported: JPG, PNG, GIF, WEBP, MP4, MP3, WAV. Max 100MB.</p>
+
+              {!uploadedFile ? (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all ${
+                    isDragging ? 'border-purple-500 bg-purple-50' : 'border-gray-300 hover:border-purple-400 hover:bg-gray-50'
+                  }`}
                 >
-                  Load More
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,video/*,audio/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-lg font-semibold text-gray-900 mb-2">Upload your file</p>
+                  <p className="text-gray-500">Drag and drop or click to browse</p>
+                  <p className="text-sm text-gray-400 mt-2">JPG, PNG, GIF, WEBP, MP4, MP3, WAV. Max 100MB.</p>
+                </div>
+              ) : (
+                <div className="relative">
+                  {/* Preview */}
+                  <div className="aspect-square max-w-md mx-auto bg-gray-100 rounded-2xl overflow-hidden">
+                    {uploadedFile.type.startsWith('image/') ? (
+                      <img src={preview} alt="Preview" className="w-full h-full object-contain" />
+                    ) : uploadedFile.type.startsWith('video/') ? (
+                      <video src={preview} controls className="w-full h-full object-contain" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="text-center">
+                          <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-600">{uploadedFile.name}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {/* Remove Button */}
+                  <button
+                    onClick={removeFile}
+                    className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                  {/* File Info */}
+                  <div className="mt-4 p-4 bg-gray-50 rounded-xl">
+                    <p className="font-semibold text-gray-900">{uploadedFile.name}</p>
+                    <p className="text-sm text-gray-500">{(uploadedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Next Button */}
+              <div className="mt-8 flex justify-end">
+                <button
+                  onClick={() => setStep(2)}
+                  disabled={!uploadedFile}
+                  className="px-8 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                >
+                  Continue
+                  <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
-            )}
-          </>
-        )}
+            </div>
+          )}
+
+          {/* Step 2: Details */}
+          {step === 2 && (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-2">NFT Details</h2>
+              <p className="text-gray-600 mb-6">Add information about your NFT</p>
+
+              <div className="space-y-5">
+                {/* Name */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white transition-all"
+                    placeholder="e.g., Cosmic Dreams #001"
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Description</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    rows={4}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white transition-all resize-none"
+                    placeholder="Tell the story behind your creation..."
+                  />
+                </div>
+
+                {/* Category */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Category</label>
+                  <div className="flex flex-wrap gap-2">
+                    {CATEGORIES.map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => setFormData({ ...formData, category: cat })}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                          formData.category === cat
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation */}
+              <div className="mt-8 flex justify-between">
+                <button
+                  onClick={() => setStep(1)}
+                  className="px-6 py-3 text-gray-700 font-semibold hover:bg-gray-100 rounded-xl flex items-center gap-2 transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  Back
+                </button>
+                <button
+                  onClick={() => setStep(3)}
+                  disabled={!formData.name.trim()}
+                  className="px-8 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
+                >
+                  Continue
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Pricing */}
+          {step === 3 && (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Set your price</h2>
+              <p className="text-gray-600 mb-6">Choose how you want to sell your NFT</p>
+
+              <div className="space-y-5">
+                {/* Price */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Price (MATIC)</label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="number"
+                      value={formData.price}
+                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white transition-all"
+                      placeholder="0.00"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">Leave empty to list without a price</p>
+                </div>
+
+                {/* Royalty */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Creator Royalty: {formData.royalty}%
+                  </label>
+                  <input
+                    type="range"
+                    value={formData.royalty}
+                    onChange={(e) => setFormData({ ...formData, royalty: parseInt(e.target.value) })}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                    min="0"
+                    max="25"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>0%</span>
+                    <span>25%</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">
+                    You'll earn {formData.royalty}% on all future sales
+                  </p>
+                </div>
+              </div>
+
+              {/* Navigation */}
+              <div className="mt-8 flex justify-between">
+                <button
+                  onClick={() => setStep(2)}
+                  className="px-6 py-3 text-gray-700 font-semibold hover:bg-gray-100 rounded-xl flex items-center gap-2 transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  Back
+                </button>
+                <button
+                  onClick={() => setStep(4)}
+                  className="px-8 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 flex items-center gap-2 transition-colors"
+                >
+                  Continue
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Review */}
+          {step === 4 && (
+            <div className="space-y-6">
+              {/* Preview */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="aspect-square max-w-sm mx-auto p-4">
+                  {preview && uploadedFile?.type.startsWith('image/') && (
+                    <img src={preview} alt="Preview" className="w-full h-full object-contain rounded-xl" />
+                  )}
+                </div>
+                <div className="p-6 border-t border-gray-200">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{formData.name}</h3>
+                  {formData.description && (
+                    <p className="text-gray-600 mb-4">{formData.description}</p>
+                  )}
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    {formData.category && (
+                      <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full">{formData.category}</span>
+                    )}
+                    {formData.price && (
+                      <span className="font-semibold text-gray-900">{formData.price} MATIC</span>
+                    )}
+                    <span className="text-gray-500">{formData.royalty}% royalty</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <button
+                    onClick={() => setStep(3)}
+                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                    Back
+                  </button>
+                  <button
+                    onClick={handleMint}
+                    disabled={loading}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg transition-all"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Minting...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-5 h-5" />
+                        Mint NFT
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </AppLayout>
   );
