@@ -138,13 +138,13 @@ export default function CreateShortBlog() {
           <div className="max-w-lg mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Link href="/feed">
-                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-white/30">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-gray-900 cursor-pointer hover:bg-white/30">
                   <span className="text-xl font-bold">C</span>
                 </div>
               </Link>
-              <span className="text-white font-bold text-xl">CYBEV</span>
+              <span className="text-gray-900 font-bold text-xl">CYBEV</span>
             </div>
-            <button onClick={() => router.push('/feed')} className="text-white text-sm">
+            <button onClick={() => router.push('/feed')} className="text-gray-900 text-sm">
               ≡
             </button>
           </div>
@@ -153,16 +153,16 @@ export default function CreateShortBlog() {
         <main className="max-w-lg mx-auto px-4 pb-24">
           {/* Title Section */}
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-white">Create Short Blog</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Create Short Blog</h1>
             <Link href="/feed">
-              <span className="text-white/80 text-sm hover:text-white cursor-pointer">Back to Feed</span>
+              <span className="text-white/80 text-sm hover:text-gray-900 cursor-pointer">Back to Feed</span>
             </Link>
           </div>
 
           <p className="text-white/70 text-sm mb-6">
             Share a quick thought, update, or mini article. For full blog posts, use{' '}
             <Link href="/studio">
-              <span className="text-purple-300 underline cursor-pointer">Create Blog Post</span>
+              <span className="text-purple-600 underline cursor-pointer">Create Blog Post</span>
             </Link>.
           </p>
 
@@ -211,7 +211,7 @@ export default function CreateShortBlog() {
                 />
                 <button
                   onClick={removeImage}
-                  className="absolute top-2 right-2 p-2 bg-black/50 rounded-full text-white hover:bg-black/70"
+                  className="absolute top-2 right-2 p-2 bg-gray-900/50 rounded-full text-gray-900 hover:bg-gray-900/70"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -222,7 +222,7 @@ export default function CreateShortBlog() {
             <div className="flex gap-2">
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-white/10 text-white rounded-xl hover:bg-white/20 transition"
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-white/10 text-gray-900 rounded-xl hover:bg-white/20 transition"
               >
                 <Upload className="w-5 h-5" />
                 Upload Image
@@ -244,7 +244,7 @@ export default function CreateShortBlog() {
                 value={imageUrl}
                 onChange={(e) => handleImageUrlChange(e.target.value)}
                 placeholder="Or paste image URL..."
-                className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                className="w-full px-4 py-3 bg-white/10 rounded-xl text-gray-900 placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-300"
               />
             </div>
           </div>
@@ -271,11 +271,11 @@ export default function CreateShortBlog() {
           {/* Quick AI Write Option */}
           <Link href="/studio">
             <div className="mt-4 p-4 bg-white/10 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-white/20 transition">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-gray-900" />
               </div>
               <div>
-                <p className="text-white font-semibold">Write with AI</p>
+                <p className="text-gray-900 font-semibold">Write with AI</p>
                 <p className="text-white/60 text-sm">Generate a full blog post with AI</p>
               </div>
             </div>
@@ -283,9 +283,9 @@ export default function CreateShortBlog() {
         </main>
 
         {/* Mobile Bottom Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 px-4 py-2 flex items-center justify-around z-50">
+        <nav className="fixed bottom-0 left-0 right-0 bg-gray-50 border-t border-gray-200 px-4 py-2 flex items-center justify-around z-50">
           <Link href="/feed">
-            <button className="flex flex-col items-center py-2 px-4 text-gray-400">
+            <button className="flex flex-col items-center py-2 px-4 text-gray-500">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
@@ -294,7 +294,7 @@ export default function CreateShortBlog() {
           </Link>
           
           <Link href="/search">
-            <button className="flex flex-col items-center py-2 px-4 text-gray-400">
+            <button className="flex flex-col items-center py-2 px-4 text-gray-500">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -304,14 +304,14 @@ export default function CreateShortBlog() {
           
           <button className="relative -mt-6">
             <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-7 h-7 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
             </div>
           </button>
           
           <Link href="/notifications">
-            <button className="flex flex-col items-center py-2 px-4 text-gray-400">
+            <button className="flex flex-col items-center py-2 px-4 text-gray-500">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>

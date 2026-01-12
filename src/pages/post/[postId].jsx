@@ -44,7 +44,7 @@ function ShareModal({ isOpen, onClose, url, title, image }) {
 
   const shareLinks = [
     { name: 'Copy', action: () => { navigator.clipboard.writeText(url); alert('Copied!'); onClose(); }, color: 'bg-gray-600', icon: '📋' },
-    { name: 'Twitter', action: () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`), color: 'bg-black', icon: '𝕏' },
+    { name: 'Twitter', action: () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`), color: 'bg-gray-900', icon: '𝕏' },
     { name: 'Facebook', action: () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`), color: 'bg-blue-600', icon: 'f' },
     { name: 'LinkedIn', action: () => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`), color: 'bg-blue-700', icon: 'in' },
     { name: 'WhatsApp', action: () => window.open(`https://wa.me/?text=${encodeURIComponent(title + '\n' + url)}`), color: 'bg-green-500', icon: '📱' },
@@ -52,19 +52,19 @@ function ShareModal({ isOpen, onClose, url, title, image }) {
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-gray-800 rounded-2xl p-6 max-w-md w-full" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-gray-900/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl p-6 max-w-md w-full" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between mb-6">
-          <h3 className="text-xl font-bold text-white">Share Post</h3>
-          <button onClick={onClose} className="p-2 hover:bg-gray-700 rounded-full"><X className="w-5 h-5 text-gray-400" /></button>
+          <h3 className="text-xl font-bold text-gray-900">Share Post</h3>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full"><X className="w-5 h-5 text-gray-500" /></button>
         </div>
-        <div className="bg-gray-900 rounded-xl p-4 mb-6">
+        <div className="bg-gray-50 rounded-xl p-4 mb-6">
           {image && <img src={image} alt="" className="w-full h-32 object-cover rounded-lg mb-3" />}
-          <p className="text-white font-medium line-clamp-2">{title}</p>
+          <p className="text-gray-900 font-medium line-clamp-2">{title}</p>
         </div>
         <div className="grid grid-cols-3 gap-3">
           {shareLinks.map((link) => (
-            <button key={link.name} onClick={link.action} className={`${link.color} text-white p-3 rounded-xl flex flex-col items-center gap-2`}>
+            <button key={link.name} onClick={link.action} className={`${link.color} text-gray-900 p-3 rounded-xl flex flex-col items-center gap-2`}>
               <span className="text-xl">{link.icon}</span>
               <span className="text-xs">{link.name}</span>
             </button>
@@ -192,8 +192,8 @@ export default function PostDetail({ post: initialPost, ogData, postId }) {
       <AppLayout>
         <Head><title>Post Not Found - CYBEV</title></Head>
         <div className="max-w-3xl mx-auto px-4 py-20 text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Post Not Found</h1>
-          <Link href="/feed"><button className="px-6 py-3 bg-purple-500 text-white rounded-lg">Back to Feed</button></Link>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Post Not Found</h1>
+          <Link href="/feed"><button className="px-6 py-3 bg-purple-500 text-gray-900 rounded-lg">Back to Feed</button></Link>
         </div>
       </AppLayout>
     );
@@ -227,23 +227,23 @@ export default function PostDetail({ post: initialPost, ogData, postId }) {
       <article className="max-w-3xl mx-auto px-4 py-6">
         {/* Back */}
         <Link href="/feed">
-          <button className="flex items-center gap-2 text-gray-400 hover:text-white mb-6">
+          <button className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6">
             <ArrowLeft className="w-5 h-5" /> Back to Feed
           </button>
         </Link>
 
         {/* Post Card */}
-        <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 overflow-hidden">
+        <div className="bg-white/50 rounded-2xl border border-gray-200 overflow-hidden">
           {/* Author Header */}
           <div className="p-4 flex items-center gap-3">
             <Link href={`/profile/${author.username || 'user'}`}>
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold overflow-hidden cursor-pointer">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-gray-900 font-bold overflow-hidden cursor-pointer">
                 {author.avatar ? <img src={author.avatar} alt="" className="w-full h-full object-cover" /> : authorName[0]?.toUpperCase()}
               </div>
             </Link>
             <div className="flex-1">
-              <p className="text-white font-semibold">{authorName}</p>
-              <p className="text-gray-400 text-sm flex items-center gap-2">
+              <p className="text-gray-900 font-semibold">{authorName}</p>
+              <p className="text-gray-500 text-sm flex items-center gap-2">
                 @{author.username || 'user'} • {new Date(post.createdAt).toLocaleDateString()}
               </p>
             </div>
@@ -251,8 +251,8 @@ export default function PostDetail({ post: initialPost, ogData, postId }) {
 
           {/* Content */}
           <div className="px-4 pb-4">
-            {post.title && <h1 className="text-2xl font-bold text-white mb-3">{post.title}</h1>}
-            <p className="text-gray-300 whitespace-pre-wrap leading-relaxed">{post.content || post.body || post.text}</p>
+            {post.title && <h1 className="text-2xl font-bold text-gray-900 mb-3">{post.title}</h1>}
+            <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">{post.content || post.body || post.text}</p>
           </div>
 
           {/* Images */}
@@ -262,8 +262,8 @@ export default function PostDetail({ post: initialPost, ogData, postId }) {
                 <div key={i} className={`relative ${images.length === 3 && i === 0 ? 'row-span-2' : ''}`}>
                   <img src={img} alt="" className="w-full h-64 object-cover" />
                   {i === 3 && images.length > 4 && (
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                      <span className="text-white text-2xl font-bold">+{images.length - 4}</span>
+                    <div className="absolute inset-0 bg-gray-900/60 flex items-center justify-center">
+                      <span className="text-gray-900 text-2xl font-bold">+{images.length - 4}</span>
                     </div>
                   )}
                 </div>
@@ -272,22 +272,22 @@ export default function PostDetail({ post: initialPost, ogData, postId }) {
           )}
 
           {/* Stats */}
-          <div className="px-4 py-3 border-t border-gray-700/50 flex items-center gap-6 text-gray-400 text-sm">
+          <div className="px-4 py-3 border-t border-gray-200/50 flex items-center gap-6 text-gray-500 text-sm">
             <span className="flex items-center gap-1"><Eye className="w-4 h-4" /> {post.views || 0} views</span>
             <span className="flex items-center gap-1"><Heart className="w-4 h-4" /> {post.likes || 0} likes</span>
             <span className="flex items-center gap-1"><MessageCircle className="w-4 h-4" /> {comments.length} comments</span>
           </div>
 
           {/* Actions */}
-          <div className="px-4 py-3 border-t border-gray-700/50 flex items-center justify-around">
+          <div className="px-4 py-3 border-t border-gray-200/50 flex items-center justify-around">
             <div className="relative">
               <button onClick={() => handleReaction('like')} onMouseEnter={() => setShowReactions(true)} onMouseLeave={() => setTimeout(() => setShowReactions(false), 200)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg ${userReaction ? 'text-purple-400' : 'text-gray-400 hover:bg-gray-700/50'}`}>
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg ${userReaction ? 'text-purple-600' : 'text-gray-500 hover:bg-gray-100/50'}`}>
                 {userReaction ? <span className="text-xl">{REACTIONS.find(r => r.type === userReaction)?.emoji}</span> : <Heart className="w-5 h-5" />}
                 <span className="hidden sm:inline">{userReaction ? REACTIONS.find(r => r.type === userReaction)?.label : 'Like'}</span>
               </button>
               {showReactions && (
-                <div className="absolute bottom-full left-0 mb-2 bg-gray-800 rounded-full px-3 py-2 flex gap-1 shadow-xl border border-gray-700 z-20"
+                <div className="absolute bottom-full left-0 mb-2 bg-white rounded-full px-3 py-2 flex gap-1 shadow-xl border border-gray-200 z-20"
                   onMouseEnter={() => setShowReactions(true)} onMouseLeave={() => setShowReactions(false)}>
                   {REACTIONS.map((r) => (
                     <button key={r.type} onClick={() => handleReaction(r.type)} className="text-2xl hover:scale-125 transition-transform p-1">{r.emoji}</button>
@@ -295,27 +295,27 @@ export default function PostDetail({ post: initialPost, ogData, postId }) {
                 </div>
               )}
             </div>
-            <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-400 hover:bg-gray-700/50">
+            <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-500 hover:bg-gray-100/50">
               <MessageCircle className="w-5 h-5" /><span className="hidden sm:inline">Comment</span>
             </button>
-            <button onClick={() => setShowShareModal(true)} className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-400 hover:bg-gray-700/50">
+            <button onClick={() => setShowShareModal(true)} className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-500 hover:bg-gray-100/50">
               <Share2 className="w-5 h-5" /><span className="hidden sm:inline">Share</span>
             </button>
-            <button onClick={() => setBookmarked(!bookmarked)} className={`flex items-center gap-2 px-4 py-2 rounded-lg ${bookmarked ? 'text-yellow-400' : 'text-gray-400 hover:bg-gray-700/50'}`}>
+            <button onClick={() => setBookmarked(!bookmarked)} className={`flex items-center gap-2 px-4 py-2 rounded-lg ${bookmarked ? 'text-yellow-400' : 'text-gray-500 hover:bg-gray-100/50'}`}>
               <Bookmark className={`w-5 h-5 ${bookmarked ? 'fill-yellow-400' : ''}`} /><span className="hidden sm:inline">{bookmarked ? 'Saved' : 'Save'}</span>
             </button>
           </div>
         </div>
 
         {/* Comments */}
-        <div className="mt-6 bg-gray-800/50 rounded-2xl border border-purple-500/20 p-6">
-          <h3 className="text-xl font-bold text-white mb-6">Comments ({comments.length})</h3>
+        <div className="mt-6 bg-white/50 rounded-2xl border border-gray-200 p-6">
+          <h3 className="text-xl font-bold text-gray-900 mb-6">Comments ({comments.length})</h3>
           <div className="flex gap-3 mb-6">
             <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex-shrink-0"></div>
             <div className="flex-1 flex gap-2">
               <input type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleComment()}
-                placeholder="Write a comment..." className="flex-1 bg-gray-900 border border-gray-700 rounded-full px-4 py-2.5 text-white focus:border-purple-500 focus:outline-none" />
-              <button onClick={handleComment} disabled={!newComment.trim() || submitting} className="p-2.5 bg-purple-500 text-white rounded-full hover:bg-purple-600 disabled:opacity-50">
+                placeholder="Write a comment..." className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2.5 text-gray-900 focus:border-purple-500 focus:outline-none" />
+              <button onClick={handleComment} disabled={!newComment.trim() || submitting} className="p-2.5 bg-purple-500 text-gray-900 rounded-full hover:bg-purple-600 disabled:opacity-50">
                 {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
               </button>
             </div>
@@ -323,10 +323,10 @@ export default function PostDetail({ post: initialPost, ogData, postId }) {
           <div className="space-y-4">
             {comments.length === 0 ? <p className="text-gray-500 text-center py-8">No comments yet.</p> : comments.map((c, i) => (
               <div key={c._id || i} className="flex gap-3">
-                <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-white text-sm font-bold">{(c.author?.name || 'U')[0]}</div>
-                <div className="flex-1 bg-gray-900 rounded-2xl px-4 py-3">
-                  <p className="text-white font-medium">{c.author?.name || 'User'}</p>
-                  <p className="text-gray-300">{c.content}</p>
+                <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-gray-900 text-sm font-bold">{(c.author?.name || 'U')[0]}</div>
+                <div className="flex-1 bg-gray-50 rounded-2xl px-4 py-3">
+                  <p className="text-gray-900 font-medium">{c.author?.name || 'User'}</p>
+                  <p className="text-gray-600">{c.content}</p>
                 </div>
               </div>
             ))}

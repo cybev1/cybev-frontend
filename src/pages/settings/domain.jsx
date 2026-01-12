@@ -242,7 +242,7 @@ export default function DomainSettings() {
                   <button
                     onClick={handleCheckDomain}
                     disabled={checking}
-                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-all disabled:opacity-50 font-semibold"
+                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-gray-900 rounded-lg transition-all disabled:opacity-50 font-semibold"
                   >
                     {checking ? 'Checking...' : 'Check'}
                   </button>
@@ -321,7 +321,7 @@ export default function DomainSettings() {
                       <button
                         onClick={handleVerifyDomain}
                         disabled={verifying}
-                        className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white rounded-lg transition-all disabled:opacity-50 font-semibold"
+                        className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-gray-900 rounded-lg transition-all disabled:opacity-50 font-semibold"
                       >
                         {verifying ? 'Verifying...' : 'Verify Domain'}
                         <ArrowRight className="w-4 h-4" />

@@ -136,8 +136,8 @@ export default function CampaignsDashboard() {
       case 'sent': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
       case 'sending': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
       case 'scheduled': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
-      case 'draft': return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400';
-      default: return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400';
+      case 'draft': return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-500';
+      default: return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-500';
     }
   };
 
@@ -154,13 +154,13 @@ export default function CampaignsDashboard() {
             <Link href="/studio" className="text-purple-600 hover:underline text-sm mb-2 inline-block">
               ← Back to Studio
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Campaigns</h1>
-            <p className="text-gray-600 dark:text-gray-400">Create and manage marketing campaigns</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-900">Campaigns</h1>
+            <p className="text-gray-600 dark:text-gray-500">Create and manage marketing campaigns</p>
           </div>
           
           <button
             onClick={() => setShowCreate(true)}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 flex items-center gap-2"
+            className="px-4 py-2 bg-purple-600 text-gray-900 rounded-lg font-medium hover:bg-purple-700 flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             New Campaign
@@ -169,33 +169,33 @@ export default function CampaignsDashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+          <div className="bg-white dark:bg-white rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-200">
             <div className="flex items-center gap-3 mb-2">
               <Mail className="w-5 h-5 text-purple-500" />
-              <span className="text-gray-600 dark:text-gray-400 text-sm">Total Campaigns</span>
+              <span className="text-gray-600 dark:text-gray-500 text-sm">Total Campaigns</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-900">{stats.total}</p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+          <div className="bg-white dark:bg-white rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-200">
             <div className="flex items-center gap-3 mb-2">
               <Send className="w-5 h-5 text-green-500" />
-              <span className="text-gray-600 dark:text-gray-400 text-sm">Messages Sent</span>
+              <span className="text-gray-600 dark:text-gray-500 text-sm">Messages Sent</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.sent}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-900">{stats.sent}</p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+          <div className="bg-white dark:bg-white rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-200">
             <div className="flex items-center gap-3 mb-2">
               <BarChart3 className="w-5 h-5 text-blue-500" />
-              <span className="text-gray-600 dark:text-gray-400 text-sm">Opens</span>
+              <span className="text-gray-600 dark:text-gray-500 text-sm">Opens</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.opened}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-900">{stats.opened}</p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+          <div className="bg-white dark:bg-white rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-200">
             <div className="flex items-center gap-3 mb-2">
               <CheckCircle className="w-5 h-5 text-pink-500" />
-              <span className="text-gray-600 dark:text-gray-400 text-sm">Clicks</span>
+              <span className="text-gray-600 dark:text-gray-500 text-sm">Clicks</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.clicked}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-900">{stats.clicked}</p>
           </div>
         </div>
 
@@ -205,15 +205,15 @@ export default function CampaignsDashboard() {
             <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
           </div>
         ) : campaigns.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center shadow-sm border border-gray-100 dark:border-gray-700">
+          <div className="bg-white dark:bg-white rounded-xl p-12 text-center shadow-sm border border-gray-100 dark:border-gray-200">
             <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
               <Mail className="w-8 h-8 text-purple-500" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No campaigns yet</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">Create your first marketing campaign</p>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900 mb-2">No campaigns yet</h3>
+            <p className="text-gray-500 dark:text-gray-500 mb-6">Create your first marketing campaign</p>
             <button
               onClick={() => setShowCreate(true)}
-              className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+              className="px-6 py-3 bg-purple-600 text-gray-900 rounded-lg font-semibold hover:bg-purple-700"
             >
               Create Campaign
             </button>
@@ -223,7 +223,7 @@ export default function CampaignsDashboard() {
             {campaigns.map(campaign => (
               <div
                 key={campaign._id}
-                className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700"
+                className="bg-white dark:bg-white rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-200"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -236,8 +236,8 @@ export default function CampaignsDashboard() {
                       {getTypeIcon(campaign.type)}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{campaign.name}</h3>
-                      <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-900">{campaign.name}</h3>
+                      <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-500">
                         <span className="capitalize">{campaign.type}</span>
                         <span>•</span>
                         <span className="flex items-center gap-1">
@@ -268,7 +268,7 @@ export default function CampaignsDashboard() {
                           <Send className="w-4 h-4" />
                         </button>
                         <button
-                          className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                          className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-100 rounded-lg"
                           title="Edit"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -288,15 +288,15 @@ export default function CampaignsDashboard() {
                 
                 {/* Stats Row */}
                 {campaign.status === 'sent' && (
-                  <div className="flex items-center gap-6 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">
-                      <strong className="text-gray-900 dark:text-white">{campaign.stats?.sent || 0}</strong> sent
+                  <div className="flex items-center gap-6 mt-4 pt-4 border-t border-gray-100 dark:border-gray-200 text-sm">
+                    <span className="text-gray-500 dark:text-gray-500">
+                      <strong className="text-gray-900 dark:text-gray-900">{campaign.stats?.sent || 0}</strong> sent
                     </span>
-                    <span className="text-gray-500 dark:text-gray-400">
-                      <strong className="text-gray-900 dark:text-white">{campaign.stats?.opened || 0}</strong> opened
+                    <span className="text-gray-500 dark:text-gray-500">
+                      <strong className="text-gray-900 dark:text-gray-900">{campaign.stats?.opened || 0}</strong> opened
                     </span>
-                    <span className="text-gray-500 dark:text-gray-400">
-                      <strong className="text-gray-900 dark:text-white">{campaign.stats?.clicked || 0}</strong> clicked
+                    <span className="text-gray-500 dark:text-gray-500">
+                      <strong className="text-gray-900 dark:text-gray-900">{campaign.stats?.clicked || 0}</strong> clicked
                     </span>
                   </div>
                 )}
@@ -307,18 +307,18 @@ export default function CampaignsDashboard() {
 
         {/* Create Campaign Modal */}
         {showCreate && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-lg max-h-[90vh] overflow-auto">
-              <div className="p-6 border-b border-gray-100 dark:border-gray-700">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Create Campaign</h2>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">Step {step} of 3</p>
+          <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-auto">
+              <div className="p-6 border-b border-gray-100 dark:border-gray-200">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-900">Create Campaign</h2>
+                <p className="text-gray-500 dark:text-gray-500 text-sm">Step {step} of 3</p>
               </div>
               
               <div className="p-6">
                 {/* Step 1: Type */}
                 {step === 1 && (
                   <>
-                    <h3 className="font-medium text-gray-900 dark:text-white mb-4">Choose campaign type</h3>
+                    <h3 className="font-medium text-gray-900 dark:text-gray-900 mb-4">Choose campaign type</h3>
                     <div className="grid grid-cols-2 gap-3">
                       {campaignTypes.map(type => (
                         <button
@@ -327,13 +327,13 @@ export default function CampaignsDashboard() {
                           className={`p-4 rounded-lg border-2 text-left transition ${
                             formData.type === type.id
                               ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                              : 'border-gray-200 dark:border-gray-200 hover:border-gray-300'
                           }`}
                         >
                           <type.icon className={`w-6 h-6 mb-2 ${
                             formData.type === type.id ? 'text-purple-600' : 'text-gray-500'
                           }`} />
-                          <p className="font-medium text-gray-900 dark:text-white">{type.label}</p>
+                          <p className="font-medium text-gray-900 dark:text-gray-900">{type.label}</p>
                         </button>
                       ))}
                     </div>
@@ -344,7 +344,7 @@ export default function CampaignsDashboard() {
                 {step === 2 && (
                   <>
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                         Campaign Name
                       </label>
                       <input
@@ -352,13 +352,13 @@ export default function CampaignsDashboard() {
                         value={formData.name}
                         onChange={(e) => setFormData({...formData, name: e.target.value})}
                         placeholder="e.g., Welcome Email"
-                        className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-4 py-3 border border-gray-200 dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                       />
                     </div>
                     
                     {formData.type === 'email' && (
                       <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                           Subject Line
                         </label>
                         <input
@@ -366,13 +366,13 @@ export default function CampaignsDashboard() {
                           value={formData.subject}
                           onChange={(e) => setFormData({...formData, subject: e.target.value})}
                           placeholder="Email subject"
-                          className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          className="w-full px-4 py-3 border border-gray-200 dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                         />
                       </div>
                     )}
                     
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                         Message Content
                       </label>
                       <textarea
@@ -380,7 +380,7 @@ export default function CampaignsDashboard() {
                         onChange={(e) => setFormData({...formData, content: e.target.value})}
                         placeholder="Write your message..."
                         rows={5}
-                        className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+                        className="w-full px-4 py-3 border border-gray-200 dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 resize-none"
                       />
                     </div>
                   </>
@@ -389,7 +389,7 @@ export default function CampaignsDashboard() {
                 {/* Step 3: Audience */}
                 {step === 3 && (
                   <>
-                    <h3 className="font-medium text-gray-900 dark:text-white mb-4">Select audience</h3>
+                    <h3 className="font-medium text-gray-900 dark:text-gray-900 mb-4">Select audience</h3>
                     <div className="space-y-3">
                       {[
                         { id: 'all', label: 'All Contacts', desc: 'Send to everyone' },
@@ -403,11 +403,11 @@ export default function CampaignsDashboard() {
                           className={`w-full p-4 rounded-lg border-2 text-left transition ${
                             formData.audience === audience.id
                               ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                              : 'border-gray-200 dark:border-gray-200 hover:border-gray-300'
                           }`}
                         >
-                          <p className="font-medium text-gray-900 dark:text-white">{audience.label}</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{audience.desc}</p>
+                          <p className="font-medium text-gray-900 dark:text-gray-900">{audience.label}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-500">{audience.desc}</p>
                         </button>
                       ))}
                     </div>
@@ -416,11 +416,11 @@ export default function CampaignsDashboard() {
               </div>
               
               {/* Actions */}
-              <div className="p-6 border-t border-gray-100 dark:border-gray-700 flex justify-between">
+              <div className="p-6 border-t border-gray-100 dark:border-gray-200 flex justify-between">
                 {step > 1 ? (
                   <button
                     onClick={() => setStep(step - 1)}
-                    className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                    className="px-4 py-2 text-gray-700 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-100 rounded-lg"
                   >
                     Back
                   </button>
@@ -430,7 +430,7 @@ export default function CampaignsDashboard() {
                       setShowCreate(false);
                       setStep(1);
                     }}
-                    className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                    className="px-4 py-2 text-gray-700 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-100 rounded-lg"
                   >
                     Cancel
                   </button>
@@ -439,7 +439,7 @@ export default function CampaignsDashboard() {
                 {step < 3 ? (
                   <button
                     onClick={() => setStep(step + 1)}
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700"
+                    className="px-6 py-2 bg-purple-600 text-gray-900 rounded-lg font-medium hover:bg-purple-700"
                   >
                     Continue
                   </button>
@@ -447,7 +447,7 @@ export default function CampaignsDashboard() {
                   <button
                     onClick={createCampaign}
                     disabled={creating}
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
+                    className="px-6 py-2 bg-purple-600 text-gray-900 rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
                   >
                     {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                     {creating ? 'Creating...' : 'Create Campaign'}

@@ -76,13 +76,13 @@ export default function BookmarksPage() {
             </div>
           ) : bookmarks.length === 0 ? (
             <div className="bg-white rounded-xl p-12 text-center border border-gray-200">
-              <Bookmark className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <Bookmark className="w-16 h-16 text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">No Bookmarks Yet</h3>
               <p className="text-gray-500 mb-6">
                 Start bookmarking posts to read them later
               </p>
               <Link href="/blog">
-                <button className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium">
+                <button className="px-6 py-3 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700 transition-colors font-medium">
                   Explore Blogs
                 </button>
               </Link>
@@ -122,7 +122,7 @@ export default function BookmarksPage() {
                       {/* Author */}
                       <Link href={`/profile/${blog.author?.username || 'user'}`}>
                         <div className="flex items-center gap-2 mb-4 cursor-pointer hover:opacity-80">
-                          <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                          <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-gray-900 font-bold text-sm">
                             {blog.author?.name?.charAt(0).toUpperCase() || 'U'}
                           </div>
                           <div>
@@ -167,7 +167,7 @@ export default function BookmarksPage() {
                       </div>
 
                       {/* Date */}
-                      <div className="flex items-center gap-1 text-xs text-gray-400 mt-2">
+                      <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
                         <Calendar className="w-3 h-3" />
                         Saved {new Date(bookmark.createdAt).toLocaleDateString()}
                       </div>

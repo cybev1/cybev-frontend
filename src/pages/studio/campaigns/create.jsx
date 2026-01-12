@@ -133,11 +133,11 @@ export default function CreateCampaign() {
       <div className="max-w-3xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+          <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 dark:hover:bg-white rounded-lg">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Create Campaign</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-900">Create Campaign</h1>
             <p className="text-sm text-gray-500">Step {step} of 4</p>
           </div>
         </div>
@@ -153,15 +153,15 @@ export default function CreateCampaign() {
         {step === 1 && (
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Campaign Type</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-3">Campaign Type</label>
               <div className="grid grid-cols-2 gap-3">
                 {TYPES.map(t => (
                   <button key={t.id} onClick={() => setForm(f => ({ ...f, type: t.id }))}
                     className={`p-4 rounded-xl border-2 text-left transition ${form.type === t.id
                       ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'}`}>
-                    <t.icon className={`w-6 h-6 mb-2 ${form.type === t.id ? 'text-purple-600' : 'text-gray-400'}`} />
-                    <p className="font-medium text-gray-900 dark:text-white">{t.name}</p>
+                      : 'border-gray-200 dark:border-gray-200 hover:border-purple-300'}`}>
+                    <t.icon className={`w-6 h-6 mb-2 ${form.type === t.id ? 'text-purple-600' : 'text-gray-500'}`} />
+                    <p className="font-medium text-gray-900 dark:text-gray-900">{t.name}</p>
                     <p className="text-xs text-gray-500">{t.desc}</p>
                   </button>
                 ))}
@@ -169,10 +169,10 @@ export default function CreateCampaign() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Campaign Name</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">Campaign Name</label>
               <input type="text" value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
                 placeholder="e.g., January Newsletter"
-                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800" />
+                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-200 rounded-xl bg-white dark:bg-white" />
             </div>
           </div>
         )}
@@ -184,7 +184,7 @@ export default function CreateCampaign() {
               <>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Subject Line</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-600">Subject Line</label>
                     <button onClick={() => generateWithAI('subject')} disabled={generating}
                       className="flex items-center gap-1 text-purple-600 text-sm hover:underline disabled:opacity-50">
                       <Sparkles className="w-4 h-4" /> {generating ? 'Generating...' : 'AI Generate'}
@@ -192,21 +192,21 @@ export default function CreateCampaign() {
                   </div>
                   <input type="text" value={form.subject} onChange={(e) => setForm(f => ({ ...f, subject: e.target.value }))}
                     placeholder="Enter subject line"
-                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800" />
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-200 rounded-xl bg-white dark:bg-white" />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preheader (optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">Preheader (optional)</label>
                   <input type="text" value={form.preheader} onChange={(e) => setForm(f => ({ ...f, preheader: e.target.value }))}
                     placeholder="Preview text shown after subject"
-                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800" />
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-200 rounded-xl bg-white dark:bg-white" />
                 </div>
               </>
             )}
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Content</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-600">Content</label>
                 <button onClick={() => generateWithAI('content')} disabled={generating}
                   className="flex items-center gap-1 text-purple-600 text-sm hover:underline disabled:opacity-50">
                   <Sparkles className="w-4 h-4" /> {generating ? 'Generating...' : 'AI Generate'}
@@ -215,7 +215,7 @@ export default function CreateCampaign() {
               <textarea value={form.content} onChange={(e) => setForm(f => ({ ...f, content: e.target.value }))}
                 placeholder="Write your message..."
                 rows={8}
-                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800" />
+                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-200 rounded-xl bg-white dark:bg-white" />
               {form.type === 'sms' && (
                 <p className="text-sm text-gray-500 mt-1">{form.content.length}/160 characters</p>
               )}
@@ -224,16 +224,16 @@ export default function CreateCampaign() {
             {form.type === 'email' && (
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">CTA Button Text</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">CTA Button Text</label>
                   <input type="text" value={form.ctaText} onChange={(e) => setForm(f => ({ ...f, ctaText: e.target.value }))}
                     placeholder="Learn More"
-                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800" />
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-200 rounded-xl bg-white dark:bg-white" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">CTA URL</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">CTA URL</label>
                   <input type="url" value={form.ctaUrl} onChange={(e) => setForm(f => ({ ...f, ctaUrl: e.target.value }))}
                     placeholder="https://..."
-                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800" />
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-200 rounded-xl bg-white dark:bg-white" />
                 </div>
               </div>
             )}
@@ -244,15 +244,15 @@ export default function CreateCampaign() {
         {step === 3 && (
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Select Audience</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-3">Select Audience</label>
               <div className="space-y-3">
                 <button onClick={() => setForm(f => ({ ...f, audienceType: 'all' }))}
                   className={`w-full p-4 rounded-xl border-2 text-left flex items-center gap-3 ${form.audienceType === 'all'
                     ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                    : 'border-gray-200 dark:border-gray-700'}`}>
+                    : 'border-gray-200 dark:border-gray-200'}`}>
                   <Users className="w-6 h-6 text-purple-600" />
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">All Contacts</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-900">All Contacts</p>
                     <p className="text-sm text-gray-500">Send to everyone in your contact list</p>
                   </div>
                   {form.audienceType === 'all' && <Check className="w-5 h-5 text-purple-600 ml-auto" />}
@@ -261,10 +261,10 @@ export default function CreateCampaign() {
                 <button onClick={() => setForm(f => ({ ...f, audienceType: 'list' }))}
                   className={`w-full p-4 rounded-xl border-2 text-left flex items-center gap-3 ${form.audienceType === 'list'
                     ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                    : 'border-gray-200 dark:border-gray-700'}`}>
+                    : 'border-gray-200 dark:border-gray-200'}`}>
                   <Users className="w-6 h-6 text-blue-600" />
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">Specific List</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-900">Specific List</p>
                     <p className="text-sm text-gray-500">Choose a contact list</p>
                   </div>
                   {form.audienceType === 'list' && <Check className="w-5 h-5 text-purple-600 ml-auto" />}
@@ -274,9 +274,9 @@ export default function CreateCampaign() {
 
             {form.audienceType === 'list' && lists.length > 0 && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select List</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">Select List</label>
                 <select value={form.listId} onChange={(e) => setForm(f => ({ ...f, listId: e.target.value }))}
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800">
+                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-200 rounded-xl bg-white dark:bg-white">
                   <option value="">Choose a list...</option>
                   {lists.map(list => (
                     <option key={list._id} value={list._id}>{list.name} ({list.contactCount} contacts)</option>
@@ -291,19 +291,19 @@ export default function CreateCampaign() {
         {step === 4 && (
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">When to Send</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-3">When to Send</label>
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => setForm(f => ({ ...f, scheduleType: 'now' }))}
                   className={`p-4 rounded-xl border-2 text-center ${form.scheduleType === 'now'
                     ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                    : 'border-gray-200 dark:border-gray-700'}`}>
+                    : 'border-gray-200 dark:border-gray-200'}`}>
                   <Send className="w-6 h-6 mx-auto mb-2 text-purple-600" />
                   <p className="font-medium">Send Now</p>
                 </button>
                 <button onClick={() => setForm(f => ({ ...f, scheduleType: 'scheduled' }))}
                   className={`p-4 rounded-xl border-2 text-center ${form.scheduleType === 'scheduled'
                     ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                    : 'border-gray-200 dark:border-gray-700'}`}>
+                    : 'border-gray-200 dark:border-gray-200'}`}>
                   <Calendar className="w-6 h-6 mx-auto mb-2 text-blue-600" />
                   <p className="font-medium">Schedule</p>
                 </button>
@@ -314,15 +314,15 @@ export default function CreateCampaign() {
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">Date</label>
                     <input type="date" value={form.scheduleDate} onChange={(e) => setForm(f => ({ ...f, scheduleDate: e.target.value }))}
                       min={new Date().toISOString().split('T')[0]}
-                      className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800" />
+                      className="w-full px-4 py-3 border border-gray-200 dark:border-gray-200 rounded-xl bg-white dark:bg-white" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Time</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">Time</label>
                     <input type="time" value={form.scheduleTime} onChange={(e) => setForm(f => ({ ...f, scheduleTime: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800" />
+                      className="w-full px-4 py-3 border border-gray-200 dark:border-gray-200 rounded-xl bg-white dark:bg-white" />
                   </div>
                 </div>
 
@@ -330,7 +330,7 @@ export default function CreateCampaign() {
                   <input type="checkbox" checked={form.aiOptimized} onChange={(e) => setForm(f => ({ ...f, aiOptimized: e.target.checked }))}
                     className="w-5 h-5 accent-purple-600" />
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                    <p className="font-medium text-gray-900 dark:text-gray-900 flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-purple-600" /> AI Send Time Optimization
                     </p>
                     <p className="text-sm text-gray-500">Let AI pick the best time based on audience behavior</p>
@@ -344,7 +344,7 @@ export default function CreateCampaign() {
         {/* Navigation */}
         <div className="flex justify-between mt-8">
           {step > 1 ? (
-            <button onClick={() => setStep(s => s - 1)} className="px-6 py-3 border border-gray-200 dark:border-gray-700 rounded-xl font-medium">
+            <button onClick={() => setStep(s => s - 1)} className="px-6 py-3 border border-gray-200 dark:border-gray-200 rounded-xl font-medium">
               Back
             </button>
           ) : <div />}
@@ -352,12 +352,12 @@ export default function CreateCampaign() {
           {step < 4 ? (
             <button onClick={() => setStep(s => s + 1)}
               disabled={step === 1 && !form.name}
-              className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl font-medium disabled:opacity-50">
+              className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-gray-900 rounded-xl font-medium disabled:opacity-50">
               Next <ArrowRight className="w-5 h-5" />
             </button>
           ) : (
             <button onClick={handleSubmit} disabled={loading}
-              className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl font-medium disabled:opacity-50">
+              className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-gray-900 rounded-xl font-medium disabled:opacity-50">
               {loading ? 'Creating...' : form.scheduleType === 'now' ? 'Send Campaign' : 'Schedule Campaign'}
               <Send className="w-5 h-5" />
             </button>

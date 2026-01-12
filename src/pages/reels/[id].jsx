@@ -38,14 +38,14 @@ export default function ReelViewer() {
     <div className="max-w-3xl mx-auto mt-10 px-4">
       <video src={reel.video} controls className="w-full rounded-2xl shadow-lg mb-4" />
       <div className="text-xl font-semibold">@{reel.username}</div>
-      <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">{reel.caption}</p>
+      <p className="text-sm text-gray-600 dark:text-gray-600 mb-2">{reel.caption}</p>
       <div className="flex gap-4 mb-4">
         <button onClick={handleLike} className="text-red-600">❤️ {likes}</button>
         <button className="text-blue-600">💬 {comments.length} Comments</button>
       </div>
       <div className="space-y-1 mb-4">
         {comments.map((c, i) => (
-          <p key={i} className="text-sm text-gray-800 dark:text-white"><b>{c.user}:</b> {c.text}</p>
+          <p key={i} className="text-sm text-gray-800 dark:text-gray-900"><b>{c.user}:</b> {c.text}</p>
         ))}
       </div>
       <div className="flex gap-2">
@@ -54,9 +54,9 @@ export default function ReelViewer() {
           placeholder="Add a comment..."
           value={comment}
           onChange={e => setComment(e.target.value)}
-          className="flex-1 px-3 py-2 rounded-md border dark:bg-gray-800"
+          className="flex-1 px-3 py-2 rounded-md border dark:bg-white"
         />
-        <button onClick={handleComment} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Send</button>
+        <button onClick={handleComment} className="px-4 py-2 bg-blue-600 text-gray-900 rounded-lg">Send</button>
       </div>
     </div>
   );

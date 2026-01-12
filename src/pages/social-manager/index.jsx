@@ -59,14 +59,14 @@ const PLATFORMS = {
     name: 'Instagram',
     icon: Instagram,
     color: 'bg-gradient-to-br from-purple-600 to-pink-500',
-    textColor: 'text-pink-400',
+    textColor: 'text-pink-600',
     bgLight: 'bg-pink-500/10'
   },
   twitter: {
     name: 'X (Twitter)',
     icon: Twitter,
-    color: 'bg-gray-800',
-    textColor: 'text-gray-300',
+    color: 'bg-white',
+    textColor: 'text-gray-600',
     bgLight: 'bg-gray-500/10'
   },
   youtube: {
@@ -86,7 +86,7 @@ const PLATFORMS = {
   tiktok: {
     name: 'TikTok',
     icon: Zap,
-    color: 'bg-black',
+    color: 'bg-gray-900',
     textColor: 'text-white',
     bgLight: 'bg-gray-500/10'
   },
@@ -105,15 +105,15 @@ function AccountCard({ account, onDisconnect, onRefresh }) {
   const Icon = platform?.icon || Globe;
 
   return (
-    <div className="bg-gray-800/50 rounded-xl p-4 border border-purple-500/20">
+    <div className="bg-white/50 rounded-xl p-4 border border-gray-200">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className={`w-12 h-12 ${platform?.color || 'bg-gray-700'} rounded-xl flex items-center justify-center`}>
-            <Icon className="w-6 h-6 text-white" />
+            <Icon className="w-6 h-6 text-gray-900" />
           </div>
           <div>
-            <h3 className="text-white font-medium">{account.name}</h3>
-            <p className="text-gray-400 text-sm">@{account.username}</p>
+            <h3 className="text-gray-900 font-medium">{account.name}</h3>
+            <p className="text-gray-500 text-sm">@{account.username}</p>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -133,28 +133,28 @@ function AccountCard({ account, onDisconnect, onRefresh }) {
 
       <div className="grid grid-cols-3 gap-4 mb-4">
         <div className="text-center">
-          <p className="text-2xl font-bold text-white">{account.followers?.toLocaleString() || 0}</p>
-          <p className="text-gray-400 text-xs">Followers</p>
+          <p className="text-2xl font-bold text-gray-900">{account.followers?.toLocaleString() || 0}</p>
+          <p className="text-gray-500 text-xs">Followers</p>
         </div>
         <div className="text-center">
-          <p className="text-2xl font-bold text-white">{account.posts || 0}</p>
-          <p className="text-gray-400 text-xs">Posts</p>
+          <p className="text-2xl font-bold text-gray-900">{account.posts || 0}</p>
+          <p className="text-gray-500 text-xs">Posts</p>
         </div>
         <div className="text-center">
-          <p className="text-2xl font-bold text-white">{account.engagement || '0%'}</p>
-          <p className="text-gray-400 text-xs">Engagement</p>
+          <p className="text-2xl font-bold text-gray-900">{account.engagement || '0%'}</p>
+          <p className="text-gray-500 text-xs">Engagement</p>
         </div>
       </div>
 
       <div className="flex gap-2">
         <button
           onClick={() => onRefresh(account)}
-          className="flex-1 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+          className="flex-1 py-2 bg-gray-700 text-gray-600 rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
         >
           <RefreshCw className="w-4 h-4" />
           Refresh
         </button>
-        <button className="p-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors">
+        <button className="p-2 bg-gray-700 text-gray-600 rounded-lg hover:bg-gray-600 transition-colors">
           <Settings className="w-4 h-4" />
         </button>
         <button
@@ -202,9 +202,9 @@ function PostComposer({ accounts, onPost }) {
   };
 
   return (
-    <div className="bg-gray-800/50 rounded-xl border border-purple-500/20 p-6">
-      <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-        <Edit className="w-5 h-5 text-purple-400" />
+    <div className="bg-white/50 rounded-xl border border-gray-200 p-6">
+      <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <Edit className="w-5 h-5 text-purple-600" />
         Create Post
       </h3>
 
@@ -222,7 +222,7 @@ function PostComposer({ accounts, onPost }) {
               className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
                 isSelected
                   ? 'border-purple-500 bg-purple-500/20 text-white'
-                  : 'border-gray-700 text-gray-400 hover:border-gray-600'
+                  : 'border-gray-200 text-gray-500 hover:border-gray-300'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -238,11 +238,11 @@ function PostComposer({ accounts, onPost }) {
         onChange={(e) => setContent(e.target.value)}
         placeholder="What's on your mind? Write your post here..."
         rows={4}
-        className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none resize-none mb-4"
+        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-purple-500 focus:outline-none resize-none mb-4"
       />
 
       {/* Character count */}
-      <div className="flex items-center justify-between text-sm text-gray-400 mb-4">
+      <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
         <span>{content.length} characters</span>
         <span className={content.length > 280 ? 'text-yellow-400' : ''}>
           {280 - content.length} remaining for Twitter
@@ -251,13 +251,13 @@ function PostComposer({ accounts, onPost }) {
 
       {/* Media buttons */}
       <div className="flex items-center gap-2 mb-4">
-        <button className="p-2 bg-gray-700 text-gray-400 rounded-lg hover:text-white transition-colors">
+        <button className="p-2 bg-gray-700 text-gray-500 rounded-lg hover:text-gray-900 transition-colors">
           <Image className="w-5 h-5" />
         </button>
-        <button className="p-2 bg-gray-700 text-gray-400 rounded-lg hover:text-white transition-colors">
+        <button className="p-2 bg-gray-700 text-gray-500 rounded-lg hover:text-gray-900 transition-colors">
           <Video className="w-5 h-5" />
         </button>
-        <button className="p-2 bg-gray-700 text-gray-400 rounded-lg hover:text-white transition-colors">
+        <button className="p-2 bg-gray-700 text-gray-500 rounded-lg hover:text-gray-900 transition-colors">
           <LinkIcon className="w-5 h-5" />
         </button>
       </div>
@@ -269,9 +269,9 @@ function PostComposer({ accounts, onPost }) {
             type="checkbox"
             checked={isScheduled}
             onChange={(e) => setIsScheduled(e.target.checked)}
-            className="w-4 h-4 rounded bg-gray-700 border-gray-600 text-purple-500 focus:ring-purple-500"
+            className="w-4 h-4 rounded bg-gray-700 border-gray-300 text-purple-500 focus:ring-purple-500"
           />
-          <span className="text-gray-300">Schedule for later</span>
+          <span className="text-gray-600">Schedule for later</span>
         </label>
         
         {isScheduled && (
@@ -279,7 +279,7 @@ function PostComposer({ accounts, onPost }) {
             type="datetime-local"
             value={scheduleDate}
             onChange={(e) => setScheduleDate(e.target.value)}
-            className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white"
+            className="bg-gray-700 border border-gray-300 rounded-lg px-3 py-2 text-gray-900"
           />
         )}
       </div>
@@ -288,7 +288,7 @@ function PostComposer({ accounts, onPost }) {
       <button
         onClick={handlePost}
         disabled={posting || !content.trim() || selectedPlatforms.length === 0}
-        className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+        className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
       >
         {posting ? (
           <>
@@ -318,40 +318,40 @@ function AnalyticsOverview({ accounts }) {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-      <div className="bg-gray-800/50 rounded-xl p-4 border border-purple-500/20">
-        <div className="flex items-center gap-2 text-gray-400 mb-2">
+      <div className="bg-white/50 rounded-xl p-4 border border-gray-200">
+        <div className="flex items-center gap-2 text-gray-500 mb-2">
           <Users className="w-4 h-4" />
           <span className="text-sm">Total Followers</span>
         </div>
-        <p className="text-2xl font-bold text-white">{totalFollowers.toLocaleString()}</p>
+        <p className="text-2xl font-bold text-gray-900">{totalFollowers.toLocaleString()}</p>
         <p className="text-green-400 text-sm">+12.5% this month</p>
       </div>
 
-      <div className="bg-gray-800/50 rounded-xl p-4 border border-purple-500/20">
-        <div className="flex items-center gap-2 text-gray-400 mb-2">
+      <div className="bg-white/50 rounded-xl p-4 border border-gray-200">
+        <div className="flex items-center gap-2 text-gray-500 mb-2">
           <BarChart3 className="w-4 h-4" />
           <span className="text-sm">Total Posts</span>
         </div>
-        <p className="text-2xl font-bold text-white">{totalPosts}</p>
-        <p className="text-gray-400 text-sm">Across all platforms</p>
+        <p className="text-2xl font-bold text-gray-900">{totalPosts}</p>
+        <p className="text-gray-500 text-sm">Across all platforms</p>
       </div>
 
-      <div className="bg-gray-800/50 rounded-xl p-4 border border-purple-500/20">
-        <div className="flex items-center gap-2 text-gray-400 mb-2">
+      <div className="bg-white/50 rounded-xl p-4 border border-gray-200">
+        <div className="flex items-center gap-2 text-gray-500 mb-2">
           <TrendingUp className="w-4 h-4" />
           <span className="text-sm">Engagement Rate</span>
         </div>
-        <p className="text-2xl font-bold text-white">4.8%</p>
+        <p className="text-2xl font-bold text-gray-900">4.8%</p>
         <p className="text-green-400 text-sm">+0.8% this week</p>
       </div>
 
-      <div className="bg-gray-800/50 rounded-xl p-4 border border-purple-500/20">
-        <div className="flex items-center gap-2 text-gray-400 mb-2">
+      <div className="bg-white/50 rounded-xl p-4 border border-gray-200">
+        <div className="flex items-center gap-2 text-gray-500 mb-2">
           <Calendar className="w-4 h-4" />
           <span className="text-sm">Scheduled</span>
         </div>
-        <p className="text-2xl font-bold text-white">5</p>
-        <p className="text-gray-400 text-sm">Posts pending</p>
+        <p className="text-2xl font-bold text-gray-900">5</p>
+        <p className="text-gray-500 text-sm">Posts pending</p>
       </div>
     </div>
   );
@@ -498,16 +498,16 @@ export default function SocialManager() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-              <Globe className="w-8 h-8 text-purple-400" />
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <Globe className="w-8 h-8 text-purple-600" />
               Social Media Manager
             </h1>
-            <p className="text-gray-400 mt-1">Manage all your social accounts in one place</p>
+            <p className="text-gray-500 mt-1">Manage all your social accounts in one place</p>
           </div>
 
           <button
             onClick={() => setShowConnectModal(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-xl font-medium hover:opacity-90 transition-opacity"
           >
             <Plus className="w-5 h-5" />
             Connect Account
@@ -523,7 +523,7 @@ export default function SocialManager() {
               className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
                 activeTab === tab.id
                   ? 'bg-purple-500 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:text-white'
+                  : 'bg-white text-gray-500 hover:text-gray-900'
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -545,8 +545,8 @@ export default function SocialManager() {
 
               {/* Quick Stats */}
               <div className="space-y-4">
-                <div className="bg-gray-800/50 rounded-xl p-4 border border-purple-500/20">
-                  <h3 className="text-white font-medium mb-4">Recent Activity</h3>
+                <div className="bg-white/50 rounded-xl p-4 border border-gray-200">
+                  <h3 className="text-gray-900 font-medium mb-4">Recent Activity</h3>
                   <div className="space-y-3">
                     {[
                       { text: 'New follower on Instagram', time: '2m ago', icon: Heart },
@@ -555,10 +555,10 @@ export default function SocialManager() {
                     ].map((item, i) => (
                       <div key={i} className="flex items-center gap-3 text-sm">
                         <div className="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center">
-                          <item.icon className="w-4 h-4 text-purple-400" />
+                          <item.icon className="w-4 h-4 text-purple-600" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-gray-300">{item.text}</p>
+                          <p className="text-gray-600">{item.text}</p>
                           <p className="text-gray-500 text-xs">{item.time}</p>
                         </div>
                       </div>
@@ -575,11 +575,11 @@ export default function SocialManager() {
             {connectedAccounts.length === 0 ? (
               <div className="col-span-full text-center py-12">
                 <Globe className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">No accounts connected</h3>
-                <p className="text-gray-400 mb-6">Connect your social media accounts to get started</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">No accounts connected</h3>
+                <p className="text-gray-500 mb-6">Connect your social media accounts to get started</p>
                 <button
                   onClick={() => setShowConnectModal(true)}
-                  className="px-6 py-3 bg-purple-500 text-white rounded-lg"
+                  className="px-6 py-3 bg-purple-500 text-gray-900 rounded-lg"
                 >
                   Connect Account
                 </button>
@@ -600,32 +600,32 @@ export default function SocialManager() {
         {activeTab === 'schedule' && (
           <div className="text-center py-12">
             <Calendar className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-white mb-2">Content Calendar</h3>
-            <p className="text-gray-400">Schedule and manage your posts across all platforms</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Content Calendar</h3>
+            <p className="text-gray-500">Schedule and manage your posts across all platforms</p>
           </div>
         )}
 
         {activeTab === 'analytics' && (
           <div className="text-center py-12">
             <BarChart3 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-white mb-2">Analytics Dashboard</h3>
-            <p className="text-gray-400">View detailed analytics and insights</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Analytics Dashboard</h3>
+            <p className="text-gray-500">View detailed analytics and insights</p>
           </div>
         )}
 
         {activeTab === 'inbox' && (
           <div className="text-center py-12">
             <MessageCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-white mb-2">Unified Inbox</h3>
-            <p className="text-gray-400">Manage messages from all platforms in one place</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Unified Inbox</h3>
+            <p className="text-gray-500">Manage messages from all platforms in one place</p>
           </div>
         )}
 
         {/* Connect Modal */}
         {showConnectModal && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-900 rounded-2xl p-6 max-w-md w-full border border-purple-500/20">
-              <h2 className="text-xl font-bold text-white mb-6">Connect a Platform</h2>
+          <div className="fixed inset-0 bg-gray-900/80 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-50 rounded-2xl p-6 max-w-md w-full border border-gray-200">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Connect a Platform</h2>
               
               <div className="space-y-3">
                 {Object.entries(PLATFORMS).map(([id, platform]) => {
@@ -634,13 +634,13 @@ export default function SocialManager() {
                     <button
                       key={id}
                       onClick={() => handleConnectPlatform(id)}
-                      className="w-full flex items-center gap-3 p-4 bg-gray-800 hover:bg-gray-700 rounded-xl transition-colors"
+                      className="w-full flex items-center gap-3 p-4 bg-white hover:bg-gray-100 rounded-xl transition-colors"
                     >
                       <div className={`w-10 h-10 ${platform.color} rounded-lg flex items-center justify-center`}>
-                        <Icon className="w-5 h-5 text-white" />
+                        <Icon className="w-5 h-5 text-gray-900" />
                       </div>
-                      <span className="text-white font-medium">{platform.name}</span>
-                      <ExternalLink className="w-4 h-4 text-gray-400 ml-auto" />
+                      <span className="text-gray-900 font-medium">{platform.name}</span>
+                      <ExternalLink className="w-4 h-4 text-gray-500 ml-auto" />
                     </button>
                   );
                 })}
@@ -648,7 +648,7 @@ export default function SocialManager() {
 
               <button
                 onClick={() => setShowConnectModal(false)}
-                className="w-full mt-6 py-3 bg-gray-800 text-gray-400 rounded-lg hover:bg-gray-700 transition-colors"
+                className="w-full mt-6 py-3 bg-white text-gray-500 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 Cancel
               </button>

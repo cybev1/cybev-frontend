@@ -1,106 +1,51 @@
 // ============================================
 // FILE: src/pages/wallet/index.jsx
-// PATH: cybev-frontend/src/pages/wallet/index.jsx
-// PURPOSE: User wallet page for CYBEV tokens
+// CYBEV Wallet - Clean White Design v7.0
 // ============================================
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import Link from 'next/link';
 import AppLayout from '@/components/Layout/AppLayout';
-import {
-  Wallet,
-  Send,
-  Download,
-  ArrowUpRight,
-  ArrowDownLeft,
-  Coins,
-  TrendingUp,
-  Clock,
-  ExternalLink,
-  Copy,
-  Check,
-  RefreshCw,
-  Gift,
-  Zap,
-  History,
-  CreditCard
-} from 'lucide-react';
 import api from '@/lib/api';
+import {
+  Coins, ArrowUpRight, ArrowDownLeft, Plus, Send, Clock, ChevronRight,
+  Loader2, TrendingUp, Gift, Award, Sparkles, CreditCard, RefreshCw
+} from 'lucide-react';
 
 export default function WalletPage() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [balance, setBalance] = useState(0);
-  const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [wallet, setWallet] = useState({ balance: 0, pending: 0 });
   const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Wallet address - in production, this comes from Web3 connection
-  const walletAddress = user?.walletAddress || '0x742d35Cc6634C0532925a3b844Bc9e7595f0Ab3e';
+  useEffect(() => { fetchWallet(); }, []);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-    if (!token) {
-      router.push('/auth/login');
-      return;
-    }
-
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      try {
-        setUser(JSON.parse(userData));
-      } catch (e) {
-        console.error('Failed to parse user data');
-      }
-    }
-
-    // Fetch wallet data
-    fetchWalletData();
-    setLoading(false);
-  }, [router]);
-
-  const fetchWalletData = async () => {
+  const fetchWallet = async () => {
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      // Fetch balance
-      const balanceRes = await api.get('/api/rewards/balance', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (balanceRes.data.ok) {
-        setBalance(balanceRes.data.balance || 0);
+      const token = localStorage.getItem('token');
+      if (!token) { router.push('/auth/login'); return; }
+      const res = await api.get('/api/wallet', { headers: { Authorization: `Bearer ${token}` } });
+      if (res.data.ok || res.data.wallet) {
+        setWallet(res.data.wallet || { balance: res.data.balance || 0, pending: res.data.pending || 0 });
+        setTransactions(res.data.transactions || []);
       }
-
-      // Fetch transactions
-      const txRes = await api.get('/api/rewards/transactions', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (txRes.data.ok) {
-        setTransactions(txRes.data.transactions || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch wallet data:', error);
-    }
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
   };
 
-  const copyAddress = () => {
-    navigator.clipboard.writeText(walletAddress);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  // Sample transactions if no real data
-  const displayTransactions = transactions.length > 0 ? transactions : [
-    { id: 1, type: 'received', amount: 100, from: 'Content Reward', date: new Date().toISOString(), status: 'completed' },
-    { id: 2, type: 'received', amount: 50, from: 'Tip from creator', date: new Date(Date.now() - 86400000).toISOString(), status: 'completed' },
+  const EARN_OPTIONS = [
+    { icon: Sparkles, label: 'Create Content', description: 'Earn 50-200 CYBEV per post', href: '/studio', color: '#7c3aed' },
+    { icon: Gift, label: 'Daily Check-in', description: 'Earn 10 CYBEV daily', href: '#', color: '#10b981' },
+    { icon: Award, label: 'Refer Friends', description: 'Earn 100 CYBEV per referral', href: '/invite', color: '#f59e0b' },
   ];
 
   if (loading) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
         </div>
       </AppLayout>
     );
@@ -108,227 +53,92 @@ export default function WalletPage() {
 
   return (
     <AppLayout>
-      <Head>
-        <title>Wallet - CYBEV</title>
-      </Head>
-
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Wallet</h1>
-            <p className="text-gray-400">Manage your CYBEV tokens and transactions</p>
-          </div>
-          <button 
-            onClick={fetchWalletData}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-500/20 text-purple-400 rounded-lg hover:bg-purple-500/30 transition-colors"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Refresh
-          </button>
-        </div>
-
-        {/* Balance Card */}
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 mb-8 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
-          
-          <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div>
-              <p className="text-purple-200 text-sm mb-2">Total Balance</p>
-              <p className="text-5xl font-bold text-white mb-2">{balance.toLocaleString()} CYBEV</p>
-              <p className="text-purple-200">≈ ${(balance * 0.01).toFixed(2)} USD</p>
+      <Head><title>Wallet | CYBEV</title></Head>
+      <div className="min-h-screen bg-gray-100">
+        <div className="max-w-2xl mx-auto px-4 py-6">
+          {/* Balance Card */}
+          <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl p-6 text-white shadow-xl mb-6"
+            style={{ boxShadow: '0 10px 40px rgba(124, 58, 237, 0.3)' }}>
+            <p className="text-purple-200 text-sm font-medium mb-1">Total Balance</p>
+            <div className="flex items-baseline gap-2 mb-4">
+              <h1 className="text-4xl font-bold">{wallet.balance?.toLocaleString() || 0}</h1>
+              <span className="text-lg text-purple-200">CYBEV</span>
             </div>
-            
-            <div className="flex gap-3">
-              <button className="flex items-center gap-2 px-6 py-3 bg-white/20 hover:bg-white/30 text-white rounded-xl transition-colors backdrop-blur-sm">
-                <Send className="w-5 h-5" />
-                Send
+            {wallet.pending > 0 && (
+              <p className="text-sm text-purple-200 flex items-center gap-1">
+                <Clock className="w-4 h-4" /> {wallet.pending} pending
+              </p>
+            )}
+            <div className="flex gap-3 mt-6">
+              <button className="flex-1 py-3 bg-white/20 backdrop-blur rounded-xl font-semibold hover:bg-white/30 transition-colors flex items-center justify-center gap-2">
+                <Send className="w-5 h-5" />Send
               </button>
-              <button className="flex items-center gap-2 px-6 py-3 bg-white text-purple-600 rounded-xl font-medium hover:bg-purple-50 transition-colors">
-                <Download className="w-5 h-5" />
-                Receive
+              <button className="flex-1 py-3 bg-white/20 backdrop-blur rounded-xl font-semibold hover:bg-white/30 transition-colors flex items-center justify-center gap-2">
+                <ArrowDownLeft className="w-5 h-5" />Receive
+              </button>
+              <button className="flex-1 py-3 bg-white text-purple-600 rounded-xl font-semibold hover:bg-purple-50 transition-colors flex items-center justify-center gap-2">
+                <Plus className="w-5 h-5" />Buy
               </button>
             </div>
           </div>
 
-          {/* Wallet Address */}
-          <div className="relative mt-6 p-4 bg-black/20 rounded-xl backdrop-blur-sm">
-            <p className="text-purple-200 text-sm mb-2">Wallet Address</p>
-            <div className="flex items-center gap-3">
-              <code className="text-white font-mono text-sm truncate flex-1">{walletAddress}</code>
-              <button 
-                onClick={copyAddress} 
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
-              >
-                {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4 text-white" />}
-              </button>
-              <a 
-                href={`https://polygonscan.com/address/${walletAddress}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
-              >
-                <ExternalLink className="w-4 h-4 text-white" />
-              </a>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {[
-            { icon: Zap, label: 'Stake', desc: 'Earn rewards', color: 'green' },
-            { icon: Gift, label: 'Tip', desc: 'Support creators', color: 'yellow' },
-            { icon: TrendingUp, label: 'Trade', desc: 'Buy/Sell tokens', color: 'blue' },
-            { icon: Coins, label: 'Earn', desc: 'Create & earn', color: 'purple' }
-          ].map((action) => (
-            <button 
-              key={action.label}
-              className="p-4 bg-black/40 backdrop-blur-xl rounded-xl border border-purple-500/20 hover:border-purple-500/40 transition-all hover:scale-105 text-center group"
-            >
-              <div className={`w-12 h-12 bg-${action.color}-500/20 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform`}>
-                <action.icon className={`w-6 h-6 text-${action.color}-400`} />
-              </div>
-              <p className="text-white font-medium">{action.label}</p>
-              <p className="text-gray-400 text-sm">{action.desc}</p>
-            </button>
-          ))}
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-          {['overview', 'transactions', 'staking', 'earnings'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-lg font-medium capitalize whitespace-nowrap transition-colors ${
-                activeTab === tab
-                  ? 'bg-purple-500 text-white'
-                  : 'bg-gray-800/50 text-gray-400 hover:text-white'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        {/* Tab Content */}
-        {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { icon: ArrowDownLeft, label: 'Total Received', value: `${balance} CYBEV`, color: 'green' },
-              { icon: ArrowUpRight, label: 'Total Sent', value: '0 CYBEV', color: 'red' },
-              { icon: Zap, label: 'Staked', value: '0 CYBEV', color: 'purple' }
-            ].map((stat) => (
-              <div key={stat.label} className="bg-black/40 backdrop-blur-xl rounded-xl border border-purple-500/20 p-6">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 bg-${stat.color}-500/20 rounded-lg flex items-center justify-center`}>
-                    <stat.icon className={`w-5 h-5 text-${stat.color}-400`} />
-                  </div>
-                  <div>
-                    <p className="text-gray-400 text-sm">{stat.label}</p>
-                    <p className="text-xl font-bold text-white">{stat.value}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {activeTab === 'transactions' && (
-          <div className="bg-black/40 backdrop-blur-xl rounded-xl border border-purple-500/20 overflow-hidden">
-            <div className="p-4 border-b border-purple-500/20 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <History className="w-5 h-5" />
-                Transaction History
-              </h3>
-            </div>
-            <div className="divide-y divide-purple-500/10">
-              {displayTransactions.map((tx) => (
-                <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-purple-500/5 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      tx.type === 'received' ? 'bg-green-500/20' :
-                      tx.type === 'sent' ? 'bg-red-500/20' : 'bg-purple-500/20'
-                    }`}>
-                      {tx.type === 'received' ? <ArrowDownLeft className="w-5 h-5 text-green-400" /> :
-                       tx.type === 'sent' ? <ArrowUpRight className="w-5 h-5 text-red-400" /> :
-                       <Zap className="w-5 h-5 text-purple-400" />}
+          {/* Earn More */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">Earn More CYBEV</h2>
+            <div className="space-y-3">
+              {EARN_OPTIONS.map((option, i) => (
+                <Link key={i} href={option.href}>
+                  <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${option.color}15` }}>
+                      <option.icon className="w-6 h-6" style={{ color: option.color }} />
                     </div>
-                    <div>
-                      <p className="text-white font-medium capitalize">{tx.type}</p>
-                      <p className="text-gray-400 text-sm">{tx.from || tx.to || 'Staking Pool'}</p>
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900">{option.label}</p>
+                      <p className="text-sm text-gray-500">{option.description}</p>
                     </div>
+                    <ChevronRight className="w-5 h-5 text-gray-400" />
                   </div>
-                  <div className="text-right">
-                    <p className={`font-bold ${
-                      tx.type === 'received' ? 'text-green-400' :
-                      tx.type === 'sent' ? 'text-red-400' : 'text-purple-400'
-                    }`}>
-                      {tx.type === 'sent' ? '-' : '+'}{tx.amount} CYBEV
-                    </p>
-                    <p className="text-gray-500 text-sm">{new Date(tx.date).toLocaleDateString()}</p>
-                  </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
-        )}
 
-        {activeTab === 'staking' && (
-          <div className="bg-black/40 backdrop-blur-xl rounded-xl border border-purple-500/20 p-8">
-            <div className="text-center max-w-md mx-auto">
-              <div className="w-20 h-20 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Zap className="w-10 h-10 text-purple-400" />
+          {/* Transactions */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-gray-100">
+              <h2 className="font-bold text-gray-900">Transaction History</h2>
+              <button className="text-purple-600 text-sm font-medium hover:underline">View All</button>
+            </div>
+            {transactions.length === 0 ? (
+              <div className="text-center py-12">
+                <Coins className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <h3 className="font-semibold text-gray-900 mb-2">No transactions yet</h3>
+                <p className="text-gray-500">Start creating content to earn CYBEV!</p>
               </div>
-              <h3 className="text-2xl font-bold text-white mb-3">Stake CYBEV Tokens</h3>
-              <p className="text-gray-400 mb-6">Earn up to 15% APY by staking your tokens. The longer you stake, the more you earn!</p>
-              
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                {[
-                  { period: '30 Days', apy: '5%' },
-                  { period: '90 Days', apy: '10%' },
-                  { period: '180 Days', apy: '15%' }
-                ].map((plan) => (
-                  <div key={plan.period} className="p-4 bg-gray-800/50 rounded-lg border border-purple-500/20">
-                    <p className="text-purple-400 font-bold text-lg">{plan.apy}</p>
-                    <p className="text-gray-400 text-sm">{plan.period}</p>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {transactions.slice(0, 10).map((tx, i) => (
+                  <div key={i} className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tx.type === 'credit' ? 'bg-green-100' : 'bg-red-100'}`}>
+                      {tx.type === 'credit' ? (
+                        <ArrowDownLeft className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <ArrowUpRight className="w-5 h-5 text-red-600" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">{tx.description || tx.type}</p>
+                      <p className="text-sm text-gray-500">{new Date(tx.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <p className={`font-bold ${tx.type === 'credit' ? 'text-green-600' : 'text-red-600'}`}>
+                      {tx.type === 'credit' ? '+' : '-'}{tx.amount} CYBEV
+                    </p>
                   </div>
                 ))}
               </div>
-              
-              <button className="w-full px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:opacity-90 transition-opacity">
-                Start Staking
-              </button>
-            </div>
+            )}
           </div>
-        )}
-
-        {activeTab === 'earnings' && (
-          <div className="bg-black/40 backdrop-blur-xl rounded-xl border border-purple-500/20 p-8">
-            <div className="text-center max-w-md mx-auto">
-              <div className="w-20 h-20 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Coins className="w-10 h-10 text-yellow-400" />
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-3">Earning Dashboard</h3>
-              <p className="text-gray-400 mb-6">Track your content earnings and rewards from the CYBEV platform.</p>
-              
-              <div className="grid grid-cols-3 gap-4">
-                {[
-                  { label: 'Views', value: '0', color: 'blue' },
-                  { label: 'Tips', value: '0', color: 'green' },
-                  { label: 'Subs', value: '0', color: 'purple' }
-                ].map((stat) => (
-                  <div key={stat.label} className="p-4 bg-gray-800/50 rounded-lg">
-                    <p className="text-2xl font-bold text-white">{stat.value}</p>
-                    <p className="text-gray-400 text-sm">{stat.label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     </AppLayout>
   );

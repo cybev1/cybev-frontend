@@ -138,7 +138,7 @@ function TopNavBar({ user }) {
           </button>
           <button onClick={() => router.push('/messages')} className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 relative" title="Messages">
             <MessageCircle className="w-5 h-5 text-gray-700" />
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">3</span>
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-gray-900 text-xs flex items-center justify-center">3</span>
           </button>
           <button onClick={() => router.push('/notifications')} className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200" title="Notifications">
             <Bell className="w-5 h-5 text-gray-700" />
@@ -159,11 +159,11 @@ function PostComposer({ user, onOpenAI }) {
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 p-4">
       <div className="flex items-center gap-3">
         <Link href={user?.username ? `/profile/${user.username}` : '/profile'}>
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-purple-300 transition">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-gray-900 font-bold overflow-hidden flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-purple-300 transition">
             {user?.profilePicture ? (
               <img src={user.profilePicture} alt="" className="w-full h-full object-cover" />
             ) : (
-              <span className="text-white">{user?.name?.[0] || 'U'}</span>
+              <span className="text-gray-900">{user?.name?.[0] || 'U'}</span>
             )}
           </div>
         </Link>
@@ -271,14 +271,14 @@ function VlogSection({ user }) {
               {user?.profilePicture ? (
                 <img src={user.profilePicture} alt="" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-white text-3xl font-bold">
+                <div className="w-full h-full flex items-center justify-center text-gray-900 text-3xl font-bold">
                   {user?.name?.[0] || 'P'}
                 </div>
               )}
             </div>
             <div className="h-1/4 flex flex-col items-center justify-center bg-white relative">
               <div className="absolute -top-4 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center border-4 border-white">
-                <Plus className="w-4 h-4 text-white" />
+                <Plus className="w-4 h-4 text-gray-900" />
               </div>
               <span className="text-xs font-semibold text-gray-900 mt-2">Create Vlog</span>
             </div>
@@ -314,7 +314,7 @@ function VlogSection({ user }) {
                     {story.user?.profilePicture || story.user?.avatar ? (
                       <img src={story.user.profilePicture || story.user.avatar} alt="" className="w-full h-full rounded-full object-cover" />
                     ) : (
-                      <div className={`w-full h-full rounded-full bg-gradient-to-br ${colors[(idx + 2) % colors.length]} flex items-center justify-center text-white text-xs font-bold`}>
+                      <div className={`w-full h-full rounded-full bg-gradient-to-br ${colors[(idx + 2) % colors.length]} flex items-center justify-center text-gray-900 text-xs font-bold`}>
                         {story.isPlaceholder ? '+' : (story.user?.name?.[0] || 'U')}
                       </div>
                     )}
@@ -326,14 +326,14 @@ function VlogSection({ user }) {
               {!story.isPlaceholder && (
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                   <div className="w-10 h-10 bg-white/30 backdrop-blur rounded-full flex items-center justify-center">
-                    <Play className="w-5 h-5 text-white fill-white" />
+                    <Play className="w-5 h-5 text-gray-900 fill-white" />
                   </div>
                 </div>
               )}
               
               {/* Name */}
               <div className="absolute bottom-2 left-2 right-2">
-                <p className="text-white text-xs font-semibold truncate drop-shadow">{story.user?.name || story.user?.username}</p>
+                <p className="text-gray-900 text-xs font-semibold truncate drop-shadow">{story.user?.name || story.user?.username}</p>
               </div>
             </div>
           </div>
@@ -440,7 +440,7 @@ function SuggestedFollows({ currentUserId }) {
                   {user.profilePicture || user.avatar ? (
                     <img src={user.profilePicture || user.avatar} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-white font-bold">{user.name?.[0] || 'U'}</span>
+                    <span className="text-gray-900 font-bold">{user.name?.[0] || 'U'}</span>
                   )}
                 </div>
                 <div>
@@ -455,7 +455,7 @@ function SuggestedFollows({ currentUserId }) {
               className={`px-3 py-1 text-xs font-semibold rounded-lg transition flex items-center gap-1 ${
                 followingStates[user._id]
                   ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  : 'bg-purple-600 text-white hover:bg-purple-700'
+                  : 'bg-purple-600 text-gray-900 hover:bg-purple-700'
               }`}
             >
               {followLoading[user._id] ? (
@@ -481,16 +481,16 @@ function AdCard({ position }) {
     <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200 mb-4 p-4">
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs text-gray-500 font-medium">Sponsored</span>
-        <button className="text-xs text-gray-400 hover:text-gray-600">×</button>
+        <button className="text-xs text-gray-500 hover:text-gray-600">×</button>
       </div>
       <div className="flex gap-4">
-        <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg flex items-center justify-center">
-          <Sparkles className="w-8 h-8 text-white" />
+        <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+          <Sparkles className="w-8 h-8 text-gray-900" />
         </div>
         <div className="flex-1">
           <h4 className="font-semibold text-gray-900">Advertise on CYBEV</h4>
           <p className="text-sm text-gray-600 mt-1">Reach millions of readers with your brand</p>
-          <button className="mt-2 px-4 py-1 bg-purple-600 text-white text-sm rounded-full hover:bg-purple-700">
+          <button className="mt-2 px-4 py-1 bg-purple-600 text-gray-900 text-sm rounded-full hover:bg-purple-700">
             Learn More
           </button>
         </div>
@@ -568,7 +568,7 @@ function CommentsModal({ isOpen, onClose, blogId }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-white rounded-xl w-full max-w-lg max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h3 className="text-lg font-bold text-gray-900">Comments</h3>
@@ -587,7 +587,7 @@ function CommentsModal({ isOpen, onClose, blogId }) {
           ) : (
             comments.map(comment => (
               <div key={comment._id} className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-gray-900 text-sm font-bold flex-shrink-0">
                   {comment.author?.name?.[0] || 'U'}
                 </div>
                 <div className="flex-1">
@@ -614,7 +614,7 @@ function CommentsModal({ isOpen, onClose, blogId }) {
               value={newComment}
               onChange={e => setNewComment(e.target.value)}
               placeholder="Write a comment..."
-              className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
             <button type="submit" disabled={submitting || !newComment.trim()}
               className="text-purple-600 font-semibold text-sm disabled:opacity-50">
@@ -885,11 +885,11 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
       {/* Header */}
       <div className="flex items-start justify-between p-4 pb-2">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-gray-900 font-bold overflow-hidden">
             {authorAvatar ? (
               <img src={authorAvatar} alt="" className="w-full h-full object-cover" />
             ) : (
-              <span className="text-white">{authorName[0]?.toUpperCase()}</span>
+              <span className="text-gray-900">{authorName[0]?.toUpperCase()}</span>
             )}
           </div>
           <div>
@@ -919,7 +919,7 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
               {isLivePost && (
                 <>
                   <span>·</span>
-                  <span className="px-1.5 py-0.5 bg-red-500 text-white rounded text-xs font-bold flex items-center gap-1">
+                  <span className="px-1.5 py-0.5 bg-red-500 text-gray-900 rounded text-xs font-bold flex items-center gap-1">
                     <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
                     LIVE
                   </span>
@@ -1006,7 +1006,7 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
         <div className="px-4 pb-3">
           <button
             onClick={() => router.push(`/live/${item.liveStreamId || item._id}`)}
-            className="w-full py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:from-red-600 hover:to-pink-600 transition"
+            className="w-full py-3 bg-gradient-to-r from-red-500 to-pink-500 text-gray-900 font-bold rounded-xl flex items-center justify-center gap-2 hover:from-red-600 hover:to-pink-600 transition"
           >
             <Radio className="w-5 h-5" />
             <span>Watch Live Now</span>
@@ -1119,13 +1119,13 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
               <div className="border-t border-gray-100 my-1"></div>
               
               <button onClick={() => handleShare('facebook')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
-                <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">f</span> Facebook
+                <span className="w-4 h-4 rounded-full bg-blue-600 text-gray-900 text-xs flex items-center justify-center font-bold">f</span> Facebook
               </button>
               <button onClick={() => handleShare('twitter')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
                 <span className="w-4 h-4 text-sky-500">𝕏</span> Twitter / X
               </button>
               <button onClick={() => handleShare('linkedin')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
-                <span className="w-4 h-4 rounded bg-blue-700 text-white text-xs flex items-center justify-center font-bold">in</span> LinkedIn
+                <span className="w-4 h-4 rounded bg-blue-700 text-gray-900 text-xs flex items-center justify-center font-bold">in</span> LinkedIn
               </button>
               <button onClick={() => handleShare('whatsapp')} className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
                 <span className="w-4 h-4 text-green-500">📱</span> WhatsApp
@@ -1208,7 +1208,7 @@ function ShareToTimelineModal({ isOpen, onClose, item, onSuccess }) {
   };
   
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-white rounded-xl w-full max-w-lg" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h3 className="text-lg font-bold text-gray-900">Share to Timeline</h3>
@@ -1222,14 +1222,14 @@ function ShareToTimelineModal({ isOpen, onClose, item, onSuccess }) {
             value={comment}
             onChange={e => setComment(e.target.value)}
             placeholder="Say something about this..."
-            className="w-full px-4 py-3 bg-gray-50 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+            className="w-full px-4 py-3 bg-gray-50 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
             rows={3}
           />
           
           {/* Post Preview */}
           <div className="mt-4 border border-gray-200 rounded-lg p-3 bg-gray-50">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-gray-900 text-sm font-bold">
                 {authorName[0]}
               </div>
               <span className="text-sm font-medium text-gray-900">{authorName}</span>
@@ -1262,7 +1262,7 @@ function ShareToTimelineModal({ isOpen, onClose, item, onSuccess }) {
           <button
             onClick={handleShare}
             disabled={sharing}
-            className="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
+            className="px-6 py-2 bg-purple-600 text-gray-900 rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
           >
             {sharing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
             Share Now
@@ -1283,7 +1283,7 @@ function AIBlogBuilderModal({ isOpen, onClose, onSuccess }) {
   
   // Redirect to new AI Website Builder instead
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-white rounded-xl w-full max-w-md p-6 text-center" onClick={e => e.stopPropagation()}>
         <Globe className="w-16 h-16 text-purple-600 mx-auto mb-4" />
         <h3 className="text-xl font-bold text-gray-900 mb-2">AI Website Builder</h3>
@@ -1294,7 +1294,7 @@ function AIBlogBuilderModal({ isOpen, onClose, onSuccess }) {
           </button>
           <button 
             onClick={() => { onClose(); router.push('/studio/sites/new'); }}
-            className="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+            className="px-6 py-2 bg-purple-600 text-gray-900 rounded-lg font-semibold hover:bg-purple-700"
           >
             Create Website
           </button>
@@ -1408,7 +1408,7 @@ export default function Feed() {
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No posts yet</h3>
               <p className="text-gray-500 mb-4">Be the first to share something!</p>
               <button onClick={() => router.push('/studio/sites/new')}
-                className="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700">
+                className="px-6 py-2 bg-purple-600 text-gray-900 rounded-lg font-semibold hover:bg-purple-700">
                 Create with AI
               </button>
             </div>
@@ -1442,7 +1442,7 @@ export default function Feed() {
             <button className="p-3 text-gray-500"><Users className="w-6 h-6" /></button>
           </Link>
           <button onClick={() => router.push('/studio')} className="p-3 bg-purple-600 rounded-full -mt-6 shadow-lg">
-            <Plus className="w-6 h-6 text-white" />
+            <Plus className="w-6 h-6 text-gray-900" />
           </button>
           <Link href="/studio">
             <button className="p-3 text-gray-500"><Building className="w-6 h-6" /></button>

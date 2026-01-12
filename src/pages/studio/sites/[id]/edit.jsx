@@ -141,7 +141,7 @@ function BlockRenderer({ block, isEditing, onUpdate }) {
     case 'hero':
       return (
         <div 
-          className="relative py-20 px-8 bg-gradient-to-br from-purple-600 to-indigo-700 text-white"
+          className="relative py-20 px-8 bg-gradient-to-br from-purple-600 to-indigo-700 text-gray-900"
           style={localContent.backgroundImage ? { 
             backgroundImage: `url(${localContent.backgroundImage})`,
             backgroundSize: 'cover',
@@ -211,7 +211,7 @@ function BlockRenderer({ block, isEditing, onUpdate }) {
               <img src={localContent.src} alt={localContent.alt} className="w-full rounded-xl shadow-lg" />
             ) : (
               <div className="aspect-video bg-gray-100 rounded-xl flex items-center justify-center">
-                <div className="text-center text-gray-400">
+                <div className="text-center text-gray-500">
                   <ImageIcon className="w-12 h-12 mx-auto mb-2" />
                   <p>Click to add image</p>
                 </div>
@@ -226,7 +226,7 @@ function BlockRenderer({ block, isEditing, onUpdate }) {
 
     case 'cta':
       return (
-        <div className="py-16 px-8 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+        <div className="py-16 px-8 bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900">
           <div className="max-w-4xl mx-auto text-center">
             {isEditing ? (
               <>
@@ -303,25 +303,25 @@ function BlockRenderer({ block, isEditing, onUpdate }) {
 
     case 'contact':
       return (
-        <div className="py-16 px-8 bg-gray-900 text-white">
+        <div className="py-16 px-8 bg-gray-50 text-gray-900">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-8">{localContent.title}</h2>
             <div className="flex flex-wrap justify-center gap-8">
               {localContent.email && (
                 <div className="flex items-center gap-2">
-                  <Mail className="w-5 h-5 text-purple-400" />
+                  <Mail className="w-5 h-5 text-purple-600" />
                   <span>{localContent.email}</span>
                 </div>
               )}
               {localContent.phone && (
                 <div className="flex items-center gap-2">
-                  <Phone className="w-5 h-5 text-purple-400" />
+                  <Phone className="w-5 h-5 text-purple-600" />
                   <span>{localContent.phone}</span>
                 </div>
               )}
               {localContent.address && (
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-purple-400" />
+                  <MapPin className="w-5 h-5 text-purple-600" />
                   <span>{localContent.address}</span>
                 </div>
               )}
@@ -332,12 +332,12 @@ function BlockRenderer({ block, isEditing, onUpdate }) {
 
     case 'footer':
       return (
-        <div className="py-8 px-8 bg-gray-900 text-white">
+        <div className="py-8 px-8 bg-gray-50 text-gray-900">
           <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4">
-            <p className="text-gray-400">{localContent.copyright}</p>
+            <p className="text-gray-500">{localContent.copyright}</p>
             <div className="flex gap-6">
               {localContent.links.map((link, idx) => (
-                <a key={idx} href={link.url} className="text-gray-400 hover:text-white transition">
+                <a key={idx} href={link.url} className="text-gray-500 hover:text-gray-900 transition">
                   {link.label}
                 </a>
               ))}
@@ -655,7 +655,7 @@ export default function SiteEditor() {
               <button
                 onClick={() => publishSite(true)}
                 disabled={publishing}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg flex items-center gap-2 hover:bg-green-700 disabled:opacity-50"
+                className="px-4 py-2 bg-green-600 text-gray-900 rounded-lg flex items-center gap-2 hover:bg-green-700 disabled:opacity-50"
               >
                 {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
                 Publish
@@ -726,12 +726,12 @@ export default function SiteEditor() {
             >
               {blocks.length === 0 ? (
                 <div className="p-20 text-center">
-                  <Layout className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-400 mb-2">No blocks yet</h3>
-                  <p className="text-gray-400 mb-6">Add blocks from the sidebar to start building</p>
+                  <Layout className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-500 mb-2">No blocks yet</h3>
+                  <p className="text-gray-500 mb-6">Add blocks from the sidebar to start building</p>
                   <button
                     onClick={() => addBlock('hero')}
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                    className="px-6 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700"
                   >
                     Add Hero Section
                   </button>
@@ -785,7 +785,7 @@ export default function SiteEditor() {
 
         {/* Settings Modal */}
         {showSettings && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto">
               <div className="p-6 border-b border-gray-200 flex items-center justify-between">
                 <h2 className="text-xl font-bold text-gray-900">Site Settings</h2>
@@ -847,7 +847,7 @@ export default function SiteEditor() {
                 </button>
                 <button
                   onClick={() => { saveSite(); setShowSettings(false); }}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                  className="px-4 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700"
                 >
                   Save Settings
                 </button>

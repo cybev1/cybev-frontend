@@ -63,7 +63,7 @@ export default function CreatePost() {
           <div>
             <label className="block text-sm mb-1">Text</label>
             <textarea
-              className="w-full px-3 py-3 rounded-xl bg-black/20 border border-white/10 min-h-[140px]"
+              className="w-full px-3 py-3 rounded-xl bg-gray-900/20 border border-gray-200 min-h-[140px]"
               placeholder="Share a testimony, insight, update, or announcement…"
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -73,7 +73,7 @@ export default function CreatePost() {
           <div>
             <label className="block text-sm mb-1">Image URL (optional)</label>
             <input
-              className="w-full px-3 py-2 rounded-xl bg-black/20 border border-white/10"
+              className="w-full px-3 py-2 rounded-xl bg-gray-900/20 border border-gray-200"
               placeholder="https://..."
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
@@ -83,7 +83,7 @@ export default function CreatePost() {
           <div>
             <label className="block text-sm mb-1">Video URL (optional)</label>
             <input
-              className="w-full px-3 py-2 rounded-xl bg-black/20 border border-white/10"
+              className="w-full px-3 py-2 rounded-xl bg-gray-900/20 border border-gray-200"
               placeholder="https://..."
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}

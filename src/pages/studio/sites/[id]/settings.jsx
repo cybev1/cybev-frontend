@@ -213,7 +213,7 @@ export default function SiteSettings() {
                 <button
                   onClick={saveSettings}
                   disabled={saving}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 bg-purple-600 text-gray-900 rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   Save Changes
@@ -433,7 +433,7 @@ export default function SiteSettings() {
                           <img src={settings.ogImage} alt="" className="w-full h-32 object-cover" />
                         ) : (
                           <div className="w-full h-32 bg-gray-100 flex items-center justify-center">
-                            <ImageIcon className="w-8 h-8 text-gray-300" />
+                            <ImageIcon className="w-8 h-8 text-gray-600" />
                           </div>
                         )}
                         <div className="p-3">
@@ -524,7 +524,7 @@ export default function SiteSettings() {
                       </div>
                       <button
                         onClick={() => setDeleteConfirm(true)}
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700"
+                        className="px-4 py-2 bg-red-600 text-gray-900 rounded-lg font-medium hover:bg-red-700"
                       >
                         Delete Site
                       </button>
@@ -539,7 +539,7 @@ export default function SiteSettings() {
 
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl w-full max-w-md p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
@@ -562,7 +562,7 @@ export default function SiteSettings() {
               <button
                 onClick={deleteSite}
                 disabled={deleting}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
+                className="px-4 py-2 bg-red-600 text-gray-900 rounded-lg font-medium hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
               >
                 {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                 Delete Forever

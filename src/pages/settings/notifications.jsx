@@ -310,7 +310,7 @@ export default function NotificationSettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-50">
         <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
       </div>
     );
@@ -322,16 +322,16 @@ export default function NotificationSettingsPage() {
         <title>Notification Settings | CYBEV</title>
       </Head>
 
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-50 pb-20">
         {/* Header */}
-        <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 z-10">
+        <div className="bg-white dark:bg-white border-b dark:border-gray-200 sticky top-0 z-10">
           <div className="max-w-2xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <button onClick={() => router.back()} className="text-gray-600 dark:text-gray-400">
+                <button onClick={() => router.back()} className="text-gray-600 dark:text-gray-500">
                   ←
                 </button>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <h1 className="text-xl font-bold text-gray-900 dark:text-gray-900 flex items-center gap-2">
                   <Bell className="w-5 h-5" />
                   Notifications
                 </h1>
@@ -339,7 +339,7 @@ export default function NotificationSettingsPage() {
               <button
                 onClick={saveSettings}
                 disabled={saving}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium disabled:opacity-50 flex items-center gap-2"
+                className="px-4 py-2 bg-purple-600 text-gray-900 rounded-lg font-medium disabled:opacity-50 flex items-center gap-2"
               >
                 {saving ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -359,7 +359,7 @@ export default function NotificationSettingsPage() {
                   className={`px-4 py-2 rounded-lg font-medium capitalize ${
                     activeTab === tab
                       ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      : 'text-gray-600 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-100'
                   }`}
                 >
                   {tab}
@@ -376,21 +376,21 @@ export default function NotificationSettingsPage() {
               {NOTIFICATION_CATEGORIES.map(category => (
                 <div 
                   key={category.id}
-                  className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 overflow-hidden"
+                  className="bg-white dark:bg-white rounded-xl border dark:border-gray-200 overflow-hidden"
                 >
-                  <div className="p-4 border-b dark:border-gray-700 flex items-center gap-3">
+                  <div className="p-4 border-b dark:border-gray-200 flex items-center gap-3">
                     <category.icon className={`w-5 h-5 ${category.color}`} />
-                    <h3 className="font-medium text-gray-900 dark:text-white">
+                    <h3 className="font-medium text-gray-900 dark:text-gray-900">
                       {category.label}
                     </h3>
                   </div>
-                  <div className="divide-y dark:divide-gray-700">
+                  <div className="divide-y dark:divide-gray-200">
                     {category.settings.map(setting => (
                       <div 
                         key={setting.key}
                         className="p-4 flex items-center justify-between"
                       >
-                        <span className="text-gray-700 dark:text-gray-300">
+                        <span className="text-gray-700 dark:text-gray-600">
                           {setting.label}
                         </span>
                         <button
@@ -419,14 +419,14 @@ export default function NotificationSettingsPage() {
           {activeTab === 'channels' && (
             <div className="space-y-4">
               {/* Push Notifications */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-4">
+              <div className="bg-white dark:bg-white rounded-xl border dark:border-gray-200 p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
                       <Smartphone className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">
+                      <h3 className="font-medium text-gray-900 dark:text-gray-900">
                         Push Notifications
                       </h3>
                       <p className="text-sm text-gray-500">
@@ -462,14 +462,14 @@ export default function NotificationSettingsPage() {
               </div>
 
               {/* Email Notifications */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-4">
+              <div className="bg-white dark:bg-white rounded-xl border dark:border-gray-200 p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
                       <Mail className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">
+                      <h3 className="font-medium text-gray-900 dark:text-gray-900">
                         Email Notifications
                       </h3>
                       <p className="text-sm text-gray-500">
@@ -491,14 +491,14 @@ export default function NotificationSettingsPage() {
               </div>
 
               {/* In-App Notifications */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-4">
+              <div className="bg-white dark:bg-white rounded-xl border dark:border-gray-200 p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
                       <Bell className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">
+                      <h3 className="font-medium text-gray-900 dark:text-gray-900">
                         In-App Notifications
                       </h3>
                       <p className="text-sm text-gray-500">
@@ -520,7 +520,7 @@ export default function NotificationSettingsPage() {
               </div>
 
               {/* Sound */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-4">
+              <div className="bg-white dark:bg-white rounded-xl border dark:border-gray-200 p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
@@ -531,7 +531,7 @@ export default function NotificationSettingsPage() {
                       )}
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">
+                      <h3 className="font-medium text-gray-900 dark:text-gray-900">
                         Notification Sounds
                       </h3>
                       <p className="text-sm text-gray-500">
@@ -558,12 +558,12 @@ export default function NotificationSettingsPage() {
           {activeTab === 'schedule' && (
             <div className="space-y-4">
               {/* Quiet Hours */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-4">
+              <div className="bg-white dark:bg-white rounded-xl border dark:border-gray-200 p-4">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <Moon className="w-5 h-5 text-indigo-500" />
                     <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">
+                      <h3 className="font-medium text-gray-900 dark:text-gray-900">
                         Quiet Hours
                       </h3>
                       <p className="text-sm text-gray-500">
@@ -587,9 +587,9 @@ export default function NotificationSettingsPage() {
                 </div>
 
                 {settings.quietHours.enabled && (
-                  <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t dark:border-gray-700">
+                  <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t dark:border-gray-200">
                     <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      <label className="block text-sm text-gray-600 dark:text-gray-500 mb-1">
                         Start Time
                       </label>
                       <input
@@ -599,11 +599,11 @@ export default function NotificationSettingsPage() {
                           ...prev,
                           quietHours: { ...prev.quietHours, start: e.target.value }
                         }))}
-                        className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      <label className="block text-sm text-gray-600 dark:text-gray-500 mb-1">
                         End Time
                       </label>
                       <input
@@ -613,7 +613,7 @@ export default function NotificationSettingsPage() {
                           ...prev,
                           quietHours: { ...prev.quietHours, end: e.target.value }
                         }))}
-                        className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                       />
                     </div>
                   </div>
@@ -621,12 +621,12 @@ export default function NotificationSettingsPage() {
               </div>
 
               {/* Email Digest */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 p-4">
+              <div className="bg-white dark:bg-white rounded-xl border dark:border-gray-200 p-4">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <Clock className="w-5 h-5 text-blue-500" />
                     <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">
+                      <h3 className="font-medium text-gray-900 dark:text-gray-900">
                         Email Digest
                       </h3>
                       <p className="text-sm text-gray-500">
@@ -650,9 +650,9 @@ export default function NotificationSettingsPage() {
                 </div>
 
                 {settings.digest.enabled && (
-                  <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t dark:border-gray-700">
+                  <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t dark:border-gray-200">
                     <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      <label className="block text-sm text-gray-600 dark:text-gray-500 mb-1">
                         Frequency
                       </label>
                       <select
@@ -661,14 +661,14 @@ export default function NotificationSettingsPage() {
                           ...prev,
                           digest: { ...prev.digest, frequency: e.target.value }
                         }))}
-                        className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                       >
                         <option value="daily">Daily</option>
                         <option value="weekly">Weekly</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      <label className="block text-sm text-gray-600 dark:text-gray-500 mb-1">
                         Delivery Time
                       </label>
                       <input
@@ -678,7 +678,7 @@ export default function NotificationSettingsPage() {
                           ...prev,
                           digest: { ...prev.digest, time: e.target.value }
                         }))}
-                        className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                       />
                     </div>
                   </div>

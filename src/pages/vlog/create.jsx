@@ -159,18 +159,18 @@ export default function CreateVlogPage() {
         <title>Create Vlog | CYBEV</title>
       </Head>
 
-      <div className="min-h-screen bg-gray-900">
+      <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <header className="sticky top-0 z-50 bg-gray-900/95 backdrop-blur border-b border-gray-800 px-4 py-3">
+        <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200 px-4 py-3">
           <div className="max-w-lg mx-auto flex items-center justify-between">
-            <button onClick={() => router.back()} className="p-2 text-white hover:bg-gray-800 rounded-full">
+            <button onClick={() => router.back()} className="p-2 text-gray-900 hover:bg-white rounded-full">
               <ArrowLeft className="w-6 h-6" />
             </button>
-            <h1 className="text-lg font-bold text-white">Create Vlog</h1>
+            <h1 className="text-lg font-bold text-gray-900">Create Vlog</h1>
             <button
               onClick={handleUpload}
               disabled={!videoFile || uploading}
-              className="px-4 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-purple-600 text-gray-900 font-semibold rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {uploading ? 'Posting...' : 'Post'}
             </button>
@@ -179,7 +179,7 @@ export default function CreateVlogPage() {
 
         <main className="max-w-lg mx-auto px-4 py-6">
           {/* Video Preview / Upload Area */}
-          <div className="aspect-[9/16] rounded-2xl overflow-hidden mb-6 relative bg-gray-800">
+          <div className="aspect-[9/16] rounded-2xl overflow-hidden mb-6 relative bg-white">
             {videoPreview ? (
               <>
                 <video
@@ -192,7 +192,7 @@ export default function CreateVlogPage() {
                 />
                 <button
                   onClick={removeVideo}
-                  className="absolute top-4 right-4 p-2 bg-black/50 rounded-full text-white hover:bg-black/70"
+                  className="absolute top-4 right-4 p-2 bg-gray-900/50 rounded-full text-gray-900 hover:bg-gray-900/70"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -203,9 +203,9 @@ export default function CreateVlogPage() {
                 className={`w-full h-full flex flex-col items-center justify-center cursor-pointer bg-gradient-to-br ${gradients[0]} hover:opacity-90 transition-opacity`}
               >
                 <div className="w-20 h-20 bg-white/20 backdrop-blur rounded-full flex items-center justify-center mb-4">
-                  <Video className="w-10 h-10 text-white" />
+                  <Video className="w-10 h-10 text-gray-900" />
                 </div>
-                <p className="text-white font-semibold text-lg">Upload Video</p>
+                <p className="text-gray-900 font-semibold text-lg">Upload Video</p>
                 <p className="text-white/70 text-sm mt-1">Tap to select a video</p>
                 <p className="text-white/50 text-xs mt-4">Max 100MB · MP4, MOV, WebM</p>
               </div>
@@ -213,9 +213,9 @@ export default function CreateVlogPage() {
 
             {/* Upload Progress */}
             {uploading && (
-              <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center">
+              <div className="absolute inset-0 bg-gray-900/70 flex flex-col items-center justify-center">
                 <Loader2 className="w-12 h-12 text-purple-500 animate-spin mb-4" />
-                <p className="text-white font-semibold">Uploading... {uploadProgress}%</p>
+                <p className="text-gray-900 font-semibold">Uploading... {uploadProgress}%</p>
                 <div className="w-48 h-2 bg-gray-700 rounded-full mt-2 overflow-hidden">
                   <div
                     className="h-full bg-purple-500 transition-all duration-300"
@@ -235,12 +235,12 @@ export default function CreateVlogPage() {
           />
 
           {/* Caption */}
-          <div className="bg-gray-800 rounded-xl p-4 mb-4">
+          <div className="bg-white rounded-xl p-4 mb-4">
             <textarea
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
               placeholder="Write a caption..."
-              className="w-full bg-transparent text-white placeholder-gray-500 resize-none focus:outline-none"
+              className="w-full bg-transparent text-gray-900 placeholder-gray-400 resize-none focus:outline-none"
               rows={3}
               maxLength={500}
             />
@@ -250,8 +250,8 @@ export default function CreateVlogPage() {
           </div>
 
           {/* Hashtags */}
-          <div className="bg-gray-800 rounded-xl p-4 mb-4">
-            <div className="flex items-center gap-2 text-gray-400 mb-2">
+          <div className="bg-white rounded-xl p-4 mb-4">
+            <div className="flex items-center gap-2 text-gray-500 mb-2">
               <Hash className="w-4 h-4" />
               <span className="text-sm">Hashtags</span>
             </div>
@@ -260,15 +260,15 @@ export default function CreateVlogPage() {
               value={hashtags}
               onChange={(e) => setHashtags(e.target.value)}
               placeholder="trending, viral, fyp (comma separated)"
-              className="w-full bg-transparent text-white placeholder-gray-500 focus:outline-none"
+              className="w-full bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none"
             />
           </div>
 
           {/* Settings */}
-          <div className="bg-gray-800 rounded-xl p-4 space-y-4">
+          <div className="bg-white rounded-xl p-4 space-y-4">
             {/* Visibility */}
             <div>
-              <label className="text-gray-400 text-sm mb-2 block">Who can see this?</label>
+              <label className="text-gray-500 text-sm mb-2 block">Who can see this?</label>
               <div className="flex gap-2">
                 {[
                   { value: 'public', label: 'Public', icon: Globe },
@@ -281,7 +281,7 @@ export default function CreateVlogPage() {
                     className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition ${
                       visibility === option.value
                         ? 'bg-purple-600 text-white'
-                        : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                        : 'bg-gray-700 text-gray-500 hover:bg-gray-600'
                     }`}
                   >
                     <option.icon className="w-4 h-4" />
@@ -294,7 +294,7 @@ export default function CreateVlogPage() {
             {/* Story Toggle */}
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white font-medium">Story Mode</p>
+                <p className="text-gray-900 font-medium">Story Mode</p>
                 <p className="text-gray-500 text-xs">Disappears after 24 hours</p>
               </div>
               <button
@@ -316,14 +316,14 @@ export default function CreateVlogPage() {
           <div className="mt-6 grid grid-cols-2 gap-3">
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center justify-center gap-2 py-3 bg-gray-800 text-white rounded-xl hover:bg-gray-700"
+              className="flex items-center justify-center gap-2 py-3 bg-white text-gray-900 rounded-xl hover:bg-gray-100"
             >
               <Upload className="w-5 h-5" />
               Upload
             </button>
             <button
               onClick={() => toast.info('Camera coming soon!')}
-              className="flex items-center justify-center gap-2 py-3 bg-gray-800 text-white rounded-xl hover:bg-gray-700"
+              className="flex items-center justify-center gap-2 py-3 bg-white text-gray-900 rounded-xl hover:bg-gray-100"
             >
               <Camera className="w-5 h-5" />
               Record

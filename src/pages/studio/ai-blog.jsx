@@ -330,7 +330,7 @@ export default function AIBlogGenerator() {
       
       return (
         <div key={category}>
-          <p className="text-purple-300 text-sm mb-2 capitalize">{category}</p>
+          <p className="text-purple-600 text-sm mb-2 capitalize">{category}</p>
           <div className="flex flex-wrap gap-2">
             {tagsArray.map((tag, idx) => (
               <span key={idx} className="px-3 py-1 bg-pink-500/20 text-pink-300 rounded-full text-sm">
@@ -347,11 +347,11 @@ export default function AIBlogGenerator() {
   const renderKeywords = () => {
     const keywords = generatedBlog?.seo?.keywords;
     if (!Array.isArray(keywords) || keywords.length === 0) {
-      return <span className="text-purple-400 text-sm">No keywords generated</span>;
+      return <span className="text-purple-600 text-sm">No keywords generated</span>;
     }
     
     return keywords.slice(0, 8).map((keyword, idx) => (
-      <span key={idx} className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-xs">
+      <span key={idx} className="px-3 py-1 bg-purple-500/20 text-purple-600 rounded-full text-xs">
         {keyword}
       </span>
     ));
@@ -380,7 +380,7 @@ export default function AIBlogGenerator() {
               className="inline-block mb-4"
             >
               <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-3xl flex items-center justify-center shadow-2xl">
-                <Wand2 className="w-10 h-10 text-white" />
+                <Wand2 className="w-10 h-10 text-gray-900" />
               </div>
             </motion.div>
             
@@ -401,7 +401,7 @@ export default function AIBlogGenerator() {
                     scale: step >= num ? 1.2 : 1,
                     backgroundColor: step >= num ? '#A855F7' : '#374151'
                   }}
-                  className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white ${
+                  className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-gray-900 ${
                     step === num ? 'ring-4 ring-purple-500/30' : ''
                   }`}
                 >
@@ -418,7 +418,7 @@ export default function AIBlogGenerator() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white/10 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/20 p-8 md:p-12"
+            className="bg-white/10 backdrop-blur-2xl rounded-3xl shadow-2xl border border-gray-200 p-8 md:p-12"
           >
             <AnimatePresence mode="wait">
               {/* Step 1: Topic & Niche */}
@@ -429,12 +429,12 @@ export default function AIBlogGenerator() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -50 }}
                 >
-                  <h2 className="text-3xl font-bold text-white mb-3">What's your blog about?</h2>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-3">What's your blog about?</h2>
                   <p className="text-purple-200 mb-8">Tell us your topic and choose a niche</p>
 
                   <div className="space-y-6">
                     <div>
-                      <label className="block text-white font-semibold mb-2">
+                      <label className="block text-gray-900 font-semibold mb-2">
                         Blog Topic *
                       </label>
                       <input
@@ -442,15 +442,15 @@ export default function AIBlogGenerator() {
                         value={formData.topic}
                         onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
                         placeholder="e.g., The Future of AI in Content Creation"
-                        className="w-full px-6 py-4 bg-white/10 border-2 border-white/20 rounded-2xl text-white placeholder-purple-300 focus:border-purple-500 focus:outline-none"
+                        className="w-full px-6 py-4 bg-white/10 border-2 border-gray-200 rounded-2xl text-gray-900 placeholder-purple-300 focus:border-purple-500 focus:outline-none"
                         autoFocus
                       />
                     </div>
 
                     <div>
-                      <label className="block text-white font-semibold mb-2 flex items-center gap-2">
+                      <label className="block text-gray-900 font-semibold mb-2 flex items-center gap-2">
                         Brief Description (Optional)
-                        <span className="text-purple-300 text-sm font-normal">
+                        <span className="text-purple-600 text-sm font-normal">
                           - Helps AI write more relevant content
                         </span>
                       </label>
@@ -458,10 +458,10 @@ export default function AIBlogGenerator() {
                         value={formData.description || ''}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         placeholder="e.g., This article explores how AI is transforming content creation, focusing on automated writing tools..."
-                        className="w-full px-6 py-4 rounded-2xl bg-white/10 border-2 border-white/20 text-white placeholder-purple-300 focus:border-purple-500 focus:outline-none resize-none min-h-[120px]"
+                        className="w-full px-6 py-4 rounded-2xl bg-white/10 border-2 border-gray-200 text-gray-900 placeholder-purple-300 focus:border-purple-500 focus:outline-none resize-none min-h-[120px]"
                         maxLength={500}
                       />
-                      <p className="text-purple-300 text-sm mt-2 flex items-center justify-between">
+                      <p className="text-purple-600 text-sm mt-2 flex items-center justify-between">
                         <span>💡 Add context to help AI understand your vision</span>
                         {/* FIXED: Safe access to description.length */}
                         <span>{500 - (formData.description?.length || 0)} characters</span>
@@ -469,9 +469,9 @@ export default function AIBlogGenerator() {
                     </div>
 
                     <div>
-                      <label className="block text-white font-semibold mb-2 flex items-center gap-2">
+                      <label className="block text-gray-900 font-semibold mb-2 flex items-center gap-2">
                         Featured Image (Optional)
-                        <span className="text-purple-300 text-sm font-normal">
+                        <span className="text-purple-600 text-sm font-normal">
                           - Or let AI generate one
                         </span>
                       </label>
@@ -483,14 +483,14 @@ export default function AIBlogGenerator() {
                         >
                           <div className="text-center">
                             {uploading ? (
-                              <Loader2 className="w-12 h-12 mx-auto mb-4 text-purple-400 animate-spin" />
+                              <Loader2 className="w-12 h-12 mx-auto mb-4 text-purple-600 animate-spin" />
                             ) : (
-                              <Upload className="w-12 h-12 mx-auto mb-4 text-purple-400" />
+                              <Upload className="w-12 h-12 mx-auto mb-4 text-purple-600" />
                             )}
-                            <p className="text-white font-semibold mb-2">
+                            <p className="text-gray-900 font-semibold mb-2">
                               {uploading ? 'Uploading...' : 'Click to upload featured image'}
                             </p>
-                            <p className="text-purple-300 text-sm">
+                            <p className="text-purple-600 text-sm">
                               PNG, JPG up to 10MB
                             </p>
                           </div>
@@ -504,12 +504,12 @@ export default function AIBlogGenerator() {
                           />
                           <button
                             onClick={removeImage}
-                            className="absolute top-4 right-4 p-2 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute top-4 right-4 p-2 bg-red-600 text-gray-900 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                           >
                             <X className="w-5 h-5" />
                           </button>
                           {formData.featuredImage && (
-                            <div className="absolute top-4 left-4 px-3 py-1 bg-green-500 text-white rounded-full text-sm font-semibold flex items-center gap-2">
+                            <div className="absolute top-4 left-4 px-3 py-1 bg-green-500 text-gray-900 rounded-full text-sm font-semibold flex items-center gap-2">
                               <Check className="w-4 h-4" />
                               Uploaded
                             </div>
@@ -526,14 +526,14 @@ export default function AIBlogGenerator() {
                       />
 
                       {!formData.featuredImage && (
-                        <p className="text-purple-300 text-sm mt-2">
+                        <p className="text-purple-600 text-sm mt-2">
                           📸 Leave empty to let AI generate a perfect image for your blog
                         </p>
                       )}
                     </div>
 
                     <div>
-                      <label className="block text-white font-semibold mb-3">Choose Niche</label>
+                      <label className="block text-gray-900 font-semibold mb-3">Choose Niche</label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {/* FIXED: niches is always an array */}
                         {(niches || []).map((niche) => (
@@ -545,11 +545,11 @@ export default function AIBlogGenerator() {
                             className={`p-4 rounded-xl border-2 transition-all ${
                               formData.niche === niche.id
                                 ? 'border-purple-500 bg-purple-500/20'
-                                : 'border-white/20 bg-white/5 hover:border-purple-500/50'
+                                : 'border-gray-200 bg-white/5 hover:border-purple-500/50'
                             }`}
                           >
                             <div className="text-3xl mb-2">{niche.icon}</div>
-                            <div className="text-white text-sm font-semibold">{niche.label}</div>
+                            <div className="text-gray-900 text-sm font-semibold">{niche.label}</div>
                           </motion.button>
                         ))}
                       </div>
@@ -566,12 +566,12 @@ export default function AIBlogGenerator() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -50 }}
                 >
-                  <h2 className="text-3xl font-bold text-white mb-3">Choose your style</h2>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-3">Choose your style</h2>
                   <p className="text-purple-200 mb-8">Select tone and length</p>
 
                   <div className="space-y-8">
                     <div>
-                      <h3 className="text-white font-semibold mb-4">Tone</h3>
+                      <h3 className="text-gray-900 font-semibold mb-4">Tone</h3>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {/* FIXED: tones is always an array */}
                         {(tones || []).map((tone) => (
@@ -582,10 +582,10 @@ export default function AIBlogGenerator() {
                             className={`p-4 rounded-xl border-2 transition-all ${
                               formData.tone === tone.id
                                 ? 'border-purple-500 bg-purple-500/20'
-                                : 'border-white/20 bg-white/5'
+                                : 'border-gray-200 bg-white/5'
                             }`}
                           >
-                            <div className="text-white font-bold mb-1">{tone.label}</div>
+                            <div className="text-gray-900 font-bold mb-1">{tone.label}</div>
                             <div className="text-purple-200 text-xs">{tone.desc}</div>
                           </motion.button>
                         ))}
@@ -593,7 +593,7 @@ export default function AIBlogGenerator() {
                     </div>
 
                     <div>
-                      <h3 className="text-white font-semibold mb-4">Length</h3>
+                      <h3 className="text-gray-900 font-semibold mb-4">Length</h3>
                       <div className="grid grid-cols-3 gap-4">
                         {/* FIXED: lengths is always an array */}
                         {(lengths || []).map((length) => (
@@ -604,12 +604,12 @@ export default function AIBlogGenerator() {
                             className={`p-6 rounded-xl border-2 transition-all ${
                               formData.length === length.id
                                 ? 'border-purple-500 bg-purple-500/20'
-                                : 'border-white/20 bg-white/5'
+                                : 'border-gray-200 bg-white/5'
                             }`}
                           >
-                            <div className="text-white font-bold text-lg mb-1">{length.label}</div>
+                            <div className="text-gray-900 font-bold text-lg mb-1">{length.label}</div>
                             <div className="text-purple-200 text-sm">{length.words}</div>
-                            <div className="text-purple-300 text-xs mt-1">{length.time}</div>
+                            <div className="text-purple-600 text-xs mt-1">{length.time}</div>
                           </motion.button>
                         ))}
                       </div>
@@ -636,56 +636,56 @@ export default function AIBlogGenerator() {
                       <Check className="w-5 h-5 text-green-400" />
                       <span className="text-green-300 font-semibold">Blog Created Successfully!</span>
                     </motion.div>
-                    <h2 className="text-3xl font-bold text-white mb-2">{generatedBlog.title || 'Untitled'}</h2>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">{generatedBlog.title || 'Untitled'}</h2>
                     <p className="text-purple-200">{generatedBlog.summary || ''}</p>
                   </div>
 
                   {/* Stats Grid */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <div className="bg-white/5 rounded-xl p-4 border border-gray-200">
                       <Eye className="w-5 h-5 text-blue-400 mb-2" />
-                      <p className="text-white font-bold">{generatedBlog.readTime || '5 min'}</p>
+                      <p className="text-gray-900 font-bold">{generatedBlog.readTime || '5 min'}</p>
                       <p className="text-purple-200 text-xs">Read Time</p>
                     </div>
-                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <div className="bg-white/5 rounded-xl p-4 border border-gray-200">
                       <TrendingUp className="w-5 h-5 text-green-400 mb-2" />
-                      <p className="text-white font-bold">{generatedBlog.viralityScore || 0}/100</p>
+                      <p className="text-gray-900 font-bold">{generatedBlog.viralityScore || 0}/100</p>
                       <p className="text-purple-200 text-xs">Virality</p>
                     </div>
-                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <div className="bg-white/5 rounded-xl p-4 border border-gray-200">
                       <Coins className="w-5 h-5 text-yellow-400 mb-2" />
-                      <p className="text-white font-bold">{generatedBlog.initialTokens || 0}</p>
+                      <p className="text-gray-900 font-bold">{generatedBlog.initialTokens || 0}</p>
                       <p className="text-purple-200 text-xs">Tokens Earned</p>
                     </div>
-                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                      <Hash className="w-5 h-5 text-pink-400 mb-2" />
+                    <div className="bg-white/5 rounded-xl p-4 border border-gray-200">
+                      <Hash className="w-5 h-5 text-pink-600 mb-2" />
                       {/* FIXED: Safe hashtag count */}
-                      <p className="text-white font-bold">{getHashtagCount()}</p>
+                      <p className="text-gray-900 font-bold">{getHashtagCount()}</p>
                       <p className="text-purple-200 text-xs">Hashtags</p>
                     </div>
                   </div>
 
                   {/* SEO Preview */}
-                  <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                    <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                  <div className="bg-white/5 rounded-xl p-6 border border-gray-200">
+                    <h3 className="text-gray-900 font-bold mb-4 flex items-center gap-2">
                       <Sparkles className="w-5 h-5 text-yellow-400" />
                       SEO Optimization
                     </h3>
                     <div className="space-y-3">
                       <div>
-                        <p className="text-purple-300 text-sm mb-1">SEO Title</p>
-                        <p className="text-white">{generatedBlog.seo?.title || generatedBlog.title || 'N/A'}</p>
+                        <p className="text-purple-600 text-sm mb-1">SEO Title</p>
+                        <p className="text-gray-900">{generatedBlog.seo?.title || generatedBlog.title || 'N/A'}</p>
                       </div>
                       <div>
-                        <p className="text-purple-300 text-sm mb-1">Description</p>
-                        <p className="text-white text-sm">{generatedBlog.seo?.description || generatedBlog.summary || 'N/A'}</p>
+                        <p className="text-purple-600 text-sm mb-1">Description</p>
+                        <p className="text-gray-900 text-sm">{generatedBlog.seo?.description || generatedBlog.summary || 'N/A'}</p>
                       </div>
                       <div>
-                        <p className="text-purple-300 text-sm mb-1">URL Slug</p>
+                        <p className="text-purple-600 text-sm mb-1">URL Slug</p>
                         <p className="text-blue-400 font-mono text-sm">{generatedBlog.seo?.slug || 'N/A'}</p>
                       </div>
                       <div>
-                        <p className="text-purple-300 text-sm mb-1">Keywords</p>
+                        <p className="text-purple-600 text-sm mb-1">Keywords</p>
                         <div className="flex flex-wrap gap-2 mt-2">
                           {/* FIXED: Safe keywords rendering */}
                           {renderKeywords()}
@@ -696,8 +696,8 @@ export default function AIBlogGenerator() {
 
                   {/* Featured Image */}
                   {generatedBlog.featuredImage && (
-                    <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                      <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                    <div className="bg-white/5 rounded-xl p-6 border border-gray-200">
+                      <h3 className="text-gray-900 font-bold mb-4 flex items-center gap-2">
                         <ImageIcon className="w-5 h-5 text-cyan-400" />
                         Featured Image
                       </h3>
@@ -716,9 +716,9 @@ export default function AIBlogGenerator() {
 
                   {/* Hashtags */}
                   {generatedBlog.hashtags && Object.keys(generatedBlog.hashtags).length > 0 && (
-                    <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                      <h3 className="text-white font-bold mb-4 flex items-center gap-2">
-                        <Tag className="w-5 h-5 text-pink-400" />
+                    <div className="bg-white/5 rounded-xl p-6 border border-gray-200">
+                      <h3 className="text-gray-900 font-bold mb-4 flex items-center gap-2">
+                        <Tag className="w-5 h-5 text-pink-600" />
                         Viral Hashtags
                       </h3>
                       <div className="space-y-3">
@@ -729,8 +729,8 @@ export default function AIBlogGenerator() {
                   )}
 
                   {/* Content Preview */}
-                  <div className="bg-white/5 rounded-xl p-6 border border-white/10 max-h-96 overflow-y-auto">
-                    <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                  <div className="bg-white/5 rounded-xl p-6 border border-gray-200 max-h-96 overflow-y-auto">
+                    <h3 className="text-gray-900 font-bold mb-4 flex items-center gap-2">
                       <FileText className="w-5 h-5 text-green-400" />
                       Content Preview
                     </h3>
@@ -749,7 +749,7 @@ export default function AIBlogGenerator() {
                 <motion.button
                   whileHover={{ scale: 1.05, x: -5 }}
                   onClick={() => setStep(step - 1)}
-                  className="flex items-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold"
+                  className="flex items-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 text-gray-900 rounded-xl font-semibold"
                 >
                   <ArrowLeft className="w-5 h-5" />
                   Back
@@ -761,7 +761,7 @@ export default function AIBlogGenerator() {
                   whileHover={{ scale: 1.05, x: 5 }}
                   onClick={() => setStep(2)}
                   disabled={!formData.topic}
-                  className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold ml-auto disabled:opacity-50"
+                  className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-xl font-semibold ml-auto disabled:opacity-50"
                 >
                   Next
                   <ArrowRight className="w-5 h-5" />
@@ -773,7 +773,7 @@ export default function AIBlogGenerator() {
                   whileHover={{ scale: 1.05 }}
                   onClick={handleGenerate}
                   disabled={generating}
-                  className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold text-lg ml-auto disabled:opacity-50"
+                  className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-xl font-bold text-lg ml-auto disabled:opacity-50"
                 >
                   {generating ? (
                     <>
@@ -797,14 +797,14 @@ export default function AIBlogGenerator() {
                       setStep(1);
                       setGeneratedBlog(null);
                     }}
-                    className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold"
+                    className="px-8 py-4 bg-white/10 hover:bg-white/20 text-gray-900 rounded-xl font-semibold"
                   >
                     Create Another
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     onClick={handlePublish}
-                    className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold"
+                    className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-gray-900 rounded-xl font-bold"
                   >
                     <Rocket className="w-5 h-5" />
                     Publish Blog
@@ -821,22 +821,22 @@ export default function AIBlogGenerator() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50"
+                className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center z-50"
               >
                 <motion.div
                   initial={{ scale: 0.8 }}
                   animate={{ scale: 1 }}
-                  className="bg-gradient-to-br from-purple-600/20 to-pink-600/20 backdrop-blur-xl rounded-3xl p-12 border border-purple-500/30 text-center max-w-md"
+                  className="bg-gradient-to-br from-purple-600/20 to-pink-600/20 backdrop-blur-xl rounded-3xl p-12 border border-gray-200 text-center max-w-md"
                 >
                   <motion.div
                     animate={{ rotate: 360, scale: [1, 1.2, 1] }}
                     transition={{ rotate: { duration: 2, repeat: Infinity, ease: "linear" }, scale: { duration: 1, repeat: Infinity } }}
                     className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center"
                   >
-                    <Sparkles className="w-10 h-10 text-white" />
+                    <Sparkles className="w-10 h-10 text-gray-900" />
                   </motion.div>
                   
-                  <h3 className="text-2xl font-bold text-white mb-4">Creating Your Blog...</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Creating Your Blog...</h3>
                   <p className="text-purple-200 mb-6">AI is generating SEO-optimized content with images and hashtags</p>
                   
                   <div className="space-y-3">
@@ -846,7 +846,7 @@ export default function AIBlogGenerator() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.5 }}
-                        className="flex items-center gap-3 text-white"
+                        className="flex items-center gap-3 text-gray-900"
                       >
                         <Check className="w-5 h-5 text-green-400" />
                         {text}

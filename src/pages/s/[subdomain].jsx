@@ -28,7 +28,7 @@ const iconMap = {
 function HeroBlock({ content, theme }) {
   return (
     <div 
-      className="relative min-h-[70vh] flex items-center justify-center text-white"
+      className="relative min-h-[70vh] flex items-center justify-center text-gray-900"
       style={{
         backgroundImage: content.backgroundImage 
           ? `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${content.backgroundImage})`
@@ -123,7 +123,7 @@ function TestimonialsBlock({ content, theme }) {
 function CtaBlock({ content, theme }) {
   return (
     <div 
-      className="py-20 px-6 text-white"
+      className="py-20 px-6 text-gray-900"
       style={{ background: `linear-gradient(135deg, ${theme?.colors?.primary || '#7c3aed'}, ${theme?.colors?.secondary || '#ec4899'})` }}
     >
       <div className="max-w-4xl mx-auto text-center">
@@ -139,7 +139,7 @@ function CtaBlock({ content, theme }) {
 
 function ContactBlock({ content, theme }) {
   return (
-    <div id="contact" className="py-20 px-6 bg-gray-900 text-white">
+    <div id="contact" className="py-20 px-6 bg-gray-50 text-gray-900">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">{content.title || 'Get in Touch'}</h2>
         <div className="grid md:grid-cols-3 gap-8 text-center">
@@ -175,27 +175,27 @@ function ContactBlock({ content, theme }) {
 
 function FooterBlock({ content, theme }) {
   return (
-    <footer className="py-12 px-6 bg-gray-900 text-white border-t border-gray-800">
+    <footer className="py-12 px-6 bg-gray-50 text-gray-900 border-t border-gray-200">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="text-lg font-bold">{content.logo || content.copyright?.split('.')[0]}</div>
           <div className="flex gap-6">
             {content.links?.map((link, idx) => (
-              <a key={idx} href={link.url} className="text-gray-400 hover:text-white transition">
+              <a key={idx} href={link.url} className="text-gray-500 hover:text-gray-900 transition">
                 {link.label}
               </a>
             ))}
           </div>
           <div className="flex gap-4">
-            {content.social?.twitter && <a href={content.social.twitter} className="text-gray-400 hover:text-white"><Twitter className="w-5 h-5" /></a>}
-            {content.social?.facebook && <a href={content.social.facebook} className="text-gray-400 hover:text-white"><Facebook className="w-5 h-5" /></a>}
-            {content.social?.instagram && <a href={content.social.instagram} className="text-gray-400 hover:text-white"><Instagram className="w-5 h-5" /></a>}
-            {content.social?.linkedin && <a href={content.social.linkedin} className="text-gray-400 hover:text-white"><Linkedin className="w-5 h-5" /></a>}
+            {content.social?.twitter && <a href={content.social.twitter} className="text-gray-500 hover:text-gray-900"><Twitter className="w-5 h-5" /></a>}
+            {content.social?.facebook && <a href={content.social.facebook} className="text-gray-500 hover:text-gray-900"><Facebook className="w-5 h-5" /></a>}
+            {content.social?.instagram && <a href={content.social.instagram} className="text-gray-500 hover:text-gray-900"><Instagram className="w-5 h-5" /></a>}
+            {content.social?.linkedin && <a href={content.social.linkedin} className="text-gray-500 hover:text-gray-900"><Linkedin className="w-5 h-5" /></a>}
           </div>
         </div>
-        <div className="mt-8 pt-8 border-t border-gray-800 text-center text-gray-500">
+        <div className="mt-8 pt-8 border-t border-gray-200 text-center text-gray-500">
           <p>{content.copyright}</p>
-          <p className="mt-2 text-sm">Powered by <a href="https://cybev.io" className="text-purple-400 hover:underline">CYBEV</a></p>
+          <p className="mt-2 text-sm">Powered by <a href="https://cybev.io" className="text-purple-600 hover:underline">CYBEV</a></p>
         </div>
       </div>
     </footer>
@@ -205,7 +205,7 @@ function FooterBlock({ content, theme }) {
 function StatsBlock({ content, theme }) {
   return (
     <div 
-      className="py-16 px-6 text-white"
+      className="py-16 px-6 text-gray-900"
       style={{ background: `linear-gradient(135deg, ${theme?.colors?.primary || '#7c3aed'}, ${theme?.colors?.secondary || '#ec4899'})` }}
     >
       <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
@@ -260,7 +260,7 @@ function PricingBlock({ content, theme }) {
             >
               {plan.featured && (
                 <span 
-                  className="inline-block px-3 py-1 text-xs font-semibold text-white rounded-full mb-4"
+                  className="inline-block px-3 py-1 text-xs font-semibold text-gray-900 rounded-full mb-4"
                   style={{ backgroundColor: theme?.colors?.primary || '#7c3aed' }}
                 >
                   Most Popular
@@ -282,7 +282,7 @@ function PricingBlock({ content, theme }) {
               <button 
                 className={`w-full py-3 rounded-lg font-semibold transition ${
                   plan.featured 
-                    ? 'text-white hover:opacity-90' 
+                    ? 'text-gray-900 hover:opacity-90' 
                     : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                 }`}
                 style={plan.featured ? { backgroundColor: theme?.colors?.primary || '#7c3aed' } : {}}
@@ -310,7 +310,7 @@ function NewsletterBlock({ content, theme }) {
             className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           />
           <button 
-            className="px-6 py-3 text-white rounded-lg font-semibold hover:opacity-90 transition"
+            className="px-6 py-3 text-gray-900 rounded-lg font-semibold hover:opacity-90 transition"
             style={{ backgroundColor: theme?.colors?.primary || '#7c3aed' }}
           >
             {content.buttonText || 'Subscribe'}
@@ -469,7 +469,7 @@ export default function SiteViewer() {
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Site Not Found</h1>
           <p className="text-gray-600 mb-8">The site you're looking for doesn't exist or isn't published yet.</p>
-          <a href="/" className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700">
+          <a href="/" className="px-6 py-3 bg-purple-600 text-gray-900 rounded-lg font-semibold hover:bg-purple-700">
             Go Home
           </a>
         </div>

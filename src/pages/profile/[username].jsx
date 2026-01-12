@@ -167,9 +167,9 @@ export default function UserProfilePage() {
       <AppLayout>
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
           <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center mb-4">
-            <Users className="w-10 h-10 text-gray-400" />
+            <Users className="w-10 h-10 text-gray-500" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-900 mb-2">
             User not found
           </h2>
           <p className="text-gray-500 mb-6">
@@ -177,7 +177,7 @@ export default function UserProfilePage() {
           </p>
           <Link
             href="/feed"
-            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            className="px-6 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700"
           >
             Go to Feed
           </Link>
@@ -214,7 +214,7 @@ export default function UserProfilePage() {
                 {user.avatar ? (
                   <img src={user.avatar} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white text-4xl font-bold">
+                  <div className="w-full h-full flex items-center justify-center text-gray-900 text-4xl font-bold">
                     {user.name?.[0]?.toUpperCase() || user.username?.[0]?.toUpperCase()}
                   </div>
                 )}
@@ -226,13 +226,13 @@ export default function UserProfilePage() {
                 <>
                   <Link
                     href="/settings/profile"
-                    className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                    className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700"
                   >
                     Edit Profile
                   </Link>
                   <Link
                     href="/settings"
-                    className="p-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className="p-2 border border-gray-200 dark:border-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-50"
                   >
                     <Settings className="w-5 h-5" />
                   </Link>
@@ -244,7 +244,7 @@ export default function UserProfilePage() {
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
                       isFollowing
                         ? 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white'
-                        : 'bg-purple-600 text-white hover:bg-purple-700'
+                        : 'bg-purple-600 text-gray-900 hover:bg-purple-700'
                     }`}
                   >
                     {isFollowing ? (
@@ -261,11 +261,11 @@ export default function UserProfilePage() {
                   </button>
                   <Link
                     href={`/messages/${user.username}`}
-                    className="p-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className="p-2 border border-gray-200 dark:border-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-50"
                   >
                     <MessageCircle className="w-5 h-5" />
                   </Link>
-                  <button className="p-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                  <button className="p-2 border border-gray-200 dark:border-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-50">
                     <MoreHorizontal className="w-5 h-5" />
                   </button>
                 </>
@@ -276,7 +276,7 @@ export default function UserProfilePage() {
           {/* Name & Username */}
           <div className="mb-4">
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900">
                 {user.name || user.username}
               </h1>
               {user.isVerified && (
@@ -290,7 +290,7 @@ export default function UserProfilePage() {
 
           {/* Bio */}
           {user.bio && (
-            <p className="text-gray-700 dark:text-gray-300 mb-4 whitespace-pre-wrap">{user.bio}</p>
+            <p className="text-gray-700 dark:text-gray-600 mb-4 whitespace-pre-wrap">{user.bio}</p>
           )}
 
           {/* Meta Info */}
@@ -321,19 +321,19 @@ export default function UserProfilePage() {
           {/* Stats */}
           <div className="flex gap-6 mb-6">
             <div className="text-center">
-              <p className="text-xl font-bold text-gray-900 dark:text-white">
+              <p className="text-xl font-bold text-gray-900 dark:text-gray-900">
                 {formatCount(user.postsCount || posts.length)}
               </p>
               <p className="text-sm text-gray-500">Posts</p>
             </div>
             <Link href={`/profile/${user.username}/followers`} className="text-center hover:opacity-80">
-              <p className="text-xl font-bold text-gray-900 dark:text-white">
+              <p className="text-xl font-bold text-gray-900 dark:text-gray-900">
                 {formatCount(user.followersCount || user.followerCount || 0)}
               </p>
               <p className="text-sm text-gray-500">Followers</p>
             </Link>
             <Link href={`/profile/${user.username}/following`} className="text-center hover:opacity-80">
-              <p className="text-xl font-bold text-gray-900 dark:text-white">
+              <p className="text-xl font-bold text-gray-900 dark:text-gray-900">
                 {formatCount(user.followingCount || 0)}
               </p>
               <p className="text-sm text-gray-500">Following</p>
@@ -341,7 +341,7 @@ export default function UserProfilePage() {
           </div>
 
           {/* Tabs */}
-          <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6">
+          <div className="flex border-b border-gray-200 dark:border-gray-200 mb-6">
             {[
               { id: 'posts', label: 'Posts', icon: Grid },
               { id: 'likes', label: 'Likes', icon: Heart }
@@ -366,7 +366,7 @@ export default function UserProfilePage() {
             <div>
               {posts.length === 0 ? (
                 <div className="text-center py-12">
-                  <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <FileText className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                   <p className="text-gray-500">No posts yet</p>
                 </div>
               ) : (
@@ -375,7 +375,7 @@ export default function UserProfilePage() {
                     <Link
                       key={post._id}
                       href={`/post/${post._id}`}
-                      className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden hover:opacity-80 transition"
+                      className="aspect-square bg-gray-100 dark:bg-white rounded-lg overflow-hidden hover:opacity-80 transition"
                     >
                       {post.media?.[0] ? (
                         <img src={post.media[0].url || post.media[0]} alt="" className="w-full h-full object-cover" />
@@ -393,7 +393,7 @@ export default function UserProfilePage() {
 
           {activeTab === 'likes' && (
             <div className="text-center py-12">
-              <Heart className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <Heart className="w-12 h-12 text-gray-600 mx-auto mb-3" />
               <p className="text-gray-500">Liked posts will appear here</p>
             </div>
           )}

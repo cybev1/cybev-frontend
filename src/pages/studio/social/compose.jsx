@@ -226,17 +226,17 @@ export default function ComposePost() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.back()}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-white rounded-lg"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-900">
               Create Post
             </h1>
           </div>
           <button
             onClick={() => setShowPreview(!showPreview)}
-            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:hover:bg-white rounded-lg"
           >
             <Eye className="w-4 h-4" />
             Preview
@@ -244,8 +244,8 @@ export default function ComposePost() {
         </div>
 
         {/* Account Selection */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 dark:border-gray-700 mb-4">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+        <div className="bg-white dark:bg-white rounded-2xl p-4 border border-gray-200 dark:border-gray-200 mb-4">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-600 mb-3">
             Post to:
           </p>
           {accounts.length === 0 ? (
@@ -268,7 +268,7 @@ export default function ComposePost() {
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition ${
                       isSelected
                         ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
+                        : 'border-gray-200 dark:border-gray-200 hover:border-purple-300'
                     }`}
                   >
                     {platform && (
@@ -287,7 +287,7 @@ export default function ComposePost() {
         </div>
 
         {/* Content Editor */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 mb-4">
+        <div className="bg-white dark:bg-white rounded-2xl border border-gray-200 dark:border-gray-200 mb-4">
           <div className="p-4">
             <textarea
               ref={textareaRef}
@@ -295,7 +295,7 @@ export default function ComposePost() {
               onChange={(e) => setContent(e.target.value)}
               placeholder="What's on your mind? Write your post here..."
               rows={6}
-              className="w-full bg-transparent border-0 focus:ring-0 resize-none text-gray-900 dark:text-white placeholder-gray-400"
+              className="w-full bg-transparent border-0 focus:ring-0 resize-none text-gray-900 dark:text-gray-900 placeholder-gray-400"
             />
 
             {/* Media Preview */}
@@ -317,7 +317,7 @@ export default function ComposePost() {
                     )}
                     <button
                       onClick={() => removeMedia(index)}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center"
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-gray-900 rounded-full flex items-center justify-center"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -334,11 +334,11 @@ export default function ComposePost() {
                   value={link}
                   onChange={(e) => setLink(e.target.value)}
                   placeholder="https://..."
-                  className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800"
+                  className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-200 rounded-lg text-sm bg-white dark:bg-white"
                 />
                 <button
                   onClick={() => { setShowLinkInput(false); setLink(''); }}
-                  className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                  className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-100 rounded-lg"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -347,9 +347,9 @@ export default function ComposePost() {
           </div>
 
           {/* Toolbar */}
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-200">
             <div className="flex items-center gap-1">
-              <label className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer">
+              <label className="p-2 hover:bg-gray-100 dark:hover:bg-gray-100 rounded-lg cursor-pointer">
                 <ImageIcon className="w-5 h-5 text-gray-500" />
                 <input
                   type="file"
@@ -361,24 +361,24 @@ export default function ComposePost() {
               </label>
               <button
                 onClick={() => setShowLinkInput(true)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-100 rounded-lg"
               >
                 <LinkIcon className="w-5 h-5 text-gray-500" />
               </button>
               <div className="relative">
                 <button
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-100 rounded-lg"
                 >
                   <Smile className="w-5 h-5 text-gray-500" />
                 </button>
                 {showEmojiPicker && (
-                  <div className="absolute bottom-full left-0 mb-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-2 grid grid-cols-8 gap-1 z-10">
+                  <div className="absolute bottom-full left-0 mb-2 bg-white dark:bg-white rounded-lg shadow-lg border border-gray-200 dark:border-gray-200 p-2 grid grid-cols-8 gap-1 z-10">
                     {['😀', '😂', '❤️', '👍', '🔥', '✨', '🎉', '💪', '🙏', '👏', '💯', '⭐', '🚀', '💡', '📢', '🎯'].map(emoji => (
                       <button
                         key={emoji}
                         onClick={() => insertEmoji(emoji)}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-xl"
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-100 rounded text-xl"
                       >
                         {emoji}
                       </button>
@@ -402,8 +402,8 @@ export default function ComposePost() {
         </div>
 
         {/* Schedule Options */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 dark:border-gray-700 mb-6">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+        <div className="bg-white dark:bg-white rounded-2xl p-4 border border-gray-200 dark:border-gray-200 mb-6">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-600 mb-3">
             When to post:
           </p>
           <div className="flex gap-3 mb-4">
@@ -412,7 +412,7 @@ export default function ComposePost() {
               className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border transition ${
                 scheduleType === 'now'
                   ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20 text-purple-600'
-                  : 'border-gray-200 dark:border-gray-700'
+                  : 'border-gray-200 dark:border-gray-200'
               }`}
             >
               <Send className="w-4 h-4" />
@@ -423,7 +423,7 @@ export default function ComposePost() {
               className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border transition ${
                 scheduleType === 'scheduled'
                   ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20 text-purple-600'
-                  : 'border-gray-200 dark:border-gray-700'
+                  : 'border-gray-200 dark:border-gray-200'
               }`}
             >
               <Calendar className="w-4 h-4" />
@@ -440,7 +440,7 @@ export default function ComposePost() {
                   value={scheduleDate}
                   onChange={(e) => setScheduleDate(e.target.value)}
                   min={new Date().toISOString().split('T')[0]}
-                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800"
+                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-200 rounded-lg text-sm bg-white dark:bg-white"
                 />
               </div>
               <div>
@@ -449,7 +449,7 @@ export default function ComposePost() {
                   type="time"
                   value={scheduleTime}
                   onChange={(e) => setScheduleTime(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800"
+                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-200 rounded-lg text-sm bg-white dark:bg-white"
                 />
               </div>
             </div>
@@ -468,7 +468,7 @@ export default function ComposePost() {
         <button
           onClick={handleSubmit}
           disabled={loading || !content.trim() || selectedAccounts.length === 0 || isOverLimit}
-          className="w-full py-4 bg-purple-600 text-white rounded-xl font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full py-4 bg-purple-600 text-gray-900 rounded-xl font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {loading ? (
             <>

@@ -150,7 +150,7 @@ export default function FormResponsesPage() {
     return (
       <AppLayout>
         <div className="max-w-7xl mx-auto px-4 py-8 text-center">
-          <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <FileText className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Form not found</h2>
           <Link href="/studio/forms" className="text-purple-600 hover:underline">
             Back to Forms
@@ -172,12 +172,12 @@ export default function FormResponsesPage() {
           <div className="flex items-center gap-4">
             <Link
               href="/studio/forms"
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-white rounded-lg transition"
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{form.title}</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900">{form.title}</h1>
               <p className="text-gray-500">{responses.length} responses</p>
             </div>
           </div>
@@ -192,7 +192,7 @@ export default function FormResponsesPage() {
             <button
               onClick={exportToCSV}
               disabled={responses.length === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700 transition disabled:opacity-50"
             >
               <Download className="w-4 h-4" />
               Export CSV
@@ -229,7 +229,7 @@ export default function FormResponsesPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-6">
+        <div className="flex gap-1 border-b border-gray-200 dark:border-gray-200 mb-6">
           <button
             onClick={() => setActiveTab('responses')}
             className={`px-4 py-3 text-sm font-medium border-b-2 transition ${
@@ -257,19 +257,19 @@ export default function FormResponsesPage() {
             {/* Filters */}
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
                 <input
                   type="text"
                   placeholder="Search responses..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-200 rounded-lg bg-white dark:bg-white"
                 />
               </div>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
+                className="px-4 py-2.5 border border-gray-200 dark:border-gray-200 rounded-lg bg-white dark:bg-white"
               >
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
@@ -278,9 +278,9 @@ export default function FormResponsesPage() {
 
             {/* Responses Table */}
             {filteredResponses.length === 0 ? (
-              <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <div className="text-center py-16 bg-white dark:bg-white rounded-xl border border-gray-200 dark:border-gray-200">
+                <FileText className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900 mb-2">
                   No responses yet
                 </h3>
                 <p className="text-gray-500">
@@ -288,7 +288,7 @@ export default function FormResponsesPage() {
                 </p>
               </div>
             ) : (
-              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+              <div className="bg-white dark:bg-white rounded-xl border border-gray-200 dark:border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-gray-50 dark:bg-gray-700">
@@ -315,13 +315,13 @@ export default function FormResponsesPage() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-200">
                       {filteredResponses.map((response, index) => (
-                        <tr key={response._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <tr key={response._id} className="hover:bg-gray-50 dark:hover:bg-gray-100">
                           <td className="px-4 py-3 text-sm text-gray-500">
                             {filteredResponses.length - index}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-900 dark:text-white whitespace-nowrap">
+                          <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-900 whitespace-nowrap">
                             {new Date(response.submittedAt).toLocaleDateString()}
                             <span className="text-gray-500 ml-1">
                               {new Date(response.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -333,18 +333,18 @@ export default function FormResponsesPage() {
                                 <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-medium">
                                   {(response.user.username || response.user.email)?.[0]?.toUpperCase()}
                                 </div>
-                                <span className="text-gray-900 dark:text-white">
+                                <span className="text-gray-900 dark:text-gray-900">
                                   {response.user.username || response.user.email}
                                 </span>
                               </div>
                             ) : (
-                              <span className="text-gray-400">Anonymous</span>
+                              <span className="text-gray-500">Anonymous</span>
                             )}
                           </td>
                           {form.fields?.slice(0, 3).map(field => (
                             <td
                               key={field.id}
-                              className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300 max-w-[200px] truncate"
+                              className="px-4 py-3 text-sm text-gray-700 dark:text-gray-600 max-w-[200px] truncate"
                             >
                               {renderAnswerPreview(field, getAnswerValue(response, field.id))}
                             </td>
@@ -352,7 +352,7 @@ export default function FormResponsesPage() {
                           <td className="px-4 py-3 text-right">
                             <button
                               onClick={() => setSelectedResponse(response)}
-                              className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition"
+                              className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
@@ -383,11 +383,11 @@ export default function FormResponsesPage() {
 
       {/* Response Detail Modal */}
       {selectedResponse && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
-            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
+        <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+            <div className="sticky top-0 bg-white dark:bg-white border-b border-gray-200 dark:border-gray-200 px-6 py-4 flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">Response Details</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900">Response Details</h3>
                 <p className="text-sm text-gray-500">
                   {new Date(selectedResponse.submittedAt).toLocaleString()}
                 </p>
@@ -404,7 +404,7 @@ export default function FormResponsesPage() {
               {selectedResponse.user && (
                 <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <p className="text-sm text-gray-500 mb-1">Respondent</p>
-                  <p className="font-medium text-gray-900 dark:text-white">
+                  <p className="font-medium text-gray-900 dark:text-gray-900">
                     {selectedResponse.user.username || selectedResponse.user.email}
                   </p>
                 </div>
@@ -417,7 +417,7 @@ export default function FormResponsesPage() {
                   return (
                     <div key={field.id}>
                       <p className="text-sm font-medium text-gray-500 mb-1">{field.label}</p>
-                      <div className="text-gray-900 dark:text-white">
+                      <div className="text-gray-900 dark:text-gray-900">
                         {renderFullAnswer(field, answer?.value)}
                       </div>
                     </div>
@@ -427,25 +427,25 @@ export default function FormResponsesPage() {
 
               {/* Metadata */}
               {(selectedResponse.metadata?.device || selectedResponse.metadata?.browser) && (
-                <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-200">
                   <p className="text-sm font-medium text-gray-500 mb-2">Submission Details</p>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     {selectedResponse.metadata?.device && (
                       <div>
-                        <span className="text-gray-400">Device:</span>{' '}
-                        <span className="text-gray-700 dark:text-gray-300">{selectedResponse.metadata.device}</span>
+                        <span className="text-gray-500">Device:</span>{' '}
+                        <span className="text-gray-700 dark:text-gray-600">{selectedResponse.metadata.device}</span>
                       </div>
                     )}
                     {selectedResponse.metadata?.browser && (
                       <div>
-                        <span className="text-gray-400">Browser:</span>{' '}
-                        <span className="text-gray-700 dark:text-gray-300">{selectedResponse.metadata.browser}</span>
+                        <span className="text-gray-500">Browser:</span>{' '}
+                        <span className="text-gray-700 dark:text-gray-600">{selectedResponse.metadata.browser}</span>
                       </div>
                     )}
                     {selectedResponse.completionTime && (
                       <div>
-                        <span className="text-gray-400">Time to complete:</span>{' '}
-                        <span className="text-gray-700 dark:text-gray-300">
+                        <span className="text-gray-500">Time to complete:</span>{' '}
+                        <span className="text-gray-700 dark:text-gray-600">
                           {formatDuration(selectedResponse.completionTime)}
                         </span>
                       </div>
@@ -471,11 +471,11 @@ function AnalyticsCard({ icon: Icon, label, value, color }) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+    <div className="bg-white dark:bg-white rounded-xl p-5 border border-gray-200 dark:border-gray-200">
       <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${colors[color]}`}>
         <Icon className="w-5 h-5" />
       </div>
-      <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+      <p className="text-2xl font-bold text-gray-900 dark:text-gray-900">{value}</p>
       <p className="text-sm text-gray-500">{label}</p>
     </div>
   );
@@ -503,14 +503,14 @@ function FieldSummary({ field, responses, primaryColor }) {
     const maxCount = Math.max(...Object.values(counts), 1);
 
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <h4 className="font-medium text-gray-900 dark:text-white mb-4">{field.label}</h4>
+      <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+        <h4 className="font-medium text-gray-900 dark:text-gray-900 mb-4">{field.label}</h4>
         <p className="text-sm text-gray-500 mb-4">{answers.length} responses</p>
         <div className="space-y-3">
           {Object.entries(counts).map(([option, count]) => (
             <div key={option}>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-700 dark:text-gray-300">{option}</span>
+                <span className="text-gray-700 dark:text-gray-600">{option}</span>
                 <span className="text-gray-500">{count} ({Math.round(count / (answers.length || 1) * 100)}%)</span>
               </div>
               <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -540,15 +540,15 @@ function FieldSummary({ field, responses, primaryColor }) {
     }));
 
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <h4 className="font-medium text-gray-900 dark:text-white mb-4">{field.label}</h4>
+      <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+        <h4 className="font-medium text-gray-900 dark:text-gray-900 mb-4">{field.label}</h4>
         <div className="flex items-center gap-4 mb-4">
           <div className="text-4xl font-bold" style={{ color: primaryColor }}>{avg}</div>
           <div className="flex">
             {[1, 2, 3, 4, 5].map(star => (
               <Star
                 key={star}
-                className={`w-6 h-6 ${star <= Math.round(avg) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+                className={`w-6 h-6 ${star <= Math.round(avg) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'}`}
               />
             ))}
           </div>
@@ -579,12 +579,12 @@ function FieldSummary({ field, responses, primaryColor }) {
       : 0;
 
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <h4 className="font-medium text-gray-900 dark:text-white mb-4">{field.label}</h4>
+      <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+        <h4 className="font-medium text-gray-900 dark:text-gray-900 mb-4">{field.label}</h4>
         <div className="flex items-center gap-4">
           <div className="text-4xl font-bold" style={{ color: primaryColor }}>{avg}</div>
           <div>
-            <p className="text-gray-700 dark:text-gray-300">Average score</p>
+            <p className="text-gray-700 dark:text-gray-600">Average score</p>
             <p className="text-sm text-gray-500">{answers.length} responses</p>
           </div>
         </div>
@@ -594,12 +594,12 @@ function FieldSummary({ field, responses, primaryColor }) {
 
   // Text-based fields
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-      <h4 className="font-medium text-gray-900 dark:text-white mb-4">{field.label}</h4>
+    <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+      <h4 className="font-medium text-gray-900 dark:text-gray-900 mb-4">{field.label}</h4>
       <p className="text-sm text-gray-500 mb-4">{answers.length} responses</p>
       <div className="space-y-2 max-h-60 overflow-y-auto">
         {answers.slice(0, 10).map((answer, i) => (
-          <div key={i} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300">
+          <div key={i} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-600">
             {String(answer)}
           </div>
         ))}
@@ -622,7 +622,7 @@ function formatDuration(seconds) {
 }
 
 function renderAnswerPreview(field, value) {
-  if (value === '-' || !value) return <span className="text-gray-400">-</span>;
+  if (value === '-' || !value) return <span className="text-gray-500">-</span>;
   
   if (field.type === 'rating') {
     return (
@@ -630,7 +630,7 @@ function renderAnswerPreview(field, value) {
         {[1, 2, 3, 4, 5].map(star => (
           <Star
             key={star}
-            className={`w-4 h-4 ${star <= value ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`}
+            className={`w-4 h-4 ${star <= value ? 'fill-yellow-400 text-yellow-400' : 'text-gray-700'}`}
           />
         ))}
       </div>
@@ -642,7 +642,7 @@ function renderAnswerPreview(field, value) {
 
 function renderFullAnswer(field, value) {
   if (value === undefined || value === null || value === '') {
-    return <span className="text-gray-400">No answer</span>;
+    return <span className="text-gray-500">No answer</span>;
   }
 
   if (Array.isArray(value)) {
@@ -663,7 +663,7 @@ function renderFullAnswer(field, value) {
         {[1, 2, 3, 4, 5].map(star => (
           <Star
             key={star}
-            className={`w-6 h-6 ${star <= value ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`}
+            className={`w-6 h-6 ${star <= value ? 'fill-yellow-400 text-yellow-400' : 'text-gray-700'}`}
           />
         ))}
         <span className="ml-2 text-gray-500">({value}/5)</span>

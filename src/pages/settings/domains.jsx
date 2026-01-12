@@ -175,22 +175,22 @@ export default function DomainsPage() {
     return 'text-green-600 bg-green-50';
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900"><Loader2 className="w-8 h-8 animate-spin text-purple-600" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-50"><Loader2 className="w-8 h-8 animate-spin text-purple-600" /></div>;
 
   return (
     <>
       <Head><title>Domain Management | CYBEV</title></Head>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-50 pb-20">
         {/* Header */}
-        <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 z-10">
+        <div className="bg-white dark:bg-white border-b dark:border-gray-200 sticky top-0 z-10">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center gap-3 mb-4">
-              <button onClick={() => router.back()} className="text-gray-600 dark:text-gray-400">←</button>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2"><Globe className="w-5 h-5 text-purple-600" />Domains</h1>
+              <button onClick={() => router.back()} className="text-gray-600 dark:text-gray-500">←</button>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-900 flex items-center gap-2"><Globe className="w-5 h-5 text-purple-600" />Domains</h1>
             </div>
             <div className="flex gap-2 overflow-x-auto">
               {[{ id: 'my-domains', label: 'My Domains', icon: Globe }, { id: 'register', label: 'Register', icon: Plus }, { id: 'transfer', label: 'Transfer', icon: ArrowRight }].map(tab => (
-                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap ${activeTab === tab.id ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
+                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap ${activeTab === tab.id ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600' : 'text-gray-600 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-100'}`}>
                   <tab.icon className="w-4 h-4" />{tab.label}
                 </button>
               ))}
@@ -203,18 +203,18 @@ export default function DomainsPage() {
           {activeTab === 'my-domains' && (
             <div className="space-y-4">
               {domains.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center">
-                  <Globe className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No domains yet</h3>
+                <div className="bg-white dark:bg-white rounded-xl p-8 text-center">
+                  <Globe className="w-16 h-16 mx-auto text-gray-600 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-900 mb-2">No domains yet</h3>
                   <p className="text-gray-500 mb-4">Register or transfer your first domain</p>
-                  <button onClick={() => setActiveTab('register')} className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium">Register Domain</button>
+                  <button onClick={() => setActiveTab('register')} className="px-4 py-2 bg-purple-600 text-gray-900 rounded-lg font-medium">Register Domain</button>
                 </div>
               ) : domains.map(domain => (
-                <div key={domain._id} className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 overflow-hidden">
+                <div key={domain._id} className="bg-white dark:bg-white rounded-xl border dark:border-gray-200 overflow-hidden">
                   <div className="p-4">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900 flex items-center gap-2">
                           {domain.domain}
                           {domain.registrar?.locked && <Lock className="w-4 h-4 text-green-500" />}
                         </h3>
@@ -232,21 +232,21 @@ export default function DomainsPage() {
                       <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg flex items-center gap-2">
                         <AlertTriangle className="w-5 h-5 text-yellow-600" />
                         <span className="text-sm text-yellow-700 dark:text-yellow-400">Expires soon. Renew to avoid losing it.</span>
-                        <button onClick={() => { setSelectedDomain(domain); setShowRenewModal(true); }} className="ml-auto px-3 py-1 bg-yellow-600 text-white text-sm rounded-lg font-medium">Renew Now</button>
+                        <button onClick={() => { setSelectedDomain(domain); setShowRenewModal(true); }} className="ml-auto px-3 py-1 bg-yellow-600 text-gray-900 text-sm rounded-lg font-medium">Renew Now</button>
                       </div>
                     )}
 
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <button onClick={() => { setSelectedDomain(domain); setShowDNSModal(true); }} className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"><Server className="w-4 h-4" />DNS</button>
-                      <button onClick={() => { setSelectedDomain(domain); setShowRenewModal(true); }} className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"><RefreshCw className="w-4 h-4" />Renew</button>
-                      <button onClick={() => { setSelectedDomain(domain); setShowTransferOutModal(true); }} className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"><ArrowRight className="w-4 h-4" />Transfer Out</button>
+                      <button onClick={() => { setSelectedDomain(domain); setShowDNSModal(true); }} className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"><Server className="w-4 h-4" />DNS</button>
+                      <button onClick={() => { setSelectedDomain(domain); setShowRenewModal(true); }} className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"><RefreshCw className="w-4 h-4" />Renew</button>
+                      <button onClick={() => { setSelectedDomain(domain); setShowTransferOutModal(true); }} className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"><ArrowRight className="w-4 h-4" />Transfer Out</button>
                     </div>
 
-                    <div className="mt-4 pt-4 border-t dark:border-gray-700 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div><span className="text-gray-500">Expires</span><p className="font-medium text-gray-900 dark:text-white">{new Date(domain.expiresAt).toLocaleDateString()}</p></div>
-                      <div><span className="text-gray-500">Auto-Renew</span><p className="font-medium text-gray-900 dark:text-white">{domain.autoRenew ? '✅ On' : '❌ Off'}</p></div>
-                      <div><span className="text-gray-500">DNS Preset</span><p className="font-medium text-gray-900 dark:text-white">{domain.dns?.preset || 'Custom'}</p></div>
-                      <div><span className="text-gray-500">Lock</span><p className="font-medium text-gray-900 dark:text-white">{domain.registrar?.locked ? '🔒 Locked' : '🔓 Unlocked'}</p></div>
+                    <div className="mt-4 pt-4 border-t dark:border-gray-200 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div><span className="text-gray-500">Expires</span><p className="font-medium text-gray-900 dark:text-gray-900">{new Date(domain.expiresAt).toLocaleDateString()}</p></div>
+                      <div><span className="text-gray-500">Auto-Renew</span><p className="font-medium text-gray-900 dark:text-gray-900">{domain.autoRenew ? '✅ On' : '❌ Off'}</p></div>
+                      <div><span className="text-gray-500">DNS Preset</span><p className="font-medium text-gray-900 dark:text-gray-900">{domain.dns?.preset || 'Custom'}</p></div>
+                      <div><span className="text-gray-500">Lock</span><p className="font-medium text-gray-900 dark:text-gray-900">{domain.registrar?.locked ? '🔒 Locked' : '🔓 Unlocked'}</p></div>
                     </div>
                   </div>
                 </div>
@@ -257,22 +257,22 @@ export default function DomainsPage() {
           {/* Register */}
           {activeTab === 'register' && (
             <div className="space-y-6">
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border dark:border-gray-700">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Find Your Perfect Domain</h2>
+              <div className="bg-white dark:bg-white rounded-xl p-6 border dark:border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-900 mb-4">Find Your Perfect Domain</h2>
                 
                 {/* Payment Provider & Currency Selection */}
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment Method</label>
-                    <select value={selectedProvider} onChange={(e) => setSelectedProvider(e.target.value)} className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">Payment Method</label>
+                    <select value={selectedProvider} onChange={(e) => setSelectedProvider(e.target.value)} className="w-full px-3 py-2 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900">
                       {providers.map(p => (
                         <option key={p.id} value={p.id}>{p.name}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency</label>
-                    <select value={selectedCurrency} onChange={(e) => setSelectedCurrency(e.target.value)} className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">Currency</label>
+                    <select value={selectedCurrency} onChange={(e) => setSelectedCurrency(e.target.value)} className="w-full px-3 py-2 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900">
                       <option value="GHS">🇬🇭 GHS (Cedis)</option>
                       <option value="NGN">🇳🇬 NGN (Naira)</option>
                       <option value="USD">🇺🇸 USD (Dollar)</option>
@@ -285,28 +285,28 @@ export default function DomainsPage() {
                 </div>
                 
                 <div className="flex gap-2">
-                  <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && searchDomains()} placeholder="Enter domain name (e.g., mybrand)" className="flex-1 px-4 py-3 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
-                  <button onClick={searchDomains} disabled={searching} className="px-6 py-3 bg-purple-600 text-white rounded-lg font-medium disabled:opacity-50 flex items-center gap-2">
+                  <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && searchDomains()} placeholder="Enter domain name (e.g., mybrand)" className="flex-1 px-4 py-3 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900" />
+                  <button onClick={searchDomains} disabled={searching} className="px-6 py-3 bg-purple-600 text-gray-900 rounded-lg font-medium disabled:opacity-50 flex items-center gap-2">
                     {searching ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}Search
                   </button>
                 </div>
               </div>
 
               {searchResults.length > 0 && (
-                <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 overflow-hidden">
-                  <div className="p-4 border-b dark:border-gray-700"><h3 className="font-medium text-gray-900 dark:text-white">Available Domains</h3></div>
-                  <div className="divide-y dark:divide-gray-700">
+                <div className="bg-white dark:bg-white rounded-xl border dark:border-gray-200 overflow-hidden">
+                  <div className="p-4 border-b dark:border-gray-200"><h3 className="font-medium text-gray-900 dark:text-gray-900">Available Domains</h3></div>
+                  <div className="divide-y dark:divide-gray-200">
                     {searchResults.map((result, i) => (
                       <div key={i} className="p-4 flex items-center justify-between">
                         <div>
-                          <p className="font-medium text-gray-900 dark:text-white">{result.domain}</p>
+                          <p className="font-medium text-gray-900 dark:text-gray-900">{result.domain}</p>
                           {result.premium && <span className="text-xs text-purple-600">Premium</span>}
                         </div>
                         <div className="flex items-center gap-4">
                           {result.available ? (
                             <>
                               <span className="text-green-600 font-medium">${pricing.find(p => p.tld === result.tld)?.registration?.usd || '12.99'}/yr</span>
-                              <button onClick={() => registerDomain(result.domain)} className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium">Register</button>
+                              <button onClick={() => registerDomain(result.domain)} className="px-4 py-2 bg-purple-600 text-gray-900 rounded-lg font-medium">Register</button>
                             </>
                           ) : <span className="text-red-500 flex items-center gap-1"><XCircle className="w-4 h-4" />Taken</span>}
                         </div>
@@ -316,12 +316,12 @@ export default function DomainsPage() {
                 </div>
               )}
 
-              <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 overflow-hidden">
-                <div className="p-4 border-b dark:border-gray-700"><h3 className="font-medium text-gray-900 dark:text-white">Pricing</h3></div>
+              <div className="bg-white dark:bg-white rounded-xl border dark:border-gray-200 overflow-hidden">
+                <div className="p-4 border-b dark:border-gray-200"><h3 className="font-medium text-gray-900 dark:text-gray-900">Pricing</h3></div>
                 <table className="w-full">
                   <thead className="bg-gray-50 dark:bg-gray-700"><tr><th className="px-4 py-3 text-left text-sm font-medium text-gray-500">TLD</th><th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Register</th><th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Renew</th></tr></thead>
-                  <tbody className="divide-y dark:divide-gray-700">
-                    {pricing.slice(0, 10).map((p, i) => (<tr key={i}><td className="px-4 py-3 font-medium text-gray-900 dark:text-white">.{p.tld}</td><td className="px-4 py-3 text-gray-600 dark:text-gray-400">${p.registration?.usd}/yr</td><td className="px-4 py-3 text-gray-600 dark:text-gray-400">${p.renewal?.usd}/yr</td></tr>))}
+                  <tbody className="divide-y dark:divide-gray-200">
+                    {pricing.slice(0, 10).map((p, i) => (<tr key={i}><td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-900">.{p.tld}</td><td className="px-4 py-3 text-gray-600 dark:text-gray-500">${p.registration?.usd}/yr</td><td className="px-4 py-3 text-gray-600 dark:text-gray-500">${p.renewal?.usd}/yr</td></tr>))}
                   </tbody>
                 </table>
               </div>
@@ -330,15 +330,15 @@ export default function DomainsPage() {
 
           {/* Transfer */}
           {activeTab === 'transfer' && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border dark:border-gray-700">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Transfer Domain to CYBEV</h2>
+            <div className="bg-white dark:bg-white rounded-xl p-6 border dark:border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-900 mb-2">Transfer Domain to CYBEV</h2>
               <p className="text-gray-500 mb-6">Move your existing domain for easy management</p>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Domain Name</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">Domain Name</label>
                   <div className="flex gap-2">
-                    <input type="text" value={transferDomain} onChange={(e) => setTransferDomain(e.target.value.toLowerCase())} placeholder="example.com" className="flex-1 px-4 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
-                    <button onClick={checkTransfer} className="px-4 py-2 bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg font-medium">Check</button>
+                    <input type="text" value={transferDomain} onChange={(e) => setTransferDomain(e.target.value.toLowerCase())} placeholder="example.com" className="flex-1 px-4 py-2 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900" />
+                    <button onClick={checkTransfer} className="px-4 py-2 bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-700 rounded-lg font-medium">Check</button>
                   </div>
                 </div>
 
@@ -355,19 +355,19 @@ export default function DomainsPage() {
                 {transferCheck?.transferable && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">EPP/Auth Code</label>
-                      <input type="text" value={transferAuthCode} onChange={(e) => setTransferAuthCode(e.target.value)} placeholder="Auth code from current registrar" className="w-full px-4 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">EPP/Auth Code</label>
+                      <input type="text" value={transferAuthCode} onChange={(e) => setTransferAuthCode(e.target.value)} placeholder="Auth code from current registrar" className="w-full px-4 py-2 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900" />
                       <p className="text-xs text-gray-500 mt-1">Get this from your current registrar (GoDaddy, Namecheap, etc.)</p>
                     </div>
-                    <button onClick={initiateTransfer} disabled={transferring || !transferAuthCode} className="w-full py-3 bg-purple-600 text-white rounded-lg font-medium disabled:opacity-50 flex items-center justify-center gap-2">
+                    <button onClick={initiateTransfer} disabled={transferring || !transferAuthCode} className="w-full py-3 bg-purple-600 text-gray-900 rounded-lg font-medium disabled:opacity-50 flex items-center justify-center gap-2">
                       {transferring ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowRight className="w-5 h-5" />}Transfer to CYBEV
                     </button>
                   </>
                 )}
 
-                <div className="mt-6 pt-6 border-t dark:border-gray-700">
-                  <h3 className="font-medium text-gray-900 dark:text-white mb-3">How to Transfer</h3>
-                  <ol className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                <div className="mt-6 pt-6 border-t dark:border-gray-200">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-900 mb-3">How to Transfer</h3>
+                  <ol className="space-y-3 text-sm text-gray-600 dark:text-gray-500">
                     {['Unlock domain at current registrar', 'Get EPP/Auth code', 'Enter domain & code above', 'Approve transfer email', 'Complete in 5-7 days (includes 1 year!)'].map((step, i) => (
                       <li key={i} className="flex items-start gap-2"><span className="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-full flex items-center justify-center text-xs font-medium">{i + 1}</span>{step}</li>
                     ))}
@@ -380,30 +380,30 @@ export default function DomainsPage() {
 
         {/* DNS Modal */}
         {showDNSModal && selectedDomain && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full max-h-[80vh] overflow-y-auto">
-              <div className="p-4 border-b dark:border-gray-700 flex items-center justify-between">
-                <h3 className="font-semibold text-gray-900 dark:text-white">DNS Settings - {selectedDomain.domain}</h3>
+          <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-white rounded-xl max-w-lg w-full max-h-[80vh] overflow-y-auto">
+              <div className="p-4 border-b dark:border-gray-200 flex items-center justify-between">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900">DNS Settings - {selectedDomain.domain}</h3>
                 <button onClick={() => setShowDNSModal(false)} className="text-gray-500">✕</button>
               </div>
               <div className="p-4 space-y-4">
                 <p className="text-sm text-gray-500">Choose a preset to quickly configure your domain</p>
                 <div className="grid grid-cols-2 gap-2">
                   {dnsPresets.map(preset => (
-                    <button key={preset.id} onClick={() => { setSelectedPreset(preset); setPresetInputs({}); }} className={`p-3 text-left rounded-lg border transition-colors ${selectedPreset?.id === preset.id ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-gray-600 hover:border-purple-300'}`}>
+                    <button key={preset.id} onClick={() => { setSelectedPreset(preset); setPresetInputs({}); }} className={`p-3 text-left rounded-lg border transition-colors ${selectedPreset?.id === preset.id ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-gray-300 hover:border-purple-300'}`}>
                       <span className="text-2xl">{PRESET_ICONS[preset.id] || '⚙️'}</span>
-                      <p className="font-medium text-gray-900 dark:text-white text-sm mt-1">{preset.name}</p>
+                      <p className="font-medium text-gray-900 dark:text-gray-900 text-sm mt-1">{preset.name}</p>
                     </button>
                   ))}
                 </div>
                 {selectedPreset?.requiresInput?.length > 0 && (
-                  <div className="space-y-3 pt-4 border-t dark:border-gray-700">
+                  <div className="space-y-3 pt-4 border-t dark:border-gray-200">
                     {selectedPreset.requiresInput.map(input => (
-                      <div key={input}><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 capitalize">{input.replace(/([A-Z])/g, ' $1')}</label><input type="text" value={presetInputs[input] || ''} onChange={(e) => setPresetInputs({ ...presetInputs, [input]: e.target.value })} className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700" /></div>
+                      <div key={input}><label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1 capitalize">{input.replace(/([A-Z])/g, ' $1')}</label><input type="text" value={presetInputs[input] || ''} onChange={(e) => setPresetInputs({ ...presetInputs, [input]: e.target.value })} className="w-full px-3 py-2 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700" /></div>
                     ))}
                   </div>
                 )}
-                <button onClick={() => applyDNSPreset(selectedPreset?.id)} disabled={!selectedPreset} className="w-full py-3 bg-purple-600 text-white rounded-lg font-medium disabled:opacity-50">Apply {selectedPreset?.name || 'Preset'}</button>
+                <button onClick={() => applyDNSPreset(selectedPreset?.id)} disabled={!selectedPreset} className="w-full py-3 bg-purple-600 text-gray-900 rounded-lg font-medium disabled:opacity-50">Apply {selectedPreset?.name || 'Preset'}</button>
               </div>
             </div>
           </div>
@@ -411,15 +411,15 @@ export default function DomainsPage() {
 
         {/* Renew Modal */}
         {showRenewModal && selectedDomain && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full">
-              <div className="p-4 border-b dark:border-gray-700"><h3 className="font-semibold text-gray-900 dark:text-white">Renew {selectedDomain.domain}</h3></div>
+          <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-white rounded-xl max-w-md w-full">
+              <div className="p-4 border-b dark:border-gray-200"><h3 className="font-semibold text-gray-900 dark:text-gray-900">Renew {selectedDomain.domain}</h3></div>
               <div className="p-4 space-y-4">
-                <div className="flex items-center justify-between py-3 border-b dark:border-gray-700"><span className="text-gray-600">Current Expiry</span><span className="font-medium text-gray-900 dark:text-white">{new Date(selectedDomain.expiresAt).toLocaleDateString()}</span></div>
+                <div className="flex items-center justify-between py-3 border-b dark:border-gray-200"><span className="text-gray-600">Current Expiry</span><span className="font-medium text-gray-900 dark:text-gray-900">{new Date(selectedDomain.expiresAt).toLocaleDateString()}</span></div>
                 <div className="flex items-center justify-between py-3"><span className="text-gray-600">Renewal Price</span><span className="font-bold text-xl text-purple-600">${selectedDomain.pricing?.renewal || '14.99'}/year</span></div>
                 <div className="flex gap-3">
-                  <button onClick={() => setShowRenewModal(false)} className="flex-1 py-3 border dark:border-gray-600 rounded-lg font-medium">Cancel</button>
-                  <button onClick={() => renewDomain(selectedDomain._id, 1)} className="flex-1 py-3 bg-purple-600 text-white rounded-lg font-medium">Renew 1 Year</button>
+                  <button onClick={() => setShowRenewModal(false)} className="flex-1 py-3 border dark:border-gray-300 rounded-lg font-medium">Cancel</button>
+                  <button onClick={() => renewDomain(selectedDomain._id, 1)} className="flex-1 py-3 bg-purple-600 text-gray-900 rounded-lg font-medium">Renew 1 Year</button>
                 </div>
               </div>
             </div>
@@ -428,9 +428,9 @@ export default function DomainsPage() {
 
         {/* Transfer Out Modal */}
         {showTransferOutModal && selectedDomain && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full">
-              <div className="p-4 border-b dark:border-gray-700"><h3 className="font-semibold text-gray-900 dark:text-white">Transfer Out - {selectedDomain.domain}</h3></div>
+          <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-white rounded-xl max-w-md w-full">
+              <div className="p-4 border-b dark:border-gray-200"><h3 className="font-semibold text-gray-900 dark:text-gray-900">Transfer Out - {selectedDomain.domain}</h3></div>
               <div className="p-4 space-y-4">
                 <p className="text-sm text-gray-500">To transfer to another registrar:</p>
                 <div className="space-y-3">
@@ -440,7 +440,7 @@ export default function DomainsPage() {
                   <button onClick={() => getTransferAuthCode(selectedDomain._id)} disabled={selectedDomain.registrar?.locked} className="w-full py-3 bg-purple-100 text-purple-700 rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50"><Copy className="w-5 h-5" />Step 2: Get Auth Code</button>
                 </div>
                 <p className="text-xs text-gray-500">Enter auth code at new registrar to complete transfer.</p>
-                <button onClick={() => setShowTransferOutModal(false)} className="w-full py-2 border dark:border-gray-600 rounded-lg font-medium">Close</button>
+                <button onClick={() => setShowTransferOutModal(false)} className="w-full py-2 border dark:border-gray-300 rounded-lg font-medium">Close</button>
               </div>
             </div>
           </div>

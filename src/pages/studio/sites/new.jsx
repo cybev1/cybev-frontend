@@ -221,12 +221,12 @@ export default function NewSite() {
         <title>Create Website - CYBEV</title>
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-900">
         {/* Header */}
-        <div className="border-b border-white/10">
+        <div className="border-b border-gray-200">
           <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
             <Link href="/studio">
-              <button className="flex items-center gap-2 text-white/70 hover:text-white">
+              <button className="flex items-center gap-2 text-white/70 hover:text-gray-900">
                 <ArrowLeft className="w-5 h-5" />
                 Back to Studio
               </button>
@@ -243,7 +243,7 @@ export default function NewSite() {
                 <div key={idx} className="flex items-center">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
                     idx + 1 < step ? 'bg-green-500 text-white' :
-                    idx + 1 === step ? 'bg-purple-500 text-white ring-4 ring-purple-500/30' :
+                    idx + 1 === step ? 'bg-purple-500 text-gray-900 ring-4 ring-purple-500/30' :
                     'bg-white/10 text-white/50'
                   }`}>
                     {idx + 1 < step ? <Check className="w-5 h-5" /> : idx + 1}
@@ -266,13 +266,13 @@ export default function NewSite() {
           {step === 1 && (
             <div className="space-y-8">
               {/* AI Generation */}
-              <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl p-6 border border-purple-500/30">
+              <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl p-6 border border-gray-200">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center">
-                    <Wand2 className="w-5 h-5 text-white" />
+                    <Wand2 className="w-5 h-5 text-gray-900" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-white">AI Website Generator</h3>
+                    <h3 className="text-lg font-bold text-gray-900">AI Website Generator</h3>
                     <p className="text-white/60 text-sm">Describe your website and let AI create it</p>
                   </div>
                 </div>
@@ -282,12 +282,12 @@ export default function NewSite() {
                     value={aiPrompt}
                     onChange={(e) => setAiPrompt(e.target.value)}
                     placeholder="e.g., A modern portfolio for a photographer named John"
-                    className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="flex-1 px-4 py-3 bg-white/10 border border-gray-200 rounded-xl text-gray-900 placeholder-white/40 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
                   <button
                     onClick={generateAISite}
                     disabled={aiLoading || !aiPrompt.trim()}
-                    className="px-6 py-3 bg-purple-500 text-white rounded-xl font-semibold hover:bg-purple-600 disabled:opacity-50 flex items-center gap-2"
+                    className="px-6 py-3 bg-purple-500 text-gray-900 rounded-xl font-semibold hover:bg-purple-600 disabled:opacity-50 flex items-center gap-2"
                   >
                     {aiLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
                     Generate
@@ -304,27 +304,27 @@ export default function NewSite() {
               <div className="text-center text-white/40">— or enter details manually —</div>
 
               {/* Manual Input */}
-              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/10 space-y-6">
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-gray-200 space-y-6">
                 <div>
-                  <label className="block text-white font-medium mb-2">Site Name *</label>
+                  <label className="block text-gray-900 font-medium mb-2">Site Name *</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="My Awesome Website"
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-white/10 border border-gray-200 rounded-xl text-gray-900 placeholder-white/40 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-white font-medium mb-2">Subdomain *</label>
-                  <div className="flex items-center bg-white/10 border border-white/20 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-purple-500">
+                  <label className="block text-gray-900 font-medium mb-2">Subdomain *</label>
+                  <div className="flex items-center bg-white/10 border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-purple-500">
                     <input
                       type="text"
                       value={subdomain}
                       onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                       placeholder="mysite"
-                      className="flex-1 px-4 py-3 bg-transparent text-white placeholder-white/40 focus:outline-none"
+                      className="flex-1 px-4 py-3 bg-transparent text-gray-900 placeholder-white/40 focus:outline-none"
                     />
                     <span className="px-4 py-3 bg-white/5 text-white/60">.cybev.io</span>
                   </div>
@@ -344,13 +344,13 @@ export default function NewSite() {
                 </div>
 
                 <div>
-                  <label className="block text-white font-medium mb-2">Description</label>
+                  <label className="block text-gray-900 font-medium mb-2">Description</label>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Tell visitors what your site is about..."
                     rows={3}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                    className="w-full px-4 py-3 bg-white/10 border border-gray-200 rounded-xl text-gray-900 placeholder-white/40 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                   />
                 </div>
               </div>
@@ -361,7 +361,7 @@ export default function NewSite() {
           {step === 2 && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-white mb-2">Choose a Template</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Choose a Template</h2>
                 <p className="text-white/60">Select the style that best fits your needs</p>
               </div>
               
@@ -373,18 +373,18 @@ export default function NewSite() {
                     className={`relative p-6 rounded-2xl border-2 transition-all ${
                       template === t.id
                         ? 'border-purple-500 bg-purple-500/20'
-                        : 'border-white/10 bg-white/5 hover:border-white/30'
+                        : 'border-gray-200 bg-white/5 hover:border-white/30'
                     }`}
                   >
                     {template === t.id && (
                       <div className="absolute top-3 right-3 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
-                        <Check className="w-4 h-4 text-white" />
+                        <Check className="w-4 h-4 text-gray-900" />
                       </div>
                     )}
                     <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${t.color} flex items-center justify-center mb-4 mx-auto`}>
-                      <t.icon className="w-7 h-7 text-white" />
+                      <t.icon className="w-7 h-7 text-gray-900" />
                     </div>
-                    <h3 className="text-white font-semibold mb-1">{t.name}</h3>
+                    <h3 className="text-gray-900 font-semibold mb-1">{t.name}</h3>
                     <p className="text-white/50 text-sm">{t.desc}</p>
                   </button>
                 ))}
@@ -396,15 +396,15 @@ export default function NewSite() {
           {step === 3 && (
             <div className="space-y-8">
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-white mb-2">Customize Theme</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Customize Theme</h2>
                 <p className="text-white/60">Pick colors and fonts for your site</p>
               </div>
 
               {/* Colors */}
-              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-gray-200">
                 <div className="flex items-center gap-2 mb-4">
-                  <Palette className="w-5 h-5 text-purple-400" />
-                  <h3 className="text-white font-semibold">Color Theme</h3>
+                  <Palette className="w-5 h-5 text-purple-600" />
+                  <h3 className="text-gray-900 font-semibold">Color Theme</h3>
                 </div>
                 <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
                   {COLOR_THEMES.map((c) => (
@@ -417,8 +417,8 @@ export default function NewSite() {
                       style={{ background: `linear-gradient(135deg, ${c.primary}, ${c.secondary})` }}
                     >
                       {colorTheme === c.id && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                          <Check className="w-6 h-6 text-white" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-900/20">
+                          <Check className="w-6 h-6 text-gray-900" />
                         </div>
                       )}
                     </button>
@@ -427,10 +427,10 @@ export default function NewSite() {
               </div>
 
               {/* Fonts */}
-              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-gray-200">
                 <div className="flex items-center gap-2 mb-4">
-                  <Type className="w-5 h-5 text-purple-400" />
-                  <h3 className="text-white font-semibold">Font Style</h3>
+                  <Type className="w-5 h-5 text-purple-600" />
+                  <h3 className="text-gray-900 font-semibold">Font Style</h3>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {FONT_PAIRS.map((f) => (
@@ -440,10 +440,10 @@ export default function NewSite() {
                       className={`p-4 rounded-xl border-2 transition text-left ${
                         fontPair === f.id
                           ? 'border-purple-500 bg-purple-500/20'
-                          : 'border-white/10 bg-white/5 hover:border-white/30'
+                          : 'border-gray-200 bg-white/5 hover:border-white/30'
                       }`}
                     >
-                      <p className="text-white font-semibold mb-1" style={{ fontFamily: f.heading }}>{f.name}</p>
+                      <p className="text-gray-900 font-semibold mb-1" style={{ fontFamily: f.heading }}>{f.name}</p>
                       <p className="text-white/50 text-sm" style={{ fontFamily: f.body }}>{f.heading} + {f.body}</p>
                     </button>
                   ))}
@@ -456,41 +456,41 @@ export default function NewSite() {
           {step === 4 && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-white mb-2">Review & Create</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Review & Create</h2>
                 <p className="text-white/60">Make sure everything looks good</p>
               </div>
 
-              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 space-y-4">
-                <div className="flex justify-between py-3 border-b border-white/10">
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-gray-200 space-y-4">
+                <div className="flex justify-between py-3 border-b border-gray-200">
                   <span className="text-white/60">Site Name</span>
-                  <span className="text-white font-medium">{name}</span>
+                  <span className="text-gray-900 font-medium">{name}</span>
                 </div>
-                <div className="flex justify-between py-3 border-b border-white/10">
+                <div className="flex justify-between py-3 border-b border-gray-200">
                   <span className="text-white/60">URL</span>
-                  <span className="text-purple-400 font-medium">{subdomain}.cybev.io</span>
+                  <span className="text-purple-600 font-medium">{subdomain}.cybev.io</span>
                 </div>
-                <div className="flex justify-between py-3 border-b border-white/10">
+                <div className="flex justify-between py-3 border-b border-gray-200">
                   <span className="text-white/60">Template</span>
-                  <span className="text-white font-medium capitalize">{template}</span>
+                  <span className="text-gray-900 font-medium capitalize">{template}</span>
                 </div>
-                <div className="flex justify-between py-3 border-b border-white/10">
+                <div className="flex justify-between py-3 border-b border-gray-200">
                   <span className="text-white/60">Color Theme</span>
                   <div className="flex items-center gap-2">
                     <div 
                       className="w-6 h-6 rounded-full"
                       style={{ background: COLOR_THEMES.find(c => c.id === colorTheme)?.primary }}
                     />
-                    <span className="text-white font-medium capitalize">{colorTheme}</span>
+                    <span className="text-gray-900 font-medium capitalize">{colorTheme}</span>
                   </div>
                 </div>
                 <div className="flex justify-between py-3">
                   <span className="text-white/60">Font Style</span>
-                  <span className="text-white font-medium capitalize">{fontPair}</span>
+                  <span className="text-gray-900 font-medium capitalize">{fontPair}</span>
                 </div>
               </div>
 
               {aiPreview?.heroImage && (
-                <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-4 border border-white/10">
+                <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-4 border border-gray-200">
                   <p className="text-white/60 text-sm mb-3 flex items-center gap-2">
                     <ImageIcon className="w-4 h-4" /> AI-generated preview
                   </p>
@@ -504,25 +504,25 @@ export default function NewSite() {
           {step === 5 && createdSite && (
             <div className="text-center py-12">
               <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Check className="w-10 h-10 text-white" />
+                <Check className="w-10 h-10 text-gray-900" />
               </div>
-              <h2 className="text-3xl font-bold text-white mb-4">Website Created!</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Website Created!</h2>
               <p className="text-white/60 mb-8">Your website is ready to customize</p>
               
               <div className="bg-white/10 rounded-xl p-4 mb-8 max-w-md mx-auto">
                 <p className="text-white/60 text-sm mb-1">Your site URL</p>
-                <p className="text-purple-400 font-mono text-lg">cybev.io/s/{createdSite.subdomain}</p>
+                <p className="text-purple-600 font-mono text-lg">cybev.io/s/{createdSite.subdomain}</p>
               </div>
 
               <div className="flex justify-center gap-4">
                 <Link href={`/studio/sites/${createdSite._id}/edit`}>
-                  <button className="px-8 py-3 bg-purple-500 text-white rounded-xl font-semibold hover:bg-purple-600 flex items-center gap-2">
+                  <button className="px-8 py-3 bg-purple-500 text-gray-900 rounded-xl font-semibold hover:bg-purple-600 flex items-center gap-2">
                     Customize Website
                     <ArrowRight className="w-5 h-5" />
                   </button>
                 </Link>
                 <Link href={`/s/${createdSite.subdomain}`}>
-                  <button className="px-8 py-3 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/20 flex items-center gap-2">
+                  <button className="px-8 py-3 bg-white/10 text-gray-900 rounded-xl font-semibold hover:bg-white/20 flex items-center gap-2">
                     <Eye className="w-5 h-5" />
                     Preview
                   </button>
@@ -545,7 +545,7 @@ export default function NewSite() {
               <button
                 onClick={() => setStep(s => Math.max(1, s - 1))}
                 disabled={step === 1}
-                className="px-6 py-3 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/20 disabled:opacity-30 flex items-center gap-2"
+                className="px-6 py-3 bg-white/10 text-gray-900 rounded-xl font-semibold hover:bg-white/20 disabled:opacity-30 flex items-center gap-2"
               >
                 <ArrowLeft className="w-5 h-5" />
                 Back
@@ -555,7 +555,7 @@ export default function NewSite() {
                 <button
                   onClick={() => setStep(s => s + 1)}
                   disabled={!canProceed()}
-                  className="px-6 py-3 bg-purple-500 text-white rounded-xl font-semibold hover:bg-purple-600 disabled:opacity-30 flex items-center gap-2"
+                  className="px-6 py-3 bg-purple-500 text-gray-900 rounded-xl font-semibold hover:bg-purple-600 disabled:opacity-30 flex items-center gap-2"
                 >
                   Next
                   <ArrowRight className="w-5 h-5" />
@@ -564,7 +564,7 @@ export default function NewSite() {
                 <button
                   onClick={createSite}
                   disabled={loading || !canProceed()}
-                  className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:opacity-90 disabled:opacity-30 flex items-center gap-2"
+                  className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 rounded-xl font-semibold hover:opacity-90 disabled:opacity-30 flex items-center gap-2"
                 >
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
                   Create Website

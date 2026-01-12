@@ -150,7 +150,7 @@ export default function LandingPage() {
                 className="flex items-center gap-3"
               >
                 <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-200">
-                  <span className="text-xl md:text-2xl font-black text-white">C</span>
+                  <span className="text-xl md:text-2xl font-black text-gray-900">C</span>
                 </div>
                 <div>
                   <span className="text-xl md:text-2xl font-black bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
@@ -184,7 +184,7 @@ export default function LandingPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => router.push('/auth/signup')}
-                  className="px-4 md:px-6 py-2 md:py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-white font-bold shadow-lg shadow-purple-200 hover:shadow-xl hover:shadow-purple-300 transition-all flex items-center gap-2"
+                  className="px-4 md:px-6 py-2 md:py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-gray-900 font-bold shadow-lg shadow-purple-200 hover:shadow-xl hover:shadow-purple-300 transition-all flex items-center gap-2"
                 >
                   Get Started
                   <ArrowRight className="w-4 h-4" />
@@ -251,7 +251,7 @@ export default function LandingPage() {
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => router.push('/auth/signup')}
-                className="px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-white font-bold text-lg shadow-xl shadow-purple-200 hover:shadow-2xl hover:shadow-purple-300 transition-all flex items-center justify-center gap-2"
+                className="px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-gray-900 font-bold text-lg shadow-xl shadow-purple-200 hover:shadow-2xl hover:shadow-purple-300 transition-all flex items-center justify-center gap-2"
               >
                 <Rocket className="w-5 h-5" />
                 Start Creating Free
@@ -324,9 +324,9 @@ export default function LandingPage() {
                           </div>
                         </div>
                         <div className="h-32 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg mb-3 flex items-center justify-center">
-                          <ImageIcon className="w-8 h-8 text-purple-300" />
+                          <ImageIcon className="w-8 h-8 text-purple-600" />
                         </div>
-                        <div className="flex gap-4 text-gray-400">
+                        <div className="flex gap-4 text-gray-500">
                           <Heart className="w-5 h-5" />
                           <MessageCircle className="w-5 h-5" />
                           <Share2 className="w-5 h-5" />
@@ -334,7 +334,7 @@ export default function LandingPage() {
                       </div>
                       
                       {/* Live Stream Card */}
-                      <div className="bg-gradient-to-br from-red-500 to-orange-500 rounded-xl p-4 text-white">
+                      <div className="bg-gradient-to-br from-red-500 to-orange-500 rounded-xl p-4 text-gray-900">
                         <div className="flex items-center gap-2 mb-2">
                           <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                           <span className="text-sm font-bold">LIVE NOW</span>
@@ -443,7 +443,7 @@ export default function LandingPage() {
                   className={`${feature.gradient} rounded-2xl p-6 md:p-8 border border-white/50 shadow-lg hover:shadow-xl transition-all duration-300`}
                 >
                   <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-5 shadow-lg`}>
-                    <feature.icon className="w-7 h-7 text-white" strokeWidth={2} />
+                    <feature.icon className="w-7 h-7 text-gray-900" strokeWidth={2} />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
                   <p className="text-gray-600 leading-relaxed">{feature.description}</p>
@@ -483,18 +483,18 @@ export default function LandingPage() {
                   className="relative"
                 >
                   <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-all">
-                    <div className={`absolute -top-4 -left-4 w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-xl font-black text-white shadow-lg`}>
+                    <div className={`absolute -top-4 -left-4 w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-xl font-black text-gray-900 shadow-lg`}>
                       {item.step}
                     </div>
                     <div className="pt-4">
-                      <item.icon className="w-10 h-10 text-gray-400 mb-4" />
+                      <item.icon className="w-10 h-10 text-gray-500 mb-4" />
                       <h3 className="text-xl font-bold text-gray-900 mb-2">{item.title}</h3>
                       <p className="text-gray-600">{item.desc}</p>
                     </div>
                   </div>
                   {index < 2 && (
                     <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2">
-                      <ChevronRight className="w-8 h-8 text-gray-300" />
+                      <ChevronRight className="w-8 h-8 text-gray-600" />
                     </div>
                   )}
                 </motion.div>
@@ -529,7 +529,7 @@ export default function LandingPage() {
                   className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100"
                 >
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-gray-900 font-bold">
                       {testimonial.avatar}
                     </div>
                     <div>
@@ -564,7 +564,7 @@ export default function LandingPage() {
               >
                 <Sparkles className="w-14 h-14 text-yellow-300 mx-auto mb-6" />
               </motion.div>
-              <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
+              <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4">
                 Ready to Share Your Story?
               </h2>
               <p className="text-lg text-purple-100 mb-8 max-w-xl mx-auto">
@@ -585,52 +585,52 @@ export default function LandingPage() {
         </section>
 
         {/* Footer */}
-        <footer className="relative z-10 bg-gray-900 text-white">
+        <footer className="relative z-10 bg-gray-50 text-gray-900">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="grid md:grid-cols-4 gap-8 mb-8">
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                    <span className="text-xl font-bold text-white">C</span>
+                    <span className="text-xl font-bold text-gray-900">C</span>
                   </div>
                   <span className="text-xl font-bold">CYBEV</span>
                 </div>
-                <p className="text-gray-400 text-sm">
+                <p className="text-gray-500 text-sm">
                   The modern platform for creators to blog, stream, and connect.
                 </p>
               </div>
               <div>
                 <h4 className="font-bold mb-4">Platform</h4>
-                <ul className="space-y-2 text-sm text-gray-400">
-                  <li><a href="/explore" className="hover:text-white transition">Explore</a></li>
-                  <li><a href="/tv" className="hover:text-white transition">Live TV</a></li>
-                  <li><a href="/blog" className="hover:text-white transition">Blogs</a></li>
-                  <li><a href="/studio" className="hover:text-white transition">Studio</a></li>
+                <ul className="space-y-2 text-sm text-gray-500">
+                  <li><a href="/explore" className="hover:text-gray-900 transition">Explore</a></li>
+                  <li><a href="/tv" className="hover:text-gray-900 transition">Live TV</a></li>
+                  <li><a href="/blog" className="hover:text-gray-900 transition">Blogs</a></li>
+                  <li><a href="/studio" className="hover:text-gray-900 transition">Studio</a></li>
                 </ul>
               </div>
               <div>
                 <h4 className="font-bold mb-4">Resources</h4>
-                <ul className="space-y-2 text-sm text-gray-400">
-                  <li><a href="#" className="hover:text-white transition">Help Center</a></li>
-                  <li><a href="#" className="hover:text-white transition">Community</a></li>
-                  <li><a href="#" className="hover:text-white transition">Creator Guide</a></li>
+                <ul className="space-y-2 text-sm text-gray-500">
+                  <li><a href="#" className="hover:text-gray-900 transition">Help Center</a></li>
+                  <li><a href="#" className="hover:text-gray-900 transition">Community</a></li>
+                  <li><a href="#" className="hover:text-gray-900 transition">Creator Guide</a></li>
                 </ul>
               </div>
               <div>
                 <h4 className="font-bold mb-4">Company</h4>
-                <ul className="space-y-2 text-sm text-gray-400">
-                  <li><a href="/about" className="hover:text-white transition">About</a></li>
-                  <li><a href="/privacy" className="hover:text-white transition">Privacy Policy</a></li>
-                  <li><a href="/terms" className="hover:text-white transition">Terms of Service</a></li>
-                  <li><a href="mailto:support@cybev.io" className="hover:text-white transition">Contact</a></li>
+                <ul className="space-y-2 text-sm text-gray-500">
+                  <li><a href="/about" className="hover:text-gray-900 transition">About</a></li>
+                  <li><a href="/privacy" className="hover:text-gray-900 transition">Privacy Policy</a></li>
+                  <li><a href="/terms" className="hover:text-gray-900 transition">Terms of Service</a></li>
+                  <li><a href="mailto:support@cybev.io" className="hover:text-gray-900 transition">Contact</a></li>
                 </ul>
               </div>
             </div>
-            <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
               <p className="text-sm text-gray-500">© {new Date().getFullYear()} CYBEV. Built for Creators. 💜</p>
-              <div className="flex items-center gap-6 text-sm text-gray-400">
-                <a href="/privacy" className="hover:text-white transition">Privacy Policy</a>
-                <a href="/terms" className="hover:text-white transition">Terms of Service</a>
+              <div className="flex items-center gap-6 text-sm text-gray-500">
+                <a href="/privacy" className="hover:text-gray-900 transition">Privacy Policy</a>
+                <a href="/terms" className="hover:text-gray-900 transition">Terms of Service</a>
               </div>
             </div>
           </div>

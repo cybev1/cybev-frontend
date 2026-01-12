@@ -158,7 +158,7 @@ export default function VlogViewerPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -166,7 +166,7 @@ export default function VlogViewerPage() {
 
   if (!vlog) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center text-white">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center text-gray-900">
         <p>Vlog not found</p>
       </div>
     );
@@ -180,7 +180,7 @@ export default function VlogViewerPage() {
         <title>{vlog.caption || 'Vlog'} | CYBEV</title>
       </Head>
 
-      <div className="fixed inset-0 bg-black">
+      <div className="fixed inset-0 bg-gray-900">
         {/* Video Player */}
         <div className="absolute inset-0 flex items-center justify-center" onClick={togglePlay}>
           {vlog.videoUrl ? (
@@ -198,15 +198,15 @@ export default function VlogViewerPage() {
             />
           ) : (
             <div className={`w-full h-full bg-gradient-to-br ${vlog.backgroundGradient || 'from-purple-500 to-pink-500'} flex items-center justify-center`}>
-              <p className="text-white text-xl px-8 text-center">{vlog.caption || 'No video'}</p>
+              <p className="text-gray-900 text-xl px-8 text-center">{vlog.caption || 'No video'}</p>
             </div>
           )}
           
           {/* Play/Pause overlay */}
           {!isPlaying && vlog.videoUrl && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-900/20">
               <div className="w-20 h-20 bg-white/30 backdrop-blur rounded-full flex items-center justify-center">
-                <Play className="w-10 h-10 text-white fill-white ml-1" />
+                <Play className="w-10 h-10 text-gray-900 fill-white ml-1" />
               </div>
             </div>
           )}
@@ -223,10 +223,10 @@ export default function VlogViewerPage() {
         {/* Top Header */}
         <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/70 to-transparent p-4">
           <div className="flex items-center justify-between">
-            <button onClick={() => router.back()} className="p-2 text-white">
+            <button onClick={() => router.back()} className="p-2 text-gray-900">
               <ArrowLeft className="w-6 h-6" />
             </button>
-            <button onClick={() => setIsMuted(!isMuted)} className="p-2 text-white">
+            <button onClick={() => setIsMuted(!isMuted)} className="p-2 text-gray-900">
               {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
             </button>
           </div>
@@ -237,11 +237,11 @@ export default function VlogViewerPage() {
           {/* Profile */}
           <Link href={`/profile/${author.username || author._id}`}>
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-0.5 cursor-pointer">
-              <div className="w-full h-full rounded-full bg-black overflow-hidden">
+              <div className="w-full h-full rounded-full bg-gray-900 overflow-hidden">
                 {author.profilePicture || author.avatar ? (
                   <img src={author.profilePicture || author.avatar} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white font-bold">
+                  <div className="w-full h-full flex items-center justify-center text-gray-900 font-bold">
                     {author.name?.[0] || 'U'}
                   </div>
                 )}
@@ -254,23 +254,23 @@ export default function VlogViewerPage() {
             <div className={`p-2 rounded-full ${liked ? 'bg-red-500/20' : 'bg-white/10'}`}>
               <Heart className={`w-7 h-7 ${liked ? 'text-red-500 fill-red-500' : 'text-white'}`} />
             </div>
-            <span className="text-white text-xs mt-1">{likesCount}</span>
+            <span className="text-gray-900 text-xs mt-1">{likesCount}</span>
           </button>
 
           {/* Comment */}
           <button className="flex flex-col items-center">
             <div className="p-2 rounded-full bg-white/10">
-              <MessageCircle className="w-7 h-7 text-white" />
+              <MessageCircle className="w-7 h-7 text-gray-900" />
             </div>
-            <span className="text-white text-xs mt-1">{vlog.commentsCount || 0}</span>
+            <span className="text-gray-900 text-xs mt-1">{vlog.commentsCount || 0}</span>
           </button>
 
           {/* Share */}
           <button onClick={handleShare} className="flex flex-col items-center">
             <div className="p-2 rounded-full bg-white/10">
-              <Share2 className="w-7 h-7 text-white" />
+              <Share2 className="w-7 h-7 text-gray-900" />
             </div>
-            <span className="text-white text-xs mt-1">Share</span>
+            <span className="text-gray-900 text-xs mt-1">Share</span>
           </button>
         </div>
 
@@ -280,14 +280,14 @@ export default function VlogViewerPage() {
             {/* Author */}
             <Link href={`/profile/${author.username || author._id}`}>
               <div className="flex items-center gap-2 mb-2 cursor-pointer">
-                <span className="text-white font-semibold">{author.name || author.username}</span>
+                <span className="text-gray-900 font-semibold">{author.name || author.username}</span>
                 <span className="text-white/60 text-sm">· {getRelativeTime(vlog.createdAt)}</span>
               </div>
             </Link>
             
             {/* Caption */}
             {vlog.caption && (
-              <p className="text-white text-sm mb-2">{vlog.caption}</p>
+              <p className="text-gray-900 text-sm mb-2">{vlog.caption}</p>
             )}
             
             {/* Hashtags */}

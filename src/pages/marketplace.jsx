@@ -180,7 +180,7 @@ export default function MarketplacePage() {
                 </button>
               </Link>
               <Link href="/marketplace/sell">
-                <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700">
+                <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 font-semibold rounded-lg hover:bg-purple-700">
                   <Plus className="w-4 h-4" />
                   Sell
                 </button>
@@ -194,13 +194,13 @@ export default function MarketplacePage() {
           <div className="max-w-6xl mx-auto">
             <div className="flex gap-3">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search marketplace..."
-                  className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-300"
                 />
               </div>
               <button 
@@ -240,13 +240,13 @@ export default function MarketplacePage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-2 rounded ${viewMode === 'grid' ? 'bg-purple-100 text-purple-600' : 'text-gray-400 hover:bg-gray-100'}`}
+                className={`p-2 rounded ${viewMode === 'grid' ? 'bg-purple-100 text-purple-600' : 'text-gray-500 hover:bg-gray-100'}`}
               >
                 <Grid className="w-5 h-5" />
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`p-2 rounded ${viewMode === 'list' ? 'bg-purple-100 text-purple-600' : 'text-gray-400 hover:bg-gray-100'}`}
+                className={`p-2 rounded ${viewMode === 'list' ? 'bg-purple-100 text-purple-600' : 'text-gray-500 hover:bg-gray-100'}`}
               >
                 <List className="w-5 h-5" />
               </button>
@@ -261,11 +261,11 @@ export default function MarketplacePage() {
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="text-center py-20">
-              <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <Package className="w-16 h-16 text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">No products found</h3>
               <p className="text-gray-500 mb-6">Try a different search or category</p>
               <Link href="/marketplace/sell">
-                <button className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700">
+                <button className="px-6 py-3 bg-purple-600 text-gray-900 font-semibold rounded-lg hover:bg-purple-700">
                   Sell Something
                 </button>
               </Link>
@@ -318,7 +318,7 @@ export default function MarketplacePage() {
           <Link href="/create">
             <button className="relative -mt-6">
               <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                <Plus className="w-7 h-7 text-white" />
+                <Plus className="w-7 h-7 text-gray-900" />
               </div>
             </button>
           </Link>
@@ -357,7 +357,7 @@ function ProductCard({ product, onSave, formatPrice }) {
           <img src={product.images[0]} alt="" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Package className="w-12 h-12 text-gray-400" />
+            <Package className="w-12 h-12 text-gray-500" />
           </div>
         )}
         
@@ -413,7 +413,7 @@ function ProductListItem({ product, onSave, formatPrice }) {
           <img src={product.images[0]} alt="" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Package className="w-8 h-8 text-gray-400" />
+            <Package className="w-8 h-8 text-gray-500" />
           </div>
         )}
       </div>
@@ -458,7 +458,7 @@ function ProductListItem({ product, onSave, formatPrice }) {
             {product.seller?.profilePicture ? (
               <img src={product.seller.profilePicture} alt="" className="w-full h-full object-cover" />
             ) : (
-              <span className="text-white text-xs font-bold">{product.seller?.name?.[0]}</span>
+              <span className="text-gray-900 text-xs font-bold">{product.seller?.name?.[0]}</span>
             )}
           </div>
           <span className="text-gray-600 text-sm">{product.seller?.name}</span>

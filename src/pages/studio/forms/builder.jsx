@@ -216,18 +216,18 @@ export default function FormBuilderPage() {
   const selectedFieldData = form.fields.find(f => f.id === selectedField);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
       <Head>
         <title>{form.title} | Form Builder</title>
       </Head>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <header className="sticky top-0 z-50 bg-white dark:bg-white border-b border-gray-200 dark:border-gray-200">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push('/studio/forms')}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-100 rounded-lg transition"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -243,7 +243,7 @@ export default function FormBuilderPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowPreview(true)}
-              className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+              className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-100 rounded-lg transition"
             >
               <Eye className="w-4 h-4" />
               Preview
@@ -251,7 +251,7 @@ export default function FormBuilderPage() {
             <button
               onClick={saveForm}
               disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700 transition disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               {saving ? 'Saving...' : 'Save'}
@@ -260,7 +260,7 @@ export default function FormBuilderPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 px-4 border-t border-gray-100 dark:border-gray-700">
+        <div className="flex gap-1 px-4 border-t border-gray-100 dark:border-gray-200">
           {[
             { id: 'fields', label: 'Fields', icon: Type },
             { id: 'settings', label: 'Settings', icon: Settings },
@@ -285,7 +285,7 @@ export default function FormBuilderPage() {
       <div className="flex">
         {/* Left Sidebar - Field Types */}
         {activeTab === 'fields' && (
-          <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 h-[calc(100vh-120px)] overflow-y-auto">
+          <aside className="w-64 bg-white dark:bg-white border-r border-gray-200 dark:border-gray-200 p-4 h-[calc(100vh-120px)] overflow-y-auto">
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
               Add Fields
             </h3>
@@ -294,13 +294,13 @@ export default function FormBuilderPage() {
                 <button
                   key={field.type}
                   onClick={() => addField(field.type)}
-                  className="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition group"
+                  className="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-gray-50 dark:hover:bg-gray-100 transition group"
                 >
                   <div className="p-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg group-hover:bg-purple-100">
                     <field.icon className="w-4 h-4 text-purple-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{field.label}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-900">{field.label}</p>
                     <p className="text-xs text-gray-500">{field.description}</p>
                   </div>
                 </button>
@@ -315,7 +315,7 @@ export default function FormBuilderPage() {
             <div className="max-w-2xl mx-auto">
               {/* Form Header */}
               <div
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6"
+                className="bg-white dark:bg-white rounded-xl shadow-sm border border-gray-200 dark:border-gray-200 p-6 mb-6"
                 style={{ borderTopColor: form.branding?.primaryColor, borderTopWidth: '4px' }}
               >
                 <input
@@ -336,8 +336,8 @@ export default function FormBuilderPage() {
 
               {/* Fields */}
               {form.fields.length === 0 ? (
-                <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700">
-                  <Plus className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <div className="text-center py-16 bg-white dark:bg-white rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-200">
+                  <Plus className="w-12 h-12 text-gray-600 mx-auto mb-4" />
                   <p className="text-gray-500">Add fields from the sidebar</p>
                 </div>
               ) : (
@@ -350,26 +350,26 @@ export default function FormBuilderPage() {
                       onDragOver={(e) => handleDragOver(e, index)}
                       onDragEnd={handleDragEnd}
                       onClick={() => setSelectedField(field.id)}
-                      className={`bg-white dark:bg-gray-800 rounded-xl border-2 p-4 cursor-pointer transition ${
+                      className={`bg-white dark:bg-white rounded-xl border-2 p-4 cursor-pointer transition ${
                         selectedField === field.id
                           ? 'border-purple-500 ring-2 ring-purple-100'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
+                          : 'border-gray-200 dark:border-gray-200 hover:border-purple-300'
                       } ${dragOverIndex === index ? 'border-purple-400 bg-purple-50' : ''}`}
                     >
                       <div className="flex items-start gap-3">
-                        <div className="cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-gray-600">
+                        <div className="cursor-grab active:cursor-grabbing p-1 text-gray-500 hover:text-gray-600">
                           <GripVertical className="w-5 h-5" />
                         </div>
 
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                            <span className="text-sm font-medium text-gray-900 dark:text-gray-900">
                               {field.label}
                             </span>
                             {field.required && (
                               <span className="text-red-500 text-sm">*</span>
                             )}
-                            <span className="text-xs text-gray-400 px-2 py-0.5 bg-gray-100 rounded">
+                            <span className="text-xs text-gray-500 px-2 py-0.5 bg-gray-100 rounded">
                               {field.type}
                             </span>
                           </div>
@@ -384,7 +384,7 @@ export default function FormBuilderPage() {
                               e.stopPropagation();
                               duplicateField(field.id);
                             }}
-                            className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded"
+                            className="p-1.5 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded"
                             title="Duplicate"
                           >
                             <Copy className="w-4 h-4" />
@@ -394,7 +394,7 @@ export default function FormBuilderPage() {
                               e.stopPropagation();
                               removeField(field.id);
                             }}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -423,12 +423,12 @@ export default function FormBuilderPage() {
 
         {/* Right Sidebar - Field Properties */}
         {activeTab === 'fields' && selectedFieldData && (
-          <aside className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 p-4 h-[calc(100vh-120px)] overflow-y-auto">
+          <aside className="w-80 bg-white dark:bg-white border-l border-gray-200 dark:border-gray-200 p-4 h-[calc(100vh-120px)] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900 dark:text-white">Field Properties</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-900">Field Properties</h3>
               <button
                 onClick={() => setSelectedField(null)}
-                className="p-1 text-gray-400 hover:text-gray-600"
+                className="p-1 text-gray-500 hover:text-gray-600"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -511,7 +511,7 @@ function FieldPreview({ field }) {
       return (
         <div className="flex gap-1">
           {[1, 2, 3, 4, 5].map(i => (
-            <Star key={i} className="w-6 h-6 text-gray-300" />
+            <Star key={i} className="w-6 h-6 text-gray-600" />
           ))}
         </div>
       );
@@ -538,7 +538,7 @@ function FieldPreview({ field }) {
     case 'file':
     case 'image':
       return (
-        <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center text-gray-400 text-sm">
+        <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center text-gray-500 text-sm">
           <Upload className="w-6 h-6 mx-auto mb-1" />
           Click or drag to upload
         </div>
@@ -546,7 +546,7 @@ function FieldPreview({ field }) {
     case 'location':
       return (
         <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-gray-400" />
+          <MapPin className="w-4 h-4 text-gray-500" />
           <input
             type="text"
             placeholder="Enter address"
@@ -568,35 +568,35 @@ function FieldPropertiesPanel({ field, onUpdate }) {
     <div className="space-y-4">
       {/* Label */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
           Label
         </label>
         <input
           type="text"
           value={field.label}
           onChange={(e) => onUpdate({ label: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500"
+          className="w-full px-3 py-2 border border-gray-200 dark:border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
         />
       </div>
 
       {/* Placeholder */}
       {!hasOptions && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
             Placeholder
           </label>
           <input
             type="text"
             value={field.placeholder || ''}
             onChange={(e) => onUpdate({ placeholder: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500"
+            className="w-full px-3 py-2 border border-gray-200 dark:border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
           />
         </div>
       )}
 
       {/* Help Text */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
           Help Text
         </label>
         <input
@@ -604,13 +604,13 @@ function FieldPropertiesPanel({ field, onUpdate }) {
           value={field.helpText || ''}
           onChange={(e) => onUpdate({ helpText: e.target.value })}
           placeholder="Additional instructions"
-          className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500"
+          className="w-full px-3 py-2 border border-gray-200 dark:border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
         />
       </div>
 
       {/* Required Toggle */}
       <div className="flex items-center justify-between py-2">
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Required</span>
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-600">Required</span>
         <button
           onClick={() => onUpdate({ required: !field.required })}
           className={`relative w-12 h-6 rounded-full transition ${
@@ -626,7 +626,7 @@ function FieldPropertiesPanel({ field, onUpdate }) {
       {/* Options (for select, radio, checkbox) */}
       {hasOptions && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
             Options
           </label>
           <div className="space-y-2">
@@ -640,14 +640,14 @@ function FieldPropertiesPanel({ field, onUpdate }) {
                     newOptions[index] = e.target.value;
                     onUpdate({ options: newOptions });
                   }}
-                  className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-purple-500"
+                  className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500"
                 />
                 <button
                   onClick={() => {
                     const newOptions = field.options.filter((_, i) => i !== index);
                     onUpdate({ options: newOptions });
                   }}
-                  className="p-2 text-gray-400 hover:text-red-500"
+                  className="p-2 text-gray-500 hover:text-red-500"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -666,7 +666,7 @@ function FieldPropertiesPanel({ field, onUpdate }) {
       {/* Validation */}
       {['text', 'number'].includes(field.type) && (
         <div className="pt-4 border-t border-gray-200">
-          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Validation</h4>
+          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-600 mb-3">Validation</h4>
           {field.type === 'number' && (
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -736,8 +736,8 @@ function SettingsPanel({ form, setForm }) {
   return (
     <>
       {/* Access Control */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+      <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
           <Lock className="w-5 h-5" />
           Access Control
         </h3>
@@ -764,8 +764,8 @@ function SettingsPanel({ form, setForm }) {
       </div>
 
       {/* Form Behavior */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+      <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
           <Settings className="w-5 h-5" />
           Form Behavior
         </h3>
@@ -783,18 +783,18 @@ function SettingsPanel({ form, setForm }) {
             onChange={(v) => updateSettings('shuffleFields', v)}
           />
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Confirmation Message
             </label>
             <textarea
               value={form.settings?.confirmationMessage || ''}
               onChange={(e) => updateSettings('confirmationMessage', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg"
+              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-200 rounded-lg"
               rows={2}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Redirect URL (optional)
             </label>
             <input
@@ -802,21 +802,21 @@ function SettingsPanel({ form, setForm }) {
               value={form.settings?.redirectUrl || ''}
               onChange={(e) => updateSettings('redirectUrl', e.target.value)}
               placeholder="https://example.com/thank-you"
-              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg"
+              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-200 rounded-lg"
             />
           </div>
         </div>
       </div>
 
       {/* Limits */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+      <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
           <Users className="w-5 h-5" />
           Response Limits
         </h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Maximum Responses
             </label>
             <input
@@ -824,30 +824,30 @@ function SettingsPanel({ form, setForm }) {
               value={form.limits?.maxResponses || ''}
               onChange={(e) => updateLimits('maxResponses', e.target.value ? parseInt(e.target.value) : null)}
               placeholder="Unlimited"
-              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg"
+              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-200 rounded-lg"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                 Start Date
               </label>
               <input
                 type="datetime-local"
                 value={form.limits?.startDate ? form.limits.startDate.slice(0, 16) : ''}
                 onChange={(e) => updateLimits('startDate', e.target.value ? new Date(e.target.value).toISOString() : null)}
-                className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg"
+                className="w-full px-3 py-2 border border-gray-200 dark:border-gray-200 rounded-lg"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                 End Date
               </label>
               <input
                 type="datetime-local"
                 value={form.limits?.endDate ? form.limits.endDate.slice(0, 16) : ''}
                 onChange={(e) => updateLimits('endDate', e.target.value ? new Date(e.target.value).toISOString() : null)}
-                className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg"
+                className="w-full px-3 py-2 border border-gray-200 dark:border-gray-200 rounded-lg"
               />
             </div>
           </div>
@@ -855,8 +855,8 @@ function SettingsPanel({ form, setForm }) {
       </div>
 
       {/* Notifications */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+      <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
           <Bell className="w-5 h-5" />
           Notifications
         </h3>
@@ -891,15 +891,15 @@ function BrandingPanel({ form, setForm }) {
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+      <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
           <Palette className="w-5 h-5" />
           Colors
         </h3>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
               Primary Color
             </label>
             <div className="flex flex-wrap gap-2">
@@ -923,7 +923,7 @@ function BrandingPanel({ form, setForm }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
               Background Color
             </label>
             <div className="flex gap-3">
@@ -942,15 +942,15 @@ function BrandingPanel({ form, setForm }) {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+      <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
           <Image className="w-5 h-5" />
           Images
         </h3>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Logo URL
             </label>
             <input
@@ -958,11 +958,11 @@ function BrandingPanel({ form, setForm }) {
               value={form.branding?.logo || ''}
               onChange={(e) => updateBranding('logo', e.target.value)}
               placeholder="https://example.com/logo.png"
-              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg"
+              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-200 rounded-lg"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Header Image URL
             </label>
             <input
@@ -970,7 +970,7 @@ function BrandingPanel({ form, setForm }) {
               value={form.branding?.headerImage || ''}
               onChange={(e) => updateBranding('headerImage', e.target.value)}
               placeholder="https://example.com/header.jpg"
-              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg"
+              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-200 rounded-lg"
             />
           </div>
         </div>
@@ -984,7 +984,7 @@ function SettingToggle({ label, description, checked, onChange }) {
   return (
     <div className="flex items-center justify-between">
       <div>
-        <p className="text-sm font-medium text-gray-900 dark:text-white">{label}</p>
+        <p className="text-sm font-medium text-gray-900 dark:text-gray-900">{label}</p>
         <p className="text-xs text-gray-500">{description}</p>
       </div>
       <button
@@ -1004,10 +1004,10 @@ function SettingToggle({ label, description, checked, onChange }) {
 // Preview Modal
 function PreviewModal({ form, onClose }) {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900 dark:text-white">Form Preview</h3>
+    <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white dark:bg-white border-b border-gray-200 dark:border-gray-200 px-6 py-4 flex items-center justify-between">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-900">Form Preview</h3>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
             <X className="w-5 h-5" />
           </button>
@@ -1051,7 +1051,7 @@ function PreviewModal({ form, onClose }) {
           </div>
 
           <button
-            className="w-full mt-6 py-3 text-white rounded-xl font-semibold"
+            className="w-full mt-6 py-3 text-gray-900 rounded-xl font-semibold"
             style={{ backgroundColor: form.branding?.primaryColor }}
           >
             Submit

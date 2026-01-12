@@ -104,12 +104,12 @@ export default function FormsListPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Forms Builder</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900">Forms Builder</h1>
             <p className="text-gray-500">Create surveys, collect feedback, and gather responses</p>
           </div>
           <Link
             href="/studio/forms/builder"
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700"
           >
             <Plus className="w-4 h-4" />
             New Form
@@ -119,19 +119,19 @@ export default function FormsListPage() {
         {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
             <input
               type="text"
               placeholder="Search forms..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-200 rounded-lg bg-white dark:bg-white"
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
+            className="px-4 py-2 border border-gray-200 dark:border-gray-200 rounded-lg bg-white dark:bg-white"
           >
             <option value="all">All Status</option>
             <option value="draft">Draft</option>
@@ -145,16 +145,16 @@ export default function FormsListPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map(i => (
-              <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 animate-pulse">
+              <div key={i} className="bg-white dark:bg-white rounded-xl p-6 animate-pulse">
                 <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
                 <div className="h-4 bg-gray-200 rounded w-1/2"></div>
               </div>
             ))}
           </div>
         ) : filteredForms.length === 0 ? (
-          <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <div className="text-center py-16 bg-white dark:bg-white rounded-xl border border-gray-200 dark:border-gray-200">
+            <FileText className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900 mb-2">
               {searchQuery || statusFilter !== 'all' ? 'No forms found' : 'No forms yet'}
             </h3>
             <p className="text-gray-500 mb-6">
@@ -164,7 +164,7 @@ export default function FormsListPage() {
             </p>
             <Link
               href="/studio/forms/builder"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg"
             >
               <Plus className="w-4 h-4" />
               Create Form
@@ -187,8 +187,8 @@ export default function FormsListPage() {
 
       {/* Delete Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6">
+        <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-white rounded-xl max-w-md w-full p-6">
             <h3 className="text-lg font-semibold mb-2">Delete Form?</h3>
             <p className="text-gray-500 mb-6">
               This will permanently delete the form and all its responses. This action cannot be undone.
@@ -202,7 +202,7 @@ export default function FormsListPage() {
               </button>
               <button
                 onClick={() => deleteForm(showDeleteModal)}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                className="px-4 py-2 bg-red-600 text-gray-900 rounded-lg hover:bg-red-700"
               >
                 Delete
               </button>
@@ -220,11 +220,11 @@ function FormCard({ form, onDelete, onDuplicate, onCopyLink }) {
   const status = STATUS_CONFIG[form.status] || STATUS_CONFIG.draft;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition">
+    <div className="bg-white dark:bg-white rounded-xl border border-gray-200 dark:border-gray-200 overflow-hidden hover:shadow-md transition">
       <div className="p-5">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-900 dark:text-white truncate">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-900 truncate">
               {form.title}
             </h3>
             <p className="text-sm text-gray-500 mt-1">
@@ -234,41 +234,41 @@ function FormCard({ form, onDelete, onDuplicate, onCopyLink }) {
           <div className="relative">
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-100 rounded"
             >
-              <MoreVertical className="w-4 h-4 text-gray-400" />
+              <MoreVertical className="w-4 h-4 text-gray-500" />
             </button>
             {showMenu && (
               <>
                 <div className="fixed inset-0" onClick={() => setShowMenu(false)} />
-                <div className="absolute right-0 top-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 w-40 z-10">
+                <div className="absolute right-0 top-8 bg-white dark:bg-white rounded-lg shadow-lg border border-gray-200 dark:border-gray-200 py-1 w-40 z-10">
                   <Link
                     href={`/studio/forms/builder?id=${form._id}`}
-                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-100 text-sm"
                   >
                     <Edit className="w-4 h-4" /> Edit
                   </Link>
                   <Link
                     href={`/studio/forms/${form._id}/responses`}
-                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-100 text-sm"
                   >
                     <BarChart2 className="w-4 h-4" /> Responses
                   </Link>
                   <button
                     onClick={() => { onCopyLink(); setShowMenu(false); }}
-                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-100 text-sm"
                   >
                     <Copy className="w-4 h-4" /> Copy Link
                   </button>
                   <button
                     onClick={() => { onDuplicate(); setShowMenu(false); }}
-                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
+                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-100 text-sm"
                   >
                     <Copy className="w-4 h-4" /> Duplicate
                   </button>
                   <button
                     onClick={() => { onDelete(); setShowMenu(false); }}
-                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm text-red-600"
+                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-100 text-sm text-red-600"
                   >
                     <Trash2 className="w-4 h-4" /> Delete
                   </button>
@@ -282,7 +282,7 @@ function FormCard({ form, onDelete, onDuplicate, onCopyLink }) {
           <span className={`text-xs px-2 py-1 rounded-full ${status.color}`}>
             {status.label}
           </span>
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-gray-500">
             {new Date(form.createdAt).toLocaleDateString()}
           </span>
         </div>
@@ -290,13 +290,13 @@ function FormCard({ form, onDelete, onDuplicate, onCopyLink }) {
         <div className="flex gap-2">
           <Link
             href={`/studio/forms/builder?id=${form._id}`}
-            className="flex-1 text-center py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+            className="flex-1 text-center py-2 text-sm border border-gray-200 dark:border-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-100"
           >
             Edit
           </Link>
           <Link
             href={`/studio/forms/${form._id}/responses`}
-            className="flex-1 text-center py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            className="flex-1 text-center py-2 text-sm bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700"
           >
             Responses
           </Link>

@@ -127,7 +127,7 @@ export default function RewardsDashboard() {
     <div className={`bg-white rounded-xl p-4 border ${achievement.unlocked ? 'border-yellow-400 shadow-md' : 'border-gray-200'} hover:shadow-lg transition-all ${!achievement.unlocked && 'opacity-50'}`}>
       <div className="flex items-start justify-between mb-3">
         <div className={`p-3 ${achievement.unlocked ? 'bg-yellow-100' : 'bg-gray-100'} rounded-lg`}>
-          <Award className={`w-6 h-6 ${achievement.unlocked ? 'text-yellow-600' : 'text-gray-400'}`} />
+          <Award className={`w-6 h-6 ${achievement.unlocked ? 'text-yellow-600' : 'text-gray-500'}`} />
         </div>
         {achievement.unlocked && (
           <div className="p-1 bg-green-100 rounded-full">
@@ -147,7 +147,7 @@ export default function RewardsDashboard() {
   const LeaderboardItem = ({ user, rank, tokens }) => (
     <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
       <div className="flex items-center gap-3">
-        <div className={`w-8 h-8 flex items-center justify-center rounded-full ${rank <= 3 ? 'bg-gradient-to-r from-yellow-400 to-orange-400' : 'bg-gray-200'} font-bold text-white text-sm`}>
+        <div className={`w-8 h-8 flex items-center justify-center rounded-full ${rank <= 3 ? 'bg-gradient-to-r from-yellow-400 to-orange-400' : 'bg-gray-200'} font-bold text-gray-900 text-sm`}>
           {rank}
         </div>
         <div>
@@ -197,7 +197,7 @@ export default function RewardsDashboard() {
             <button
               onClick={handleClaimBonus}
               disabled={claiming}
-              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-gray-900 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
             >
               {claiming ? 'Claiming...' : 'Claim Now'}
             </button>
@@ -244,11 +244,11 @@ export default function RewardsDashboard() {
               <div className="bg-white rounded-xl p-6 border border-gray-200">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-bold text-gray-900">Recent Transactions</h2>
-                  <Clock className="w-5 h-5 text-gray-400" />
+                  <Clock className="w-5 h-5 text-gray-500" />
                 </div>
                 {transactions.length === 0 ? (
                   <div className="text-center py-8">
-                    <Coins className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <Coins className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                     <p className="text-gray-500">No transactions yet</p>
                   </div>
                 ) : (

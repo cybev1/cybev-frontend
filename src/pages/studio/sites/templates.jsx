@@ -190,7 +190,7 @@ function TemplatePreview({ template, onClose, onSelect }) {
   const { preview, name, features, color } = template;
   
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-gray-900/80 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
@@ -201,7 +201,7 @@ function TemplatePreview({ template, onClose, onSelect }) {
           <div className="flex items-center gap-3">
             <button
               onClick={onSelect}
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 flex items-center gap-2"
+              className="px-6 py-2 bg-purple-600 text-gray-900 rounded-lg font-medium hover:bg-purple-700 flex items-center gap-2"
             >
               <Check className="w-4 h-4" />
               Use This Template
@@ -216,7 +216,7 @@ function TemplatePreview({ template, onClose, onSelect }) {
         <div className="flex-1 overflow-auto">
           {/* Hero Section Preview */}
           <div 
-            className={`bg-gradient-to-br ${color} text-white py-20 px-8`}
+            className={`bg-gradient-to-br ${color} text-gray-900 py-20 px-8`}
           >
             <div className="max-w-4xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-bold mb-4">{preview.hero.title}</h1>
@@ -225,7 +225,7 @@ function TemplatePreview({ template, onClose, onSelect }) {
                 <button className="px-8 py-3 bg-white text-gray-900 rounded-full font-semibold">
                   Get Started
                 </button>
-                <button className="px-8 py-3 border-2 border-white text-white rounded-full font-semibold">
+                <button className="px-8 py-3 border-2 border-white text-gray-900 rounded-full font-semibold">
                   Learn More
                 </button>
               </div>
@@ -257,7 +257,7 @@ function TemplatePreview({ template, onClose, onSelect }) {
             className="py-16 px-8"
             style={{ backgroundColor: preview.colors.primary }}
           >
-            <div className="max-w-4xl mx-auto text-center text-white">
+            <div className="max-w-4xl mx-auto text-center text-gray-900">
               <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
               <p className="text-lg opacity-90 mb-8">Create your website in minutes with this template</p>
               <button className="px-8 py-3 bg-white text-gray-900 rounded-full font-semibold">
@@ -267,13 +267,13 @@ function TemplatePreview({ template, onClose, onSelect }) {
           </div>
 
           {/* Footer Preview */}
-          <div className="py-8 px-8 bg-gray-900 text-white">
+          <div className="py-8 px-8 bg-gray-50 text-gray-900">
             <div className="max-w-6xl mx-auto flex items-center justify-between">
-              <p className="text-gray-400">© 2026 Your Company. All rights reserved.</p>
+              <p className="text-gray-500">© 2026 Your Company. All rights reserved.</p>
               <div className="flex gap-6">
-                <span className="text-gray-400 hover:text-white cursor-pointer">Privacy</span>
-                <span className="text-gray-400 hover:text-white cursor-pointer">Terms</span>
-                <span className="text-gray-400 hover:text-white cursor-pointer">Contact</span>
+                <span className="text-gray-500 hover:text-gray-900 cursor-pointer">Privacy</span>
+                <span className="text-gray-500 hover:text-gray-900 cursor-pointer">Terms</span>
+                <span className="text-gray-500 hover:text-gray-900 cursor-pointer">Contact</span>
               </div>
             </div>
           </div>
@@ -325,7 +325,7 @@ export default function TemplatesPage() {
 
               {/* Search */}
               <div className="relative w-80">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                 <input
                   type="text"
                   value={search}
@@ -366,7 +366,7 @@ export default function TemplatesPage() {
                 {/* Preview Image */}
                 <div className={`relative aspect-[4/3] bg-gradient-to-br ${template.color}`}>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center text-white p-6">
+                    <div className="text-center text-gray-900 p-6">
                       <template.icon className="w-12 h-12 mx-auto mb-3 opacity-80" />
                       <h3 className="text-xl font-bold">{template.preview.hero.title}</h3>
                       <p className="text-sm opacity-80 mt-1">{template.preview.hero.subtitle}</p>
@@ -374,7 +374,7 @@ export default function TemplatesPage() {
                   </div>
 
                   {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-3">
+                  <div className="absolute inset-0 bg-gray-900/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-3">
                     <button
                       onClick={() => setPreviewTemplate(template)}
                       className="px-4 py-2 bg-white text-gray-900 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-100"
@@ -384,7 +384,7 @@ export default function TemplatesPage() {
                     </button>
                     <button
                       onClick={() => selectTemplate(template.id)}
-                      className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium flex items-center gap-2 hover:bg-purple-700"
+                      className="px-4 py-2 bg-purple-600 text-gray-900 rounded-lg font-medium flex items-center gap-2 hover:bg-purple-700"
                     >
                       <Check className="w-4 h-4" />
                       Use
@@ -400,7 +400,7 @@ export default function TemplatesPage() {
                       <p className="text-sm text-gray-500 capitalize">{template.category}</p>
                     </div>
                     <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${template.color} flex items-center justify-center`}>
-                      <template.icon className="w-4 h-4 text-white" />
+                      <template.icon className="w-4 h-4 text-gray-900" />
                     </div>
                   </div>
                   <p className="text-sm text-gray-600 mb-3">{template.description}</p>
@@ -425,9 +425,9 @@ export default function TemplatesPage() {
 
           {filteredTemplates.length === 0 && (
             <div className="text-center py-20">
-              <Globe className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-400 mb-2">No templates found</h3>
-              <p className="text-gray-400">Try adjusting your search or filter</p>
+              <Globe className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-500 mb-2">No templates found</h3>
+              <p className="text-gray-500">Try adjusting your search or filter</p>
             </div>
           )}
         </div>

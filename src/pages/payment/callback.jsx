@@ -93,7 +93,7 @@ export default function PaymentCallback() {
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden"
+          className="w-full max-w-md bg-white dark:bg-gray-50 rounded-2xl shadow-xl overflow-hidden"
         >
           {/* Status Icon */}
           <div className={`p-8 text-center ${
@@ -106,7 +106,7 @@ export default function PaymentCallback() {
                 animate={{ rotate: 360 }}
                 transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
               >
-                <Loader2 className="w-20 h-20 text-white mx-auto" />
+                <Loader2 className="w-20 h-20 text-gray-900 mx-auto" />
               </motion.div>
             )}
             {status === 'success' && (
@@ -115,7 +115,7 @@ export default function PaymentCallback() {
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', stiffness: 200 }}
               >
-                <CheckCircle className="w-20 h-20 text-white mx-auto" />
+                <CheckCircle className="w-20 h-20 text-gray-900 mx-auto" />
               </motion.div>
             )}
             {status === 'failed' && (
@@ -124,11 +124,11 @@ export default function PaymentCallback() {
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', stiffness: 200 }}
               >
-                <XCircle className="w-20 h-20 text-white mx-auto" />
+                <XCircle className="w-20 h-20 text-gray-900 mx-auto" />
               </motion.div>
             )}
             
-            <h1 className="text-2xl font-bold text-white mt-4">
+            <h1 className="text-2xl font-bold text-gray-900 mt-4">
               {status === 'verifying' && 'Verifying Payment...'}
               {status === 'success' && 'Payment Successful!'}
               {status === 'failed' && 'Payment Failed'}
@@ -138,41 +138,41 @@ export default function PaymentCallback() {
           {/* Content */}
           <div className="p-6">
             {status === 'verifying' && (
-              <p className="text-center text-gray-500 dark:text-gray-400">
+              <p className="text-center text-gray-500 dark:text-gray-500">
                 Please wait while we verify your payment...
               </p>
             )}
 
             {status === 'success' && transaction && (
               <div className="space-y-4">
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 space-y-3">
+                <div className="bg-gray-50 dark:bg-white rounded-xl p-4 space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Amount</span>
-                    <span className="font-semibold text-gray-900 dark:text-white">
+                    <span className="text-gray-500 dark:text-gray-500">Amount</span>
+                    <span className="font-semibold text-gray-900 dark:text-gray-900">
                       {transaction.currency} {transaction.amount?.toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Type</span>
-                    <span className="font-medium text-gray-900 dark:text-white capitalize">
+                    <span className="text-gray-500 dark:text-gray-500">Type</span>
+                    <span className="font-medium text-gray-900 dark:text-gray-900 capitalize">
                       {transaction.type}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Reference</span>
-                    <span className="font-mono text-sm text-gray-900 dark:text-white">
+                    <span className="text-gray-500 dark:text-gray-500">Reference</span>
+                    <span className="font-mono text-sm text-gray-900 dark:text-gray-900">
                       {transaction.reference?.slice(0, 20)}...
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">Status</span>
+                    <span className="text-gray-500 dark:text-gray-500">Status</span>
                     <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm rounded-full">
                       Completed
                     </span>
                   </div>
                 </div>
 
-                <p className="text-center text-gray-600 dark:text-gray-400">
+                <p className="text-center text-gray-600 dark:text-gray-500">
                   Thank you for your support! 🎉
                 </p>
               </div>
@@ -180,7 +180,7 @@ export default function PaymentCallback() {
 
             {status === 'failed' && (
               <div className="text-center">
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                <p className="text-gray-600 dark:text-gray-500 mb-4">
                   {error || 'Something went wrong with your payment.'}
                 </p>
                 <button
@@ -197,7 +197,7 @@ export default function PaymentCallback() {
             <div className="mt-6 flex gap-3">
               <Link
                 href="/feed"
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-gray-100 dark:bg-white text-gray-700 dark:text-gray-600 font-medium rounded-xl hover:bg-gray-200 dark:hover:bg-gray-100 transition-colors"
               >
                 <Home className="w-5 h-5" />
                 Home
@@ -205,7 +205,7 @@ export default function PaymentCallback() {
               {status === 'success' && (
                 <Link
                   href="/wallet"
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium rounded-xl hover:opacity-90 transition-opacity"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 font-medium rounded-xl hover:opacity-90 transition-opacity"
                 >
                   <Receipt className="w-5 h-5" />
                   View Wallet

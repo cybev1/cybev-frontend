@@ -97,10 +97,10 @@ export default function BlogSiteStudio() {
           </div>
 
           <div className="flex gap-2">
-            <Link href="/blog/create" className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 border border-white/10">
+            <Link href="/blog/create" className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 border border-gray-200">
               Write a Blog Post
             </Link>
-            <Link href="/feed" className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 border border-white/10">
+            <Link href="/feed" className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 border border-gray-200">
               Go to Feed
             </Link>
           </div>
@@ -111,13 +111,13 @@ export default function BlogSiteStudio() {
         ) : null}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <div className="p-4 rounded-xl border border-white/10 bg-white/5">
+          <div className="p-4 rounded-xl border border-gray-200 bg-white/5">
             <h2 className="font-semibold mb-3">Create a new site</h2>
             <form onSubmit={handleCreate} className="space-y-3">
               <div>
                 <label className="block text-sm mb-1">Site name</label>
                 <input
-                  className="w-full px-3 py-2 rounded-lg bg-black/20 border border-white/10"
+                  className="w-full px-3 py-2 rounded-lg bg-gray-900/20 border border-gray-200"
                   value={name}
                   onChange={(e) => {
                     setName(e.target.value);
@@ -131,7 +131,7 @@ export default function BlogSiteStudio() {
               <div>
                 <label className="block text-sm mb-1">Slug</label>
                 <input
-                  className="w-full px-3 py-2 rounded-lg bg-black/20 border border-white/10"
+                  className="w-full px-3 py-2 rounded-lg bg-gray-900/20 border border-gray-200"
                   value={slug}
                   onChange={(e) => setSlug(slugify(e.target.value))}
                   placeholder="e.g. cybev-tech"
@@ -144,7 +144,7 @@ export default function BlogSiteStudio() {
               <div>
                 <label className="block text-sm mb-1">Short description</label>
                 <textarea
-                  className="w-full px-3 py-2 rounded-lg bg-black/20 border border-white/10 min-h-[88px]"
+                  className="w-full px-3 py-2 rounded-lg bg-gray-900/20 border border-gray-200 min-h-[88px]"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="What is this blog about?"
@@ -154,7 +154,7 @@ export default function BlogSiteStudio() {
               <div>
                 <label className="block text-sm mb-1">Template</label>
                 <select
-                  className="w-full px-3 py-2 rounded-lg bg-black/20 border border-white/10"
+                  className="w-full px-3 py-2 rounded-lg bg-gray-900/20 border border-gray-200"
                   value={templateKey}
                   onChange={(e) => setTemplateKey(e.target.value)}
                 >
@@ -183,12 +183,12 @@ export default function BlogSiteStudio() {
             </form>
           </div>
 
-          <div className="p-4 rounded-xl border border-white/10 bg-white/5">
+          <div className="p-4 rounded-xl border border-gray-200 bg-white/5">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold">My sites</h2>
               <button
                 onClick={loadMySites}
-                className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 border border-white/10 text-sm"
+                className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 border border-gray-200 text-sm"
               >
                 Refresh
               </button>
@@ -203,7 +203,7 @@ export default function BlogSiteStudio() {
             ) : (
               <div className="mt-4 space-y-3">
                 {sites.map((s) => (
-                  <div key={s._id} className="p-3 rounded-lg border border-white/10 bg-black/10">
+                  <div key={s._id} className="p-3 rounded-lg border border-gray-200 bg-gray-900/10">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="font-medium">{s.name}</div>
@@ -217,13 +217,13 @@ export default function BlogSiteStudio() {
                       <div className="flex flex-col gap-2">
                         <Link
                           href={`/blogsite/${s.slug}`}
-                          className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 border border-white/10 text-sm text-center"
+                          className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 border border-gray-200 text-sm text-center"
                         >
                           Open
                         </Link>
                         <Link
                           href={`/blog/create?site=${encodeURIComponent(s._id)}`}
-                          className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 border border-white/10 text-sm text-center"
+                          className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 border border-gray-200 text-sm text-center"
                         >
                           Write Post
                         </Link>
@@ -236,7 +236,7 @@ export default function BlogSiteStudio() {
           </div>
         </div>
 
-        <div className="mt-8 p-4 rounded-xl border border-white/10 bg-white/5">
+        <div className="mt-8 p-4 rounded-xl border border-gray-200 bg-white/5">
           <h3 className="font-semibold mb-2">Next step: connect a domain</h3>
           <p className="text-sm opacity-80">
             If you want a custom domain, go to{' '}

@@ -118,15 +118,15 @@ export default function PremiumPage() {
         <title>Premium Plans - CYBEV</title>
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 py-12">
+      <div className="min-h-screen bg-gray-100 py-12">
         <div className="max-w-6xl mx-auto px-4">
           {/* Header */}
           <div className="text-center mb-12">
             <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-yellow-500/30">
-              <Crown className="w-10 h-10 text-white" />
+              <Crown className="w-10 h-10 text-gray-900" />
             </div>
-            <h1 className="text-4xl font-bold text-white mb-4">Upgrade Your Experience</h1>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Upgrade Your Experience</h1>
+            <p className="text-gray-500 text-lg max-w-2xl mx-auto">
               Unlock powerful features to grow your audience and monetize your content
             </p>
           </div>
@@ -146,20 +146,20 @@ export default function PremiumPage() {
                 return (
                   <div
                     key={plan._id}
-                    className={`relative bg-gray-800/50 rounded-2xl p-6 border transition-all ${
+                    className={`relative bg-white/50 rounded-2xl p-6 border transition-all ${
                       isPopular 
                         ? 'border-purple-500 shadow-lg shadow-purple-500/20 scale-105' 
-                        : 'border-gray-700 hover:border-purple-500/50'
+                        : 'border-gray-200 hover:border-purple-500/50'
                     }`}
                   >
                     {isPopular && (
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white text-sm font-medium">
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-gray-900 text-sm font-medium">
                         Most Popular
                       </div>
                     )}
 
                     {isCurrentPlan && (
-                      <div className="absolute -top-4 right-4 px-4 py-1 bg-green-500 rounded-full text-white text-sm font-medium">
+                      <div className="absolute -top-4 right-4 px-4 py-1 bg-green-500 rounded-full text-gray-900 text-sm font-medium">
                         Current Plan
                       </div>
                     )}
@@ -167,17 +167,17 @@ export default function PremiumPage() {
                     {/* Plan Header */}
                     <div className="text-center mb-6">
                       <div className={`w-16 h-16 bg-gradient-to-br ${getPlanColor(plan.name)} rounded-xl flex items-center justify-center mx-auto mb-4`}>
-                        <Icon className="w-8 h-8 text-white" />
+                        <Icon className="w-8 h-8 text-gray-900" />
                       </div>
-                      <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                      <p className="text-gray-400 text-sm">{plan.description}</p>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
+                      <p className="text-gray-500 text-sm">{plan.description}</p>
                     </div>
 
                     {/* Price */}
                     <div className="text-center mb-6">
                       <div className="flex items-baseline justify-center gap-1">
-                        <span className="text-4xl font-bold text-white">{plan.price}</span>
-                        <span className="text-gray-400">CYBEV/mo</span>
+                        <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
+                        <span className="text-gray-500">CYBEV/mo</span>
                       </div>
                       {plan.price > 0 && (
                         <p className="text-gray-500 text-sm mt-1">
@@ -191,7 +191,7 @@ export default function PremiumPage() {
                       {plan.features?.map((feature, idx) => (
                         <li key={idx} className="flex items-start gap-3">
                           <Check className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                          <span className="text-gray-300 text-sm">{feature}</span>
+                          <span className="text-gray-600 text-sm">{feature}</span>
                         </li>
                       ))}
                     </ul>
@@ -202,7 +202,7 @@ export default function PremiumPage() {
                       disabled={isCurrentPlan || subscribing === plan._id}
                       className={`w-full py-3 rounded-lg font-medium transition-all ${
                         isCurrentPlan
-                          ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                          ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
                           : isPopular
                             ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
                             : 'bg-gray-700 hover:bg-gray-600 text-white'
@@ -225,24 +225,24 @@ export default function PremiumPage() {
           )}
 
           {/* FAQ */}
-          <div className="bg-gray-800/30 rounded-2xl p-8 border border-purple-500/20">
-            <h2 className="text-2xl font-bold text-white mb-6 text-center">Frequently Asked Questions</h2>
+          <div className="bg-white/30 rounded-2xl p-8 border border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Frequently Asked Questions</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h4 className="text-white font-medium mb-2">Can I cancel anytime?</h4>
-                <p className="text-gray-400 text-sm">Yes! You can cancel your subscription at any time. You'll keep access until the end of your billing period.</p>
+                <h4 className="text-gray-900 font-medium mb-2">Can I cancel anytime?</h4>
+                <p className="text-gray-500 text-sm">Yes! You can cancel your subscription at any time. You'll keep access until the end of your billing period.</p>
               </div>
               <div>
-                <h4 className="text-white font-medium mb-2">How do I pay?</h4>
-                <p className="text-gray-400 text-sm">Subscriptions are paid using CYBEV tokens from your wallet. Make sure you have enough balance!</p>
+                <h4 className="text-gray-900 font-medium mb-2">How do I pay?</h4>
+                <p className="text-gray-500 text-sm">Subscriptions are paid using CYBEV tokens from your wallet. Make sure you have enough balance!</p>
               </div>
               <div>
-                <h4 className="text-white font-medium mb-2">Can I upgrade later?</h4>
-                <p className="text-gray-400 text-sm">Absolutely! You can upgrade or downgrade your plan at any time from your account settings.</p>
+                <h4 className="text-gray-900 font-medium mb-2">Can I upgrade later?</h4>
+                <p className="text-gray-500 text-sm">Absolutely! You can upgrade or downgrade your plan at any time from your account settings.</p>
               </div>
               <div>
-                <h4 className="text-white font-medium mb-2">What's the creator revenue share?</h4>
-                <p className="text-gray-400 text-sm">Pro and Business plans get boosted revenue share on tips and memberships - up to 95%!</p>
+                <h4 className="text-gray-900 font-medium mb-2">What's the creator revenue share?</h4>
+                <p className="text-gray-500 text-sm">Pro and Business plans get boosted revenue share on tips and memberships - up to 95%!</p>
               </div>
             </div>
           </div>
@@ -251,34 +251,34 @@ export default function PremiumPage() {
 
       {/* Confirmation Modal */}
       {showConfirm && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-purple-500/30">
+        <div className="fixed inset-0 bg-gray-900/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full border border-gray-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-white">Confirm Subscription</h3>
-              <button onClick={() => setShowConfirm(null)} className="text-gray-400 hover:text-white">
+              <h3 className="text-xl font-bold text-gray-900">Confirm Subscription</h3>
+              <button onClick={() => setShowConfirm(null)} className="text-gray-500 hover:text-gray-900">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="bg-gray-900/50 rounded-xl p-4 mb-6">
+            <div className="bg-gray-50 rounded-xl p-4 mb-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className={`w-12 h-12 bg-gradient-to-br ${getPlanColor(showConfirm.name)} rounded-lg flex items-center justify-center`}>
-                  {(() => { const Icon = getPlanIcon(showConfirm.name); return <Icon className="w-6 h-6 text-white" />; })()}
+                  {(() => { const Icon = getPlanIcon(showConfirm.name); return <Icon className="w-6 h-6 text-gray-900" />; })()}
                 </div>
                 <div>
-                  <h4 className="text-white font-medium">{showConfirm.name}</h4>
-                  <p className="text-gray-400 text-sm">{showConfirm.price} CYBEV/month</p>
+                  <h4 className="text-gray-900 font-medium">{showConfirm.name}</h4>
+                  <p className="text-gray-500 text-sm">{showConfirm.price} CYBEV/month</p>
                 </div>
               </div>
 
-              <div className="border-t border-gray-700 pt-4">
+              <div className="border-t border-gray-200 pt-4">
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="text-gray-400">Monthly charge</span>
-                  <span className="text-white">{showConfirm.price} CYBEV</span>
+                  <span className="text-gray-500">Monthly charge</span>
+                  <span className="text-gray-900">{showConfirm.price} CYBEV</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">First charge</span>
-                  <span className="text-white">Today</span>
+                  <span className="text-gray-500">First charge</span>
+                  <span className="text-gray-900">Today</span>
                 </div>
               </div>
             </div>
@@ -286,14 +286,14 @@ export default function PremiumPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowConfirm(null)}
-                className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-gray-900 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleSubscribe(showConfirm._id)}
                 disabled={subscribing}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-gray-900 rounded-lg transition-colors disabled:opacity-50"
               >
                 {subscribing ? (
                   <Loader2 className="w-5 h-5 animate-spin" />

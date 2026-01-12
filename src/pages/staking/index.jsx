@@ -47,48 +47,48 @@ function PoolCard({ pool, onStake, userStake }) {
   };
 
   return (
-    <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 overflow-hidden hover:border-purple-500/40 transition-colors">
+    <div className="bg-white/50 rounded-2xl border border-gray-200 overflow-hidden hover:border-purple-500/40 transition-colors">
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <div 
-              className="w-12 h-12 rounded-xl flex items-center justify-center text-white"
+              className="w-12 h-12 rounded-xl flex items-center justify-center text-gray-900"
               style={{ backgroundColor: pool.color || '#8B5CF6' }}
             >
               {getPoolIcon()}
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white">{pool.name}</h3>
-              <p className="text-gray-400 text-sm">{pool.description}</p>
+              <h3 className="text-lg font-bold text-gray-900">{pool.name}</h3>
+              <p className="text-gray-500 text-sm">{pool.description}</p>
             </div>
           </div>
           <div className="text-right">
             <p className="text-3xl font-bold text-green-400">{pool.apy}%</p>
-            <p className="text-gray-400 text-sm">APY</p>
+            <p className="text-gray-500 text-sm">APY</p>
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-4">
           <div>
-            <p className="text-gray-400 text-xs">Lock Period</p>
-            <p className="text-white font-medium">
+            <p className="text-gray-500 text-xs">Lock Period</p>
+            <p className="text-gray-900 font-medium">
               {pool.lockPeriod === 0 ? 'Flexible' : `${pool.lockPeriod} days`}
             </p>
           </div>
           <div>
-            <p className="text-gray-400 text-xs">Min Stake</p>
-            <p className="text-white font-medium">{pool.minStake} CYBEV</p>
+            <p className="text-gray-500 text-xs">Min Stake</p>
+            <p className="text-gray-900 font-medium">{pool.minStake} CYBEV</p>
           </div>
           <div>
-            <p className="text-gray-400 text-xs">Total Staked</p>
-            <p className="text-white font-medium">{(pool.totalStaked || 0).toLocaleString()}</p>
+            <p className="text-gray-500 text-xs">Total Staked</p>
+            <p className="text-gray-900 font-medium">{(pool.totalStaked || 0).toLocaleString()}</p>
           </div>
         </div>
 
         {userStake && (
           <div className="bg-purple-500/10 rounded-xl p-3 mb-4">
-            <p className="text-purple-400 text-sm mb-1">Your Stake</p>
-            <p className="text-white font-bold">{userStake.amount.toLocaleString()} CYBEV</p>
+            <p className="text-purple-600 text-sm mb-1">Your Stake</p>
+            <p className="text-gray-900 font-bold">{userStake.amount.toLocaleString()} CYBEV</p>
             {userStake.pendingRewards > 0 && (
               <p className="text-green-400 text-sm">+{userStake.pendingRewards.toFixed(4)} pending rewards</p>
             )}
@@ -97,7 +97,7 @@ function PoolCard({ pool, onStake, userStake }) {
 
         <button
           onClick={() => onStake(pool)}
-          className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
+          className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-xl font-medium hover:opacity-90 transition-opacity"
         >
           {userStake ? 'Stake More' : 'Stake Now'}
         </button>
@@ -106,7 +106,7 @@ function PoolCard({ pool, onStake, userStake }) {
       {/* Expanded Details */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full py-3 bg-gray-900/50 text-gray-400 text-sm flex items-center justify-center gap-2 hover:text-white transition-colors"
+        className="w-full py-3 bg-gray-50 text-gray-500 text-sm flex items-center justify-center gap-2 hover:text-gray-900 transition-colors"
       >
         {expanded ? 'Hide Details' : 'Show Details'}
         <ChevronRight className={`w-4 h-4 transition-transform ${expanded ? 'rotate-90' : ''}`} />
@@ -115,16 +115,16 @@ function PoolCard({ pool, onStake, userStake }) {
       {expanded && (
         <div className="px-6 pb-6 space-y-3">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Early Withdrawal Penalty</span>
-            <span className="text-white">{pool.earlyWithdrawalPenalty}%</span>
+            <span className="text-gray-500">Early Withdrawal Penalty</span>
+            <span className="text-gray-900">{pool.earlyWithdrawalPenalty}%</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Compound Frequency</span>
-            <span className="text-white capitalize">{pool.compoundFrequency || 'Daily'}</span>
+            <span className="text-gray-500">Compound Frequency</span>
+            <span className="text-gray-900 capitalize">{pool.compoundFrequency || 'Daily'}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Total Stakers</span>
-            <span className="text-white">{pool.totalStakers || 0}</span>
+            <span className="text-gray-500">Total Stakers</span>
+            <span className="text-gray-900">{pool.totalStakers || 0}</span>
           </div>
         </div>
       )}
@@ -140,18 +140,18 @@ function ActiveStakeCard({ stake, onUnstake, onClaim, onCompound }) {
   const daysRemaining = Math.max(0, Math.ceil((endDate - now) / (1000 * 60 * 60 * 24)));
 
   return (
-    <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+    <div className="bg-white/50 rounded-xl p-4 border border-gray-200">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
           <div 
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg"
+            className="w-10 h-10 rounded-lg flex items-center justify-center text-gray-900 text-lg"
             style={{ backgroundColor: stake.pool?.color || '#8B5CF6' }}
           >
             {stake.pool?.icon || '💎'}
           </div>
           <div>
-            <h4 className="text-white font-medium">{stake.pool?.name || 'Unknown Pool'}</h4>
-            <p className="text-gray-400 text-sm">{stake.pool?.apy}% APY</p>
+            <h4 className="text-gray-900 font-medium">{stake.pool?.name || 'Unknown Pool'}</h4>
+            <p className="text-gray-500 text-sm">{stake.pool?.apy}% APY</p>
           </div>
         </div>
         {isLocked ? (
@@ -169,11 +169,11 @@ function ActiveStakeCard({ stake, onUnstake, onClaim, onCompound }) {
 
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <p className="text-gray-400 text-xs">Staked Amount</p>
-          <p className="text-white font-bold">{stake.amount.toLocaleString()} CYBEV</p>
+          <p className="text-gray-500 text-xs">Staked Amount</p>
+          <p className="text-gray-900 font-bold">{stake.amount.toLocaleString()} CYBEV</p>
         </div>
         <div>
-          <p className="text-gray-400 text-xs">Pending Rewards</p>
+          <p className="text-gray-500 text-xs">Pending Rewards</p>
           <p className="text-green-400 font-bold">+{(stake.pendingRewards || 0).toFixed(4)} CYBEV</p>
         </div>
       </div>
@@ -190,7 +190,7 @@ function ActiveStakeCard({ stake, onUnstake, onClaim, onCompound }) {
             </button>
             <button
               onClick={() => onCompound(stake)}
-              className="flex-1 py-2 bg-purple-500/20 text-purple-400 rounded-lg hover:bg-purple-500/30 transition-colors flex items-center justify-center gap-1"
+              className="flex-1 py-2 bg-purple-500/20 text-purple-600 rounded-lg hover:bg-purple-500/30 transition-colors flex items-center justify-center gap-1"
             >
               <RefreshCw className="w-4 h-4" />
               Compound
@@ -199,7 +199,7 @@ function ActiveStakeCard({ stake, onUnstake, onClaim, onCompound }) {
         )}
         <button
           onClick={() => onUnstake(stake)}
-          className="flex-1 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center gap-1"
+          className="flex-1 py-2 bg-gray-700 text-gray-600 rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center gap-1"
         >
           <ArrowDown className="w-4 h-4" />
           Unstake
@@ -229,32 +229,32 @@ function StakingCalculator({ pools }) {
   const finalAmount = parseFloat(amount || 0) + totalRewards;
 
   return (
-    <div className="bg-gray-800/50 rounded-2xl p-6 border border-purple-500/20">
-      <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-        <Calculator className="w-5 h-5 text-purple-400" />
+    <div className="bg-white/50 rounded-2xl p-6 border border-gray-200">
+      <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <Calculator className="w-5 h-5 text-purple-600" />
         Rewards Calculator
       </h3>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-gray-400 text-sm mb-2">Amount to Stake</label>
+          <label className="block text-gray-500 text-sm mb-2">Amount to Stake</label>
           <div className="relative">
             <input
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 pr-20 text-white focus:border-purple-500 focus:outline-none"
+              className="w-full bg-gray-700 border border-gray-300 rounded-xl px-4 py-3 pr-20 text-gray-900 focus:border-purple-500 focus:outline-none"
             />
-            <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">CYBEV</span>
+            <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500">CYBEV</span>
           </div>
         </div>
 
         <div>
-          <label className="block text-gray-400 text-sm mb-2">Pool</label>
+          <label className="block text-gray-500 text-sm mb-2">Pool</label>
           <select
             value={selectedPool}
             onChange={(e) => setSelectedPool(e.target.value)}
-            className="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
+            className="w-full bg-gray-700 border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-purple-500 focus:outline-none"
           >
             {pools.map((p) => (
               <option key={p._id} value={p._id}>{p.name} - {p.apy}% APY</option>
@@ -263,7 +263,7 @@ function StakingCalculator({ pools }) {
         </div>
 
         <div>
-          <label className="block text-gray-400 text-sm mb-2">Duration: {duration} days</label>
+          <label className="block text-gray-500 text-sm mb-2">Duration: {duration} days</label>
           <input
             type="range"
             min="30"
@@ -274,14 +274,14 @@ function StakingCalculator({ pools }) {
           />
         </div>
 
-        <div className="bg-gray-900/50 rounded-xl p-4 space-y-2">
+        <div className="bg-gray-50 rounded-xl p-4 space-y-2">
           <div className="flex justify-between">
-            <span className="text-gray-400">Estimated Rewards</span>
+            <span className="text-gray-500">Estimated Rewards</span>
             <span className="text-green-400 font-bold">+{totalRewards.toFixed(2)} CYBEV</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-400">Total Value</span>
-            <span className="text-white font-bold">{finalAmount.toFixed(2)} CYBEV</span>
+            <span className="text-gray-500">Total Value</span>
+            <span className="text-gray-900 font-bold">{finalAmount.toFixed(2)} CYBEV</span>
           </div>
         </div>
       </div>
@@ -488,11 +488,11 @@ export default function StakingDashboard() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <Coins className="w-8 h-8 text-purple-400" />
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <Coins className="w-8 h-8 text-purple-600" />
             Staking Dashboard
           </h1>
-          <p className="text-gray-400 mt-1">Stake your CYBEV tokens to earn passive rewards</p>
+          <p className="text-gray-500 mt-1">Stake your CYBEV tokens to earn passive rewards</p>
         </div>
 
         {/* Stats Cards */}
@@ -502,12 +502,12 @@ export default function StakingDashboard() {
               <Wallet className="w-5 h-5" />
               <span>Total Staked</span>
             </div>
-            <p className="text-3xl font-bold text-white">{totals.totalStaked.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-gray-900">{totals.totalStaked.toLocaleString()}</p>
             <p className="text-white/60 text-sm">CYBEV</p>
           </div>
 
-          <div className="bg-gray-800/50 rounded-2xl p-6 border border-purple-500/20">
-            <div className="flex items-center gap-2 text-gray-400 mb-2">
+          <div className="bg-white/50 rounded-2xl p-6 border border-gray-200">
+            <div className="flex items-center gap-2 text-gray-500 mb-2">
               <Gift className="w-5 h-5 text-green-400" />
               <span>Pending Rewards</span>
             </div>
@@ -515,21 +515,21 @@ export default function StakingDashboard() {
             <p className="text-gray-500 text-sm">CYBEV</p>
           </div>
 
-          <div className="bg-gray-800/50 rounded-2xl p-6 border border-purple-500/20">
-            <div className="flex items-center gap-2 text-gray-400 mb-2">
+          <div className="bg-white/50 rounded-2xl p-6 border border-gray-200">
+            <div className="flex items-center gap-2 text-gray-500 mb-2">
               <Check className="w-5 h-5 text-blue-400" />
               <span>Claimed Rewards</span>
             </div>
-            <p className="text-3xl font-bold text-white">{totals.claimedRewards.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-gray-900">{totals.claimedRewards.toFixed(2)}</p>
             <p className="text-gray-500 text-sm">CYBEV</p>
           </div>
 
-          <div className="bg-gray-800/50 rounded-2xl p-6 border border-purple-500/20">
-            <div className="flex items-center gap-2 text-gray-400 mb-2">
-              <TrendingUp className="w-5 h-5 text-purple-400" />
+          <div className="bg-white/50 rounded-2xl p-6 border border-gray-200">
+            <div className="flex items-center gap-2 text-gray-500 mb-2">
+              <TrendingUp className="w-5 h-5 text-purple-600" />
               <span>Platform TVL</span>
             </div>
-            <p className="text-3xl font-bold text-white">{(platformStats.totalStaked || 0).toLocaleString()}</p>
+            <p className="text-3xl font-bold text-gray-900">{(platformStats.totalStaked || 0).toLocaleString()}</p>
             <p className="text-gray-500 text-sm">CYBEV</p>
           </div>
         </div>
@@ -537,8 +537,8 @@ export default function StakingDashboard() {
         {/* Active Stakes */}
         {userStakes.filter(s => s.status === 'active').length > 0 && (
           <div className="mb-8">
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <Lock className="w-5 h-5 text-purple-400" />
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Lock className="w-5 h-5 text-purple-600" />
               Your Active Stakes
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -558,7 +558,7 @@ export default function StakingDashboard() {
         {/* Staking Pools */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
               <Zap className="w-5 h-5 text-yellow-400" />
               Staking Pools
             </h2>
@@ -583,58 +583,58 @@ export default function StakingDashboard() {
 
       {/* Stake Modal */}
       {showStakeModal && selectedPool && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl p-6 max-w-md w-full border border-purple-500/20">
+        <div className="fixed inset-0 bg-gray-900/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-50 rounded-2xl p-6 max-w-md w-full border border-gray-200">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">Stake in {selectedPool.name}</h2>
+              <h2 className="text-xl font-bold text-gray-900">Stake in {selectedPool.name}</h2>
               <button
                 onClick={() => setShowStakeModal(false)}
-                className="p-2 hover:bg-gray-800 rounded-lg"
+                className="p-2 hover:bg-white rounded-lg"
               >
-                <X className="w-5 h-5 text-gray-400" />
+                <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
 
-            <div className="bg-gray-800 rounded-xl p-4 mb-4">
+            <div className="bg-white rounded-xl p-4 mb-4">
               <div className="flex justify-between mb-2">
-                <span className="text-gray-400">APY</span>
+                <span className="text-gray-500">APY</span>
                 <span className="text-green-400 font-bold">{selectedPool.apy}%</span>
               </div>
               <div className="flex justify-between mb-2">
-                <span className="text-gray-400">Lock Period</span>
-                <span className="text-white">{selectedPool.lockPeriod} days</span>
+                <span className="text-gray-500">Lock Period</span>
+                <span className="text-gray-900">{selectedPool.lockPeriod} days</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Min Stake</span>
-                <span className="text-white">{selectedPool.minStake} CYBEV</span>
+                <span className="text-gray-500">Min Stake</span>
+                <span className="text-gray-900">{selectedPool.minStake} CYBEV</span>
               </div>
             </div>
 
             <div className="mb-6">
-              <label className="block text-gray-400 mb-2">Amount to Stake</label>
+              <label className="block text-gray-500 mb-2">Amount to Stake</label>
               <div className="relative">
                 <input
                   type="number"
                   value={stakeAmount}
                   onChange={(e) => setStakeAmount(e.target.value)}
                   placeholder="0"
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 pr-20 text-white focus:border-purple-500 focus:outline-none"
+                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 pr-20 text-gray-900 focus:border-purple-500 focus:outline-none"
                 />
-                <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">CYBEV</span>
+                <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500">CYBEV</span>
               </div>
             </div>
 
             <div className="flex gap-3">
               <button
                 onClick={() => setShowStakeModal(false)}
-                className="flex-1 py-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-colors"
+                className="flex-1 py-3 bg-gray-100 text-gray-900 rounded-xl hover:bg-gray-600 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleStake}
                 disabled={processing}
-                className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Stake'}
               </button>
@@ -645,25 +645,25 @@ export default function StakingDashboard() {
 
       {/* Unstake Modal */}
       {showUnstakeModal && selectedStake && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl p-6 max-w-md w-full border border-purple-500/20">
+        <div className="fixed inset-0 bg-gray-900/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-50 rounded-2xl p-6 max-w-md w-full border border-gray-200">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">Unstake</h2>
+              <h2 className="text-xl font-bold text-gray-900">Unstake</h2>
               <button
                 onClick={() => setShowUnstakeModal(false)}
-                className="p-2 hover:bg-gray-800 rounded-lg"
+                className="p-2 hover:bg-white rounded-lg"
               >
-                <X className="w-5 h-5 text-gray-400" />
+                <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
 
-            <div className="bg-gray-800 rounded-xl p-4 mb-4">
+            <div className="bg-white rounded-xl p-4 mb-4">
               <div className="flex justify-between mb-2">
-                <span className="text-gray-400">Staked Amount</span>
-                <span className="text-white font-bold">{selectedStake.amount} CYBEV</span>
+                <span className="text-gray-500">Staked Amount</span>
+                <span className="text-gray-900 font-bold">{selectedStake.amount} CYBEV</span>
               </div>
               <div className="flex justify-between mb-2">
-                <span className="text-gray-400">Pending Rewards</span>
+                <span className="text-gray-500">Pending Rewards</span>
                 <span className="text-green-400">{(selectedStake.pendingRewards || 0).toFixed(4)} CYBEV</span>
               </div>
             </div>
@@ -683,14 +683,14 @@ export default function StakingDashboard() {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowUnstakeModal(false)}
-                className="flex-1 py-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-colors"
+                className="flex-1 py-3 bg-gray-100 text-gray-900 rounded-xl hover:bg-gray-600 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleUnstake}
                 disabled={processing}
-                className="flex-1 py-3 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-3 bg-red-500 text-gray-900 rounded-xl font-medium hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirm Unstake'}
               </button>
