@@ -36,12 +36,12 @@ const STATUS_COLORS = {
   pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
   reviewing: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
   resolved: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  dismissed: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400',
+  dismissed: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-500',
   escalated: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
 };
 
 const PRIORITY_COLORS = {
-  low: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+  low: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-600',
   medium: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   high: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
   critical: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
@@ -178,9 +178,9 @@ export default function ModerationDashboard() {
         <title>Content Moderation | Admin - CYBEV</title>
       </Head>
 
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
         {/* Header */}
-        <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+        <div className="bg-white dark:bg-white border-b dark:border-gray-200">
           <div className="max-w-7xl mx-auto px-4 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -188,10 +188,10 @@ export default function ModerationDashboard() {
                   <Shield className="w-6 h-6 text-red-600 dark:text-red-400" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900">
                     Content Moderation
                   </h1>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-gray-600 dark:text-gray-500">
                     Review reported content and take action
                   </p>
                 </div>
@@ -203,13 +203,13 @@ export default function ModerationDashboard() {
         {/* Stats Cards */}
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border dark:border-gray-700">
+            <div className="bg-white dark:bg-white rounded-xl p-4 border dark:border-gray-200">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
                   <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-900">
                     {stats.pending || 0}
                   </div>
                   <div className="text-sm text-gray-500">Pending</div>
@@ -217,13 +217,13 @@ export default function ModerationDashboard() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border dark:border-gray-700">
+            <div className="bg-white dark:bg-white rounded-xl p-4 border dark:border-gray-200">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                   <Eye className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-900">
                     {stats.reviewing || 0}
                   </div>
                   <div className="text-sm text-gray-500">Reviewing</div>
@@ -231,13 +231,13 @@ export default function ModerationDashboard() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border dark:border-gray-700">
+            <div className="bg-white dark:bg-white rounded-xl p-4 border dark:border-gray-200">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                   <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-900">
                     {stats.resolved || 0}
                   </div>
                   <div className="text-sm text-gray-500">Resolved</div>
@@ -245,13 +245,13 @@ export default function ModerationDashboard() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border dark:border-gray-700">
+            <div className="bg-white dark:bg-white rounded-xl p-4 border dark:border-gray-200">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
                   <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-900">
                     {stats.escalated || 0}
                   </div>
                   <div className="text-sm text-gray-500">Escalated</div>
@@ -265,7 +265,7 @@ export default function ModerationDashboard() {
             <select
               value={filters.status}
               onChange={(e) => setFilters(f => ({ ...f, status: e.target.value }))}
-              className="px-4 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="px-4 py-2 border dark:border-gray-300 rounded-lg bg-white dark:bg-white text-gray-900 dark:text-gray-900"
             >
               <option value="pending">Pending</option>
               <option value="reviewing">Reviewing</option>
@@ -278,7 +278,7 @@ export default function ModerationDashboard() {
             <select
               value={filters.priority}
               onChange={(e) => setFilters(f => ({ ...f, priority: e.target.value }))}
-              className="px-4 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="px-4 py-2 border dark:border-gray-300 rounded-lg bg-white dark:bg-white text-gray-900 dark:text-gray-900"
             >
               <option value="">All Priorities</option>
               <option value="critical">Critical</option>
@@ -290,7 +290,7 @@ export default function ModerationDashboard() {
             <select
               value={filters.reason}
               onChange={(e) => setFilters(f => ({ ...f, reason: e.target.value }))}
-              className="px-4 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="px-4 py-2 border dark:border-gray-300 rounded-lg bg-white dark:bg-white text-gray-900 dark:text-gray-900"
             >
               <option value="">All Reasons</option>
               {Object.entries(REASON_LABELS).map(([value, label]) => (
@@ -300,15 +300,15 @@ export default function ModerationDashboard() {
           </div>
 
           {/* Reports List */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 overflow-hidden">
+          <div className="bg-white dark:bg-white rounded-xl border dark:border-gray-200 overflow-hidden">
             {loading ? (
               <div className="flex justify-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
               </div>
             ) : reports.length === 0 ? (
               <div className="text-center py-12">
-                <Shield className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                <Shield className="w-12 h-12 mx-auto text-gray-600 dark:text-gray-600 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-900">
                   No reports found
                 </h3>
                 <p className="text-gray-500 mt-1">
@@ -318,11 +318,11 @@ export default function ModerationDashboard() {
                 </p>
               </div>
             ) : (
-              <div className="divide-y dark:divide-gray-700">
+              <div className="divide-y dark:divide-gray-200">
                 {reports.map(report => (
                   <div
                     key={report._id}
-                    className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition ${
+                    className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-100/50 cursor-pointer transition ${
                       report.priority === 'critical' ? 'bg-red-50 dark:bg-red-900/10' : ''
                     }`}
                     onClick={() => setSelectedReport(report)}
@@ -341,7 +341,7 @@ export default function ModerationDashboard() {
                           </span>
                         </div>
                         
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                        <div className="text-sm text-gray-600 dark:text-gray-500">
                           <span className="capitalize">{report.contentType}</span>
                           {report.contentAuthor && (
                             <span> by @{report.contentAuthor.username}</span>
@@ -349,7 +349,7 @@ export default function ModerationDashboard() {
                         </div>
 
                         {report.contentSnapshot?.text && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 line-clamp-2">
+                          <p className="text-sm text-gray-500 dark:text-gray-500 mt-2 line-clamp-2">
                             "{report.contentSnapshot.text}"
                           </p>
                         )}
@@ -365,7 +365,7 @@ export default function ModerationDashboard() {
                         </div>
                       </div>
 
-                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                      <ChevronRight className="w-5 h-5 text-gray-500" />
                     </div>
                   </div>
                 ))}
@@ -378,18 +378,18 @@ export default function ModerationDashboard() {
         {selectedReport && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div 
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-white shadow-sm-sm"
               onClick={() => setSelectedReport(null)}
             />
-            <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="relative bg-white dark:bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-900">
                     Report Details
                   </h2>
                   <button
                     onClick={() => setSelectedReport(null)}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-100 rounded-lg"
                   >
                     <XCircle className="w-5 h-5" />
                   </button>
@@ -409,25 +409,25 @@ export default function ModerationDashboard() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm text-gray-500">Reason</label>
-                      <div className="font-medium text-gray-900 dark:text-white">
+                      <div className="font-medium text-gray-900 dark:text-gray-900">
                         {REASON_LABELS[selectedReport.reason]}
                       </div>
                     </div>
                     <div>
                       <label className="text-sm text-gray-500">Content Type</label>
-                      <div className="font-medium text-gray-900 dark:text-white capitalize">
+                      <div className="font-medium text-gray-900 dark:text-gray-900 capitalize">
                         {selectedReport.contentType}
                       </div>
                     </div>
                     <div>
                       <label className="text-sm text-gray-500">Reported By</label>
-                      <div className="font-medium text-gray-900 dark:text-white">
+                      <div className="font-medium text-gray-900 dark:text-gray-900">
                         @{selectedReport.reporter?.username}
                       </div>
                     </div>
                     <div>
                       <label className="text-sm text-gray-500">Content Author</label>
-                      <div className="font-medium text-gray-900 dark:text-white">
+                      <div className="font-medium text-gray-900 dark:text-gray-900">
                         @{selectedReport.contentAuthor?.username || 'Unknown'}
                       </div>
                     </div>
@@ -438,7 +438,7 @@ export default function ModerationDashboard() {
                     <div>
                       <label className="text-sm text-gray-500">Reported Content</label>
                       <div className="mt-1 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                        <p className="text-gray-900 dark:text-white whitespace-pre-wrap">
+                        <p className="text-gray-900 dark:text-gray-900 whitespace-pre-wrap">
                           {selectedReport.contentSnapshot.text}
                         </p>
                       </div>
@@ -465,7 +465,7 @@ export default function ModerationDashboard() {
                         {selectedReport.aiAnalysis.categories?.length > 0 && (
                           <div className="mt-2 flex flex-wrap gap-2">
                             {selectedReport.aiAnalysis.categories.filter(c => c.score > 0.3).map(cat => (
-                              <span key={cat.name} className="text-xs text-gray-600 dark:text-gray-400">
+                              <span key={cat.name} className="text-xs text-gray-600 dark:text-gray-500">
                                 {cat.name}: {Math.round(cat.score * 100)}%
                               </span>
                             ))}
@@ -479,7 +479,7 @@ export default function ModerationDashboard() {
                   {selectedReport.reasonDetails && (
                     <div>
                       <label className="text-sm text-gray-500">Reporter's Notes</label>
-                      <p className="mt-1 text-gray-700 dark:text-gray-300">
+                      <p className="mt-1 text-gray-700 dark:text-gray-600">
                         {selectedReport.reasonDetails}
                       </p>
                     </div>
@@ -488,15 +488,15 @@ export default function ModerationDashboard() {
 
                 {/* Actions */}
                 {selectedReport.status === 'pending' || selectedReport.status === 'reviewing' ? (
-                  <div className="mt-6 pt-6 border-t dark:border-gray-700">
-                    <h3 className="font-medium text-gray-900 dark:text-white mb-4">
+                  <div className="mt-6 pt-6 border-t dark:border-gray-200">
+                    <h3 className="font-medium text-gray-900 dark:text-gray-900 mb-4">
                       Take Action
                     </h3>
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         onClick={() => handleDismiss(selectedReport._id)}
                         disabled={actionLoading}
-                        className="py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition disabled:opacity-50"
+                        className="py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition disabled:opacity-50"
                       >
                         Dismiss
                       </button>
@@ -531,7 +531,7 @@ export default function ModerationDashboard() {
                     </div>
                   </div>
                 ) : (
-                  <div className="mt-6 pt-6 border-t dark:border-gray-700">
+                  <div className="mt-6 pt-6 border-t dark:border-gray-200">
                     <div className="text-center text-gray-500">
                       This report has been {selectedReport.status}
                       {selectedReport.resolution?.moderator && (

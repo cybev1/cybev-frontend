@@ -66,11 +66,11 @@ function StatCard({ title, value, change, icon: Icon, color, subtitle }) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800"
+      className="bg-white dark:bg-gray-50 rounded-2xl p-6 border border-gray-100 dark:border-gray-200"
     >
       <div className="flex items-start justify-between mb-4">
         <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center`}>
-          <Icon className="w-6 h-6 text-white" />
+          <Icon className="w-6 h-6 text-gray-900" />
         </div>
         {change !== undefined && (
           <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-sm font-medium ${
@@ -83,12 +83,12 @@ function StatCard({ title, value, change, icon: Icon, color, subtitle }) {
           </div>
         )}
       </div>
-      <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+      <p className="text-3xl font-bold text-gray-900 dark:text-gray-900 mb-1">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </p>
-      <p className="text-gray-500 dark:text-gray-400 text-sm">{title}</p>
+      <p className="text-gray-500 dark:text-gray-500 text-sm">{title}</p>
       {subtitle && (
-        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{subtitle}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{subtitle}</p>
       )}
     </motion.div>
   );
@@ -108,10 +108,10 @@ function ContentItem({ item, index }) {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.05 }}
-      className="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-xl transition-colors"
+      className="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-50/50 rounded-xl transition-colors"
     >
       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-        <span className="text-sm font-bold text-purple-600 dark:text-purple-400">#{index + 1}</span>
+        <span className="text-sm font-bold text-purple-600 dark:text-purple-600">#{index + 1}</span>
       </div>
       
       {item.thumbnail ? (
@@ -121,16 +121,16 @@ function ContentItem({ item, index }) {
           className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
         />
       ) : (
-        <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
-          <Icon className="w-6 h-6 text-gray-400" />
+        <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-white flex items-center justify-center flex-shrink-0">
+          <Icon className="w-6 h-6 text-gray-500" />
         </div>
       )}
       
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-gray-900 dark:text-white truncate">
+        <p className="font-medium text-gray-900 dark:text-gray-900 truncate">
           {item.title || item.content || 'Untitled'}
         </p>
-        <div className="flex items-center gap-3 mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex items-center gap-3 mt-1 text-sm text-gray-500 dark:text-gray-500">
           <span className="flex items-center gap-1">
             <Heart className="w-4 h-4" /> {item.likes}
           </span>
@@ -144,8 +144,8 @@ function ContentItem({ item, index }) {
       </div>
       
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-        item.type === 'post' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
-        item.type === 'blog' ? 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400' :
+        item.type === 'post' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-600' :
+        item.type === 'blog' ? 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-600' :
         'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
       }`}>
         {item.type}
@@ -163,11 +163,11 @@ function PeriodSelector({ value, onChange }) {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl hover:border-purple-500 transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-50 border border-gray-200 dark:border-gray-200 rounded-xl hover:border-purple-500 transition-colors"
       >
         <Calendar className="w-4 h-4 text-gray-500" />
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{selected?.label}</span>
-        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-600">{selected?.label}</span>
+        <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       
       <AnimatePresence>
@@ -178,7 +178,7 @@ function PeriodSelector({ value, onChange }) {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden z-50"
+              className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-50 border border-gray-200 dark:border-gray-200 rounded-xl shadow-lg overflow-hidden z-50"
             >
               {PERIODS.map((period) => (
                 <button
@@ -187,8 +187,8 @@ function PeriodSelector({ value, onChange }) {
                     onChange(period.value);
                     setIsOpen(false);
                   }}
-                  className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-                    value === period.value ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600' : 'text-gray-700 dark:text-gray-300'
+                  className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-white transition-colors ${
+                    value === period.value ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600' : 'text-gray-700 dark:text-gray-600'
                   }`}
                 >
                   {period.label}
@@ -207,8 +207,8 @@ function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   
   return (
-    <div className="bg-white dark:bg-gray-900 p-3 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-      <p className="font-medium text-gray-900 dark:text-white mb-2">{label}</p>
+    <div className="bg-white dark:bg-gray-50 p-3 rounded-xl shadow-lg border border-gray-200 dark:border-gray-200">
+      <p className="font-medium text-gray-900 dark:text-gray-900 mb-2">{label}</p>
       {payload.map((entry, index) => (
         <p key={index} className="text-sm" style={{ color: entry.color }}>
           {entry.name}: {entry.value.toLocaleString()}
@@ -292,15 +292,15 @@ export default function AnalyticsDashboard() {
 
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
         {/* Header */}
-        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+        <div className="bg-white dark:bg-gray-50 border-b border-gray-200 dark:border-gray-200">
           <div className="max-w-7xl mx-auto px-4 py-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900 flex items-center gap-2">
                   <BarChart3 className="w-7 h-7 text-purple-600" />
                   Creator Analytics
                 </h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-gray-500 dark:text-gray-500 mt-1">
                   Track your content performance and audience growth
                 </p>
               </div>
@@ -309,7 +309,7 @@ export default function AnalyticsDashboard() {
                 <button
                   onClick={() => fetchData(true)}
                   disabled={refreshing}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors disabled:opacity-50"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-white rounded-xl transition-colors disabled:opacity-50"
                 >
                   <RefreshCw className={`w-5 h-5 text-gray-500 ${refreshing ? 'animate-spin' : ''}`} />
                 </button>
@@ -364,8 +364,8 @@ export default function AnalyticsDashboard() {
               {/* Charts Row */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Engagement Chart */}
-                <div className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                <div className="lg:col-span-2 bg-white dark:bg-gray-50 rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900 mb-4">
                     Engagement Over Time
                   </h3>
                   <div className="h-72">
@@ -417,8 +417,8 @@ export default function AnalyticsDashboard() {
                 </div>
 
                 {/* Content Breakdown */}
-                <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                <div className="bg-white dark:bg-gray-50 rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900 mb-4">
                     Content Breakdown
                   </h3>
                   <div className="h-48">
@@ -448,7 +448,7 @@ export default function AnalyticsDashboard() {
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: item.color || COLORS[index] }}
                         />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                        <span className="text-sm text-gray-600 dark:text-gray-500">
                           {item.name} ({item.value})
                         </span>
                       </div>
@@ -460,8 +460,8 @@ export default function AnalyticsDashboard() {
               {/* Follower Growth & Top Content */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Follower Growth */}
-                <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                <div className="bg-white dark:bg-gray-50 rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900 mb-4">
                     Follower Growth
                   </h3>
                   <div className="h-64">
@@ -493,9 +493,9 @@ export default function AnalyticsDashboard() {
                 </div>
 
                 {/* Top Content */}
-                <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+                <div className="bg-white dark:bg-gray-50 rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900">
                       Top Performing Content
                     </h3>
                     <Link 
@@ -529,22 +529,22 @@ export default function AnalyticsDashboard() {
 
               {/* Reactions Breakdown */}
               {reactions.length > 0 && (
-                <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                <div className="bg-white dark:bg-gray-50 rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900 mb-4">
                     Reaction Types
                   </h3>
                   <div className="flex flex-wrap gap-4">
                     {reactions.map((reaction, index) => (
                       <div 
                         key={index}
-                        className="flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-800 rounded-xl"
+                        className="flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-white rounded-xl"
                       >
                         <span className="text-2xl">{reaction.emoji}</span>
                         <div>
-                          <p className="font-semibold text-gray-900 dark:text-white">
+                          <p className="font-semibold text-gray-900 dark:text-gray-900">
                             {reaction.count.toLocaleString()}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <p className="text-xs text-gray-500 dark:text-gray-500">
                             {reaction.percentage}%
                           </p>
                         </div>

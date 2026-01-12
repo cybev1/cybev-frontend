@@ -1,32 +1,16 @@
 // ============================================
 // FILE: src/pages/auth/signup.jsx
-// CYBEV Signup Page - Clean, Accessible Design
-// VERSION: 5.0 - Better UX, Social Auth Ready
+// CYBEV Signup Page - Clean White Design v7.0
 // ============================================
 
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import axios from 'axios';
+import { authAPI } from '@/lib/api';
 import { toast } from 'react-toastify';
-import {
-  Mail,
-  Lock,
-  User,
-  UserCircle,
-  ArrowRight,
-  ArrowLeft,
-  Sparkles,
-  AlertCircle,
-  Eye,
-  EyeOff,
-  CheckCircle,
-  Loader2
-} from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, AlertCircle, Eye, EyeOff, Loader2, Sparkles, Check } from 'lucide-react';
 
-// Social Icons as components
 const GoogleIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24">
     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -36,356 +20,122 @@ const GoogleIcon = () => (
   </svg>
 );
 
-const FacebookIcon = () => (
-  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#1877F2">
-    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-  </svg>
-);
-
 export default function Signup() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    username: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [socialLoading, setSocialLoading] = useState('');
-
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
-  const validateForm = () => {
-    if (!formData.name.trim()) {
-      setError('Please enter your name');
-      return false;
-    }
-    if (!formData.email.trim()) {
-      setError('Please enter your email');
-      return false;
-    }
-    if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      setError('Please enter a valid email address');
-      return false;
-    }
-    if (!formData.username.trim()) {
-      setError('Please enter a username');
-      return false;
-    }
-    if (formData.username.length < 3) {
-      setError('Username must be at least 3 characters');
-      return false;
-    }
-    if (!formData.password) {
-      setError('Please enter a password');
-      return false;
-    }
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return false;
-    }
-    return true;
-  };
+  const passwordChecks = [
+    { label: 'At least 8 characters', valid: formData.password.length >= 8 },
+    { label: 'Contains a number', valid: /\d/.test(formData.password) },
+    { label: 'Passwords match', valid: formData.password === formData.confirmPassword && formData.confirmPassword.length > 0 }
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
-
-    if (!validateForm()) {
-      setLoading(false);
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
       return;
     }
-
+    setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/api/auth/register`, formData);
-      
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('cybev_token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        
-        toast.success('Account created successfully!');
-        
-        if (!response.data.user.isEmailVerified) {
-          router.push('/auth/verify-email-notice');
-        } else {
-          router.push('/onboarding');
-        }
+      const response = await authAPI.register({ name: formData.name, email: formData.email, password: formData.password });
+      if (response.data.ok || response.data.success) {
+        toast.success('Account created! Please check your email to verify.');
+        router.push('/auth/verify-email-notice?email=' + encodeURIComponent(formData.email));
+      } else {
+        setError(response.data.message || 'Registration failed');
       }
     } catch (err) {
-      const errorMsg = err.response?.data?.error || err.response?.data?.message || 'Registration failed';
-      
-      if (errorMsg.toLowerCase().includes('email') && errorMsg.toLowerCase().includes('exists')) {
-        setError('This email is already registered. Try signing in instead.');
-      } else if (errorMsg.toLowerCase().includes('username')) {
-        setError('This username is taken. Please try a different one.');
-      } else {
-        setError(errorMsg);
-      }
-      toast.error(errorMsg);
+      setError(err.response?.data?.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
   };
 
-  // Social auth handlers
-  const handleGoogleAuth = async () => {
-    setSocialLoading('google');
-    try {
-      // Redirect to Google OAuth endpoint
-      window.location.href = `${API_URL}/api/auth/google`;
-    } catch (err) {
-      toast.error('Google sign-in is not available yet');
-      setSocialLoading('');
-    }
-  };
-
-  const handleFacebookAuth = async () => {
-    setSocialLoading('facebook');
-    try {
-      window.location.href = `${API_URL}/api/auth/facebook`;
-    } catch (err) {
-      toast.error('Facebook sign-in is not available yet');
-      setSocialLoading('');
-    }
-  };
-
   return (
     <>
-      <Head>
-        <title>Sign Up | CYBEV</title>
-        <meta name="description" content="Create your CYBEV account and start sharing your story" />
-      </Head>
-
-      <div className="min-h-screen bg-gray-50 flex">
-        {/* Left Side - Branding (Hidden on mobile) */}
-        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 p-12 flex-col justify-between">
-          <div>
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                <span className="text-2xl font-black text-white">C</span>
-              </div>
-              <span className="text-2xl font-black text-white">CYBEV</span>
-            </Link>
-          </div>
-          
-          <div className="space-y-6">
-            <h1 className="text-4xl font-black text-white leading-tight">
-              Join thousands of creators sharing their stories
-            </h1>
-            <p className="text-xl text-purple-100">
-              Write blogs, go live, connect with your audience - all in one place.
-            </p>
-            
-            <div className="space-y-4 pt-6">
-              {[
-                'AI-powered blog writing',
-                'Live streaming from any device',
-                'Build your community',
-                'Free to get started'
-              ].map((feature, i) => (
-                <div key={i} className="flex items-center gap-3 text-white/90">
-                  <CheckCircle className="w-5 h-5 text-green-300" />
-                  <span>{feature}</span>
-                </div>
-              ))}
+      <Head><title>Sign Up | CYBEV</title></Head>
+      <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 px-4">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="flex justify-center">
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <Sparkles className="w-8 h-8 text-white" />
             </div>
           </div>
-          
-          <p className="text-purple-200 text-sm">
-            © {new Date().getFullYear()} CYBEV. All rights reserved.
+          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">Create your account</h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Already have an account? <Link href="/auth/login" className="font-semibold text-purple-600 hover:text-purple-500">Sign in</Link>
           </p>
         </div>
-
-        {/* Right Side - Form */}
-        <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
-          <div className="w-full max-w-md">
-            {/* Mobile Logo */}
-            <Link href="/" className="lg:hidden flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
-                <span className="text-xl font-bold text-white">C</span>
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">CYBEV</span>
-            </Link>
-
-            {/* Header */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Create your account</h2>
-              <p className="text-gray-600">
-                Already have an account?{' '}
-                <Link href="/auth/login" className="text-purple-600 font-semibold hover:text-purple-700">
-                  Sign in
-                </Link>
-              </p>
-            </div>
-
-            {/* Social Auth Buttons */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              <button
-                onClick={handleGoogleAuth}
-                disabled={!!socialLoading}
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50"
-              >
-                {socialLoading === 'google' ? <Loader2 className="w-5 h-5 animate-spin" /> : <GoogleIcon />}
-                <span className="text-sm font-medium text-gray-700">Google</span>
-              </button>
-              <button
-                onClick={handleFacebookAuth}
-                disabled={!!socialLoading}
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50"
-              >
-                {socialLoading === 'facebook' ? <Loader2 className="w-5 h-5 animate-spin" /> : <FacebookIcon />}
-                <span className="text-sm font-medium text-gray-700">Facebook</span>
-              </button>
-            </div>
-
-            {/* Divider */}
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white py-8 px-6 shadow-xl rounded-2xl">
+            <button onClick={() => window.location.href = `${API_URL}/api/auth/google`}
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors mb-4">
+              <GoogleIcon /> Continue with Google
+            </button>
             <div className="relative mb-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
-              </div>
-              <div className="relative flex justify-center">
-                <span className="px-4 bg-gray-50 text-sm text-gray-500">or continue with email</span>
-              </div>
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200" /></div>
+              <div className="relative flex justify-center text-sm"><span className="px-4 bg-white text-gray-500">or</span></div>
             </div>
-
-            {/* Error Message */}
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3"
-              >
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm text-red-800">{error}</p>
-                  {error.includes('already registered') && (
-                    <Link href="/auth/login" className="text-sm font-semibold text-red-700 hover:underline mt-1 inline-block">
-                      Go to Sign In →
-                    </Link>
-                  )}
-                </div>
-              </motion.div>
-            )}
-
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Name */}
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Full name</label>
                 <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="John Doe"
-                    className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-gray-900 placeholder-gray-400"
-                    required
-                  />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900" placeholder="John Doe" required />
                 </div>
               </div>
-
-              {/* Username */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">@</span>
-                  <input
-                    type="text"
-                    value={formData.username}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') 
-                    })}
-                    placeholder="johndoe"
-                    className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-gray-900 placeholder-gray-400"
-                    required
-                    minLength={3}
-                  />
-                </div>
-                <p className="text-xs text-gray-500 mt-1">Letters, numbers, and underscores only</p>
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="john@example.com"
-                    className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-gray-900 placeholder-gray-400"
-                    required
-                  />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900" placeholder="you@example.com" required />
                 </div>
               </div>
-
-              {/* Password */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="••••••••"
-                    className="w-full pl-12 pr-12 py-3 bg-white border border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-gray-900 placeholder-gray-400"
-                    required
-                    minLength={6}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input type={showPassword ? 'text' : 'password'} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900" placeholder="••••••••" required />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
               </div>
-
-              {/* Terms */}
-              <p className="text-xs text-gray-500">
-                By signing up, you agree to our{' '}
-                <a href="/terms" className="text-purple-600 hover:underline">Terms of Service</a>
-                {' '}and{' '}
-                <a href="/privacy" className="text-purple-600 hover:underline">Privacy Policy</a>
-              </p>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-purple-200"
-              >
-                {loading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    Create Account
-                    <ArrowRight className="w-5 h-5" />
-                  </>
-                )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Confirm password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input type="password" value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900" placeholder="••••••••" required />
+                </div>
+              </div>
+              <div className="space-y-2">
+                {passwordChecks.map((check, i) => (
+                  <div key={i} className={`flex items-center gap-2 text-sm ${check.valid ? 'text-green-600' : 'text-gray-400'}`}>
+                    <Check className={`w-4 h-4 ${check.valid ? 'text-green-600' : 'text-gray-300'}`} />
+                    {check.label}
+                  </div>
+                ))}
+              </div>
+              {error && <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg"><AlertCircle className="w-4 h-4" />{error}</div>}
+              <button type="submit" disabled={loading || !passwordChecks.every(c => c.valid)}
+                className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg">
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Create account <ArrowRight className="w-5 h-5" /></>}
               </button>
             </form>
-
-            {/* Sign In Link - Prominent */}
-            <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-              <p className="text-gray-600">
-                Already have an account?{' '}
-                <Link href="/auth/login" className="text-purple-600 font-semibold hover:text-purple-700">
-                  Sign in here
-                </Link>
-              </p>
-            </div>
           </div>
+          <p className="mt-6 text-center text-xs text-gray-500">
+            By signing up, you agree to our <Link href="/terms" className="text-purple-600 hover:underline">Terms</Link> and <Link href="/privacy" className="text-purple-600 hover:underline">Privacy Policy</Link>
+          </p>
         </div>
       </div>
     </>

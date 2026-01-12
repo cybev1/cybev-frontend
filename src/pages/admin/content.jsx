@@ -144,20 +144,20 @@ export default function AdminContent() {
     switch (type) {
       case 'blog': return 'bg-blue-500/20 text-blue-300';
       case 'comment': return 'bg-green-500/20 text-green-300';
-      default: return 'bg-gray-500/20 text-gray-300';
+      default: return 'bg-gray-500/20 text-gray-600';
     }
   };
 
   // Not logged in
   if (authState === 'not-logged-in') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
-        <div className="text-center p-8 bg-gray-800/50 rounded-2xl border border-purple-500/30 max-w-md">
-          <Shield className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-white mb-2">Admin Access</h1>
-          <p className="text-gray-400 mb-6">Please log in to access content moderation</p>
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center p-8 bg-white/50 rounded-2xl border border-gray-200 max-w-md">
+          <Shield className="w-16 h-16 text-purple-600 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Admin Access</h1>
+          <p className="text-gray-500 mb-6">Please log in to access content moderation</p>
           <Link href="/auth/login">
-            <button className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors mx-auto">
+            <button className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-gray-900 rounded-lg transition-colors mx-auto">
               <LogIn className="w-5 h-5" />
               Go to Login
             </button>
@@ -170,13 +170,13 @@ export default function AdminContent() {
   // Not admin
   if (authState === 'not-admin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
-        <div className="text-center p-8 bg-gray-800/50 rounded-2xl border border-red-500/30 max-w-md">
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center p-8 bg-white/50 rounded-2xl border border-red-500/30 max-w-md">
           <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
-          <p className="text-gray-400 mb-6">You don't have admin privileges</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+          <p className="text-gray-500 mb-6">You don't have admin privileges</p>
           <Link href="/feed">
-            <button className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+            <button className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-gray-900 rounded-lg transition-colors">
               Go to Feed
             </button>
           </Link>
@@ -188,22 +188,22 @@ export default function AdminContent() {
   // Still checking
   if (authState === 'checking') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-purple-500 mx-auto mb-4" />
-          <p className="text-gray-400">Checking access...</p>
+          <p className="text-gray-500">Checking access...</p>
         </div>
       </div>
     );
   }
 
   const ContentCard = ({ item }) => (
-    <div className={`bg-gray-800/30 rounded-xl p-5 border transition-all ${
+    <div className={`bg-white/30 rounded-xl p-5 border transition-all ${
       item.isFlagged 
         ? 'border-red-500/50 bg-red-900/10' 
         : item.isHidden 
           ? 'border-yellow-500/30 bg-yellow-900/10' 
-          : 'border-purple-500/20 hover:border-purple-500/40'
+          : 'border-gray-200 hover:border-purple-500/40'
     }`}>
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
@@ -228,7 +228,7 @@ export default function AdminContent() {
           </div>
 
           {/* Content Preview */}
-          <h3 className="text-white font-medium mb-2 line-clamp-2">
+          <h3 className="text-gray-900 font-medium mb-2 line-clamp-2">
             {getContentPreview(item)}
           </h3>
 
@@ -265,13 +265,13 @@ export default function AdminContent() {
         <div className="flex flex-col gap-2">
           <button
             onClick={() => { setSelectedItem({...item, contentType: item.contentType || 'blog'}); setShowModal(true); }}
-            className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm transition-colors"
+            className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-gray-900 rounded-lg text-sm transition-colors"
           >
             Moderate
           </button>
           {(item.contentType === 'blog' || !item.contentType) && (
             <Link href={`/blog/${item._id}`}>
-              <button className="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors w-full">
+              <button className="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-gray-900 rounded-lg text-sm transition-colors w-full">
                 View
               </button>
             </Link>
@@ -287,28 +287,28 @@ export default function AdminContent() {
         <title>Content Moderation - CYBEV Admin</title>
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+      <div className="min-h-screen bg-gray-100">
         {/* Header */}
-        <div className="bg-gray-900/50 border-b border-purple-500/20">
+        <div className="bg-gray-50 border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Link href="/admin">
-                  <button className="p-2 hover:bg-gray-800 rounded-lg transition-colors">
-                    <ChevronLeft className="w-5 h-5 text-gray-400" />
+                  <button className="p-2 hover:bg-white rounded-lg transition-colors">
+                    <ChevronLeft className="w-5 h-5 text-gray-500" />
                   </button>
                 </Link>
                 <div>
-                  <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                    <FileText className="w-6 h-6 text-purple-400" />
+                  <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <FileText className="w-6 h-6 text-purple-600" />
                     Content Moderation
                   </h1>
-                  <p className="text-gray-400 text-sm">Review and moderate platform content</p>
+                  <p className="text-gray-500 text-sm">Review and moderate platform content</p>
                 </div>
               </div>
               <button
                 onClick={fetchContent}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-gray-900 rounded-lg transition-colors"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
@@ -321,14 +321,14 @@ export default function AdminContent() {
           {/* Filters */}
           <div className="flex flex-wrap gap-4 mb-6">
             <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-gray-400" />
-              <span className="text-gray-400">Filter:</span>
+              <Filter className="w-5 h-5 text-gray-500" />
+              <span className="text-gray-500">Filter:</span>
             </div>
 
             <select
               value={filters.type}
               onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
-              className="px-4 py-2 bg-gray-800/50 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="px-4 py-2 bg-white/50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               <option value="all">All Types</option>
               <option value="blogs">Blogs</option>
@@ -338,7 +338,7 @@ export default function AdminContent() {
             <select
               value={filters.status}
               onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-              className="px-4 py-2 bg-gray-800/50 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="px-4 py-2 bg-white/50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               <option value="all">All Status</option>
               <option value="flagged">Flagged</option>
@@ -347,10 +347,10 @@ export default function AdminContent() {
 
             {/* Quick Stats */}
             <div className="ml-auto flex items-center gap-4">
-              <span className="text-gray-400 text-sm">
+              <span className="text-gray-500 text-sm">
                 {content.filter(c => c.isFlagged).length} flagged
               </span>
-              <span className="text-gray-400 text-sm">
+              <span className="text-gray-500 text-sm">
                 {content.filter(c => c.isHidden).length} hidden
               </span>
             </div>
@@ -362,9 +362,9 @@ export default function AdminContent() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
             </div>
           ) : content.length === 0 ? (
-            <div className="text-center py-12 bg-gray-800/30 rounded-xl border border-purple-500/20">
+            <div className="text-center py-12 bg-white/30 rounded-xl border border-gray-200">
               <FileText className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400">No content found</p>
+              <p className="text-gray-500">No content found</p>
               <p className="text-gray-500 text-sm mt-1">Try adjusting your filters</p>
             </div>
           ) : (
@@ -378,23 +378,23 @@ export default function AdminContent() {
           {/* Pagination */}
           {pagination.pages > 1 && (
             <div className="flex items-center justify-between mt-6">
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-500 text-sm">
                 Page {pagination.page} of {pagination.pages}
               </p>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
                   disabled={pagination.page === 1}
-                  className="p-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="p-2 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
-                  <ChevronLeft className="w-5 h-5 text-white" />
+                  <ChevronLeft className="w-5 h-5 text-gray-900" />
                 </button>
                 <button
                   onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
                   disabled={pagination.page === pagination.pages}
-                  className="p-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="p-2 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
-                  <ChevronRight className="w-5 h-5 text-white" />
+                  <ChevronRight className="w-5 h-5 text-gray-900" />
                 </button>
               </div>
             </div>
@@ -403,23 +403,23 @@ export default function AdminContent() {
 
         {/* Moderation Modal */}
         {showModal && selectedItem && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 rounded-xl p-6 max-w-lg w-full mx-4 border border-purple-500/30">
-              <h3 className="text-xl font-bold text-white mb-2">
+          <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 max-w-lg w-full mx-4 border border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
                 Moderate {selectedItem.contentType || 'content'}
               </h3>
-              <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+              <p className="text-gray-500 text-sm mb-4 line-clamp-2">
                 {getContentPreview(selectedItem)}
               </p>
 
               {/* Reason Input */}
               <div className="mb-4">
-                <label className="block text-gray-300 text-sm mb-2">Reason (optional)</label>
+                <label className="block text-gray-600 text-sm mb-2">Reason (optional)</label>
                 <textarea
                   value={moderationReason}
                   onChange={(e) => setModerationReason(e.target.value)}
                   placeholder="Enter reason for moderation action..."
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
                   rows={2}
                 />
               </div>
@@ -481,7 +481,7 @@ export default function AdminContent() {
 
               <button
                 onClick={() => { setShowModal(false); setSelectedItem(null); setModerationReason(''); }}
-                className="w-full mt-4 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                className="w-full mt-4 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-gray-900 rounded-lg transition-colors"
               >
                 Cancel
               </button>

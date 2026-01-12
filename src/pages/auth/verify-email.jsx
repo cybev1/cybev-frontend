@@ -85,7 +85,7 @@ export default function VerifyEmail() {
           <button
             onClick={handleResend}
             disabled={resending}
-            className="px-6 py-3 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-50"
+            className="px-6 py-3 bg-purple-600 text-gray-900 font-bold rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-50"
           >
             {resending ? 'Sending...' : 'Resend Verification Email'}
           </button>
@@ -109,7 +109,7 @@ export default function VerifyEmail() {
             className="inline-block mb-4"
           >
             <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-2xl">
-              <Sparkles className="w-8 h-8 text-white" />
+              <Sparkles className="w-8 h-8 text-gray-900" />
             </div>
           </motion.div>
           <h1 className="text-4xl font-black mb-2 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
@@ -151,7 +151,7 @@ export default function VerifyEmail() {
               </p>
               <button
                 onClick={() => router.push('/auth/login')}
-                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-xl hover:shadow-lg transition-all flex items-center gap-2 mx-auto"
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 font-bold rounded-xl hover:shadow-lg transition-all flex items-center gap-2 mx-auto"
               >
                 Go to Login
                 <ArrowRight className="w-5 h-5" />
@@ -168,7 +168,7 @@ export default function VerifyEmail() {
               <div className="space-y-3">
                 <button
                   onClick={verifyEmail}
-                  className="w-full px-6 py-3 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition-colors"
+                  className="w-full px-6 py-3 bg-purple-600 text-gray-900 font-bold rounded-xl hover:bg-purple-700 transition-colors"
                 >
                   Try Again
                 </button>

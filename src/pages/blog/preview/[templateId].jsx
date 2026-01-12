@@ -46,7 +46,7 @@ export default function TemplatePreview() {
                 pathname: '/blog/setup',
                 query: { template: templateId }
               })}
-              className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white px-6 py-3 rounded-xl font-semibold transition-all"
+              className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-gray-900 px-6 py-3 rounded-xl font-semibold transition-all"
             >
               Select This Template →
             </button>
@@ -83,7 +83,7 @@ export default function TemplatePreview() {
                 pathname: '/blog/setup',
                 query: { template: templateId }
               })}
-              className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white px-6 py-3 rounded-lg font-bold transition-all shadow-lg"
+              className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-gray-900 px-6 py-3 rounded-lg font-bold transition-all shadow-lg"
             >
               Use This Template →
             </button>
@@ -98,7 +98,7 @@ export default function TemplatePreview() {
       </div>
 
       {/* Bottom CTA bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-600 to-cyan-500 text-white p-4 shadow-2xl">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-600 to-cyan-500 text-gray-900 p-4 shadow-2xl">
         <div className="container mx-auto flex items-center justify-between">
           <div>
             <p className="font-bold text-lg">Like what you see?</p>

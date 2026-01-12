@@ -77,7 +77,7 @@ export default function AuthChoice() {
               className="relative inline-block mb-6"
             >
               <div className="w-20 h-20 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-3xl flex items-center justify-center shadow-2xl">
-                <span className="text-4xl font-bold text-white">C</span>
+                <span className="text-4xl font-bold text-gray-900">C</span>
               </div>
               <motion.div
                 animate={{
@@ -146,7 +146,7 @@ export default function AuthChoice() {
                   transition={{ duration: 0.6 }}
                   className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg"
                 >
-                  <Mail className="w-7 h-7 text-white" strokeWidth={2.5} />
+                  <Mail className="w-7 h-7 text-gray-900" strokeWidth={2.5} />
                 </motion.div>
 
                 {/* Content */}
@@ -197,7 +197,7 @@ export default function AuthChoice() {
               whileHover={{ scale: 1.02, y: -3 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => alert('🚀 Web3 wallet connection coming soon! Connect with MetaMask, WalletConnect, and more!')}
-              className="w-full p-6 rounded-2xl bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 text-white hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 shadow-2xl hover:shadow-purple-300 transition-all duration-300 text-left group relative overflow-hidden"
+              className="w-full p-6 rounded-2xl bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 text-gray-900 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 shadow-2xl hover:shadow-purple-300 transition-all duration-300 text-left group relative overflow-hidden"
             >
               {/* Animated Background */}
               <motion.div
@@ -219,7 +219,7 @@ export default function AuthChoice() {
                   transition={{ duration: 0.6 }}
                   className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30"
                 >
-                  <Wallet className="w-7 h-7 text-white" strokeWidth={2.5} />
+                  <Wallet className="w-7 h-7 text-gray-900" strokeWidth={2.5} />
                 </motion.div>
 
                 {/* Content */}
@@ -246,7 +246,7 @@ export default function AuthChoice() {
                     ease: "easeInOut"
                   }}
                 >
-                  <ArrowRight className="w-6 h-6 text-white" />
+                  <ArrowRight className="w-6 h-6 text-gray-900" />
                 </motion.div>
               </div>
 

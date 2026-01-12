@@ -108,7 +108,7 @@ export default function VerifyEmailNotice() {
             className="inline-block mb-4"
           >
             <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-2xl">
-              <Mail className="w-10 h-10 text-white" />
+              <Mail className="w-10 h-10 text-gray-900" />
             </div>
           </motion.div>
           <h1 className="text-4xl font-black mb-2 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
@@ -162,7 +162,7 @@ export default function VerifyEmailNotice() {
               whileTap={{ scale: 0.98 }}
               onClick={handleResend}
               disabled={resending || resentCount >= 3}
-              className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {resending ? (
                 <>

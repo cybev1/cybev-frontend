@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/auth/login.jsx
-// CYBEV Login Page - Clean, Accessible Design
-// VERSION: 5.0 - Better UX, Social Auth Ready
+// CYBEV Login Page - Clean White Design
+// VERSION: 7.0.0 - Facebook-style clean design
 // ============================================
 
 import { useState } from 'react';
@@ -11,19 +11,8 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { authAPI } from '@/lib/api';
 import { toast } from 'react-toastify';
-import {
-  Mail,
-  Lock,
-  ArrowRight,
-  AlertCircle,
-  Eye,
-  EyeOff,
-  CheckCircle,
-  Loader2,
-  Sparkles
-} from 'lucide-react';
+import { Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff, CheckCircle, Loader2, Sparkles } from 'lucide-react';
 
-// Social Icons
 const GoogleIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24">
     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -39,8 +28,6 @@ const FacebookIcon = () => (
   </svg>
 );
 
-
-
 export default function Login() {
   const router = useRouter();
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -51,339 +38,99 @@ export default function Login() {
   const [resetEmail, setResetEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
   const [socialLoading, setSocialLoading] = useState('');
-
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
-      const response = await authAPI.login({
-        email: formData.email,
-        password: formData.password
-      });
-
+      const response = await authAPI.login({ email: formData.email, password: formData.password });
       if (response.data.ok || response.data.success) {
-        const token = response.data.token;
-        const user = response.data.user;
-        
-        localStorage.setItem('token', token);
-        localStorage.setItem('cybev_token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('cybev_token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
         toast.success('Welcome back!');
-
-        if (user.hasCompletedOnboarding) {
-          router.push('/feed');
-        } else {
-          router.push('/onboarding');
-        }
+        router.push(response.data.user.hasCompletedOnboarding ? '/feed' : '/onboarding');
       } else {
-        setError(response.data.message || response.data.error || 'Login failed');
+        setError(response.data.message || 'Login failed');
       }
     } catch (err) {
-      const errorMsg = err.response?.data?.message || err.response?.data?.error || 'Invalid email or password';
-      setError(errorMsg);
+      setError(err.response?.data?.message || 'Invalid email or password');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleForgotPassword = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      const response = await authAPI.forgotPassword(resetEmail);
-      
-      if (response.data.ok || response.data.success) {
-        setResetSent(true);
-        toast.success('Password reset link sent!');
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send reset email');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Social auth handlers
-  const handleGoogleAuth = () => {
-    setSocialLoading('google');
-    window.location.href = `${API_URL}/api/auth/google`;
-  };
-
-  const handleFacebookAuth = () => {
-    setSocialLoading('facebook');
-    window.location.href = `${API_URL}/api/auth/facebook`;
+  const handleSocialAuth = (provider) => {
+    setSocialLoading(provider);
+    window.location.href = `${API_URL}/api/auth/${provider}`;
   };
 
   return (
     <>
-      <Head>
-        <title>Sign In | CYBEV</title>
-        <meta name="description" content="Sign in to your CYBEV account" />
-      </Head>
-
-      <div className="min-h-screen bg-gray-50 flex">
-        {/* Left Side - Branding */}
-        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 p-12 flex-col justify-between">
-          <div>
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                <span className="text-2xl font-black text-white">C</span>
-              </div>
-              <span className="text-2xl font-black text-white">CYBEV</span>
-            </Link>
+      <Head><title>Login | CYBEV</title></Head>
+      <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 px-4">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="flex justify-center">
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <Sparkles className="w-8 h-8 text-white" />
+            </div>
           </div>
-          
-          <div className="space-y-6">
-            <h1 className="text-4xl font-black text-white leading-tight">
-              Welcome back, Creator
-            </h1>
-            <p className="text-xl text-purple-100">
-              Your audience is waiting. Sign in to continue creating amazing content.
-            </p>
-          </div>
-          
-          <p className="text-purple-200 text-sm">
-            © {new Date().getFullYear()} CYBEV. All rights reserved.
+          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">Welcome back</h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Don't have an account? <Link href="/auth/signup" className="font-semibold text-purple-600 hover:text-purple-500">Sign up</Link>
           </p>
         </div>
-
-        {/* Right Side - Form */}
-        <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
-          <div className="w-full max-w-md">
-            {/* Mobile Logo */}
-            <Link href="/" className="lg:hidden flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
-                <span className="text-xl font-bold text-white">C</span>
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white py-8 px-6 shadow-xl rounded-2xl">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <button type="button" onClick={() => handleSocialAuth('google')} disabled={!!socialLoading}
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50">
+                {socialLoading === 'google' ? <Loader2 className="w-5 h-5 animate-spin" /> : <GoogleIcon />}
+                Continue with Google
+              </button>
+              <button type="button" onClick={() => handleSocialAuth('facebook')} disabled={!!socialLoading}
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-[#1877F2] text-white rounded-xl font-medium hover:bg-[#166fe5] transition-colors disabled:opacity-50">
+                {socialLoading === 'facebook' ? <Loader2 className="w-5 h-5 animate-spin" /> : <FacebookIcon />}
+                Continue with Facebook
+              </button>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200" /></div>
+                <div className="relative flex justify-center text-sm"><span className="px-4 bg-white text-gray-500">or</span></div>
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">CYBEV</span>
-            </Link>
-
-            <AnimatePresence mode="wait">
-              {!showForgotPassword ? (
-                <motion.div
-                  key="login"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                >
-                  {/* Header */}
-                  <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign in to your account</h2>
-                    <p className="text-gray-600">
-                      Don't have an account?{' '}
-                      <Link href="/auth/signup" className="text-purple-600 font-semibold hover:text-purple-700">
-                        Sign up free
-                      </Link>
-                    </p>
-                  </div>
-
-                  {/* Social Auth */}
-                  <div className="grid grid-cols-2 gap-3 mb-6">
-                    <button
-                      onClick={handleGoogleAuth}
-                      disabled={!!socialLoading}
-                      className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50"
-                    >
-                      {socialLoading === 'google' ? <Loader2 className="w-5 h-5 animate-spin text-gray-400" /> : <GoogleIcon />}
-                      <span className="text-sm font-medium text-gray-700">Google</span>
-                    </button>
-                    <button
-                      onClick={handleFacebookAuth}
-                      disabled={!!socialLoading}
-                      className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50"
-                    >
-                      {socialLoading === 'facebook' ? <Loader2 className="w-5 h-5 animate-spin text-gray-400" /> : <FacebookIcon />}
-                      <span className="text-sm font-medium text-gray-700">Facebook</span>
-                    </button>
-                  </div>
-
-                  {/* Divider */}
-                  <div className="relative mb-6">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-200"></div>
-                    </div>
-                    <div className="relative flex justify-center">
-                      <span className="px-4 bg-gray-50 text-sm text-gray-500">or continue with email</span>
-                    </div>
-                  </div>
-
-                  {/* Error */}
-                  {error && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3"
-                    >
-                      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <p className="text-sm text-red-800">{error}</p>
-                    </motion.div>
-                  )}
-
-                  {/* Form */}
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Email or Username</label>
-                      <div className="relative">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                          type="text"
-                          value={formData.email}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          placeholder="Enter your email or username"
-                          className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-gray-900 placeholder-gray-400"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="block text-sm font-medium text-gray-700">Password</label>
-                        <button
-                          type="button"
-                          onClick={() => setShowForgotPassword(true)}
-                          className="text-sm text-purple-600 font-medium hover:text-purple-700"
-                        >
-                          Forgot password?
-                        </button>
-                      </div>
-                      <div className="relative">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          value={formData.password}
-                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                          placeholder="Enter your password"
-                          className="w-full pl-12 pr-12 py-3 bg-white border border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-gray-900 placeholder-gray-400"
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-purple-200"
-                    >
-                      {loading ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      ) : (
-                        <>
-                          Sign In
-                          <ArrowRight className="w-5 h-5" />
-                        </>
-                      )}
-                    </button>
-                  </form>
-
-                  {/* Sign Up Link */}
-                  <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-                    <p className="text-gray-600">
-                      New to CYBEV?{' '}
-                      <Link href="/auth/signup" className="text-purple-600 font-semibold hover:text-purple-700">
-                        Create an account
-                      </Link>
-                    </p>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="forgot"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                >
-                  {!resetSent ? (
-                    <>
-                      <div className="mb-8">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Reset your password</h2>
-                        <p className="text-gray-600">
-                          Enter your email and we'll send you a reset link
-                        </p>
-                      </div>
-
-                      {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
-                          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                          <p className="text-sm text-red-800">{error}</p>
-                        </div>
-                      )}
-
-                      <form onSubmit={handleForgotPassword} className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
-                          <div className="relative">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                            <input
-                              type="email"
-                              value={resetEmail}
-                              onChange={(e) => setResetEmail(e.target.value)}
-                              placeholder="Enter your email"
-                              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-gray-900 placeholder-gray-400"
-                              required
-                            />
-                          </div>
-                        </div>
-
-                        <button
-                          type="submit"
-                          disabled={loading}
-                          className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                        >
-                          {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Send Reset Link'}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowForgotPassword(false);
-                            setError('');
-                          }}
-                          className="w-full py-3.5 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-all"
-                        >
-                          Back to Sign In
-                        </button>
-                      </form>
-                    </>
-                  ) : (
-                    <div className="text-center py-8">
-                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle className="w-8 h-8 text-green-600" />
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">Check your email</h3>
-                      <p className="text-gray-600 mb-6">
-                        We've sent a password reset link to <strong>{resetEmail}</strong>
-                      </p>
-                      <button
-                        onClick={() => {
-                          setShowForgotPassword(false);
-                          setResetSent(false);
-                          setResetEmail('');
-                        }}
-                        className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 transition-all"
-                      >
-                        Back to Sign In
-                      </button>
-                    </div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900" placeholder="you@example.com" required />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Password</label>
+                  <Link href="/auth/reset-password" className="text-sm text-purple-600 hover:underline">Forgot?</Link>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input type={showPassword ? 'text' : 'password'} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900" placeholder="••••••••" required />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+              {error && <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg"><AlertCircle className="w-4 h-4" />{error}</div>}
+              <button type="submit" disabled={loading}
+                className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg">
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Sign in <ArrowRight className="w-5 h-5" /></>}
+              </button>
+            </form>
           </div>
+          <p className="mt-6 text-center text-xs text-gray-500">
+            By continuing, you agree to our <Link href="/terms" className="text-purple-600 hover:underline">Terms</Link> and <Link href="/privacy" className="text-purple-600 hover:underline">Privacy Policy</Link>
+          </p>
         </div>
       </div>
     </>

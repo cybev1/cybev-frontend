@@ -24,17 +24,17 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 function StatCard({ title, value, change, icon: Icon, color, subtitle }) {
   const isPositive = change >= 0;
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+    <div className="bg-white dark:bg-gray-50 rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-500">{title}</p>
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-900 mt-1">
             {typeof value === 'number' ? value.toLocaleString() : value}
           </h3>
-          {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+          {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
         </div>
         <div className={`p-3 rounded-xl ${color}`}>
-          <Icon className="w-6 h-6 text-white" />
+          <Icon className="w-6 h-6 text-gray-900" />
         </div>
       </div>
       {change !== undefined && (
@@ -171,26 +171,26 @@ export default function AdminDashboard() {
 
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
         {/* Header */}
-        <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
+        <header className="bg-white dark:bg-gray-50 border-b border-gray-200 dark:border-gray-200 sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Link href="/feed">
                   <span className="text-2xl font-bold text-purple-600">CYBEV</span>
                 </Link>
-                <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-sm font-medium rounded-full">
+                <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-600 text-sm font-medium rounded-full">
                   Admin
                 </span>
               </div>
               <div className="flex items-center gap-3">
                 <button
                   onClick={fetchDashboard}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-white rounded-lg transition-colors"
                 >
                   <RefreshCw className="w-5 h-5 text-gray-500" />
                 </button>
                 <Link href="/settings">
-                  <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                  <button className="p-2 hover:bg-gray-100 dark:hover:bg-white rounded-lg transition-colors">
                     <Settings className="w-5 h-5 text-gray-500" />
                   </button>
                 </Link>
@@ -202,7 +202,7 @@ export default function AdminDashboard() {
         <main className="max-w-7xl mx-auto px-4 py-8">
           {/* Period Selector */}
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900">Dashboard Overview</h1>
             <div className="flex gap-2">
               {['7d', '30d', '90d'].map((p) => (
                 <button
@@ -211,7 +211,7 @@ export default function AdminDashboard() {
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     period === p
                       ? 'bg-purple-600 text-white'
-                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      : 'bg-white dark:bg-white text-gray-600 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-100'
                   }`}
                 >
                   {p === '7d' ? '7 Days' : p === '30d' ? '30 Days' : '90 Days'}
@@ -257,30 +257,30 @@ export default function AdminDashboard() {
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {/* User Signups Chart */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+            <div className="bg-white dark:bg-gray-50 rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900 dark:text-white">User Signups</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900">User Signups</h3>
                 <span className="text-sm text-gray-500">
                   {userChart.reduce((sum, d) => sum + d.signups, 0)} total
                 </span>
               </div>
               <MiniChart data={userChart.map(d => ({ date: d.date, value: d.signups }))} height={80} />
-              <div className="flex justify-between mt-2 text-xs text-gray-400">
+              <div className="flex justify-between mt-2 text-xs text-gray-500">
                 <span>{userChart[0]?.date ? formatDate(userChart[0].date) : ''}</span>
                 <span>{userChart[userChart.length - 1]?.date ? formatDate(userChart[userChart.length - 1].date) : ''}</span>
               </div>
             </div>
 
             {/* Revenue Chart */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+            <div className="bg-white dark:bg-gray-50 rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900 dark:text-white">Revenue</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900">Revenue</h3>
                 <span className="text-sm text-gray-500">
                   {formatCurrency(revenueChart.reduce((sum, d) => sum + d.revenue, 0))}
                 </span>
               </div>
               <MiniChart data={revenueChart.map(d => ({ date: d.date, value: d.revenue }))} height={80} />
-              <div className="flex justify-between mt-2 text-xs text-gray-400">
+              <div className="flex justify-between mt-2 text-xs text-gray-500">
                 <span>{revenueChart[0]?.date ? formatDate(revenueChart[0].date) : ''}</span>
                 <span>{revenueChart[revenueChart.length - 1]?.date ? formatDate(revenueChart[revenueChart.length - 1].date) : ''}</span>
               </div>
@@ -290,9 +290,9 @@ export default function AdminDashboard() {
           {/* Three Column Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             {/* Recent Users */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+            <div className="bg-white dark:bg-gray-50 rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 flex items-center gap-2">
                   <Users className="w-5 h-5 text-blue-500" />
                   Recent Users
                 </h3>
@@ -309,10 +309,10 @@ export default function AdminDashboard() {
                       className="w-10 h-10 rounded-full object-cover"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-white truncate">{user.name}</p>
+                      <p className="font-medium text-gray-900 dark:text-gray-900 truncate">{user.name}</p>
                       <p className="text-sm text-gray-500 truncate">@{user.username}</p>
                     </div>
-                    <span className="text-xs text-gray-400">{formatDate(user.createdAt)}</span>
+                    <span className="text-xs text-gray-500">{formatDate(user.createdAt)}</span>
                   </div>
                 ))}
                 {recentUsers.length === 0 && (
@@ -322,9 +322,9 @@ export default function AdminDashboard() {
             </div>
 
             {/* Top Content */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+            <div className="bg-white dark:bg-gray-50 rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-green-500" />
                   Top Content
                 </h3>
@@ -339,7 +339,7 @@ export default function AdminDashboard() {
                       {idx + 1}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-white text-sm line-clamp-1">{content.title || content.content?.substring(0, 50)}</p>
+                      <p className="font-medium text-gray-900 dark:text-gray-900 text-sm line-clamp-1">{content.title || content.content?.substring(0, 50)}</p>
                       <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
                         <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{content.views || 0}</span>
                         <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{content.engagement || 0}</span>
@@ -354,9 +354,9 @@ export default function AdminDashboard() {
             </div>
 
             {/* Live Streams */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+            <div className="bg-white dark:bg-gray-50 rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 flex items-center gap-2">
                   <Radio className="w-5 h-5 text-red-500" />
                   Live Now
                 </h3>
@@ -378,7 +378,7 @@ export default function AdminDashboard() {
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-white truncate">{stream.title}</p>
+                      <p className="font-medium text-gray-900 dark:text-gray-900 truncate">{stream.title}</p>
                       <p className="text-sm text-gray-500 flex items-center gap-1">
                         <Eye className="w-3 h-3" /> {stream.viewerCount || 0} watching
                       </p>
@@ -395,8 +395,8 @@ export default function AdminDashboard() {
           {/* Quick Actions & System Health */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Quick Actions */}
-            <div className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
+            <div className="lg:col-span-2 bg-white dark:bg-gray-50 rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Quick Actions</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <Link href="/admin/users">
                   <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-center hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors cursor-pointer">
@@ -419,15 +419,15 @@ export default function AdminDashboard() {
                 <Link href="/admin/revenue">
                   <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl text-center hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors cursor-pointer">
                     <DollarSign className="w-6 h-6 text-purple-600 mx-auto mb-2" />
-                    <span className="text-sm font-medium text-purple-700 dark:text-purple-400">Revenue</span>
+                    <span className="text-sm font-medium text-purple-700 dark:text-purple-600">Revenue</span>
                   </div>
                 </Link>
               </div>
             </div>
 
             {/* System Health */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
-              <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
+            <div className="bg-white dark:bg-gray-50 rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-900 flex items-center gap-2 mb-4">
                 <Activity className="w-5 h-5 text-green-500" />
                 System Health
               </h3>
@@ -445,13 +445,13 @@ export default function AdminDashboard() {
                     <span className="text-sm text-gray-500 flex items-center gap-2">
                       <Server className="w-4 h-4" /> Memory
                     </span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">{systemHealth.memory?.used}</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-900">{systemHealth.memory?.used}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-500 flex items-center gap-2">
                       <Clock className="w-4 h-4" /> Uptime
                     </span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-900">
                       {Math.floor(systemHealth.uptime / 3600)}h {Math.floor((systemHealth.uptime % 3600) / 60)}m
                     </span>
                   </div>
@@ -459,7 +459,7 @@ export default function AdminDashboard() {
                     <span className="text-sm text-gray-500 flex items-center gap-2">
                       <Zap className="w-4 h-4" /> Node
                     </span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">{systemHealth.node}</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-900">{systemHealth.node}</span>
                   </div>
                 </div>
               ) : (

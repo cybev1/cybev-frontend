@@ -163,15 +163,15 @@ export default function CreateBlog() {
         <title>Create Blog - CYBEV</title>
       </Head>
       
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+      <div className="min-h-screen bg-gray-100">
         {/* Header */}
-        <div className="bg-black/40 backdrop-blur-xl border-b border-purple-500/20 sticky top-0 z-40">
+        <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
           <div className="max-w-5xl mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <button
                 // FIXED: Redirect to /feed instead of /dashboard
                 onClick={() => router.push('/feed')}
-                className="flex items-center gap-2 text-white hover:text-purple-400 transition-colors"
+                className="flex items-center gap-2 text-gray-900 hover:text-purple-600 transition-colors"
               >
                 <ArrowLeft className="w-5 h-5" />
                 <span className="font-semibold">Back</span>
@@ -181,7 +181,7 @@ export default function CreateBlog() {
                 <button
                   onClick={() => handleSave('draft')}
                   disabled={loading}
-                  className="px-4 py-2 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/20 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-white/10 text-gray-900 rounded-xl font-semibold hover:bg-white/20 transition-colors flex items-center gap-2"
                 >
                   <Save className="w-4 h-4" />
                   Save Draft
@@ -190,7 +190,7 @@ export default function CreateBlog() {
                 <button
                   onClick={() => handleSave('published')}
                   disabled={loading}
-                  className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all flex items-center gap-2"
+                  className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center gap-2"
                 >
                   {loading ? (
                     <>
@@ -211,51 +211,51 @@ export default function CreateBlog() {
 
         {/* Main Content */}
         <div className="max-w-5xl mx-auto px-6 py-8">
-          <div className="bg-white/5 backdrop-blur-lg rounded-3xl border border-purple-500/20 p-8">
+          <div className="bg-white/5 backdrop-blur-lg rounded-3xl border border-gray-200 p-8">
             {/* Title - FIXED: White text for dark mode */}
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Article Title..."
-              className="w-full text-4xl font-bold mb-6 bg-transparent border-none focus:outline-none focus:ring-0 text-white placeholder-gray-500"
+              className="w-full text-4xl font-bold mb-6 bg-transparent border-none focus:outline-none focus:ring-0 text-gray-900 placeholder-gray-400"
               maxLength={200}
             />
 
             {/* Description/Excerpt - FIXED: White text */}
             <div className="mb-6">
-              <label className="block text-sm font-bold text-white mb-2">
+              <label className="block text-sm font-bold text-gray-900 mb-2">
                 Description (Excerpt) *
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Write a brief description of your article..."
-                className="w-full p-4 bg-white/5 border border-purple-500/30 rounded-xl text-white placeholder-gray-500 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none"
+                className="w-full p-4 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none"
                 rows={3}
                 maxLength={300}
               />
-              <div className="text-sm text-gray-400 mt-1 text-right">
+              <div className="text-sm text-gray-500 mt-1 text-right">
                 {description.length}/300 characters
               </div>
             </div>
 
             {/* Featured Image Upload */}
             <div className="mb-6">
-              <label className="block text-sm font-bold text-white mb-2">
+              <label className="block text-sm font-bold text-gray-900 mb-2">
                 Featured Image
               </label>
               
               {!featuredImagePreview ? (
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-purple-500/30 rounded-xl p-8 text-center cursor-pointer hover:border-purple-500 hover:bg-purple-500/10 transition-all"
+                  className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center cursor-pointer hover:border-purple-500 hover:bg-gray-100 transition-all"
                 >
-                  <Upload className="w-12 h-12 text-purple-400 mx-auto mb-3" />
-                  <p className="text-white font-semibold mb-1">
+                  <Upload className="w-12 h-12 text-purple-600 mx-auto mb-3" />
+                  <p className="text-gray-900 font-semibold mb-1">
                     Click to upload featured image
                   </p>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-gray-500">
                     PNG, JPG up to 5MB
                   </p>
                 </div>
@@ -268,11 +268,11 @@ export default function CreateBlog() {
                   />
                   <button
                     onClick={removeFeaturedImage}
-                    className="absolute top-3 right-3 p-2 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-3 right-3 p-2 bg-red-600 text-gray-900 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <X className="w-5 h-5" />
                   </button>
-                  <div className="absolute bottom-3 left-3 bg-black/70 text-white px-3 py-1 rounded-lg text-sm">
+                  <div className="absolute bottom-3 left-3 bg-gray-900/70 text-gray-900 px-3 py-1 rounded-lg text-sm">
                     {featuredImage?.name}
                   </div>
                 </div>
@@ -289,16 +289,16 @@ export default function CreateBlog() {
 
             {/* Category - FIXED: White text */}
             <div className="mb-6">
-              <label className="block text-sm font-bold text-white mb-2">
+              <label className="block text-sm font-bold text-gray-900 mb-2">
                 Category
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full p-3 bg-white/5 border border-purple-500/30 rounded-xl text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                className="w-full p-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
               >
                 {categories.map(cat => (
-                  <option key={cat} value={cat.toLowerCase()} className="bg-gray-900 text-white">
+                  <option key={cat} value={cat.toLowerCase()} className="bg-gray-50 text-gray-900">
                     {cat}
                   </option>
                 ))}
@@ -307,14 +307,14 @@ export default function CreateBlog() {
 
             {/* Tags - FIXED: White text */}
             <div className="mb-6">
-              <label className="block text-sm font-bold text-white mb-2">
+              <label className="block text-sm font-bold text-gray-900 mb-2">
                 Tags
               </label>
               <div className="flex flex-wrap gap-2 mb-3">
                 {tags.map(tag => (
                   <span
                     key={tag}
-                    className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm font-semibold flex items-center gap-2"
+                    className="px-3 py-1 bg-purple-500/20 text-purple-600 rounded-full text-sm font-semibold flex items-center gap-2"
                   >
                     #{tag}
                     <button
@@ -332,17 +332,17 @@ export default function CreateBlog() {
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyPress={handleAddTag}
                 placeholder="Type a tag and press Enter..."
-                className="w-full p-3 bg-white/5 border border-purple-500/30 rounded-xl text-white placeholder-gray-500 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                className="w-full p-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
                 maxLength={30}
               />
-              <p className="text-sm text-gray-400 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 Press Enter to add tags (max 10)
               </p>
             </div>
 
             {/* Rich Text Editor */}
             <div className="mb-6">
-              <label className="block text-sm font-bold text-white mb-2">
+              <label className="block text-sm font-bold text-gray-900 mb-2">
                 Content *
               </label>
               <div className="bg-white rounded-xl overflow-hidden">
@@ -371,7 +371,7 @@ export default function CreateBlog() {
             {/* Preview Button */}
             <button
               onClick={() => alert('Preview coming soon!')}
-              className="w-full py-3 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3 bg-white/10 text-gray-900 rounded-xl font-semibold hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
             >
               <Eye className="w-5 h-5" />
               Preview Article

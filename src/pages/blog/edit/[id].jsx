@@ -228,7 +228,7 @@ export default function EditBlog() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
       </div>
     );
@@ -240,13 +240,13 @@ export default function EditBlog() {
         <title>Edit Blog - CYBEV</title>
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 py-8 px-4">
+      <div className="min-h-screen bg-gray-100 py-8 px-4">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <button
               onClick={() => router.back()}
-              className="flex items-center gap-2 text-white hover:text-purple-400 transition-colors"
+              className="flex items-center gap-2 text-gray-900 hover:text-purple-600 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               Back
@@ -255,7 +255,7 @@ export default function EditBlog() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => window.open(`/blog/${id}`, '_blank')}
-                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-gray-900 rounded-lg transition-colors"
               >
                 <Eye className="w-4 h-4" />
                 Preview
@@ -272,7 +272,7 @@ export default function EditBlog() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-gray-900 rounded-lg transition-all disabled:opacity-50"
               >
                 {saving ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -299,23 +299,23 @@ export default function EditBlog() {
           )}
 
           {/* Edit Form */}
-          <div className="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-6 space-y-6">
+          <div className="bg-white/5 backdrop-blur-lg rounded-2xl border border-gray-200 p-6 space-y-6">
             
             {/* Title - FIXED: White text */}
             <div>
-              <label className="block text-white mb-2 text-sm">Title</label>
+              <label className="block text-gray-900 mb-2 text-sm">Title</label>
               <input
                 type="text"
                 value={blog.title}
                 onChange={(e) => setBlog(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="Enter blog title..."
-                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 text-lg"
+                className="w-full px-4 py-3 bg-white/5 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-purple-500 text-lg"
               />
             </div>
 
             {/* Featured Image */}
             <div>
-              <label className="block text-white mb-2 text-sm flex items-center gap-2">
+              <label className="block text-gray-900 mb-2 text-sm flex items-center gap-2">
                 <Image className="w-4 h-4" />
                 Featured Image URL
               </label>
@@ -324,7 +324,7 @@ export default function EditBlog() {
                 value={blog.featuredImage}
                 onChange={(e) => setBlog(prev => ({ ...prev, featuredImage: e.target.value }))}
                 placeholder="https://example.com/image.jpg"
-                className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+                className="w-full px-4 py-3 bg-white/5 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-purple-500"
               />
               {blog.featuredImage && (
                 <div className="mt-3">
@@ -341,34 +341,34 @@ export default function EditBlog() {
             {/* Category & Status */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-white mb-2 text-sm">Category</label>
+                <label className="block text-gray-900 mb-2 text-sm">Category</label>
                 <select
                   value={blog.category}
                   onChange={(e) => setBlog(prev => ({ ...prev, category: e.target.value }))}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                  className="w-full px-4 py-3 bg-white/5 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:border-purple-500"
                 >
                   {CATEGORIES.map(cat => (
-                    <option key={cat} value={cat} className="bg-gray-900 text-white">{cat}</option>
+                    <option key={cat} value={cat} className="bg-gray-50 text-gray-900">{cat}</option>
                   ))}
                 </select>
               </div>
               
               <div>
-                <label className="block text-white mb-2 text-sm">Status</label>
+                <label className="block text-gray-900 mb-2 text-sm">Status</label>
                 <select
                   value={blog.status}
                   onChange={(e) => setBlog(prev => ({ ...prev, status: e.target.value }))}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                  className="w-full px-4 py-3 bg-white/5 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:border-purple-500"
                 >
-                  <option value="published" className="bg-gray-900 text-white">Published</option>
-                  <option value="draft" className="bg-gray-900 text-white">Draft</option>
+                  <option value="published" className="bg-gray-50 text-gray-900">Published</option>
+                  <option value="draft" className="bg-gray-50 text-gray-900">Draft</option>
                 </select>
               </div>
             </div>
 
             {/* Tags */}
             <div>
-              <label className="block text-white mb-2 text-sm flex items-center gap-2">
+              <label className="block text-gray-900 mb-2 text-sm flex items-center gap-2">
                 <Tag className="w-4 h-4" />
                 Tags ({blog.tags.length}/10)
               </label>
@@ -379,11 +379,11 @@ export default function EditBlog() {
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Add a tag..."
-                  className="flex-1 px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+                  className="flex-1 px-4 py-2 bg-white/5 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-purple-500"
                 />
                 <button
                   onClick={addTag}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-gray-900 rounded-lg transition-colors"
                 >
                   Add
                 </button>
@@ -393,7 +393,7 @@ export default function EditBlog() {
                   {blog.tags.map((tag, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm flex items-center gap-2"
+                      className="px-3 py-1 bg-purple-500/20 text-purple-600 rounded-full text-sm flex items-center gap-2"
                     >
                       #{tag}
                       <button
@@ -410,7 +410,7 @@ export default function EditBlog() {
 
             {/* Content Editor */}
             <div>
-              <label className="block text-white mb-2 text-sm">Content</label>
+              <label className="block text-gray-900 mb-2 text-sm">Content</label>
               <div className="bg-white rounded-lg">
                 <ReactQuill
                   value={blog.content}
@@ -428,23 +428,23 @@ export default function EditBlog() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold text-white mb-4">Delete Blog Post?</h3>
-            <p className="text-gray-400 mb-6">
+        <div className="fixed inset-0 bg-gray-900/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Delete Blog Post?</h3>
+            <p className="text-gray-500 mb-6">
               Are you sure you want to delete "{blog.title}"? This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+                className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-gray-900 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-gray-900 rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 {deleting ? (
                   <>

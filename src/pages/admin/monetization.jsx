@@ -68,46 +68,46 @@ export default function AdminMonetization() {
     <AppLayout>
       <Head><title>Monetization - Admin - CYBEV</title></Head>
       <div className="max-w-6xl mx-auto px-4 py-6">
-        <Link href="/admin"><button className="flex items-center gap-2 text-gray-400 hover:text-white mb-6"><ArrowLeft className="w-5 h-5" />Back to Dashboard</button></Link>
+        <Link href="/admin"><button className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6"><ArrowLeft className="w-5 h-5" />Back to Dashboard</button></Link>
 
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center"><TrendingUp className="w-7 h-7 text-white" /></div>
-          <div><h1 className="text-2xl font-bold text-white">Monetization</h1><p className="text-gray-400">Manage subscriptions, ads & creator earnings</p></div>
+          <div className="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center"><TrendingUp className="w-7 h-7 text-gray-900" /></div>
+          <div><h1 className="text-2xl font-bold text-gray-900">Monetization</h1><p className="text-gray-500">Manage subscriptions, ads & creator earnings</p></div>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl border border-purple-500/30 p-4">
-            <Crown className="w-6 h-6 text-purple-400 mb-2" />
-            <p className="text-2xl font-bold text-white">{stats.totalSubscribers?.toLocaleString()}</p>
-            <p className="text-gray-400 text-sm">Premium Subscribers</p>
+          <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl border border-gray-200 p-4">
+            <Crown className="w-6 h-6 text-purple-600 mb-2" />
+            <p className="text-2xl font-bold text-gray-900">{stats.totalSubscribers?.toLocaleString()}</p>
+            <p className="text-gray-500 text-sm">Premium Subscribers</p>
           </div>
-          <div className="bg-gray-800/50 rounded-xl border border-purple-500/20 p-4">
+          <div className="bg-white/50 rounded-xl border border-gray-200 p-4">
             <DollarSign className="w-6 h-6 text-green-400 mb-2" />
-            <p className="text-2xl font-bold text-white">${stats.monthlyRevenue?.toLocaleString()}</p>
-            <p className="text-gray-400 text-sm">Monthly Revenue</p>
+            <p className="text-2xl font-bold text-gray-900">${stats.monthlyRevenue?.toLocaleString()}</p>
+            <p className="text-gray-500 text-sm">Monthly Revenue</p>
           </div>
-          <div className="bg-gray-800/50 rounded-xl border border-purple-500/20 p-4">
+          <div className="bg-white/50 rounded-xl border border-gray-200 p-4">
             <Users className="w-6 h-6 text-blue-400 mb-2" />
-            <p className="text-2xl font-bold text-white">{stats.activeCreators}</p>
-            <p className="text-gray-400 text-sm">Active Creators</p>
+            <p className="text-2xl font-bold text-gray-900">{stats.activeCreators}</p>
+            <p className="text-gray-500 text-sm">Active Creators</p>
           </div>
-          <div className="bg-gray-800/50 rounded-xl border border-purple-500/20 p-4">
-            <Percent className="w-6 h-6 text-pink-400 mb-2" />
-            <p className="text-2xl font-bold text-white">{stats.conversionRate}%</p>
-            <p className="text-gray-400 text-sm">Conversion Rate</p>
+          <div className="bg-white/50 rounded-xl border border-gray-200 p-4">
+            <Percent className="w-6 h-6 text-pink-600 mb-2" />
+            <p className="text-2xl font-bold text-gray-900">{stats.conversionRate}%</p>
+            <p className="text-gray-500 text-sm">Conversion Rate</p>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6 border-b border-gray-700 pb-4">
+        <div className="flex gap-2 mb-6 border-b border-gray-200 pb-4">
           {[
             { id: 'subscriptions', label: 'Subscription Plans', icon: Crown },
             { id: 'ads', label: 'Ad Settings', icon: BarChart3 },
             { id: 'creators', label: 'Creator Earnings', icon: Star },
           ].map((tab) => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg ${activeTab === tab.id ? 'bg-purple-500 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}>
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg ${activeTab === tab.id ? 'bg-purple-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-100'}`}>
               <tab.icon className="w-4 h-4" />{tab.label}
             </button>
           ))}
@@ -121,29 +121,29 @@ export default function AdminMonetization() {
             {activeTab === 'subscriptions' && (
               <div className="space-y-6">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold text-white">Subscription Plans</h3>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"><Plus className="w-4 h-4" />Add Plan</button>
+                  <h3 className="text-lg font-semibold text-gray-900">Subscription Plans</h3>
+                  <button className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-gray-900 rounded-lg hover:bg-purple-600"><Plus className="w-4 h-4" />Add Plan</button>
                 </div>
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {plans.map((plan) => (
-                    <div key={plan.id} className={`rounded-2xl border p-6 ${plan.price === 0 ? 'bg-gray-800/50 border-gray-700' : 'bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/30'}`}>
+                    <div key={plan.id} className={`rounded-2xl border p-6 ${plan.price === 0 ? 'bg-white/50 border-gray-200' : 'bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-gray-200'}`}>
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-white font-semibold">{plan.name}</h4>
-                        <button className="p-1 hover:bg-gray-700 rounded"><Edit className="w-4 h-4 text-gray-400" /></button>
+                        <h4 className="text-gray-900 font-semibold">{plan.name}</h4>
+                        <button className="p-1 hover:bg-gray-100 rounded"><Edit className="w-4 h-4 text-gray-500" /></button>
                       </div>
                       <div className="mb-4">
-                        <span className="text-3xl font-bold text-white">${plan.price}</span>
-                        <span className="text-gray-400">/{plan.interval}</span>
+                        <span className="text-3xl font-bold text-gray-900">${plan.price}</span>
+                        <span className="text-gray-500">/{plan.interval}</span>
                       </div>
                       <ul className="space-y-2 mb-4">
                         {plan.features.map((feature, i) => (
-                          <li key={i} className="flex items-center gap-2 text-gray-300 text-sm">
+                          <li key={i} className="flex items-center gap-2 text-gray-600 text-sm">
                             <CheckCircle className="w-4 h-4 text-green-400" />{feature}
                           </li>
                         ))}
                       </ul>
-                      <div className="pt-4 border-t border-gray-700">
-                        <p className="text-gray-400 text-sm">{plan.subscribers.toLocaleString()} subscribers</p>
+                      <div className="pt-4 border-t border-gray-200">
+                        <p className="text-gray-500 text-sm">{plan.subscribers.toLocaleString()} subscribers</p>
                       </div>
                     </div>
                   ))}
@@ -154,11 +154,11 @@ export default function AdminMonetization() {
             {/* Ad Settings */}
             {activeTab === 'ads' && (
               <div className="space-y-6">
-                <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 p-6">
+                <div className="bg-white/50 rounded-2xl border border-gray-200 p-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-semibold text-white">Advertising Settings</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">Advertising Settings</h3>
                     <div className="flex items-center gap-3">
-                      <span className="text-gray-400 text-sm">Ads Enabled</span>
+                      <span className="text-gray-500 text-sm">Ads Enabled</span>
                       <button className={`relative w-12 h-7 rounded-full transition-colors ${adsSettings.enabled ? 'bg-green-500' : 'bg-gray-600'}`}>
                         <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full transition-transform ${adsSettings.enabled ? 'left-5' : 'left-0.5'}`} />
                       </button>
@@ -167,11 +167,11 @@ export default function AdminMonetization() {
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <h4 className="text-white font-medium mb-4">Ad Types</h4>
+                      <h4 className="text-gray-900 font-medium mb-4">Ad Types</h4>
                       <div className="space-y-3">
                         {Object.entries(adsSettings.adTypes || {}).map(([type, enabled]) => (
                           <div key={type} className="flex items-center justify-between">
-                            <span className="text-gray-300 capitalize">{type} Ads</span>
+                            <span className="text-gray-600 capitalize">{type} Ads</span>
                             <button className={`relative w-10 h-6 rounded-full ${enabled ? 'bg-purple-500' : 'bg-gray-600'}`}>
                               <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${enabled ? 'left-4' : 'left-0.5'}`} />
                             </button>
@@ -181,11 +181,11 @@ export default function AdminMonetization() {
                     </div>
 
                     <div>
-                      <h4 className="text-white font-medium mb-4">Performance</h4>
+                      <h4 className="text-gray-900 font-medium mb-4">Performance</h4>
                       <div className="space-y-4">
-                        <div className="flex justify-between"><span className="text-gray-400">Average CPM</span><span className="text-white">${adsSettings.revenue?.cpm}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-400">Fill Rate</span><span className="text-white">{adsSettings.revenue?.fillRate}%</span></div>
-                        <div className="flex justify-between"><span className="text-gray-400">Monthly Revenue</span><span className="text-green-400">${stats.adRevenue?.toLocaleString()}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-500">Average CPM</span><span className="text-gray-900">${adsSettings.revenue?.cpm}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-500">Fill Rate</span><span className="text-gray-900">{adsSettings.revenue?.fillRate}%</span></div>
+                        <div className="flex justify-between"><span className="text-gray-500">Monthly Revenue</span><span className="text-green-400">${stats.adRevenue?.toLocaleString()}</span></div>
                       </div>
                     </div>
                   </div>
@@ -197,38 +197,38 @@ export default function AdminMonetization() {
             {activeTab === 'creators' && (
               <div className="space-y-6">
                 <div className="grid md:grid-cols-3 gap-4">
-                  <div className="bg-gray-800/50 rounded-xl border border-purple-500/20 p-4">
-                    <Gift className="w-6 h-6 text-pink-400 mb-2" />
-                    <p className="text-2xl font-bold text-white">${stats.totalTips?.toLocaleString()}</p>
-                    <p className="text-gray-400 text-sm">Total Tips This Month</p>
+                  <div className="bg-white/50 rounded-xl border border-gray-200 p-4">
+                    <Gift className="w-6 h-6 text-pink-600 mb-2" />
+                    <p className="text-2xl font-bold text-gray-900">${stats.totalTips?.toLocaleString()}</p>
+                    <p className="text-gray-500 text-sm">Total Tips This Month</p>
                   </div>
-                  <div className="bg-gray-800/50 rounded-xl border border-purple-500/20 p-4">
+                  <div className="bg-white/50 rounded-xl border border-gray-200 p-4">
                     <Zap className="w-6 h-6 text-yellow-400 mb-2" />
-                    <p className="text-2xl font-bold text-white">${stats.nftSales?.toLocaleString()}</p>
-                    <p className="text-gray-400 text-sm">NFT Sales This Month</p>
+                    <p className="text-2xl font-bold text-gray-900">${stats.nftSales?.toLocaleString()}</p>
+                    <p className="text-gray-500 text-sm">NFT Sales This Month</p>
                   </div>
-                  <div className="bg-gray-800/50 rounded-xl border border-purple-500/20 p-4">
+                  <div className="bg-white/50 rounded-xl border border-gray-200 p-4">
                     <Percent className="w-6 h-6 text-green-400 mb-2" />
-                    <p className="text-2xl font-bold text-white">{creatorSettings.revenueShare}%</p>
-                    <p className="text-gray-400 text-sm">Creator Revenue Share</p>
+                    <p className="text-2xl font-bold text-gray-900">{creatorSettings.revenueShare}%</p>
+                    <p className="text-gray-500 text-sm">Creator Revenue Share</p>
                   </div>
                 </div>
 
-                <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 p-6">
-                  <h3 className="text-lg font-semibold text-white mb-6">Creator Payout Settings</h3>
+                <div className="bg-white/50 rounded-2xl border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6">Creator Payout Settings</h3>
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-gray-400 text-sm mb-2">Revenue Share (%)</label>
-                        <input type="number" value={creatorSettings.revenueShare} className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white" />
+                        <label className="block text-gray-500 text-sm mb-2">Revenue Share (%)</label>
+                        <input type="number" value={creatorSettings.revenueShare} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900" />
                       </div>
                       <div>
-                        <label className="block text-gray-400 text-sm mb-2">Minimum Payout ($)</label>
-                        <input type="number" value={creatorSettings.minPayout} className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white" />
+                        <label className="block text-gray-500 text-sm mb-2">Minimum Payout ($)</label>
+                        <input type="number" value={creatorSettings.minPayout} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900" />
                       </div>
                       <div>
-                        <label className="block text-gray-400 text-sm mb-2">Payout Schedule</label>
-                        <select value={creatorSettings.payoutSchedule} className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white">
+                        <label className="block text-gray-500 text-sm mb-2">Payout Schedule</label>
+                        <select value={creatorSettings.payoutSchedule} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900">
                           <option value="weekly">Weekly</option>
                           <option value="biweekly">Bi-weekly</option>
                           <option value="monthly">Monthly</option>
@@ -236,32 +236,32 @@ export default function AdminMonetization() {
                       </div>
                     </div>
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between p-4 bg-gray-900 rounded-xl">
-                        <span className="text-gray-300">Enable Tipping</span>
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                        <span className="text-gray-600">Enable Tipping</span>
                         <button className={`relative w-10 h-6 rounded-full ${creatorSettings.tippingEnabled ? 'bg-purple-500' : 'bg-gray-600'}`}>
                           <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full ${creatorSettings.tippingEnabled ? 'left-4' : 'left-0.5'}`} />
                         </button>
                       </div>
-                      <div className="flex items-center justify-between p-4 bg-gray-900 rounded-xl">
-                        <span className="text-gray-300">Enable Creator Subscriptions</span>
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                        <span className="text-gray-600">Enable Creator Subscriptions</span>
                         <button className={`relative w-10 h-6 rounded-full ${creatorSettings.subscriptionsEnabled ? 'bg-purple-500' : 'bg-gray-600'}`}>
                           <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full ${creatorSettings.subscriptionsEnabled ? 'left-4' : 'left-0.5'}`} />
                         </button>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-gray-400 text-sm mb-2">Min Tip ($)</label>
-                          <input type="number" value={creatorSettings.minTip} className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white" />
+                          <label className="block text-gray-500 text-sm mb-2">Min Tip ($)</label>
+                          <input type="number" value={creatorSettings.minTip} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900" />
                         </div>
                         <div>
-                          <label className="block text-gray-400 text-sm mb-2">Max Tip ($)</label>
-                          <input type="number" value={creatorSettings.maxTip} className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white" />
+                          <label className="block text-gray-500 text-sm mb-2">Max Tip ($)</label>
+                          <input type="number" value={creatorSettings.maxTip} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900" />
                         </div>
                       </div>
                     </div>
                   </div>
                   <div className="mt-6 flex justify-end">
-                    <button className="px-6 py-3 bg-purple-500 text-white rounded-xl hover:bg-purple-600">Save Settings</button>
+                    <button className="px-6 py-3 bg-purple-500 text-gray-900 rounded-xl hover:bg-purple-600">Save Settings</button>
                   </div>
                 </div>
               </div>

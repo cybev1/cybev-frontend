@@ -34,11 +34,11 @@ function StatCard({ title, value, change, changeType, icon: Icon, color, link })
   return (
     <div 
       onClick={() => link && router.push(link)}
-      className={`bg-gray-800/50 rounded-2xl border border-purple-500/20 p-6 ${link ? 'cursor-pointer hover:border-purple-500/40' : ''}`}
+      className={`bg-white/50 rounded-2xl border border-gray-200 p-6 ${link ? 'cursor-pointer hover:border-purple-500/40' : ''}`}
     >
       <div className="flex items-start justify-between mb-4">
         <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center`}>
-          <Icon className="w-6 h-6 text-white" />
+          <Icon className="w-6 h-6 text-gray-900" />
         </div>
         {change !== undefined && (
           <div className={`flex items-center gap-1 text-sm ${changeType === 'up' ? 'text-green-400' : 'text-red-400'}`}>
@@ -48,28 +48,28 @@ function StatCard({ title, value, change, changeType, icon: Icon, color, link })
         )}
       </div>
       {/* FIXED: White text for visibility on dark background */}
-      <p className="text-gray-400 text-sm mb-1">{title}</p>
-      <p className="text-2xl font-bold text-white">{value}</p>
+      <p className="text-gray-500 text-sm mb-1">{title}</p>
+      <p className="text-2xl font-bold text-gray-900">{value}</p>
     </div>
   );
 }
 
 function QuickAction({ title, description, icon: Icon, color, onClick, badge }) {
   return (
-    <button onClick={onClick} className="w-full bg-gray-800/50 rounded-xl border border-purple-500/20 p-4 text-left hover:border-purple-500/40 group">
+    <button onClick={onClick} className="w-full bg-white/50 rounded-xl border border-gray-200 p-4 text-left hover:border-purple-500/40 group">
       <div className="flex items-center gap-4">
         <div className={`w-10 h-10 rounded-lg ${color} flex items-center justify-center`}>
-          <Icon className="w-5 h-5 text-white" />
+          <Icon className="w-5 h-5 text-gray-900" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
             {/* FIXED: White text */}
-            <p className="text-white font-medium">{title}</p>
-            {badge && <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">{badge}</span>}
+            <p className="text-gray-900 font-medium">{title}</p>
+            {badge && <span className="px-2 py-0.5 bg-red-500 text-gray-900 text-xs font-bold rounded-full">{badge}</span>}
           </div>
-          <p className="text-gray-400 text-sm">{description}</p>
+          <p className="text-gray-500 text-sm">{description}</p>
         </div>
-        <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-purple-400" />
+        <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-purple-600" />
       </div>
     </button>
   );
@@ -86,18 +86,18 @@ function ActivityItem({ type, user, action, target, time, status }) {
     }
   };
   const Icon = getIcon();
-  const statusColor = status === 'success' ? 'text-green-400' : status === 'warning' ? 'text-yellow-400' : status === 'error' ? 'text-red-400' : 'text-gray-400';
+  const statusColor = status === 'success' ? 'text-green-400' : status === 'warning' ? 'text-yellow-400' : status === 'error' ? 'text-red-400' : 'text-gray-500';
 
   return (
-    <div className="flex items-start gap-4 p-3 hover:bg-gray-700/30 rounded-lg">
+    <div className="flex items-start gap-4 p-3 hover:bg-gray-100/30 rounded-lg">
       <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
         <Icon className={`w-4 h-4 ${statusColor}`} />
       </div>
       <div className="flex-1">
         {/* FIXED: White text for visibility */}
-        <p className="text-white text-sm">
+        <p className="text-gray-900 text-sm">
           <span className="font-medium">{user}</span>{' '}
-          <span className="text-gray-400">{action}</span>{' '}
+          <span className="text-gray-500">{action}</span>{' '}
           <span className="font-medium">{target}</span>
         </p>
         <p className="text-gray-500 text-xs mt-1">{time}</p>
@@ -179,18 +179,18 @@ export default function AdminDashboard() {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl flex items-center justify-center">
-              <Shield className="w-7 h-7 text-white" />
+              <Shield className="w-7 h-7 text-gray-900" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
-              <p className="text-gray-400">Manage your platform</p>
+              <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+              <p className="text-gray-500">Manage your platform</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={fetchDashboardData} className="p-2 hover:bg-gray-700 rounded-lg">
-              <RefreshCw className={`w-5 h-5 text-gray-400 ${loading ? 'animate-spin' : ''}`} />
+            <button onClick={fetchDashboardData} className="p-2 hover:bg-gray-100 rounded-lg">
+              <RefreshCw className={`w-5 h-5 text-gray-500 ${loading ? 'animate-spin' : ''}`} />
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600">
+            <button className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-gray-900 rounded-lg hover:bg-purple-600">
               <Download className="w-4 h-4" />
               Export
             </button>
@@ -205,27 +205,27 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
-            <p className="text-gray-400 text-sm">Active Now</p>
+          <div className="bg-white/30 rounded-xl p-4 border border-gray-200/50">
+            <p className="text-gray-500 text-sm">Active Now</p>
             <p className="text-xl font-bold text-green-400">{stats.activeUsers}</p>
           </div>
-          <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
-            <p className="text-gray-400 text-sm">New Users Today</p>
+          <div className="bg-white/30 rounded-xl p-4 border border-gray-200/50">
+            <p className="text-gray-500 text-sm">New Users Today</p>
             <p className="text-xl font-bold text-blue-400">+{stats.newUsersToday}</p>
           </div>
-          <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
-            <p className="text-gray-400 text-sm">Posts Today</p>
-            <p className="text-xl font-bold text-purple-400">{stats.postsToday}</p>
+          <div className="bg-white/30 rounded-xl p-4 border border-gray-200/50">
+            <p className="text-gray-500 text-sm">Posts Today</p>
+            <p className="text-xl font-bold text-purple-600">{stats.postsToday}</p>
           </div>
-          <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
-            <p className="text-gray-400 text-sm">Total Blogs</p>
-            <p className="text-xl font-bold text-pink-400">{stats.totalBlogs}</p>
+          <div className="bg-white/30 rounded-xl p-4 border border-gray-200/50">
+            <p className="text-gray-500 text-sm">Total Blogs</p>
+            <p className="text-xl font-bold text-pink-600">{stats.totalBlogs}</p>
           </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
-            <h2 className="text-lg font-semibold text-white mb-4">Quick Actions</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
             <div className="grid md:grid-cols-2 gap-4">
               <QuickAction title="User Management" description="View, edit, and manage users" icon={Users} color="bg-blue-500" onClick={() => router.push('/admin/users')} />
               <QuickAction title="Content Moderation" description="Review and moderate content" icon={FileText} color="bg-purple-500" onClick={() => router.push('/admin/content')} badge={stats.pendingReports > 0 ? stats.pendingReports : null} />
@@ -238,14 +238,14 @@ export default function AdminDashboard() {
             </div>
             
             <div className="mt-8">
-              <h2 className="text-lg font-semibold text-white mb-4">System Health</h2>
-              <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 p-4">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">System Health</h2>
+              <div className="bg-white/50 rounded-2xl border border-gray-200 p-4">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {Object.entries(systemHealth).map(([key, status]) => (
                     <div key={key} className="flex items-center gap-3">
                       <div className={`w-3 h-3 rounded-full ${status === 'healthy' ? 'bg-green-400' : 'bg-red-400'}`} />
                       <div>
-                        <p className="text-white text-sm font-medium capitalize">{key}</p>
+                        <p className="text-gray-900 text-sm font-medium capitalize">{key}</p>
                         <p className={`text-xs ${status === 'healthy' ? 'text-green-400' : 'text-red-400'}`}>{status}</p>
                       </div>
                     </div>
@@ -257,13 +257,13 @@ export default function AdminDashboard() {
           
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-white">Recent Activity</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
               <Link href="/admin/activity">
-                <span className="text-purple-400 text-sm hover:text-purple-300">View all</span>
+                <span className="text-purple-600 text-sm hover:text-purple-600">View all</span>
               </Link>
             </div>
-            <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 overflow-hidden">
-              <div className="divide-y divide-gray-700/50">
+            <div className="bg-white/50 rounded-2xl border border-gray-200 overflow-hidden">
+              <div className="divide-y divide-gray-200/50">
                 {loading ? (
                   <div className="p-8 flex justify-center">
                     <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />

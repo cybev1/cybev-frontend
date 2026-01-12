@@ -40,7 +40,7 @@ function markdownToHtml(markdown) {
   html = html.replace(/^\d+\. (.+)$/gm, '<li class="ml-6 list-decimal text-gray-700 mb-2">$1</li>');
   html = html.replace(/(<li class="ml-6 list-disc[^>]*>.*?<\/li>\n?)+/g, '<ul class="my-4">$&</ul>');
   html = html.replace(/(<li class="ml-6 list-decimal[^>]*>.*?<\/li>\n?)+/g, '<ol class="my-4">$&</ol>');
-  html = html.replace(/```([^`]+)```/g, '<pre class="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto my-4 text-sm"><code>$1</code></pre>');
+  html = html.replace(/```([^`]+)```/g, '<pre class="bg-gray-50 text-green-400 p-4 rounded-lg overflow-x-auto my-4 text-sm"><code>$1</code></pre>');
   html = html.replace(/`([^`]+)`/g, '<code class="bg-gray-100 text-pink-600 px-2 py-0.5 rounded text-sm">$1</code>');
   html = html.replace(/^(\-{3,}|\*{3,})$/gm, '<hr class="my-8 border-gray-300" />');
   
@@ -393,7 +393,7 @@ export default function BlogDetailPage({ blog, ogData }) {
   if (!blog) return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
       <h1 className="text-2xl font-bold text-gray-800 mb-4">Blog not found</h1>
-      <Link href="/feed"><button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Back to Feed</button></Link>
+      <Link href="/feed"><button className="px-4 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700">Back to Feed</button></Link>
     </div>
   );
   
@@ -570,7 +570,7 @@ export default function BlogDetailPage({ blog, ogData }) {
                   <img src={user.profilePicture || user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=7c3aed&color=fff`} alt="" className="w-10 h-10 rounded-full object-cover" />
                   <div className="flex-1">
                     <textarea value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Write a comment..." className="w-full px-4 py-2 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500" rows={2} />
-                    <button onClick={submitComment} disabled={!newComment.trim() || submittingComment} className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2">
+                    <button onClick={submitComment} disabled={!newComment.trim() || submittingComment} className="mt-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2">
                       {submittingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}Post
                     </button>
                   </div>
@@ -587,7 +587,7 @@ export default function BlogDetailPage({ blog, ogData }) {
                     <div className="flex-1 bg-gray-50 rounded-lg p-3">
                       <p className="font-semibold text-gray-900 text-sm">{comment.user?.name || comment.authorName || 'Anonymous'}</p>
                       <p className="text-gray-700 text-sm mt-1">{comment.content}</p>
-                      <p className="text-gray-400 text-xs mt-2">{formatDate(comment.createdAt)}</p>
+                      <p className="text-gray-500 text-xs mt-2">{formatDate(comment.createdAt)}</p>
                     </div>
                   </div>
                 ))}
@@ -599,7 +599,7 @@ export default function BlogDetailPage({ blog, ogData }) {
       
       {/* Share to Timeline Modal */}
       {showTimelineShare && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowTimelineShare(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50" onClick={() => setShowTimelineShare(false)}>
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl" onClick={e => e.stopPropagation()}>
             <div className="border-b border-gray-200 px-4 py-3 flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">Share to Your Timeline</h2>
@@ -616,7 +616,7 @@ export default function BlogDetailPage({ blog, ogData }) {
                 rows={3}
                 maxLength={500}
               />
-              <div className="text-xs text-gray-400 mt-1">{timelineComment.length}/500</div>
+              <div className="text-xs text-gray-500 mt-1">{timelineComment.length}/500</div>
             </div>
             <div className="mx-4 mb-4 border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
               <div className="p-3">
@@ -629,7 +629,7 @@ export default function BlogDetailPage({ blog, ogData }) {
             </div>
             <div className="p-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
               <button onClick={handleShareToTimeline} disabled={sharingToTimeline}
-                className="w-full py-3 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2">
+                className="w-full py-3 bg-purple-600 text-gray-900 font-semibold rounded-xl hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2">
                 {sharingToTimeline ? (
                   <><Loader2 className="w-5 h-5 animate-spin" /> Sharing...</>
                 ) : (

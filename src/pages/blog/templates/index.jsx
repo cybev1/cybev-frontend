@@ -43,7 +43,7 @@ export default function BlogTemplatesIndex() {
             </Link>
             <Link
               href="/studio"
-              className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 border border-white/10"
+              className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 border border-gray-200"
             >
               Studio
             </Link>
@@ -52,7 +52,7 @@ export default function BlogTemplatesIndex() {
 
         <div className="mt-6">
           <input
-            className="w-full px-4 py-3 rounded-xl bg-black/20 border border-white/10"
+            className="w-full px-4 py-3 rounded-xl bg-gray-900/20 border border-gray-200"
             placeholder="Search templates… (e.g. news, ministry, cnn)"
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -61,7 +61,7 @@ export default function BlogTemplatesIndex() {
 
         <div className="mt-8 space-y-8">
           {Object.keys(grouped).length === 0 ? (
-            <div className="p-6 rounded-xl border border-white/10 bg-white/5 opacity-80">
+            <div className="p-6 rounded-xl border border-gray-200 bg-white/5 opacity-80">
               No templates match your search.
             </div>
           ) : (
@@ -70,14 +70,14 @@ export default function BlogTemplatesIndex() {
                 <h2 className="text-lg font-semibold mb-3">{cat}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {items.map((t) => (
-                    <div key={t.id} className="p-4 rounded-xl border border-white/10 bg-white/5">
+                    <div key={t.id} className="p-4 rounded-xl border border-gray-200 bg-white/5">
                       <div className="font-medium">{t.name}</div>
                       <div className="text-xs opacity-70 mt-1 font-mono">{t.id}</div>
 
                       <div className="mt-4 flex gap-2">
                         <Link
                           href={t.href}
-                          className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 border border-white/10 text-sm"
+                          className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 border border-gray-200 text-sm"
                         >
                           Preview
                         </Link>

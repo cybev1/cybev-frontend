@@ -21,7 +21,7 @@ function RevenueChart({ data }) {
           <div className="w-full bg-gray-700 rounded-t-lg relative overflow-hidden" style={{ height: `${(d.value / maxValue) * 100}%`, minHeight: '4px' }}>
             <div className="absolute inset-0 bg-gradient-to-t from-purple-500 to-pink-500" />
           </div>
-          <span className="text-xs text-gray-400">{d.label}</span>
+          <span className="text-xs text-gray-500">{d.label}</span>
         </div>
       ))}
     </div>
@@ -78,12 +78,12 @@ export default function AdminRevenue() {
 
   const getTypeColor = (type) => {
     switch (type) {
-      case 'subscription': return 'bg-purple-500/20 text-purple-400';
+      case 'subscription': return 'bg-purple-500/20 text-purple-600';
       case 'tip': return 'bg-green-500/20 text-green-400';
-      case 'nft': return 'bg-pink-500/20 text-pink-400';
+      case 'nft': return 'bg-pink-500/20 text-pink-600';
       case 'payout': return 'bg-yellow-500/20 text-yellow-400';
       case 'ad': return 'bg-blue-500/20 text-blue-400';
-      default: return 'bg-gray-500/20 text-gray-400';
+      default: return 'bg-gray-500/20 text-gray-500';
     }
   };
 
@@ -91,21 +91,21 @@ export default function AdminRevenue() {
     <AppLayout>
       <Head><title>Revenue - Admin - CYBEV</title></Head>
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <Link href="/admin"><button className="flex items-center gap-2 text-gray-400 hover:text-white mb-6"><ArrowLeft className="w-5 h-5" />Back to Dashboard</button></Link>
+        <Link href="/admin"><button className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6"><ArrowLeft className="w-5 h-5" />Back to Dashboard</button></Link>
 
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-green-500 rounded-2xl flex items-center justify-center"><DollarSign className="w-7 h-7 text-white" /></div>
-            <div><h1 className="text-2xl font-bold text-white">Revenue & Payments</h1><p className="text-gray-400">Track platform earnings</p></div>
+            <div className="w-14 h-14 bg-green-500 rounded-2xl flex items-center justify-center"><DollarSign className="w-7 h-7 text-gray-900" /></div>
+            <div><h1 className="text-2xl font-bold text-gray-900">Revenue & Payments</h1><p className="text-gray-500">Track platform earnings</p></div>
           </div>
           <div className="flex gap-3">
-            <select value={period} onChange={(e) => setPeriod(e.target.value)} className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white">
+            <select value={period} onChange={(e) => setPeriod(e.target.value)} className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-900">
               <option value="week">This Week</option>
               <option value="month">This Month</option>
               <option value="quarter">This Quarter</option>
               <option value="year">This Year</option>
             </select>
-            <button className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"><Download className="w-4 h-4" />Export</button>
+            <button className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-gray-900 rounded-lg hover:bg-purple-600"><Download className="w-4 h-4" />Export</button>
           </div>
         </div>
 
@@ -117,81 +117,81 @@ export default function AdminRevenue() {
             <div className="grid md:grid-cols-4 gap-4 mb-8">
               <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl border border-green-500/30 p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center"><DollarSign className="w-6 h-6 text-white" /></div>
+                  <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center"><DollarSign className="w-6 h-6 text-gray-900" /></div>
                   <div className="flex items-center gap-1 text-green-400 text-sm"><ArrowUpRight className="w-4 h-4" />{stats.growth}%</div>
                 </div>
-                <p className="text-gray-400 text-sm">Total Revenue</p>
-                <p className="text-3xl font-bold text-white">${stats.totalRevenue.toLocaleString()}</p>
+                <p className="text-gray-500 text-sm">Total Revenue</p>
+                <p className="text-3xl font-bold text-gray-900">${stats.totalRevenue.toLocaleString()}</p>
               </div>
 
-              <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 p-6">
-                <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mb-4"><CreditCard className="w-6 h-6 text-white" /></div>
-                <p className="text-gray-400 text-sm">Subscriptions</p>
-                <p className="text-2xl font-bold text-white">${stats.subscriptionRevenue.toLocaleString()}</p>
+              <div className="bg-white/50 rounded-2xl border border-gray-200 p-6">
+                <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mb-4"><CreditCard className="w-6 h-6 text-gray-900" /></div>
+                <p className="text-gray-500 text-sm">Subscriptions</p>
+                <p className="text-2xl font-bold text-gray-900">${stats.subscriptionRevenue.toLocaleString()}</p>
               </div>
 
-              <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 p-6">
-                <div className="w-12 h-12 bg-pink-500 rounded-xl flex items-center justify-center mb-4"><PiggyBank className="w-6 h-6 text-white" /></div>
-                <p className="text-gray-400 text-sm">Tips & Donations</p>
-                <p className="text-2xl font-bold text-white">${stats.tipsRevenue.toLocaleString()}</p>
+              <div className="bg-white/50 rounded-2xl border border-gray-200 p-6">
+                <div className="w-12 h-12 bg-pink-500 rounded-xl flex items-center justify-center mb-4"><PiggyBank className="w-6 h-6 text-gray-900" /></div>
+                <p className="text-gray-500 text-sm">Tips & Donations</p>
+                <p className="text-2xl font-bold text-gray-900">${stats.tipsRevenue.toLocaleString()}</p>
               </div>
 
-              <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 p-6">
-                <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mb-4"><Wallet className="w-6 h-6 text-white" /></div>
-                <p className="text-gray-400 text-sm">Pending Payouts</p>
-                <p className="text-2xl font-bold text-white">${stats.pendingPayouts.toLocaleString()}</p>
+              <div className="bg-white/50 rounded-2xl border border-gray-200 p-6">
+                <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mb-4"><Wallet className="w-6 h-6 text-gray-900" /></div>
+                <p className="text-gray-500 text-sm">Pending Payouts</p>
+                <p className="text-2xl font-bold text-gray-900">${stats.pendingPayouts.toLocaleString()}</p>
               </div>
             </div>
 
             {/* Revenue Breakdown */}
             <div className="grid lg:grid-cols-3 gap-6 mb-8">
-              <div className="lg:col-span-2 bg-gray-800/50 rounded-2xl border border-purple-500/20 p-6">
-                <h3 className="text-lg font-semibold text-white mb-6">Revenue Over Time</h3>
+              <div className="lg:col-span-2 bg-white/50 rounded-2xl border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Revenue Over Time</h3>
                 <RevenueChart data={chartData} />
               </div>
 
-              <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 p-6">
-                <h3 className="text-lg font-semibold text-white mb-6">Revenue Sources</h3>
+              <div className="bg-white/50 rounded-2xl border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Revenue Sources</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3"><div className="w-3 h-3 rounded-full bg-purple-500" /><span className="text-gray-300">Subscriptions</span></div>
-                    <span className="text-white font-medium">{((stats.subscriptionRevenue / stats.totalRevenue) * 100).toFixed(0)}%</span>
+                    <div className="flex items-center gap-3"><div className="w-3 h-3 rounded-full bg-purple-500" /><span className="text-gray-600">Subscriptions</span></div>
+                    <span className="text-gray-900 font-medium">{((stats.subscriptionRevenue / stats.totalRevenue) * 100).toFixed(0)}%</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3"><div className="w-3 h-3 rounded-full bg-green-500" /><span className="text-gray-300">Tips</span></div>
-                    <span className="text-white font-medium">{((stats.tipsRevenue / stats.totalRevenue) * 100).toFixed(0)}%</span>
+                    <div className="flex items-center gap-3"><div className="w-3 h-3 rounded-full bg-green-500" /><span className="text-gray-600">Tips</span></div>
+                    <span className="text-gray-900 font-medium">{((stats.tipsRevenue / stats.totalRevenue) * 100).toFixed(0)}%</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3"><div className="w-3 h-3 rounded-full bg-blue-500" /><span className="text-gray-300">Ads</span></div>
-                    <span className="text-white font-medium">{((stats.adsRevenue / stats.totalRevenue) * 100).toFixed(0)}%</span>
+                    <div className="flex items-center gap-3"><div className="w-3 h-3 rounded-full bg-blue-500" /><span className="text-gray-600">Ads</span></div>
+                    <span className="text-gray-900 font-medium">{((stats.adsRevenue / stats.totalRevenue) * 100).toFixed(0)}%</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3"><div className="w-3 h-3 rounded-full bg-pink-500" /><span className="text-gray-300">NFTs</span></div>
-                    <span className="text-white font-medium">{((stats.nftRevenue / stats.totalRevenue) * 100).toFixed(0)}%</span>
+                    <div className="flex items-center gap-3"><div className="w-3 h-3 rounded-full bg-pink-500" /><span className="text-gray-600">NFTs</span></div>
+                    <span className="text-gray-900 font-medium">{((stats.nftRevenue / stats.totalRevenue) * 100).toFixed(0)}%</span>
                   </div>
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-gray-700">
-                  <div className="flex justify-between text-sm mb-2"><span className="text-gray-400">Transactions</span><span className="text-white">{stats.transactions}</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-gray-400">Avg Transaction</span><span className="text-white">${stats.avgTransaction}</span></div>
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div className="flex justify-between text-sm mb-2"><span className="text-gray-500">Transactions</span><span className="text-gray-900">{stats.transactions}</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-gray-500">Avg Transaction</span><span className="text-gray-900">${stats.avgTransaction}</span></div>
                 </div>
               </div>
             </div>
 
             {/* Recent Transactions */}
-            <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 overflow-hidden">
-              <div className="p-6 border-b border-gray-700 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-white">Recent Transactions</h3>
-                <Link href="/admin/transactions"><span className="text-purple-400 text-sm hover:text-purple-300 flex items-center gap-1">View all<ChevronRight className="w-4 h-4" /></span></Link>
+            <div className="bg-white/50 rounded-2xl border border-gray-200 overflow-hidden">
+              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
+                <Link href="/admin/transactions"><span className="text-purple-600 text-sm hover:text-purple-600 flex items-center gap-1">View all<ChevronRight className="w-4 h-4" /></span></Link>
               </div>
-              <div className="divide-y divide-gray-700/50">
+              <div className="divide-y divide-gray-200/50">
                 {transactions.map((tx) => (
-                  <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-gray-700/30">
+                  <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-gray-100/30">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center">
-                        {tx.type === 'subscription' && <CreditCard className="w-5 h-5 text-purple-400" />}
+                        {tx.type === 'subscription' && <CreditCard className="w-5 h-5 text-purple-600" />}
                         {tx.type === 'tip' && <PiggyBank className="w-5 h-5 text-green-400" />}
-                        {tx.type === 'nft' && <Receipt className="w-5 h-5 text-pink-400" />}
+                        {tx.type === 'nft' && <Receipt className="w-5 h-5 text-pink-600" />}
                         {tx.type === 'payout' && <Wallet className="w-5 h-5 text-yellow-400" />}
                       </div>
                       <div>
@@ -199,7 +199,7 @@ export default function AdminRevenue() {
                           <span className={`px-2 py-0.5 rounded text-xs capitalize ${getTypeColor(tx.type)}`}>{tx.type}</span>
                           <span className={`px-2 py-0.5 rounded text-xs ${tx.status === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{tx.status}</span>
                         </div>
-                        <p className="text-gray-400 text-sm mt-1">
+                        <p className="text-gray-500 text-sm mt-1">
                           {tx.type === 'tip' ? `@${tx.user} → @${tx.creator}` : tx.type === 'nft' ? tx.nft : tx.type === 'payout' ? `Payout to @${tx.creator}` : `@${tx.user}`}
                         </p>
                       </div>

@@ -339,17 +339,17 @@ function ComponentRenderer({ component, isSelected, onSelect, onUpdate, onDelete
               />
             ) : (
               <div 
-                className="w-full h-48 bg-gray-800 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-600"
+                className="w-full h-48 bg-white rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300"
                 style={component.style}
               >
-                <div className="text-center text-gray-400">
+                <div className="text-center text-gray-500">
                   <Image className="w-12 h-12 mx-auto mb-2" />
                   <p>Click to add image</p>
                 </div>
               </div>
             )}
             {component.props.caption && (
-              <p className="text-sm text-gray-400 mt-2 text-center">{component.props.caption}</p>
+              <p className="text-sm text-gray-500 mt-2 text-center">{component.props.caption}</p>
             )}
           </div>
         );
@@ -381,14 +381,14 @@ function ComponentRenderer({ component, isSelected, onSelect, onUpdate, onDelete
           >
             <div className="max-w-3xl mx-auto px-4">
               <h1 
-                className="text-5xl font-bold text-white mb-4"
+                className="text-5xl font-bold text-gray-900 mb-4"
                 contentEditable={isEditing}
                 suppressContentEditableWarning
               >
                 {component.props.title}
               </h1>
-              <p className="text-xl text-gray-300 mb-8">{component.props.subtitle}</p>
-              <button className="px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors">
+              <p className="text-xl text-gray-600 mb-8">{component.props.subtitle}</p>
+              <button className="px-8 py-4 bg-purple-600 text-gray-900 rounded-lg font-semibold hover:bg-purple-700 transition-colors">
                 {component.props.buttonText}
               </button>
             </div>
@@ -401,9 +401,9 @@ function ComponentRenderer({ component, isSelected, onSelect, onUpdate, onDelete
             className="border-l-4 pl-6 py-4"
             style={{ borderLeftColor: component.style.borderLeftColor }}
           >
-            <p className="text-xl text-gray-300 italic mb-2">{component.props.text}</p>
+            <p className="text-xl text-gray-600 italic mb-2">{component.props.text}</p>
             {component.props.author && (
-              <cite className="text-gray-400">— {component.props.author}</cite>
+              <cite className="text-gray-500">— {component.props.author}</cite>
             )}
           </blockquote>
         );
@@ -417,15 +417,15 @@ function ComponentRenderer({ component, isSelected, onSelect, onUpdate, onDelete
       case COMPONENT_TYPES.FEATURE_GRID:
         return (
           <div style={component.style} className="py-16 px-4">
-            <h2 className="text-3xl font-bold text-white text-center mb-12">{component.props.title}</h2>
+            <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">{component.props.title}</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {component.props.features?.map((feature, i) => (
-                <div key={i} className="text-center p-6 bg-gray-800/50 rounded-xl">
+                <div key={i} className="text-center p-6 bg-white/50 rounded-xl">
                   <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Star className="w-8 h-8 text-purple-400" />
+                    <Star className="w-8 h-8 text-purple-600" />
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
-                  <p className="text-gray-400">{feature.description}</p>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                  <p className="text-gray-500">{feature.description}</p>
                 </div>
               ))}
             </div>
@@ -435,8 +435,8 @@ function ComponentRenderer({ component, isSelected, onSelect, onUpdate, onDelete
       case COMPONENT_TYPES.CTA:
         return (
           <div style={component.style} className="py-16 px-4 text-center rounded-xl">
-            <h2 className="text-3xl font-bold text-white mb-4">{component.props.title}</h2>
-            <p className="text-gray-200 mb-8 max-w-2xl mx-auto">{component.props.description}</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">{component.props.title}</h2>
+            <p className="text-gray-700 mb-8 max-w-2xl mx-auto">{component.props.description}</p>
             <button className="px-8 py-4 bg-white text-purple-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
               {component.props.buttonText}
             </button>
@@ -444,7 +444,7 @@ function ComponentRenderer({ component, isSelected, onSelect, onUpdate, onDelete
         );
 
       default:
-        return <div className="p-4 bg-gray-800 rounded text-gray-400">Unknown component: {component.type}</div>;
+        return <div className="p-4 bg-white rounded text-gray-500">Unknown component: {component.type}</div>;
     }
   };
 
@@ -458,17 +458,17 @@ function ComponentRenderer({ component, isSelected, onSelect, onUpdate, onDelete
     >
       {/* Component Toolbar */}
       {isSelected && (
-        <div className="absolute -top-10 left-0 flex gap-1 bg-gray-900 rounded-lg p-1 shadow-xl border border-purple-500/20 z-10">
+        <div className="absolute -top-10 left-0 flex gap-1 bg-gray-50 rounded-lg p-1 shadow-xl border border-gray-200 z-10">
           <button
             onClick={(e) => { e.stopPropagation(); onMove('up'); }}
-            className="p-1.5 hover:bg-purple-500/20 rounded text-gray-400 hover:text-white"
+            className="p-1.5 hover:bg-gray-100 rounded text-gray-500 hover:text-gray-900"
             title="Move Up"
           >
             <ChevronLeft className="w-4 h-4 rotate-90" />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onMove('down'); }}
-            className="p-1.5 hover:bg-purple-500/20 rounded text-gray-400 hover:text-white"
+            className="p-1.5 hover:bg-gray-100 rounded text-gray-500 hover:text-gray-900"
             title="Move Down"
           >
             <ChevronRight className="w-4 h-4 rotate-90" />
@@ -476,14 +476,14 @@ function ComponentRenderer({ component, isSelected, onSelect, onUpdate, onDelete
           <div className="w-px bg-gray-700" />
           <button
             onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
-            className="p-1.5 hover:bg-purple-500/20 rounded text-gray-400 hover:text-white"
+            className="p-1.5 hover:bg-gray-100 rounded text-gray-500 hover:text-gray-900"
             title="Duplicate"
           >
             <Copy className="w-4 h-4" />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="p-1.5 hover:bg-red-500/20 rounded text-gray-400 hover:text-red-400"
+            className="p-1.5 hover:bg-red-500/20 rounded text-gray-500 hover:text-red-400"
             title="Delete"
           >
             <Trash2 className="w-4 h-4" />
@@ -696,7 +696,7 @@ export default function BlogBuilder() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
@@ -708,13 +708,13 @@ export default function BlogBuilder() {
         <title>Blog Builder - CYBEV</title>
       </Head>
 
-      <div className="min-h-screen bg-gray-900 flex">
+      <div className="min-h-screen bg-gray-50 flex">
         {/* Left Sidebar - Component Library */}
         {showLibrary && !previewMode && (
-          <div className="w-72 bg-gray-950 border-r border-gray-800 flex flex-col">
-            <div className="p-4 border-b border-gray-800">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <Layers className="w-5 h-5 text-purple-400" />
+          <div className="w-72 bg-gray-950 border-r border-gray-200 flex flex-col">
+            <div className="p-4 border-b border-gray-200">
+              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <Layers className="w-5 h-5 text-purple-600" />
                 Components
               </h2>
             </div>
@@ -724,9 +724,9 @@ export default function BlogBuilder() {
                 <div key={category.category} className="mb-2">
                   <button
                     onClick={() => setExpandedCategory(expandedCategory === category.category ? null : category.category)}
-                    className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                    className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white transition-colors"
                   >
-                    <span className="flex items-center gap-2 text-gray-300">
+                    <span className="flex items-center gap-2 text-gray-600">
                       <category.icon className="w-4 h-4" />
                       {category.category}
                     </span>
@@ -739,9 +739,9 @@ export default function BlogBuilder() {
                         <button
                           key={item.type}
                           onClick={() => addComponent(item.type)}
-                          className="w-full flex items-center gap-2 p-2 rounded-lg text-left hover:bg-purple-500/10 text-gray-400 hover:text-white transition-colors group"
+                          className="w-full flex items-center gap-2 p-2 rounded-lg text-left hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors group"
                         >
-                          <item.icon className="w-4 h-4 group-hover:text-purple-400" />
+                          <item.icon className="w-4 h-4 group-hover:text-purple-600" />
                           <div>
                             <p className="text-sm">{item.label}</p>
                             <p className="text-xs text-gray-600 group-hover:text-gray-500">{item.description}</p>
@@ -759,29 +759,29 @@ export default function BlogBuilder() {
         {/* Main Builder Area */}
         <div className="flex-1 flex flex-col">
           {/* Top Toolbar */}
-          <div className="h-14 bg-gray-950 border-b border-gray-800 flex items-center justify-between px-4">
+          <div className="h-14 bg-gray-950 border-b border-gray-200 flex items-center justify-between px-4">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => router.push('/studio')}
-                className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                className="p-2 hover:bg-white rounded-lg transition-colors"
               >
-                <ChevronLeft className="w-5 h-5 text-gray-400" />
+                <ChevronLeft className="w-5 h-5 text-gray-500" />
               </button>
               
               <button
                 onClick={() => setShowLibrary(!showLibrary)}
-                className={`p-2 rounded-lg transition-colors ${showLibrary ? 'bg-purple-500/20 text-purple-400' : 'hover:bg-gray-800 text-gray-400'}`}
+                className={`p-2 rounded-lg transition-colors ${showLibrary ? 'bg-purple-500/20 text-purple-600' : 'hover:bg-white text-gray-500'}`}
               >
                 <Layers className="w-5 h-5" />
               </button>
               
               <div className="w-px h-6 bg-gray-700 mx-2" />
               
-              <button onClick={undo} disabled={historyIndex <= 0} className="p-2 hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-50">
-                <Undo className="w-5 h-5 text-gray-400" />
+              <button onClick={undo} disabled={historyIndex <= 0} className="p-2 hover:bg-white rounded-lg transition-colors disabled:opacity-50">
+                <Undo className="w-5 h-5 text-gray-500" />
               </button>
-              <button onClick={redo} disabled={historyIndex >= history.length - 1} className="p-2 hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-50">
-                <Redo className="w-5 h-5 text-gray-400" />
+              <button onClick={redo} disabled={historyIndex >= history.length - 1} className="p-2 hover:bg-white rounded-lg transition-colors disabled:opacity-50">
+                <Redo className="w-5 h-5 text-gray-500" />
               </button>
             </div>
 
@@ -790,12 +790,12 @@ export default function BlogBuilder() {
               type="text"
               value={pageSettings.title}
               onChange={(e) => setPageSettings({ ...pageSettings, title: e.target.value })}
-              className="bg-transparent text-white font-medium text-center focus:outline-none focus:bg-gray-800 px-4 py-1 rounded-lg"
+              className="bg-transparent text-gray-900 font-medium text-center focus:outline-none focus:bg-white px-4 py-1 rounded-lg"
             />
 
             <div className="flex items-center gap-2">
               {/* Device Toggle */}
-              <div className="flex bg-gray-800 rounded-lg p-1">
+              <div className="flex bg-white rounded-lg p-1">
                 {[
                   { id: 'desktop', icon: Monitor },
                   { id: 'tablet', icon: Tablet },
@@ -804,7 +804,7 @@ export default function BlogBuilder() {
                   <button
                     key={device.id}
                     onClick={() => setDeviceView(device.id)}
-                    className={`p-1.5 rounded transition-colors ${deviceView === device.id ? 'bg-purple-500 text-white' : 'text-gray-400 hover:text-white'}`}
+                    className={`p-1.5 rounded transition-colors ${deviceView === device.id ? 'bg-purple-500 text-white' : 'text-gray-500 hover:text-gray-900'}`}
                   >
                     <device.icon className="w-4 h-4" />
                   </button>
@@ -815,14 +815,14 @@ export default function BlogBuilder() {
               
               <button
                 onClick={() => setPreviewMode(!previewMode)}
-                className={`p-2 rounded-lg transition-colors ${previewMode ? 'bg-purple-500 text-white' : 'hover:bg-gray-800 text-gray-400'}`}
+                className={`p-2 rounded-lg transition-colors ${previewMode ? 'bg-purple-500 text-white' : 'hover:bg-white text-gray-500'}`}
               >
                 {previewMode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
               
               <button
                 onClick={() => setShowSettings(!showSettings)}
-                className={`p-2 rounded-lg transition-colors ${showSettings ? 'bg-purple-500/20 text-purple-400' : 'hover:bg-gray-800 text-gray-400'}`}
+                className={`p-2 rounded-lg transition-colors ${showSettings ? 'bg-purple-500/20 text-purple-600' : 'hover:bg-white text-gray-500'}`}
               >
                 <Settings className="w-5 h-5" />
               </button>
@@ -831,7 +831,7 @@ export default function BlogBuilder() {
               
               <button
                 onClick={saveDraft}
-                className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-2"
               >
                 <Save className="w-4 h-4" />
                 Save
@@ -840,7 +840,7 @@ export default function BlogBuilder() {
               <button
                 onClick={publish}
                 disabled={saving}
-                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50"
+                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50"
               >
                 <Globe className="w-4 h-4" />
                 {saving ? 'Publishing...' : 'Publish'}
@@ -859,10 +859,10 @@ export default function BlogBuilder() {
               }}
             >
               {components.length === 0 ? (
-                <div className="h-96 flex items-center justify-center border-2 border-dashed border-gray-700 rounded-xl">
+                <div className="h-96 flex items-center justify-center border-2 border-dashed border-gray-200 rounded-xl">
                   <div className="text-center">
                     <Plus className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400 mb-2">Start building your page</p>
+                    <p className="text-gray-500 mb-2">Start building your page</p>
                     <p className="text-gray-600 text-sm">Drag components from the left panel or click to add</p>
                   </div>
                 </div>
@@ -888,9 +888,9 @@ export default function BlogBuilder() {
 
         {/* Right Sidebar - Properties Panel */}
         {showSettings && !previewMode && (
-          <div className="w-80 bg-gray-950 border-l border-gray-800 flex flex-col">
-            <div className="p-4 border-b border-gray-800">
-              <h2 className="text-lg font-bold text-white">
+          <div className="w-80 bg-gray-950 border-l border-gray-200 flex flex-col">
+            <div className="p-4 border-b border-gray-200">
+              <h2 className="text-lg font-bold text-gray-900">
                 {selectedComponent ? 'Component Settings' : 'Page Settings'}
               </h2>
             </div>
@@ -898,11 +898,11 @@ export default function BlogBuilder() {
             <div className="flex-1 overflow-y-auto p-4">
               {selectedComponent ? (
                 <div className="space-y-4">
-                  <p className="text-sm text-gray-400 capitalize">{selectedComponent.type}</p>
+                  <p className="text-sm text-gray-500 capitalize">{selectedComponent.type}</p>
                   
                   {/* Component-specific settings would go here */}
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">Styles</label>
+                    <label className="block text-sm text-gray-500 mb-2">Styles</label>
                     <div className="space-y-2">
                       {Object.entries(selectedComponent.style || {}).map(([key, value]) => (
                         <div key={key} className="flex items-center gap-2">
@@ -914,7 +914,7 @@ export default function BlogBuilder() {
                               ...selectedComponent,
                               style: { ...selectedComponent.style, [key]: e.target.value }
                             })}
-                            className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-white"
+                            className="flex-1 bg-white border border-gray-200 rounded px-2 py-1 text-sm text-gray-900"
                           />
                         </div>
                       ))}
@@ -924,38 +924,38 @@ export default function BlogBuilder() {
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">Page Title</label>
+                    <label className="block text-sm text-gray-500 mb-2">Page Title</label>
                     <input
                       type="text"
                       value={pageSettings.title}
                       onChange={(e) => setPageSettings({ ...pageSettings, title: e.target.value })}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white"
+                      className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-900"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">URL Slug</label>
+                    <label className="block text-sm text-gray-500 mb-2">URL Slug</label>
                     <input
                       type="text"
                       value={pageSettings.slug}
                       onChange={(e) => setPageSettings({ ...pageSettings, slug: e.target.value })}
                       placeholder="my-awesome-page"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white"
+                      className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-900"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">Description</label>
+                    <label className="block text-sm text-gray-500 mb-2">Description</label>
                     <textarea
                       value={pageSettings.description}
                       onChange={(e) => setPageSettings({ ...pageSettings, description: e.target.value })}
                       rows={3}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white resize-none"
+                      className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-900 resize-none"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">Background Color</label>
+                    <label className="block text-sm text-gray-500 mb-2">Background Color</label>
                     <div className="flex gap-2">
                       <input
                         type="color"
@@ -967,7 +967,7 @@ export default function BlogBuilder() {
                         type="text"
                         value={pageSettings.backgroundColor}
                         onChange={(e) => setPageSettings({ ...pageSettings, backgroundColor: e.target.value })}
-                        className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white"
+                        className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-900"
                       />
                     </div>
                   </div>

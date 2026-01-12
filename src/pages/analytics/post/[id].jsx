@@ -27,25 +27,25 @@ export default function PostAnalytics() {
     <div className="max-w-xl mx-auto mt-10 px-4 space-y-4">
       <h1 className="text-2xl font-bold">📊 Post Analytics</h1>
       <div className="grid grid-cols-2 gap-4 text-sm">
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="bg-white dark:bg-white p-4 rounded-lg shadow">
           👁 Views: <b>{analytics.views}</b>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="bg-white dark:bg-white p-4 rounded-lg shadow">
           ❤️ Likes: <b>{analytics.likes}</b>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="bg-white dark:bg-white p-4 rounded-lg shadow">
           💬 Comments: <b>{analytics.comments}</b>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="bg-white dark:bg-white p-4 rounded-lg shadow">
           🔗 Shares: <b>{analytics.shares}</b>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="bg-white dark:bg-white p-4 rounded-lg shadow">
           🚀 Boosts: <b>{analytics.boostCount}</b>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="bg-white dark:bg-white p-4 rounded-lg shadow">
           ₿ Earnings: <b>{analytics.earnings} CYBV</b>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow col-span-2">
+        <div className="bg-white dark:bg-white p-4 rounded-lg shadow col-span-2">
           🪙 Minted as NFT: <b>{analytics.minted ? 'Yes' : 'No'}</b>
         </div>
       </div>

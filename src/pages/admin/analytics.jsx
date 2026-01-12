@@ -28,11 +28,11 @@ function SimpleChart({ data, color = 'purple' }) {
 
 function MetricCard({ title, value, change, changeType, subtitle, chart }) {
   return (
-    <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 p-6">
+    <div className="bg-white/50 rounded-2xl border border-gray-200 p-6">
       <div className="flex items-start justify-between mb-4">
         <div>
-          <p className="text-gray-400 text-sm">{title}</p>
-          <p className="text-2xl font-bold text-white mt-1">{value}</p>
+          <p className="text-gray-500 text-sm">{title}</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
           {subtitle && <p className="text-gray-500 text-xs mt-1">{subtitle}</p>}
         </div>
         {change !== undefined && (
@@ -109,21 +109,21 @@ export default function AdminAnalytics() {
     <AppLayout>
       <Head><title>Analytics - Admin - CYBEV</title></Head>
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <Link href="/admin"><button className="flex items-center gap-2 text-gray-400 hover:text-white mb-6"><ArrowLeft className="w-5 h-5" />Back to Dashboard</button></Link>
+        <Link href="/admin"><button className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6"><ArrowLeft className="w-5 h-5" />Back to Dashboard</button></Link>
 
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-yellow-500 rounded-2xl flex items-center justify-center"><BarChart3 className="w-7 h-7 text-white" /></div>
-            <div><h1 className="text-2xl font-bold text-white">Platform Analytics</h1><p className="text-gray-400">Insights and metrics</p></div>
+            <div className="w-14 h-14 bg-yellow-500 rounded-2xl flex items-center justify-center"><BarChart3 className="w-7 h-7 text-gray-900" /></div>
+            <div><h1 className="text-2xl font-bold text-gray-900">Platform Analytics</h1><p className="text-gray-500">Insights and metrics</p></div>
           </div>
           <div className="flex gap-3">
-            <select value={period} onChange={(e) => setPeriod(e.target.value)} className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white">
+            <select value={period} onChange={(e) => setPeriod(e.target.value)} className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-900">
               <option value="7d">Last 7 days</option>
               <option value="30d">Last 30 days</option>
               <option value="90d">Last 90 days</option>
               <option value="1y">Last year</option>
             </select>
-            <button className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"><Download className="w-4 h-4" />Export</button>
+            <button className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-gray-900 rounded-lg hover:bg-purple-600"><Download className="w-4 h-4" />Export</button>
           </div>
         </div>
 
@@ -149,33 +149,33 @@ export default function AdminAnalytics() {
 
             <div className="grid lg:grid-cols-3 gap-6 mb-8">
               {/* Top Content */}
-              <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Top Content</h3>
+              <div className="bg-white/50 rounded-2xl border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Content</h3>
                 <div className="space-y-4">
                   {topContent.map((content, i) => (
                     <div key={content.id} className="flex items-center gap-3">
                       <span className="text-gray-500 font-medium w-6">{i + 1}</span>
                       <div className="flex-1 min-w-0">
-                        <p className="text-white text-sm truncate">{content.title}</p>
-                        <p className="text-gray-400 text-xs">{content.views.toLocaleString()} views • {content.engagement} engagement</p>
+                        <p className="text-gray-900 text-sm truncate">{content.title}</p>
+                        <p className="text-gray-500 text-xs">{content.views.toLocaleString()} views • {content.engagement} engagement</p>
                       </div>
-                      <span className={`px-2 py-0.5 rounded text-xs ${content.type === 'blog' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}`}>{content.type}</span>
+                      <span className={`px-2 py-0.5 rounded text-xs ${content.type === 'blog' ? 'bg-purple-500/20 text-purple-600' : 'bg-blue-500/20 text-blue-400'}`}>{content.type}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Top Creators */}
-              <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Top Creators</h3>
+              <div className="bg-white/50 rounded-2xl border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Creators</h3>
                 <div className="space-y-4">
                   {topCreators.map((creator, i) => (
                     <div key={creator.id} className="flex items-center gap-3">
                       <span className="text-gray-500 font-medium w-6">{i + 1}</span>
-                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-xs font-bold">{creator.name[0]}</div>
+                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-gray-900 text-xs font-bold">{creator.name[0]}</div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-white text-sm">{creator.name}</p>
-                        <p className="text-gray-400 text-xs">{(creator.followers / 1000).toFixed(1)}K followers • {creator.engagement}</p>
+                        <p className="text-gray-900 text-sm">{creator.name}</p>
+                        <p className="text-gray-500 text-xs">{(creator.followers / 1000).toFixed(1)}K followers • {creator.engagement}</p>
                       </div>
                     </div>
                   ))}
@@ -183,39 +183,39 @@ export default function AdminAnalytics() {
               </div>
 
               {/* Device Breakdown */}
-              <div className="bg-gray-800/50 rounded-2xl border border-purple-500/20 p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Device Breakdown</h3>
+              <div className="bg-white/50 rounded-2xl border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Device Breakdown</h3>
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
-                    <Smartphone className="w-5 h-5 text-purple-400" />
+                    <Smartphone className="w-5 h-5 text-purple-600" />
                     <div className="flex-1">
-                      <div className="flex justify-between text-sm mb-1"><span className="text-gray-300">Mobile</span><span className="text-white">{deviceData.mobile}%</span></div>
+                      <div className="flex justify-between text-sm mb-1"><span className="text-gray-600">Mobile</span><span className="text-gray-900">{deviceData.mobile}%</span></div>
                       <div className="h-2 bg-gray-700 rounded-full"><div className="h-full bg-purple-500 rounded-full" style={{ width: `${deviceData.mobile}%` }} /></div>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <Monitor className="w-5 h-5 text-blue-400" />
                     <div className="flex-1">
-                      <div className="flex justify-between text-sm mb-1"><span className="text-gray-300">Desktop</span><span className="text-white">{deviceData.desktop}%</span></div>
+                      <div className="flex justify-between text-sm mb-1"><span className="text-gray-600">Desktop</span><span className="text-gray-900">{deviceData.desktop}%</span></div>
                       <div className="h-2 bg-gray-700 rounded-full"><div className="h-full bg-blue-500 rounded-full" style={{ width: `${deviceData.desktop}%` }} /></div>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <Tablet className="w-5 h-5 text-pink-400" />
+                    <Tablet className="w-5 h-5 text-pink-600" />
                     <div className="flex-1">
-                      <div className="flex justify-between text-sm mb-1"><span className="text-gray-300">Tablet</span><span className="text-white">{deviceData.tablet}%</span></div>
+                      <div className="flex justify-between text-sm mb-1"><span className="text-gray-600">Tablet</span><span className="text-gray-900">{deviceData.tablet}%</span></div>
                       <div className="h-2 bg-gray-700 rounded-full"><div className="h-full bg-pink-500 rounded-full" style={{ width: `${deviceData.tablet}%` }} /></div>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-gray-700">
-                  <h4 className="text-white font-medium mb-3">Top Locations</h4>
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h4 className="text-gray-900 font-medium mb-3">Top Locations</h4>
                   <div className="space-y-2">
                     {geoData.slice(0, 5).map((geo) => (
                       <div key={geo.country} className="flex items-center justify-between text-sm">
-                        <span className="text-gray-300">{geo.country}</span>
-                        <span className="text-white">{geo.percentage}%</span>
+                        <span className="text-gray-600">{geo.country}</span>
+                        <span className="text-gray-900">{geo.percentage}%</span>
                       </div>
                     ))}
                   </div>

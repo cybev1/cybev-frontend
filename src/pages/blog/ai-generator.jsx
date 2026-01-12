@@ -120,7 +120,7 @@ export default function AIGenerator() {
               scale: step >= num ? 1.2 : 1,
               backgroundColor: step >= num ? '#A855F7' : '#374151'
             }}
-            className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white transition-all ${
+            className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-gray-900 transition-all ${
               step === num ? 'ring-4 ring-purple-500/30' : ''
             }`}
           >
@@ -183,7 +183,7 @@ export default function AIGenerator() {
               className="inline-block mb-4"
             >
               <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-3xl flex items-center justify-center shadow-2xl">
-                <Wand2 className="w-10 h-10 text-white" />
+                <Wand2 className="w-10 h-10 text-gray-900" />
               </div>
             </motion.div>
             
@@ -195,17 +195,17 @@ export default function AIGenerator() {
             </p>
             
             <div className="flex items-center justify-center gap-4 mt-6 flex-wrap">
-              <div className="flex items-center gap-2 bg-purple-500/20 border border-purple-500/30 px-4 py-2 rounded-full">
+              <div className="flex items-center gap-2 bg-purple-500/20 border border-gray-200 px-4 py-2 rounded-full">
                 <Zap className="w-4 h-4 text-yellow-400" />
-                <span className="text-white text-sm font-semibold">Powered by DeepSeek</span>
+                <span className="text-gray-900 text-sm font-semibold">Powered by DeepSeek</span>
               </div>
               <div className="flex items-center gap-2 bg-pink-500/20 border border-pink-500/30 px-4 py-2 rounded-full">
-                <Brain className="w-4 h-4 text-pink-400" />
-                <span className="text-white text-sm font-semibold">& Claude AI</span>
+                <Brain className="w-4 h-4 text-pink-600" />
+                <span className="text-gray-900 text-sm font-semibold">& Claude AI</span>
               </div>
               <div className="flex items-center gap-2 bg-green-500/20 border border-green-500/30 px-4 py-2 rounded-full">
                 <Sparkles className="w-4 h-4 text-green-400" />
-                <span className="text-white text-sm font-semibold">& OpenAI GPT-4</span>
+                <span className="text-gray-900 text-sm font-semibold">& OpenAI GPT-4</span>
               </div>
             </div>
           </motion.div>
@@ -217,7 +217,7 @@ export default function AIGenerator() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white/10 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/20 p-8 md:p-12"
+            className="bg-white/10 backdrop-blur-2xl rounded-3xl shadow-2xl border border-gray-200 p-8 md:p-12"
           >
             <AnimatePresence mode="wait">
               {/* Step 1: Website Type */}
@@ -228,7 +228,7 @@ export default function AIGenerator() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -50 }}
                 >
-                  <h2 className="text-3xl font-bold text-white mb-3">What type of website?</h2>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-3">What type of website?</h2>
                   <p className="text-purple-200 mb-8">Choose the type that best fits your needs</p>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -240,12 +240,12 @@ export default function AIGenerator() {
                         onClick={() => setFormData({ ...formData, websiteType: type.id })}
                         className={`p-6 rounded-2xl border-2 transition-all text-center ${
                           formData.websiteType === type.id
-                            ? 'border-purple-500 bg-purple-500/20 shadow-lg shadow-purple-500/30'
-                            : 'border-white/20 bg-white/5 hover:border-purple-500/50'
+                            ? 'border-purple-500 bg-purple-500/20 shadow-lg shadow-purple-500/15'
+                            : 'border-gray-200 bg-white/5 hover:border-purple-500/50'
                         }`}
                       >
                         <div className="text-4xl mb-3">{type.icon}</div>
-                        <div className="text-white font-bold mb-1">{type.label}</div>
+                        <div className="text-gray-900 font-bold mb-1">{type.label}</div>
                         <div className="text-purple-200 text-xs">{type.desc}</div>
                       </motion.button>
                     ))}
@@ -261,12 +261,12 @@ export default function AIGenerator() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -50 }}
                 >
-                  <h2 className="text-3xl font-bold text-white mb-3">Tell us about your project</h2>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-3">Tell us about your project</h2>
                   <p className="text-purple-200 mb-8">Help AI understand what you're building</p>
 
                   <div className="space-y-6">
                     <div>
-                      <label className="block text-white font-semibold mb-2">
+                      <label className="block text-gray-900 font-semibold mb-2">
                         Business/Project Name *
                       </label>
                       <input
@@ -274,20 +274,20 @@ export default function AIGenerator() {
                         value={formData.businessName}
                         onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
                         placeholder="e.g., TechStartup Inc."
-                        className="w-full px-6 py-4 bg-white/10 border-2 border-white/20 rounded-2xl text-white placeholder-purple-300 focus:border-purple-500 focus:outline-none transition-all"
+                        className="w-full px-6 py-4 bg-white/10 border-2 border-gray-200 rounded-2xl text-gray-900 placeholder-purple-300 focus:border-purple-500 focus:outline-none transition-all"
                         autoFocus
                       />
                     </div>
 
                     <div>
-                      <label className="block text-white font-semibold mb-2">
+                      <label className="block text-gray-900 font-semibold mb-2">
                         Description *
                       </label>
                       <textarea
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         placeholder="Describe what your website is about, what it offers, and who it's for..."
-                        className="w-full h-32 px-6 py-4 bg-white/10 border-2 border-white/20 rounded-2xl text-white placeholder-purple-300 focus:border-purple-500 focus:outline-none transition-all resize-none"
+                        className="w-full h-32 px-6 py-4 bg-white/10 border-2 border-gray-200 rounded-2xl text-gray-900 placeholder-purple-300 focus:border-purple-500 focus:outline-none transition-all resize-none"
                       />
                     </div>
 
@@ -308,13 +308,13 @@ export default function AIGenerator() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -50 }}
                 >
-                  <h2 className="text-3xl font-bold text-white mb-3">Choose your style</h2>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-3">Choose your style</h2>
                   <p className="text-purple-200 mb-8">Select design style and color scheme</p>
 
                   <div className="space-y-8">
                     {/* Style */}
                     <div>
-                      <h3 className="text-white font-semibold mb-4">Design Style</h3>
+                      <h3 className="text-gray-900 font-semibold mb-4">Design Style</h3>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {styles.map((style) => (
                           <motion.button
@@ -325,10 +325,10 @@ export default function AIGenerator() {
                             className={`p-4 rounded-xl border-2 transition-all ${
                               formData.style === style.id
                                 ? 'border-purple-500 bg-purple-500/20'
-                                : 'border-white/20 bg-white/5 hover:border-purple-500/50'
+                                : 'border-gray-200 bg-white/5 hover:border-purple-500/50'
                             }`}
                           >
-                            <div className="text-white font-bold mb-1">{style.label}</div>
+                            <div className="text-gray-900 font-bold mb-1">{style.label}</div>
                             <div className="text-purple-200 text-xs">{style.preview}</div>
                           </motion.button>
                         ))}
@@ -337,7 +337,7 @@ export default function AIGenerator() {
 
                     {/* Colors */}
                     <div>
-                      <h3 className="text-white font-semibold mb-4">Color Scheme</h3>
+                      <h3 className="text-gray-900 font-semibold mb-4">Color Scheme</h3>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {colorSchemes.map((scheme) => (
                           <motion.button
@@ -348,7 +348,7 @@ export default function AIGenerator() {
                             className={`p-4 rounded-xl border-2 transition-all ${
                               formData.colors === scheme.id
                                 ? 'border-purple-500 bg-purple-500/20'
-                                : 'border-white/20 bg-white/5 hover:border-purple-500/50'
+                                : 'border-gray-200 bg-white/5 hover:border-purple-500/50'
                             }`}
                           >
                             <div className="flex gap-2 mb-2">
@@ -360,7 +360,7 @@ export default function AIGenerator() {
                                 />
                               ))}
                             </div>
-                            <div className="text-white font-semibold">{scheme.label}</div>
+                            <div className="text-gray-900 font-semibold">{scheme.label}</div>
                           </motion.button>
                         ))}
                       </div>
@@ -377,7 +377,7 @@ export default function AIGenerator() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -50 }}
                 >
-                  <h2 className="text-3xl font-bold text-white mb-3">Choose your AI model</h2>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-3">Choose your AI model</h2>
                   <p className="text-purple-200 mb-8">Each model has unique strengths</p>
 
                   <div className="space-y-4">
@@ -390,7 +390,7 @@ export default function AIGenerator() {
                         className={`w-full p-6 rounded-2xl border-2 transition-all text-left relative overflow-hidden ${
                           formData.aiModel === model.id
                             ? 'border-purple-500 bg-purple-500/20'
-                            : 'border-white/20 bg-white/5 hover:border-purple-500/50'
+                            : 'border-gray-200 bg-white/5 hover:border-purple-500/50'
                         }`}
                       >
                         {model.badge && (
@@ -404,7 +404,7 @@ export default function AIGenerator() {
                             <model.icon className={`w-6 h-6 text-${model.color}-400`} />
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-xl font-bold text-white mb-1">{model.name}</h3>
+                            <h3 className="text-xl font-bold text-gray-900 mb-1">{model.name}</h3>
                             <p className="text-purple-200">{model.description}</p>
                           </div>
                         </div>
@@ -416,7 +416,7 @@ export default function AIGenerator() {
                     <div className="flex items-start gap-4">
                       <Crown className="w-8 h-8 text-yellow-400 flex-shrink-0" />
                       <div>
-                        <h4 className="text-white font-bold mb-2">Earn 100 Coins!</h4>
+                        <h4 className="text-gray-900 font-bold mb-2">Earn 100 Coins!</h4>
                         <p className="text-green-200 text-sm">
                           Generate your website and earn rewards. Plus, earn more for every view and interaction!
                         </p>
@@ -434,7 +434,7 @@ export default function AIGenerator() {
                   whileHover={{ scale: 1.05, x: -5 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setStep(step - 1)}
-                  className="flex items-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold transition-all"
+                  className="flex items-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 text-gray-900 rounded-xl font-semibold transition-all"
                 >
                   <ArrowLeft className="w-5 h-5" />
                   Back
@@ -450,7 +450,7 @@ export default function AIGenerator() {
                     (step === 1 && !formData.websiteType) ||
                     (step === 2 && (!formData.businessName || !formData.description))
                   }
-                  className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+                  className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-gray-900 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
                 >
                   Next
                   <ArrowRight className="w-5 h-5" />
@@ -461,7 +461,7 @@ export default function AIGenerator() {
                   whileTap={{ scale: 0.95 }}
                   onClick={handleGenerate}
                   disabled={generating}
-                  className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ml-auto shadow-2xl"
+                  className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-gray-900 rounded-xl font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ml-auto shadow-2xl"
                 >
                   {generating ? (
                     <>
@@ -486,13 +486,13 @@ export default function AIGenerator() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50"
+                className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center z-50"
               >
                 <motion.div
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.8, opacity: 0 }}
-                  className="bg-gradient-to-br from-purple-600/20 to-pink-600/20 backdrop-blur-xl rounded-3xl p-12 border border-purple-500/30 text-center max-w-md"
+                  className="bg-gradient-to-br from-purple-600/20 to-pink-600/20 backdrop-blur-xl rounded-3xl p-12 border border-gray-200 text-center max-w-md"
                 >
                   <motion.div
                     animate={{
@@ -505,10 +505,10 @@ export default function AIGenerator() {
                     }}
                     className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center"
                   >
-                    <Sparkles className="w-10 h-10 text-white" />
+                    <Sparkles className="w-10 h-10 text-gray-900" />
                   </motion.div>
                   
-                  <h3 className="text-2xl font-bold text-white mb-4">Creating Your Website...</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Creating Your Website...</h3>
                   <p className="text-purple-200 mb-6">AI is generating your professional website with custom design, content, and layout</p>
                   
                   <div className="space-y-3">
@@ -518,7 +518,7 @@ export default function AIGenerator() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.5 }}
-                        className="flex items-center gap-3 text-white"
+                        className="flex items-center gap-3 text-gray-900"
                       >
                         <Check className="w-5 h-5 text-green-400" />
                         {text}
