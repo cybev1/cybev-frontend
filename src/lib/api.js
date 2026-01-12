@@ -1,6 +1,14 @@
 // ============================================
-// FILE: src/lib/api.js - PROPERLY FIXED VERSION
+// FILE: src/lib/api.js
+// PATH: cybev-frontend/src/lib/api.js
+// PURPOSE: API client with all routes
+// VERSION: 6.8.3 - Fixed /api/ prefix on all routes
+// PREVIOUS: 6.5.0 - Missing /api/ prefix on blog routes
+// ROLLBACK: Check backend route paths if issues
+// GITHUB: https://github.com/cybev1/cybev-frontend
+// UPDATED: 2026-01-12
 // ============================================
+
 import axios from 'axios';
 
 // Get base API URL (without any suffix)
@@ -53,7 +61,7 @@ export default api;
 // ========== HEALTH CHECK ==========
 export const healthCheck = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/health`);
+    const response = await axios.get(`${API_BASE_URL}/api/health`);
     return response.data;
   } catch (error) {
     console.error('Health check failed:', error);
@@ -61,7 +69,7 @@ export const healthCheck = async () => {
   }
 };
 
-// ========== AUTH APIs (Has /api prefix) ==========
+// ========== AUTH APIs ==========
 export const authAPI = {
   register: (data) => api.post('/api/auth/register', data),
   login: (data) => api.post('/api/auth/login', data),
@@ -96,23 +104,23 @@ export const adminAPI = {
   broadcast: (message, type) => api.post('/api/admin/broadcast', { message, type })
 };
 
-// ========== BLOG APIs (NO /api prefix) ==========
+// ========== BLOG APIs - FIXED v6.8.3: Added /api/ prefix ==========
 export const blogAPI = {
-  getBlogs: (params) => api.get('/blogs', { params }),
-  getBlog: (id) => api.get(`/blogs/${id}`),
-  createBlog: (data) => api.post('/blogs', data),
-  updateBlog: (id, data) => api.put(`/blogs/${id}`, data),
-  deleteBlog: (id) => api.delete(`/blogs/${id}`),
-  toggleLike: (id) => api.post(`/blogs/${id}/like`),
-  getMyBlogs: () => api.get('/blogs/my-blogs'),
-  getStats: () => api.get('/blogs/stats'),
-  getTrendingBlogs: () => api.get('/blogs/trending'),
-  getTrendingTags: () => api.get('/blogs/trending-tags'),
-  search: (params) => api.get('/blogs/search', { params }),
-  trackShare: (id, platform) => api.post(`/blogs/${id}/share`, { platform })
+  getBlogs: (params) => api.get('/api/blogs', { params }),
+  getBlog: (id) => api.get(`/api/blogs/${id}`),
+  createBlog: (data) => api.post('/api/blogs', data),
+  updateBlog: (id, data) => api.put(`/api/blogs/${id}`, data),
+  deleteBlog: (id) => api.delete(`/api/blogs/${id}`),
+  toggleLike: (id) => api.post(`/api/blogs/${id}/like`),
+  getMyBlogs: () => api.get('/api/blogs/my-blogs'),
+  getStats: () => api.get('/api/blogs/stats'),
+  getTrendingBlogs: () => api.get('/api/blogs/trending'),
+  getTrendingTags: () => api.get('/api/blogs/trending-tags'),
+  search: (params) => api.get('/api/blogs/search', { params }),
+  trackShare: (id, platform) => api.post(`/api/blogs/${id}/share`, { platform })
 };
 
-// ========== CONTENT CREATION APIs (Has /api prefix) ==========
+// ========== CONTENT CREATION APIs ==========
 export const contentAPI = {
   // AI Blog Creation
   createBlog: (data) => api.post('/api/content/create-blog', data),
@@ -132,17 +140,17 @@ export const contentAPI = {
   getViralScore: (blogId) => api.get(`/api/content/viral-score/${blogId}`)
 };
 
-// ========== POST APIs (NO /api prefix) ==========
+// ========== POST APIs - FIXED v6.8.3: Added /api/ prefix ==========
 export const postAPI = {
-  getPosts: (params) => api.get('/posts', { params }),
-  getPost: (id) => api.get(`/posts/${id}`),
-  createPost: (data) => api.post('/posts', data),
-  updatePost: (id, data) => api.put(`/posts/${id}`, data),
-  deletePost: (id) => api.delete(`/posts/${id}`),
-  getFeed: (params) => api.get('/posts/feed', { params }),
+  getPosts: (params) => api.get('/api/posts', { params }),
+  getPost: (id) => api.get(`/api/posts/${id}`),
+  createPost: (data) => api.post('/api/posts', data),
+  updatePost: (id, data) => api.put(`/api/posts/${id}`, data),
+  deletePost: (id) => api.delete(`/api/posts/${id}`),
+  getFeed: (params) => api.get('/api/posts/feed', { params }),
 };
 
-// ========== COMMENT APIs (Has /api prefix) ==========
+// ========== COMMENT APIs ==========
 export const commentAPI = {
   getComments: (blogId, params) => api.get(`/api/comments/blog/${blogId}`, { params }),
   createComment: (data) => api.post('/api/comments', data),
@@ -151,7 +159,7 @@ export const commentAPI = {
   likeComment: (id) => api.post(`/api/comments/${id}/like`)
 };
 
-// ========== BOOKMARK APIs (Has /api prefix) ==========
+// ========== BOOKMARK APIs ==========
 export const bookmarkAPI = {
   getBookmarks: (params) => api.get('/api/bookmarks', { params }),
   createBookmark: (blogId) => api.post('/api/bookmarks', { blogId }),
@@ -159,7 +167,7 @@ export const bookmarkAPI = {
   checkBookmark: (blogId) => api.get(`/api/bookmarks/check/${blogId}`)
 };
 
-// ========== FOLLOW APIs (Has /api prefix) ==========
+// ========== FOLLOW APIs ==========
 export const followAPI = {
   followUser: (userId) => api.post(`/api/follow/${userId}`),
   unfollowUser: (userId) => api.delete(`/api/follow/${userId}`),
@@ -169,13 +177,13 @@ export const followAPI = {
   getSuggestions: (params) => api.get('/api/follow/suggestions', { params })
 };
 
-// ========== FEED APIs (Has /api prefix) ==========
+// ========== FEED APIs ==========
 export const feedAPI = {
   getFollowingFeed: (params) => api.get('/api/feed/following', { params }),
   getMixedFeed: (params) => api.get('/api/feed/mixed', { params })
 };
 
-// ========== NOTIFICATION APIs (Has /api prefix) ==========
+// ========== NOTIFICATION APIs ==========
 export const notificationAPI = {
   getNotifications: (params) => api.get('/api/notifications', { params }),
   markAsRead: (id) => api.patch(`/api/notifications/${id}/read`),
@@ -184,7 +192,7 @@ export const notificationAPI = {
   getUnreadCount: () => api.get('/api/notifications/unread-count')
 };
 
-// ========== REWARD APIs (Has /api prefix) ==========
+// ========== REWARD APIs ==========
 export const rewardAPI = {
   getWallet: () => api.get('/api/rewards/wallet'),
   getTransactions: (params) => api.get('/api/rewards/transactions', { params }),
@@ -194,7 +202,7 @@ export const rewardAPI = {
   getAchievements: () => api.get('/api/rewards/achievements')
 };
 
-// ========== DOMAIN APIs (Has /api prefix) ==========
+// ========== DOMAIN APIs ==========
 export const domainAPI = {
   checkDomain: (domain) => api.post('/api/domain/check', { domain }),
   verifyDomain: (domain) => api.post('/api/domain/verify', { domain }),
@@ -202,7 +210,7 @@ export const domainAPI = {
   removeDomain: () => api.delete('/api/domain/remove')
 };
 
-// ========== UPLOAD APIs (Has /api prefix) ==========
+// ========== UPLOAD APIs ==========
 export const uploadAPI = {
   uploadImage: (formData) => {
     return api.post('/api/upload/image', formData, {
@@ -220,12 +228,81 @@ export const uploadAPI = {
   },
 };
 
-
-// Blog Sites (public + creator)
+// ========== BLOG SITES APIs - FIXED v6.8.3: Added /api/ prefix ==========
 export const blogSiteAPI = {
-  create: (data) => api.post('/sites', data),
-  mySites: () => api.get('/sites/my'),
-  update: (id, data) => api.put(`/sites/${id}`, data),
-  getPublic: (slug) => api.get(`/sites/public/${slug}`),
-  getPublicPosts: (slug, params = {}) => api.get(`/sites/public/${slug}/posts`, { params }),
+  create: (data) => api.post('/api/sites', data),
+  mySites: () => api.get('/api/sites/my'),
+  update: (id, data) => api.put(`/api/sites/${id}`, data),
+  getPublic: (slug) => api.get(`/api/sites/public/${slug}`),
+  getPublicPosts: (slug, params = {}) => api.get(`/api/sites/public/${slug}/posts`, { params }),
+};
+
+// ========== VLOG APIs ==========
+export const vlogAPI = {
+  getVlogs: (params) => api.get('/api/vlogs', { params }),
+  getVlog: (id) => api.get(`/api/vlogs/${id}`),
+  createVlog: (data) => api.post('/api/vlogs', data),
+  updateVlog: (id, data) => api.put(`/api/vlogs/${id}`, data),
+  deleteVlog: (id) => api.delete(`/api/vlogs/${id}`),
+  getMyVlogs: () => api.get('/api/vlogs/my'),
+  getFeed: (params) => api.get('/api/vlogs/feed', { params }),
+};
+
+// ========== CHURCH APIs ==========
+export const churchAPI = {
+  getChurch: () => api.get('/api/church'),
+  createChurch: (data) => api.post('/api/church', data),
+  updateChurch: (data) => api.put('/api/church', data),
+  getMembers: (params) => api.get('/api/church/members', { params }),
+  addMember: (data) => api.post('/api/church/members', data),
+  getCells: () => api.get('/api/church/cells'),
+  createCell: (data) => api.post('/api/church/cells', data),
+  getPrayers: (params) => api.get('/api/church/prayers', { params }),
+  createPrayer: (data) => api.post('/api/church/prayers', data),
+  getGiving: (params) => api.get('/api/church/giving', { params }),
+  recordGiving: (data) => api.post('/api/church/giving', data),
+};
+
+// ========== FORMS APIs ==========
+export const formsAPI = {
+  getForms: () => api.get('/api/forms'),
+  getForm: (id) => api.get(`/api/forms/${id}`),
+  createForm: (data) => api.post('/api/forms', data),
+  updateForm: (id, data) => api.put(`/api/forms/${id}`, data),
+  deleteForm: (id) => api.delete(`/api/forms/${id}`),
+  submitResponse: (id, data) => api.post(`/api/forms/${id}/submit`, data),
+  getResponses: (id) => api.get(`/api/forms/${id}/responses`),
+};
+
+// ========== MEET APIs (NEW v6.8.1) ==========
+export const meetAPI = {
+  createRoom: (data) => api.post('/api/meet/create', data),
+  joinRoom: (roomId) => api.post(`/api/meet/join/${roomId}`),
+  getRooms: () => api.get('/api/meet/rooms'),
+  getRoom: (roomId) => api.get(`/api/meet/room/${roomId}`),
+  endRoom: (roomId) => api.post(`/api/meet/end/${roomId}`),
+};
+
+// ========== SOCIAL TOOLS APIs (NEW v6.8.1) ==========
+export const socialToolsAPI = {
+  getAccounts: () => api.get('/api/social-tools/accounts'),
+  addAccount: (data) => api.post('/api/social-tools/accounts', data),
+  removeAccount: (id) => api.delete(`/api/social-tools/accounts/${id}`),
+  schedulePost: (data) => api.post('/api/social-tools/schedule', data),
+  getScheduled: () => api.get('/api/social-tools/scheduled'),
+  getAnalytics: () => api.get('/api/social-tools/analytics'),
+};
+
+// ========== CAMPAIGNS APIs (NEW v6.8.1) ==========
+export const campaignsAPI = {
+  getCampaigns: () => api.get('/api/campaigns'),
+  getCampaign: (id) => api.get(`/api/campaigns/${id}`),
+  createCampaign: (data) => api.post('/api/campaigns', data),
+  updateCampaign: (id, data) => api.put(`/api/campaigns/${id}`, data),
+  deleteCampaign: (id) => api.delete(`/api/campaigns/${id}`),
+  sendCampaign: (id) => api.post(`/api/campaigns/${id}/send`),
+  getStats: (id) => api.get(`/api/campaigns/${id}/stats`),
+  getContacts: () => api.get('/api/contacts'),
+  addContact: (data) => api.post('/api/contacts', data),
+  importContacts: (data) => api.post('/api/contacts/import', data),
 };
