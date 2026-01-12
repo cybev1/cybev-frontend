@@ -2,49 +2,44 @@
    CYBEV Design System v7.1.0
    CLEAN WHITE DESIGN - SOLID BACKGROUNDS
    BLACK TEXT - PROPER CONTRAST
+   
+   This CSS enforces readability across ALL pages
    ============================================ */
 
 /* ==========================================
-   ROOT VARIABLES - CLEAN COLORS
+   CSS CUSTOM PROPERTIES
    ========================================== */
 :root {
-  /* Backgrounds - SOLID COLORS ONLY */
+  /* Backgrounds */
   --bg-primary: #ffffff;
   --bg-secondary: #f9fafb;
   --bg-tertiary: #f3f4f6;
   --bg-page: #f0f2f5;
   
-  /* Text - HIGH CONTRAST */
+  /* Text - High Contrast */
   --text-primary: #111827;
   --text-secondary: #4b5563;
   --text-tertiary: #6b7280;
   --text-muted: #9ca3af;
   
-  /* Brand Colors */
-  --brand-primary: #7c3aed;
-  --brand-secondary: #ec4899;
-  --brand-light: #f3e8ff;
-  
-  /* Status Colors */
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
+  /* Brand */
+  --brand-purple: #7c3aed;
+  --brand-pink: #ec4899;
+  --brand-gradient: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
   
   /* Borders */
   --border-light: #e5e7eb;
   --border-medium: #d1d5db;
-  --border-dark: #9ca3af;
   
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  /* Status */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
 }
 
 /* ==========================================
-   GLOBAL RESET & BASE STYLES
+   GLOBAL RESETS
    ========================================== */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -54,442 +49,320 @@ html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--bg-page);
+  background-color: var(--bg-page) !important;
   color: var(--text-primary);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* ==========================================
-   TYPOGRAPHY - BLACK TEXT
+   FORCE PAGE BACKGROUNDS TO BE LIGHT
+   This overrides any dark gradients
    ========================================== */
-h1, h2, h3, h4, h5, h6 {
-  color: var(--text-primary);
-  font-weight: 700;
-  line-height: 1.2;
-  margin: 0;
+.min-h-screen {
+  background-color: var(--bg-page) !important;
+  background-image: none !important;
 }
 
-h1 { font-size: 2rem; }
-h2 { font-size: 1.5rem; }
-h3 { font-size: 1.25rem; }
-h4 { font-size: 1.125rem; }
+/* Remove any purple/dark gradients from page backgrounds */
+[class*="from-gray-900"],
+[class*="from-purple-900"],
+[class*="via-purple-900"],
+[class*="via-gray-900"],
+[class*="to-gray-900"],
+[class*="to-purple-900"] {
+  --tw-gradient-from: var(--bg-page) !important;
+  --tw-gradient-via: var(--bg-secondary) !important;
+  --tw-gradient-to: var(--bg-primary) !important;
+}
+
+/* ==========================================
+   TYPOGRAPHY - ENFORCE DARK TEXT
+   ========================================== */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary) !important;
+  font-weight: 700;
+}
 
 p {
   color: var(--text-secondary);
-  margin: 0;
 }
 
-a {
-  color: var(--brand-primary);
-  text-decoration: none;
+/* Force headings to be dark */
+.text-white.text-xl,
+.text-white.text-2xl,
+.text-white.text-3xl,
+.text-white.text-4xl,
+.text-white.text-5xl,
+.text-white.font-bold,
+.text-white.font-semibold {
+  color: var(--text-primary) !important;
 }
 
-a:hover {
-  text-decoration: underline;
+/* Gray text improvements */
+.text-gray-100,
+.text-gray-200,
+.text-gray-300 {
+  color: var(--text-secondary) !important;
+}
+
+.text-gray-400 {
+  color: var(--text-tertiary) !important;
 }
 
 /* ==========================================
-   PAGE BACKGROUNDS - SOLID COLORS
+   CARD & CONTAINER BACKGROUNDS
    ========================================== */
-.bg-page {
-  background-color: var(--bg-page) !important;
-}
-
-.bg-white {
+/* Force white backgrounds for cards */
+.bg-gray-800,
+.bg-gray-900,
+.bg-black\/40,
+.bg-black\/50,
+.bg-black\/60,
+.bg-gray-800\/50,
+.bg-gray-800\/80,
+.bg-gray-900\/50,
+.bg-gray-900\/80 {
   background-color: var(--bg-primary) !important;
+  background-image: none !important;
 }
 
+/* Backdrop blur cards -> clean white */
+[class*="backdrop-blur"] {
+  background-color: var(--bg-primary) !important;
+  backdrop-filter: none !important;
+}
+
+/* ==========================================
+   BUTTONS - WHITE TEXT ON COLORED
+   ========================================== */
+/* Primary gradient buttons - ensure white text */
+.bg-gradient-to-r.from-purple-600,
+.bg-gradient-to-r.from-purple-500,
+.bg-gradient-to-br.from-purple-600,
+.bg-purple-600,
+.bg-purple-500,
+.bg-pink-600,
+[class*="from-purple-600"][class*="to-pink-600"] {
+  color: #ffffff !important;
+}
+
+/* Button base styles */
+button[class*="bg-purple"],
+button[class*="bg-gradient"],
+a[class*="bg-purple"],
+a[class*="bg-gradient"] {
+  color: #ffffff !important;
+}
+
+/* Secondary buttons */
+.bg-gray-100,
 .bg-gray-50 {
-  background-color: var(--bg-secondary) !important;
-}
-
-.bg-gray-100 {
-  background-color: var(--bg-tertiary) !important;
-}
-
-/* Override any gradient backgrounds for main page content */
-.min-h-screen {
-  background-color: var(--bg-page);
+  color: var(--text-primary) !important;
 }
 
 /* ==========================================
-   CARDS - WHITE WITH SHADOWS
+   FORM INPUTS - LIGHT WITH DARK TEXT
    ========================================== */
-.card {
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border-light);
-  border-radius: 1rem;
-  box-shadow: var(--shadow-sm);
-}
-
-.card-elevated {
-  background-color: var(--bg-primary);
-  border-radius: 1rem;
-  box-shadow: var(--shadow-md);
-}
-
-.card:hover {
-  box-shadow: var(--shadow-md);
-}
-
-/* ==========================================
-   BUTTONS - PROPER TEXT CONTRAST
-   ========================================== */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  font-size: 0.875rem;
-  border-radius: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-}
-
-/* Primary Button - WHITE TEXT on gradient */
-.btn-primary {
-  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
-  color: #ffffff !important;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.25);
-}
-
-.btn-primary:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
-}
-
-/* Solid Purple Button - WHITE TEXT */
-.btn-purple {
-  background-color: var(--brand-primary);
-  color: #ffffff !important;
-}
-
-.btn-purple:hover {
-  background-color: #6d28d9;
-}
-
-/* Secondary Button - DARK TEXT */
-.btn-secondary {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-medium);
-}
-
-.btn-secondary:hover {
-  background-color: var(--bg-secondary);
-}
-
-/* Ghost Button */
-.btn-ghost {
-  background-color: transparent;
-  color: var(--text-secondary);
-}
-
-.btn-ghost:hover {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-/* Disabled State */
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* ==========================================
-   FORM INPUTS - SOLID BACKGROUNDS
-   ========================================== */
-.input,
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="number"],
-input[type="url"],
-input[type="tel"],
+input,
 textarea,
 select {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-medium);
-  border-radius: 0.75rem;
-  color: var(--text-primary);
-  font-size: 1rem;
-  transition: all 0.2s ease;
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-medium) !important;
 }
 
-.input::placeholder,
 input::placeholder,
 textarea::placeholder {
-  color: var(--text-muted);
+  color: var(--text-muted) !important;
 }
 
-.input:focus,
 input:focus,
 textarea:focus,
 select:focus {
+  background-color: var(--bg-primary) !important;
+  border-color: var(--brand-purple) !important;
   outline: none;
-  background-color: var(--bg-primary);
-  border-color: var(--brand-primary);
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
 }
 
-/* ==========================================
-   NAVIGATION - WHITE BACKGROUND
-   ========================================== */
-.nav-bar {
-  background-color: var(--bg-primary);
-  border-bottom: 1px solid var(--border-light);
-}
-
-/* Mobile Bottom Nav */
-.mobile-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: var(--bg-primary);
-  border-top: 1px solid var(--border-light);
-  padding: 0.5rem 0;
-  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
-  z-index: 50;
-}
-
-.mobile-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0.5rem;
-  color: var(--text-tertiary);
-}
-
-.mobile-nav-item.active {
-  color: var(--brand-primary);
-}
-
-/* Floating Create Button */
-.create-button-float {
-  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
-  color: #ffffff;
-  width: 3.5rem;
-  height: 3.5rem;
-  border-radius: 50%;
-  margin-top: -1.5rem;
-  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.35);
-  border: 4px solid var(--bg-primary);
+/* Fix dark input classes */
+.bg-gray-700,
+input.bg-gray-700,
+textarea.bg-gray-700 {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
 }
 
 /* ==========================================
-   BADGES & TAGS
+   BORDERS - LIGHT GRAY
    ========================================== */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border-radius: 9999px;
+.border-gray-700,
+.border-gray-800,
+.border-gray-600,
+.border-purple-500\/20,
+.border-purple-500\/30,
+.border-white\/10,
+.border-white\/20 {
+  border-color: var(--border-light) !important;
 }
 
-.badge-primary {
-  background-color: var(--brand-light);
-  color: var(--brand-primary);
+/* Dividers */
+.divide-gray-700 > * + *,
+.divide-gray-800 > * + *,
+.divide-white\/10 > * + * {
+  border-color: var(--border-light) !important;
 }
 
-.badge-success {
-  background-color: #d1fae5;
-  color: #059669;
+/* ==========================================
+   HOVER STATES - LIGHT
+   ========================================== */
+.hover\:bg-gray-700:hover,
+.hover\:bg-gray-800:hover,
+.hover\:bg-gray-600:hover {
+  background-color: var(--bg-tertiary) !important;
 }
 
-.badge-warning {
-  background-color: #fef3c7;
-  color: #d97706;
+.hover\:bg-purple-500\/10:hover,
+.hover\:bg-white\/5:hover,
+.hover\:bg-white\/10:hover {
+  background-color: var(--bg-secondary) !important;
 }
 
-.badge-error {
-  background-color: #fee2e2;
-  color: #dc2626;
+/* ==========================================
+   NAVIGATION
+   ========================================== */
+/* Top navigation */
+nav,
+header,
+.nav-bar,
+[class*="fixed"][class*="top-0"] {
+  background-color: var(--bg-primary) !important;
+  border-color: var(--border-light) !important;
+}
+
+/* Bottom mobile navigation */
+[class*="fixed"][class*="bottom-0"] {
+  background-color: var(--bg-primary) !important;
+  border-color: var(--border-light) !important;
+}
+
+/* Active nav items */
+.text-purple-400,
+.text-purple-500 {
+  color: var(--brand-purple) !important;
 }
 
 /* ==========================================
    MODALS & OVERLAYS
    ========================================== */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 50;
+/* Modal backgrounds */
+.fixed.inset-0.bg-black\/50,
+.fixed.inset-0.bg-black\/60,
+.fixed.inset-0.bg-black\/70 {
+  background-color: rgba(0, 0, 0, 0.5) !important;
 }
 
-.modal-content {
-  background-color: var(--bg-primary);
-  border-radius: 1rem;
-  box-shadow: var(--shadow-xl);
+/* Modal content */
+[class*="modal"],
+[role="dialog"] {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
 }
 
 /* ==========================================
-   LOADING STATES
+   SPECIFIC COMPONENT OVERRIDES
    ========================================== */
-.skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+
+/* Step indicators */
+.bg-gray-700.rounded-full,
+.bg-gray-800.rounded-full {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-tertiary) !important;
+}
+
+/* Active step */
+.bg-purple-600.rounded-full {
+  background-color: var(--brand-purple) !important;
+  color: #ffffff !important;
+}
+
+/* Tags/badges on light backgrounds */
+.bg-purple-500\/20,
+.bg-purple-500\/10,
+.bg-pink-500\/20 {
+  background-color: #f3e8ff !important;
+  color: var(--brand-purple) !important;
+}
+
+/* ==========================================
+   SHADOWS
+   ========================================== */
+.shadow-purple-500\/50,
+.shadow-purple-500\/40,
+.shadow-purple-500\/30 {
+  --tw-shadow-color: rgba(124, 58, 237, 0.15) !important;
+}
+
+/* Card shadows */
+.shadow-lg,
+.shadow-xl {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* ==========================================
+   LOADING & ANIMATIONS
+   ========================================== */
+.skeleton,
+[class*="animate-pulse"] {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%) !important;
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 0.5rem;
 }
 
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-.spinner {
-  width: 2rem;
-  height: 2rem;
-  border: 3px solid var(--border-light);
-  border-top-color: var(--brand-primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
+/* Spinner */
+.animate-spin {
+  border-color: var(--border-light) !important;
+  border-top-color: var(--brand-purple) !important;
 }
 
 /* ==========================================
-   STEP INDICATORS
+   ACCESSIBILITY
    ========================================== */
-.step-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-  font-weight: 700;
-  font-size: 0.875rem;
+/* Ensure focus is visible */
+*:focus-visible {
+  outline: 2px solid var(--brand-purple);
+  outline-offset: 2px;
 }
 
-.step-indicator.active {
-  background-color: var(--brand-primary);
-  color: #ffffff;
-}
-
-.step-indicator.completed {
-  background-color: var(--brand-primary);
-  color: #ffffff;
-}
-
-.step-indicator.inactive {
-  background-color: var(--bg-tertiary);
-  color: var(--text-tertiary);
-}
-
-.step-line {
-  height: 2px;
-  background-color: var(--border-light);
-}
-
-.step-line.active {
-  background-color: var(--brand-primary);
+/* Skip link */
+.sr-only:focus {
+  position: absolute;
+  width: auto;
+  height: auto;
+  padding: 1rem;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 /* ==========================================
    SAFE AREA INSETS (Mobile)
    ========================================== */
-.safe-top {
-  padding-top: env(safe-area-inset-top);
-}
-
-.safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-/* ==========================================
-   UTILITY CLASSES
-   ========================================== */
-.text-brand {
-  color: var(--brand-primary);
-}
-
-.text-primary {
-  color: var(--text-primary) !important;
-}
-
-.text-secondary {
-  color: var(--text-secondary) !important;
-}
-
-.text-muted {
-  color: var(--text-muted) !important;
-}
-
-.bg-brand {
-  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
-}
-
-.bg-brand-light {
-  background-color: var(--brand-light);
-}
-
-/* Line Clamps */
-.line-clamp-1 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
-.line-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.line-clamp-3 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
-
-/* ==========================================
-   ANIMATIONS
-   ========================================== */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-.animate-fade-in { animation: fadeIn 0.2s ease-out; }
-.animate-slide-up { animation: slideUp 0.3s ease-out; }
-.animate-slide-down { animation: slideDown 0.3s ease-out; }
-.animate-scale-in { animation: scaleIn 0.2s ease-out; }
-
-/* ==========================================
-   RESPONSIVE ADJUSTMENTS
-   ========================================== */
-@media (max-width: 640px) {
-  h1 { font-size: 1.5rem; }
-  h2 { font-size: 1.25rem; }
-  h3 { font-size: 1.125rem; }
-  
-  .btn {
-    padding: 0.625rem 1.25rem;
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
   }
   
-  .input,
-  input,
-  textarea {
-    font-size: 16px; /* Prevents zoom on iOS */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
   }
 }
 
@@ -497,50 +370,55 @@ select:focus {
    PRINT STYLES
    ========================================== */
 @media print {
-  .mobile-nav,
-  .nav-bar {
-    display: none;
+  * {
+    background: white !important;
+    color: black !important;
   }
   
-  body {
-    background: white;
-    color: black;
+  nav, footer, .no-print {
+    display: none !important;
   }
 }
 
 /* ==========================================
-   FORCE OVERRIDES - ENSURE READABILITY
+   UTILITY CLASSES
    ========================================== */
-
-/* Force black text on light backgrounds */
-[class*="bg-white"] h1,
-[class*="bg-white"] h2,
-[class*="bg-white"] h3,
-[class*="bg-gray-50"] h1,
-[class*="bg-gray-50"] h2,
-[class*="bg-gray-50"] h3,
-[class*="bg-gray-100"] h1,
-[class*="bg-gray-100"] h2,
-[class*="bg-gray-100"] h3 {
-  color: var(--text-primary) !important;
+.text-brand {
+  color: var(--brand-purple) !important;
 }
 
-/* Force white text on gradient/colored buttons */
-[class*="bg-purple"],
-[class*="bg-gradient"],
-[class*="from-purple"],
-.btn-primary {
+.bg-brand {
+  background: var(--brand-gradient) !important;
   color: #ffffff !important;
 }
 
-/* Ensure input text is always readable */
-input,
-textarea,
-select {
-  color: var(--text-primary) !important;
+.border-brand {
+  border-color: var(--brand-purple) !important;
 }
 
-input::placeholder,
-textarea::placeholder {
-  color: var(--text-muted) !important;
+/* Ensure white text on gradient backgrounds */
+.bg-gradient-to-r,
+.bg-gradient-to-br,
+.bg-gradient-to-b {
+  /* Only for brand gradient buttons, not page backgrounds */
+}
+
+[class*="from-purple-600"][class*="to-pink-600"],
+[class*="from-purple-500"][class*="to-pink-500"] {
+  color: #ffffff !important;
+}
+
+/* ==========================================
+   DARK MODE PREVENTION
+   Always use light theme
+   ========================================== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: light;
+  }
+  
+  body {
+    background-color: var(--bg-page) !important;
+    color: var(--text-primary) !important;
+  }
 }
