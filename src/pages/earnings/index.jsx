@@ -40,11 +40,11 @@ function StatCard({ title, value, subtitle, icon: Icon, color, trend }) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800"
+      className="bg-white dark:bg-gray-50 rounded-2xl p-6 border border-gray-100 dark:border-gray-200"
     >
       <div className="flex items-start justify-between">
         <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center`}>
-          <Icon className="w-6 h-6 text-white" />
+          <Icon className="w-6 h-6 text-gray-900" />
         </div>
         {trend !== undefined && (
           <span className={`flex items-center gap-1 text-sm font-medium ${
@@ -55,9 +55,9 @@ function StatCard({ title, value, subtitle, icon: Icon, color, trend }) {
           </span>
         )}
       </div>
-      <p className="text-3xl font-bold text-gray-900 dark:text-white mt-4">{value}</p>
-      <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{title}</p>
-      {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+      <p className="text-3xl font-bold text-gray-900 dark:text-gray-900 mt-4">{value}</p>
+      <p className="text-gray-500 dark:text-gray-500 text-sm mt-1">{title}</p>
+      {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
     </motion.div>
   );
 }
@@ -74,15 +74,15 @@ function TransactionItem({ transaction }) {
   const Icon = config.icon;
 
   return (
-    <div className="flex items-center gap-4 py-4 border-b border-gray-100 dark:border-gray-800 last:border-0">
+    <div className="flex items-center gap-4 py-4 border-b border-gray-100 dark:border-gray-200 last:border-0">
       <div className={`w-10 h-10 rounded-xl ${config.color} flex items-center justify-center`}>
         <Icon className="w-5 h-5" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-gray-900 dark:text-white">
+        <p className="font-medium text-gray-900 dark:text-gray-900">
           {transaction.metadata?.anonymous ? 'Anonymous' : transaction.user?.name || 'Someone'}
         </p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+        <p className="text-sm text-gray-500 dark:text-gray-500 truncate">
           {transaction.metadata?.message || `Sent a ${transaction.type}`}
         </p>
       </div>
@@ -90,7 +90,7 @@ function TransactionItem({ transaction }) {
         <p className="font-semibold text-green-600">
           +{formatCurrency(transaction.amount, transaction.currency)}
         </p>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-gray-500">
           {new Date(transaction.createdAt).toLocaleDateString()}
         </p>
       </div>
@@ -159,15 +159,15 @@ export default function EarningsDashboard() {
 
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
         {/* Header */}
-        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+        <div className="bg-white dark:bg-gray-50 border-b border-gray-200 dark:border-gray-200">
           <div className="max-w-7xl mx-auto px-4 py-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900 flex items-center gap-2">
                   <Wallet className="w-7 h-7 text-green-600" />
                   Earnings
                 </h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-gray-500 dark:text-gray-500 mt-1">
                   Track your tips, donations, and revenue
                 </p>
               </div>
@@ -176,7 +176,7 @@ export default function EarningsDashboard() {
                 <button
                   onClick={fetchEarnings}
                   disabled={loading}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-white rounded-xl transition-colors"
                 >
                   <RefreshCw className={`w-5 h-5 text-gray-500 ${loading ? 'animate-spin' : ''}`} />
                 </button>
@@ -184,7 +184,7 @@ export default function EarningsDashboard() {
                 <select
                   value={period}
                   onChange={(e) => setPeriod(e.target.value)}
-                  className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium"
+                  className="px-4 py-2 bg-white dark:bg-white border border-gray-200 dark:border-gray-200 rounded-xl text-sm font-medium"
                 >
                   {periodOptions.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -204,7 +204,7 @@ export default function EarningsDashboard() {
           ) : (
             <div className="space-y-8">
               {/* Balance Card */}
-              <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 rounded-2xl p-8 text-white">
+              <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 rounded-2xl p-8 text-gray-900">
                 <p className="text-white/80 mb-2">Available Balance</p>
                 <p className="text-4xl font-bold mb-4">
                   {formatCurrency(user?.walletBalance || 0, 'NGN')}
@@ -251,9 +251,9 @@ export default function EarningsDashboard() {
               </div>
 
               {/* Recent Transactions */}
-              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800">
-                <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <div className="bg-white dark:bg-gray-50 rounded-2xl border border-gray-100 dark:border-gray-200">
+                <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-200">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-900">
                     Recent Transactions
                   </h2>
                   <button 
@@ -273,9 +273,9 @@ export default function EarningsDashboard() {
                     </div>
                   ) : (
                     <div className="text-center py-12">
-                      <Wallet className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
-                      <p className="text-gray-500 dark:text-gray-400">No transactions yet</p>
-                      <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                      <Wallet className="w-12 h-12 mx-auto text-gray-600 dark:text-gray-600 mb-3" />
+                      <p className="text-gray-500 dark:text-gray-500">No transactions yet</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
                         Share your profile to start receiving tips!
                       </p>
                     </div>
@@ -285,10 +285,10 @@ export default function EarningsDashboard() {
 
               {/* Tips for Earning More */}
               <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-6 border border-purple-100 dark:border-purple-800/50">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">
                   💡 Tips to Earn More
                 </h3>
-                <ul className="space-y-3 text-gray-600 dark:text-gray-300">
+                <ul className="space-y-3 text-gray-600 dark:text-gray-600">
                   <li className="flex items-start gap-3">
                     <span className="text-purple-600">•</span>
                     Add a tip button to your profile and posts

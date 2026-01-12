@@ -50,13 +50,13 @@ const meetingTypes = [
 
 function SettingsSection({ title, description, icon: Icon, children }) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+    <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
       <div className="flex items-start gap-4 mb-6">
         <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
-          <Icon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+          <Icon className="w-5 h-5 text-purple-600 dark:text-purple-600" />
         </div>
         <div>
-          <h3 className="font-semibold text-gray-900 dark:text-white">{title}</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-900">{title}</h3>
           {description && (
             <p className="text-sm text-gray-500 mt-1">{description}</p>
           )}
@@ -70,19 +70,19 @@ function SettingsSection({ title, description, icon: Icon, children }) {
 function InputField({ label, type = 'text', value, onChange, placeholder, required, icon: Icon }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       <div className="relative">
         {Icon && (
-          <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
         )}
         <input
           type={type}
           value={value || ''}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className={`w-full ${Icon ? 'pl-10' : 'px-4'} pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition`}
+          className={`w-full ${Icon ? 'pl-10' : 'px-4'} pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition`}
         />
       </div>
     </div>
@@ -92,7 +92,7 @@ function InputField({ label, type = 'text', value, onChange, placeholder, requir
 function TextArea({ label, value, onChange, placeholder, rows = 3 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
         {label}
       </label>
       <textarea
@@ -100,7 +100,7 @@ function TextArea({ label, value, onChange, placeholder, rows = 3 }) {
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         rows={rows}
-        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition resize-none"
+        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition resize-none"
       />
     </div>
   );
@@ -110,7 +110,7 @@ function ToggleSwitch({ label, description, checked, onChange }) {
   return (
     <div className="flex items-center justify-between py-3">
       <div>
-        <p className="font-medium text-gray-900 dark:text-white">{label}</p>
+        <p className="font-medium text-gray-900 dark:text-gray-900">{label}</p>
         {description && (
           <p className="text-sm text-gray-500">{description}</p>
         )}
@@ -320,7 +320,7 @@ export default function OrgSettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-purple-600 mx-auto mb-4" />
           <p className="text-gray-500">Loading settings...</p>
@@ -331,13 +331,13 @@ export default function OrgSettingsPage() {
 
   if (error && !org) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Error</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-900 mb-2">Error</h2>
           <p className="text-gray-500 mb-6">{error}</p>
           <Link href="/church">
-            <button className="px-6 py-2 bg-purple-600 text-white rounded-xl">
+            <button className="px-6 py-2 bg-purple-600 text-gray-900 rounded-xl">
               Back to Church
             </button>
           </Link>
@@ -357,23 +357,23 @@ export default function OrgSettingsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
       <Head>
         <title>Settings - {org?.name || 'Organization'} | CYBEV</title>
       </Head>
 
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+      <div className="bg-white dark:bg-white border-b border-gray-200 dark:border-gray-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link href={`/church/org/${id}`}>
-                <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">
-                  <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-100 rounded-xl transition">
+                  <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-500" />
                 </button>
               </Link>
               <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-xl font-bold text-gray-900 dark:text-gray-900">
                   Organization Settings
                 </h1>
                 <p className="text-sm text-gray-500">{org?.name}</p>
@@ -382,7 +382,7 @@ export default function OrgSettingsPage() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium flex items-center gap-2 disabled:opacity-50 transition"
+              className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-gray-900 rounded-xl font-medium flex items-center gap-2 disabled:opacity-50 transition"
             >
               {saving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -417,7 +417,7 @@ export default function OrgSettingsPage() {
         <div className="flex gap-6">
           {/* Sidebar Tabs */}
           <div className="w-64 flex-shrink-0">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-2 sticky top-24">
+            <div className="bg-white dark:bg-white rounded-2xl border border-gray-100 dark:border-gray-200 p-2 sticky top-24">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -426,8 +426,8 @@ export default function OrgSettingsPage() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition ${
                       activeTab === tab.id
-                        ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                        ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-600'
+                        : 'text-gray-600 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-100/50'
                     }`}
                   >
                     <Icon className="w-5 h-5" />
@@ -555,10 +555,10 @@ export default function OrgSettingsPage() {
                   {form.meetingSchedule.map((schedule, index) => (
                     <div
                       key={index}
-                      className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600"
+                      className="p-4 bg-gray-50 dark:bg-gray-100 rounded-xl border border-gray-200 dark:border-gray-300"
                     >
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="font-medium text-gray-900 dark:text-white">
+                        <h4 className="font-medium text-gray-900 dark:text-gray-900">
                           Meeting {index + 1}
                         </h4>
                         <button
@@ -571,7 +571,7 @@ export default function OrgSettingsPage() {
                       </div>
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                             Title
                           </label>
                           <input
@@ -579,17 +579,17 @@ export default function OrgSettingsPage() {
                             value={schedule.title}
                             onChange={(e) => updateSchedule(index, 'title', e.target.value)}
                             placeholder="e.g., Sunday Service"
-                            className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                             Type
                           </label>
                           <select
                             value={schedule.type}
                             onChange={(e) => updateSchedule(index, 'type', e.target.value)}
-                            className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                           >
                             {meetingTypes.map((type) => (
                               <option key={type.id} value={type.id}>{type.name}</option>
@@ -597,13 +597,13 @@ export default function OrgSettingsPage() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                             Day
                           </label>
                           <select
                             value={schedule.day}
                             onChange={(e) => updateSchedule(index, 'day', e.target.value)}
-                            className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                           >
                             {days.map((day) => (
                               <option key={day.id} value={day.id}>{day.name}</option>
@@ -611,7 +611,7 @@ export default function OrgSettingsPage() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                             Time
                           </label>
                           <input
@@ -619,7 +619,7 @@ export default function OrgSettingsPage() {
                             value={schedule.time}
                             onChange={(e) => updateSchedule(index, 'time', e.target.value)}
                             placeholder="10:00 AM"
-                            className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                           />
                         </div>
                       </div>
@@ -631,7 +631,7 @@ export default function OrgSettingsPage() {
                             onChange={(e) => updateSchedule(index, 'isOnline', e.target.checked)}
                             className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                           />
-                          <span className="text-sm text-gray-700 dark:text-gray-300">Online/Hybrid</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-600">Online/Hybrid</span>
                         </label>
                         {schedule.isOnline && (
                           <input
@@ -639,7 +639,7 @@ export default function OrgSettingsPage() {
                             value={schedule.streamUrl}
                             onChange={(e) => updateSchedule(index, 'streamUrl', e.target.value)}
                             placeholder="Stream URL"
-                            className="flex-1 px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="flex-1 px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                           />
                         )}
                       </div>
@@ -648,7 +648,7 @@ export default function OrgSettingsPage() {
                   <button
                     type="button"
                     onClick={addSchedule}
-                    className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-500 hover:text-purple-600 hover:border-purple-500 transition flex items-center justify-center gap-2"
+                    className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-300 rounded-xl text-gray-500 hover:text-purple-600 hover:border-purple-500 transition flex items-center justify-center gap-2"
                   >
                     <Plus className="w-5 h-5" />
                     Add Meeting
@@ -713,7 +713,7 @@ export default function OrgSettingsPage() {
                 <div className="space-y-6">
                   {/* Color Theme */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-3">
                       Color Theme
                     </label>
                     <div className="flex flex-wrap gap-3">
@@ -754,10 +754,10 @@ export default function OrgSettingsPage() {
                   {/* Preview */}
                   {(form.logo || form.coverImage) && (
                     <div className="mt-4">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-3">
                         Preview
                       </label>
-                      <div className="relative rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                      <div className="relative rounded-xl overflow-hidden border border-gray-200 dark:border-gray-200">
                         {form.coverImage && (
                           <img
                             src={form.coverImage}
@@ -767,7 +767,7 @@ export default function OrgSettingsPage() {
                           />
                         )}
                         {form.logo && (
-                          <div className="absolute bottom-4 left-4 w-16 h-16 rounded-xl bg-white dark:bg-gray-800 p-2 shadow-lg">
+                          <div className="absolute bottom-4 left-4 w-16 h-16 rounded-xl bg-white dark:bg-white p-2 shadow-lg">
                             <img
                               src={form.logo}
                               alt="Logo"
@@ -790,7 +790,7 @@ export default function OrgSettingsPage() {
                 description="Control who can access and what features are enabled"
                 icon={Shield}
               >
-                <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                <div className="divide-y divide-gray-200 dark:divide-gray-200">
                   <ToggleSwitch
                     label="Public Organization"
                     description="Allow anyone to view this organization"
@@ -841,7 +841,7 @@ export default function OrgSettingsPage() {
                 <div className="space-y-6">
                   {/* Invite Link */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                       Invite Link
                     </label>
                     <div className="flex gap-2">
@@ -849,12 +849,12 @@ export default function OrgSettingsPage() {
                         type="text"
                         value={inviteLink}
                         readOnly
-                        className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                       />
                       <button
                         type="button"
                         onClick={copyInviteLink}
-                        className="px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl flex items-center gap-2 transition"
+                        className="px-4 py-3 bg-purple-600 hover:bg-purple-700 text-gray-900 rounded-xl flex items-center gap-2 transition"
                       >
                         {linkCopied ? (
                           <>
@@ -875,9 +875,9 @@ export default function OrgSettingsPage() {
                   </div>
 
                   {/* QR Code placeholder */}
-                  <div className="p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl text-center">
-                    <QrCode className="w-16 h-16 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-600 dark:text-gray-400">
+                  <div className="p-6 bg-gray-50 dark:bg-gray-100 rounded-xl text-center">
+                    <QrCode className="w-16 h-16 text-gray-500 mx-auto mb-3" />
+                    <p className="text-gray-600 dark:text-gray-500">
                       QR Code generation coming soon
                     </p>
                   </div>
@@ -887,10 +887,10 @@ export default function OrgSettingsPage() {
                     <Link href={`/church/website?orgId=${id}`}>
                       <div className="p-6 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl border border-purple-200 dark:border-purple-800 cursor-pointer hover:shadow-lg transition">
                         <Globe className="w-10 h-10 text-purple-600 mb-3" />
-                        <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-900 mb-1">
                           Create Website
                         </h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-gray-600 dark:text-gray-500">
                           Create a public website for your organization
                         </p>
                       </div>
@@ -898,10 +898,10 @@ export default function OrgSettingsPage() {
                     <Link href={`/groups/create?orgId=${id}&name=${encodeURIComponent(org?.name || '')}`}>
                       <div className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl border border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition">
                         <Users className="w-10 h-10 text-blue-600 mb-3" />
-                        <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-900 mb-1">
                           Create Group
                         </h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-gray-600 dark:text-gray-500">
                           Create a CYBEV group for your members
                         </p>
                       </div>

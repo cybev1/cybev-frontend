@@ -91,12 +91,12 @@ function TemplateCard({ template, onEdit, onToggle, onDelete }) {
   const category = templateCategories.find(c => c.id === template.category) || templateCategories[0];
   
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-100 dark:border-gray-700">
+    <div className="bg-white dark:bg-white rounded-xl p-5 border border-gray-100 dark:border-gray-200">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <span className="text-2xl">{category.icon}</span>
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white">{template.name}</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-900">{template.name}</h3>
             <p className="text-sm text-gray-500">{category.label}</p>
           </div>
         </div>
@@ -106,7 +106,7 @@ function TemplateCard({ template, onEdit, onToggle, onDelete }) {
             className={`px-3 py-1 rounded-full text-xs font-medium ${
               template.active
                 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-500'
             }`}
           >
             {template.active ? 'Active' : 'Inactive'}
@@ -114,8 +114,8 @@ function TemplateCard({ template, onEdit, onToggle, onDelete }) {
         </div>
       </div>
 
-      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 mb-4">
-        <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap line-clamp-4">
+      <div className="bg-gray-50 dark:bg-gray-100 rounded-lg p-3 mb-4">
+        <p className="text-sm text-gray-600 dark:text-gray-500 whitespace-pre-wrap line-clamp-4">
           {template.message}
         </p>
       </div>
@@ -136,9 +136,9 @@ function TemplateCard({ template, onEdit, onToggle, onDelete }) {
         <div className="flex gap-1">
           <button
             onClick={() => onEdit(template)}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-100"
           >
-            <Edit className="w-4 h-4 text-gray-400" />
+            <Edit className="w-4 h-4 text-gray-500" />
           </button>
           <button
             onClick={() => onDelete(template)}
@@ -162,19 +162,19 @@ function MessageLogCard({ log }) {
   };
 
   return (
-    <div className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
+    <div className="flex items-center gap-4 p-4 bg-white dark:bg-white rounded-xl border border-gray-100 dark:border-gray-200">
       <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
         <MessageSquare className="w-5 h-5 text-green-600" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-gray-900 dark:text-white truncate">{log.recipientName || log.phone}</p>
+        <p className="font-medium text-gray-900 dark:text-gray-900 truncate">{log.recipientName || log.phone}</p>
         <p className="text-sm text-gray-500 truncate">{log.templateName}</p>
       </div>
       <div className="text-right">
         <span className={`text-xs px-2 py-1 rounded-full ${statusColors[log.status] || statusColors.pending}`}>
           {log.status}
         </span>
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="text-xs text-gray-500 mt-1">
           {new Date(log.sentAt).toLocaleString()}
         </p>
       </div>
@@ -240,38 +240,38 @@ function CreateTemplateModal({ isOpen, onClose, onCreate, loading, editTemplate 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl shadow-xl my-8">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+    <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-white rounded-2xl w-full max-w-2xl shadow-xl my-8">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900 flex items-center gap-2">
             <MessageSquare className="w-5 h-5 text-green-500" />
             {editTemplate ? 'Edit Template' : 'Create Template'}
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600">✕</button>
         </div>
 
         <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                 Template Name
               </label>
               <input
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700"
                 placeholder="e.g., Welcome Message"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                 Category
               </label>
               <select
                 value={form.category}
                 onChange={(e) => setForm(f => ({ ...f, category: e.target.value }))}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700"
               >
                 {templateCategories.map(cat => (
                   <option key={cat.id} value={cat.id}>{cat.icon} {cat.label}</option>
@@ -282,14 +282,14 @@ function CreateTemplateModal({ isOpen, onClose, onCreate, loading, editTemplate 
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Message</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-600">Message</label>
               <div className="flex gap-1 flex-wrap">
                 {variables.slice(0, 5).map(v => (
                   <button
                     key={v}
                     type="button"
                     onClick={() => insertVariable(v)}
-                    className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded hover:bg-purple-100 hover:text-purple-700"
+                    className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-500 rounded hover:bg-purple-100 hover:text-purple-700"
                   >
                     {v}
                   </button>
@@ -300,13 +300,13 @@ function CreateTemplateModal({ isOpen, onClose, onCreate, loading, editTemplate 
               value={form.message}
               onChange={(e) => setForm(f => ({ ...f, message: e.target.value }))}
               rows={8}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 resize-none font-mono text-sm"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 resize-none font-mono text-sm"
               placeholder="Type your message here..."
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
               Triggers (When to send)
             </label>
             <div className="flex flex-wrap gap-2">
@@ -318,7 +318,7 @@ function CreateTemplateModal({ isOpen, onClose, onCreate, loading, editTemplate 
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
                     form.triggers.includes(trigger.id)
                       ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-500'
                   }`}
                 >
                   {trigger.label}
@@ -329,7 +329,7 @@ function CreateTemplateModal({ isOpen, onClose, onCreate, loading, editTemplate 
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                 Delay (Days)
               </label>
               <input
@@ -337,7 +337,7 @@ function CreateTemplateModal({ isOpen, onClose, onCreate, loading, editTemplate 
                 min="0"
                 value={form.delay}
                 onChange={(e) => setForm(f => ({ ...f, delay: parseInt(e.target.value) || 0 }))}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700"
               />
             </div>
             <div className="flex items-end">
@@ -348,23 +348,23 @@ function CreateTemplateModal({ isOpen, onClose, onCreate, loading, editTemplate 
                   onChange={(e) => setForm(f => ({ ...f, active: e.target.checked }))}
                   className="w-5 h-5 rounded border-gray-300 text-green-600"
                 />
-                <span className="font-medium text-gray-900 dark:text-white">Active</span>
+                <span className="font-medium text-gray-900 dark:text-gray-900">Active</span>
               </label>
             </div>
           </div>
         </div>
 
-        <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-700">
+        <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-200">
           <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+            className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-100"
           >
             Cancel
           </button>
           <button
             onClick={() => onCreate(form, editTemplate?._id)}
             disabled={loading || !form.name || !form.message}
-            className="flex-1 py-3 rounded-xl font-semibold bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 py-3 rounded-xl font-semibold bg-green-600 text-gray-900 hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             {editTemplate ? 'Save Changes' : 'Create Template'}
@@ -478,15 +478,15 @@ export default function WhatsAppIntegration() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
       <Head>
         <title>WhatsApp Integration - CYBEV Church</title>
       </Head>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+      <div className="bg-gradient-to-r from-green-500 to-green-600 text-gray-900">
         <div className="max-w-6xl mx-auto px-4 py-8">
-          <Link href="/church" className="inline-flex items-center gap-2 text-green-200 hover:text-white mb-4">
+          <Link href="/church" className="inline-flex items-center gap-2 text-green-200 hover:text-gray-900 mb-4">
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </Link>
@@ -542,7 +542,7 @@ export default function WhatsAppIntegration() {
 
       {/* Tabs */}
       <div className="max-w-6xl mx-auto px-4 pt-6">
-        <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex gap-2 border-b border-gray-200 dark:border-gray-200">
           {[
             { id: 'templates', label: 'Message Templates', icon: MessageSquare },
             { id: 'logs', label: 'Message Logs', icon: BarChart3 },
@@ -572,12 +572,12 @@ export default function WhatsAppIntegration() {
         {activeTab === 'templates' && (
           <div>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-900">
                 Message Templates ({templates.length})
               </h2>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="px-4 py-2 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 flex items-center gap-2"
+                className="px-4 py-2 bg-green-600 text-gray-900 rounded-xl font-semibold hover:bg-green-700 flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
                 New Template
@@ -589,13 +589,13 @@ export default function WhatsAppIntegration() {
                 <Loader2 className="w-8 h-8 text-green-500 animate-spin" />
               </div>
             ) : templates.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-700">
-                <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Templates Yet</h3>
+              <div className="bg-white dark:bg-white rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-200">
+                <MessageSquare className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900 mb-2">No Templates Yet</h3>
                 <p className="text-gray-500 mb-6">Create message templates for automated follow-ups</p>
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700"
+                  className="px-6 py-3 bg-green-600 text-gray-900 rounded-xl font-semibold hover:bg-green-700"
                 >
                   Create Template
                 </button>
@@ -620,10 +620,10 @@ export default function WhatsAppIntegration() {
         {activeTab === 'logs' && (
           <div>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Message Logs</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-900">Message Logs</h2>
               <button
                 onClick={fetchData}
-                className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+                className="px-4 py-2 border border-gray-200 dark:border-gray-200 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-100 flex items-center gap-2"
               >
                 <RefreshCw className="w-4 h-4" />
                 Refresh
@@ -631,9 +631,9 @@ export default function WhatsAppIntegration() {
             </div>
 
             {messageLogs.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-700">
-                <BarChart3 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Messages Yet</h3>
+              <div className="bg-white dark:bg-white rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-200">
+                <BarChart3 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900 mb-2">No Messages Yet</h3>
                 <p className="text-gray-500">Messages will appear here once sent</p>
               </div>
             ) : (
@@ -650,8 +650,8 @@ export default function WhatsAppIntegration() {
         {activeTab === 'settings' && (
           <div className="space-y-6">
             {/* Connection Status */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Connection Status</h3>
+            <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Connection Status</h3>
               <div className={`p-4 rounded-xl ${connected ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}>
                 <div className="flex items-center gap-3">
                   <div className={`w-4 h-4 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`} />
@@ -668,15 +668,15 @@ export default function WhatsAppIntegration() {
             </div>
 
             {/* Webhook URL */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Webhook URL</h3>
+            <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Webhook URL</h3>
               <p className="text-sm text-gray-500 mb-3">Use this URL in your WhatsApp Business API settings:</p>
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={webhookUrl}
                   readOnly
-                  className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 font-mono text-sm"
+                  className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-gray-50 dark:bg-gray-700 font-mono text-sm"
                 />
                 <button
                   onClick={copyWebhook}
@@ -688,26 +688,26 @@ export default function WhatsAppIntegration() {
             </div>
 
             {/* Automation Settings */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Automation Settings</h3>
+            <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Automation Settings</h3>
               <div className="space-y-4">
-                <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl cursor-pointer">
+                <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-100 rounded-xl cursor-pointer">
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">Auto-send Welcome Messages</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-900">Auto-send Welcome Messages</p>
                     <p className="text-sm text-gray-500">Send welcome message when new soul is added</p>
                   </div>
                   <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-gray-300 text-green-600" />
                 </label>
-                <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl cursor-pointer">
+                <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-100 rounded-xl cursor-pointer">
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">Follow-up Reminders</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-900">Follow-up Reminders</p>
                     <p className="text-sm text-gray-500">Send reminders for pending follow-ups</p>
                   </div>
                   <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-gray-300 text-green-600" />
                 </label>
-                <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl cursor-pointer">
+                <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-100 rounded-xl cursor-pointer">
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">Event Reminders</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-900">Event Reminders</p>
                     <p className="text-sm text-gray-500">Send reminders 24 hours before events</p>
                   </div>
                   <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-gray-300 text-green-600" />

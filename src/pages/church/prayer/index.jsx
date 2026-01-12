@@ -20,13 +20,13 @@ const categoryConfig = {
   healing: { label: 'Healing', icon: '🏥', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
   family: { label: 'Family', icon: '👨‍👩‍👧‍👦', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
   finances: { label: 'Finances', icon: '💰', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
-  guidance: { label: 'Guidance', icon: '🧭', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
+  guidance: { label: 'Guidance', icon: '🧭', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-600' },
   salvation: { label: 'Salvation', icon: '✝️', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
-  marriage: { label: 'Marriage', icon: '💒', color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400' },
+  marriage: { label: 'Marriage', icon: '💒', color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-600' },
   work: { label: 'Work/Career', icon: '💼', color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400' },
   protection: { label: 'Protection', icon: '🛡️', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
   thanksgiving: { label: 'Thanksgiving', icon: '🙏', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
-  other: { label: 'Other', icon: '📿', color: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400' }
+  other: { label: 'Other', icon: '📿', color: 'bg-gray-100 text-gray-700 dark:bg-gray-50/30 dark:text-gray-500' }
 };
 
 function PrayerCard({ prayer, onPray, onTestimony, isPraying, currentUserId }) {
@@ -46,7 +46,7 @@ function PrayerCard({ prayer, onPray, onTestimony, isPraying, currentUserId }) {
   };
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 ${
+    <div className={`bg-white dark:bg-white rounded-2xl p-5 border border-gray-100 dark:border-gray-200 ${
       prayer.isAnswered ? 'ring-2 ring-green-500 ring-offset-2 dark:ring-offset-gray-900' : ''
     }`}>
       {/* Header */}
@@ -54,7 +54,7 @@ function PrayerCard({ prayer, onPray, onTestimony, isPraying, currentUserId }) {
         <div className="flex items-center gap-3">
           {prayer.isAnonymous ? (
             <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-              <Lock className="w-5 h-5 text-gray-400" />
+              <Lock className="w-5 h-5 text-gray-500" />
             </div>
           ) : (
             <img
@@ -64,7 +64,7 @@ function PrayerCard({ prayer, onPray, onTestimony, isPraying, currentUserId }) {
             />
           )}
           <div>
-            <p className="font-medium text-gray-900 dark:text-white">
+            <p className="font-medium text-gray-900 dark:text-gray-900">
               {prayer.isAnonymous ? 'Anonymous' : prayer.user?.name || prayer.user?.username}
             </p>
             <p className="text-xs text-gray-500">{timeAgo(prayer.createdAt)}</p>
@@ -76,12 +76,12 @@ function PrayerCard({ prayer, onPray, onTestimony, isPraying, currentUserId }) {
             {category.icon} {category.label}
           </span>
           {prayer.isUrgent && (
-            <span className="text-xs px-2 py-1 rounded-full bg-red-500 text-white flex items-center gap-1">
+            <span className="text-xs px-2 py-1 rounded-full bg-red-500 text-gray-900 flex items-center gap-1">
               <Flame className="w-3 h-3" /> Urgent
             </span>
           )}
           {prayer.isAnswered && (
-            <span className="text-xs px-2 py-1 rounded-full bg-green-500 text-white flex items-center gap-1">
+            <span className="text-xs px-2 py-1 rounded-full bg-green-500 text-gray-900 flex items-center gap-1">
               <CheckCircle className="w-3 h-3" /> Answered
             </span>
           )}
@@ -89,14 +89,14 @@ function PrayerCard({ prayer, onPray, onTestimony, isPraying, currentUserId }) {
       </div>
 
       {/* Content */}
-      <p className="text-gray-700 dark:text-gray-300 mb-4 whitespace-pre-wrap">
+      <p className="text-gray-700 dark:text-gray-600 mb-4 whitespace-pre-wrap">
         {prayer.request}
       </p>
 
       {/* Scripture */}
       {prayer.scripture && (
         <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-3 mb-4 border-l-4 border-purple-500">
-          <p className="text-sm text-purple-700 dark:text-purple-300 italic">
+          <p className="text-sm text-purple-700 dark:text-purple-600 italic">
             "{prayer.scripture.text}"
           </p>
           <p className="text-xs text-purple-500 mt-1">— {prayer.scripture.reference}</p>
@@ -114,15 +114,15 @@ function PrayerCard({ prayer, onPray, onTestimony, isPraying, currentUserId }) {
       )}
 
       {/* Stats & Actions */}
-      <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
+      <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-200">
         <div className="flex items-center gap-4">
           <button
             onClick={() => onPray(prayer._id)}
             disabled={isPraying}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition ${
               hasPrayed
-                ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-purple-100 hover:text-purple-700'
+                ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-600'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-600 hover:bg-purple-100 hover:text-purple-700'
             }`}
           >
             {isPraying ? (
@@ -136,7 +136,7 @@ function PrayerCard({ prayer, onPray, onTestimony, isPraying, currentUserId }) {
 
           <button
             onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-100"
           >
             <MessageSquare className="w-4 h-4" />
             <span className="text-sm">{prayer.comments?.length || 0}</span>
@@ -153,15 +153,15 @@ function PrayerCard({ prayer, onPray, onTestimony, isPraying, currentUserId }) {
               Add Testimony
             </button>
           )}
-          <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-            <Share2 className="w-4 h-4 text-gray-400" />
+          <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-100">
+            <Share2 className="w-4 h-4 text-gray-500" />
           </button>
         </div>
       </div>
 
       {/* Comments Section */}
       {showComments && prayer.comments?.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 space-y-3">
+        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-200 space-y-3">
           {prayer.comments.slice(0, 5).map((comment, i) => (
             <div key={i} className="flex gap-3">
               <img
@@ -169,11 +169,11 @@ function PrayerCard({ prayer, onPray, onTestimony, isPraying, currentUserId }) {
                 alt=""
                 className="w-8 h-8 rounded-full"
               />
-              <div className="flex-1 bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
+              <div className="flex-1 bg-gray-50 dark:bg-gray-100 rounded-xl p-3">
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-900">
                   {comment.user?.name || 'Anonymous'}
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{comment.text}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-500">{comment.text}</p>
               </div>
             </div>
           ))}
@@ -201,21 +201,21 @@ function CreatePrayerModal({ isOpen, onClose, onCreate, loading }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg shadow-xl">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+    <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-white rounded-2xl w-full max-w-lg shadow-xl">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900 flex items-center gap-2">
             <Heart className="w-5 h-5 text-purple-500" />
             Submit Prayer Request
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
               Prayer Request *
             </label>
             <textarea
@@ -223,13 +223,13 @@ function CreatePrayerModal({ isOpen, onClose, onCreate, loading }) {
               onChange={(e) => setForm(f => ({ ...f, request: e.target.value }))}
               required
               rows={4}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 resize-none"
               placeholder="Share your prayer request..."
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
               Category
             </label>
             <div className="grid grid-cols-5 gap-2">
@@ -241,25 +241,25 @@ function CreatePrayerModal({ isOpen, onClose, onCreate, loading }) {
                   className={`p-2 rounded-xl border-2 text-center transition ${
                     form.category === key
                       ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                      : 'border-gray-200 dark:border-gray-600 hover:border-purple-300'
+                      : 'border-gray-200 dark:border-gray-300 hover:border-purple-300'
                   }`}
                 >
                   <span className="text-xl">{config.icon}</span>
-                  <p className="text-xs mt-1 text-gray-600 dark:text-gray-400">{config.label}</p>
+                  <p className="text-xs mt-1 text-gray-600 dark:text-gray-500">{config.label}</p>
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Scripture (Optional)
             </label>
             <input
               type="text"
               value={form.scripture}
               onChange={(e) => setForm(f => ({ ...f, scripture: e.target.value }))}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700"
               placeholder="e.g., Philippians 4:6"
             />
           </div>
@@ -272,8 +272,8 @@ function CreatePrayerModal({ isOpen, onClose, onCreate, loading }) {
                 onChange={(e) => setForm(f => ({ ...f, isAnonymous: e.target.checked }))}
                 className="w-4 h-4 rounded border-gray-300 text-purple-600"
               />
-              <Lock className="w-4 h-4 text-gray-400" />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Post Anonymously</span>
+              <Lock className="w-4 h-4 text-gray-500" />
+              <span className="text-sm text-gray-700 dark:text-gray-600">Post Anonymously</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -283,7 +283,7 @@ function CreatePrayerModal({ isOpen, onClose, onCreate, loading }) {
                 className="w-4 h-4 rounded border-gray-300 text-purple-600"
               />
               <Flame className="w-4 h-4 text-red-400" />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Mark as Urgent</span>
+              <span className="text-sm text-gray-700 dark:text-gray-600">Mark as Urgent</span>
             </label>
           </div>
 
@@ -291,14 +291,14 @@ function CreatePrayerModal({ isOpen, onClose, onCreate, loading }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-100"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !form.request.trim()}
-              className="flex-1 py-3 rounded-xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 py-3 rounded-xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 text-gray-900 hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
               Submit Prayer
@@ -316,41 +316,41 @@ function TestimonyModal({ isOpen, onClose, prayer, onSubmit, loading }) {
   if (!isOpen || !prayer) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg shadow-xl">
-        <div className="p-6 text-center border-b border-gray-100 dark:border-gray-700">
+    <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-white rounded-2xl w-full max-w-lg shadow-xl">
+        <div className="p-6 text-center border-b border-gray-100 dark:border-gray-200">
           <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
             <Sparkles className="w-8 h-8 text-green-600" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Share Your Testimony!</h3>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-900">Share Your Testimony!</h3>
           <p className="text-gray-500 mt-1">God answered your prayer - share how!</p>
         </div>
 
         <div className="p-6">
-          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 mb-4">
+          <div className="bg-gray-50 dark:bg-gray-100 rounded-xl p-4 mb-4">
             <p className="text-sm text-gray-500 mb-1">Original Request:</p>
-            <p className="text-gray-700 dark:text-gray-300">{prayer.request}</p>
+            <p className="text-gray-700 dark:text-gray-600">{prayer.request}</p>
           </div>
 
           <textarea
             value={testimony}
             onChange={(e) => setTestimony(e.target.value)}
             rows={4}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 resize-none"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 resize-none"
             placeholder="Share how God answered your prayer..."
           />
 
           <div className="flex gap-3 mt-4">
             <button
               onClick={onClose}
-              className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-100"
             >
               Cancel
             </button>
             <button
               onClick={() => onSubmit(prayer._id, testimony)}
               disabled={loading || !testimony.trim()}
-              className="flex-1 py-3 rounded-xl font-semibold bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 py-3 rounded-xl font-semibold bg-green-600 text-gray-900 hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
               Share Testimony
@@ -475,15 +475,15 @@ export default function PrayerWall() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
       <Head>
         <title>Prayer Wall - CYBEV Church</title>
       </Head>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 text-white">
+      <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 text-gray-900">
         <div className="max-w-4xl mx-auto px-4 py-8">
-          <Link href="/church" className="inline-flex items-center gap-2 text-purple-200 hover:text-white mb-4">
+          <Link href="/church" className="inline-flex items-center gap-2 text-purple-200 hover:text-gray-900 mb-4">
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </Link>
@@ -531,8 +531,8 @@ export default function PrayerWall() {
                 onClick={() => setFilter(f.id)}
                 className={`px-4 py-2 rounded-xl font-medium transition ${
                   filter === f.id
-                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-600'
+                    : 'bg-white dark:bg-white text-gray-600 dark:text-gray-600 border border-gray-200 dark:border-gray-200'
                 }`}
               >
                 {f.label}
@@ -542,7 +542,7 @@ export default function PrayerWall() {
 
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 flex items-center gap-2 shadow-lg"
+            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-gray-900 rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 flex items-center gap-2 shadow-lg"
           >
             <Plus className="w-5 h-5" />
             Submit Prayer
@@ -556,7 +556,7 @@ export default function PrayerWall() {
             className={`px-3 py-1 rounded-full text-sm whitespace-nowrap ${
               !categoryFilter
                 ? 'bg-purple-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+                : 'bg-gray-100 dark:bg-white text-gray-600 dark:text-gray-600'
             }`}
           >
             All Categories
@@ -568,7 +568,7 @@ export default function PrayerWall() {
               className={`px-3 py-1 rounded-full text-sm whitespace-nowrap ${
                 categoryFilter === key
                   ? config.color
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+                  : 'bg-gray-100 dark:bg-white text-gray-600 dark:text-gray-600'
               }`}
             >
               {config.icon} {config.label}
@@ -584,9 +584,9 @@ export default function PrayerWall() {
             <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
           </div>
         ) : prayers.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-700">
-            <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <div className="bg-white dark:bg-white rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-200">
+            <Heart className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900 mb-2">
               No Prayer Requests Yet
             </h3>
             <p className="text-gray-500 mb-6">
@@ -594,7 +594,7 @@ export default function PrayerWall() {
             </p>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700"
+              className="px-6 py-3 bg-purple-600 text-gray-900 rounded-xl font-semibold hover:bg-purple-700"
             >
               Submit Prayer Request
             </button>

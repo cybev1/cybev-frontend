@@ -41,13 +41,13 @@ function GivingTypeCard({ type, selected, onSelect }) {
       className={`p-4 rounded-2xl border-2 text-left transition group ${
         selected
           ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-          : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
+          : 'border-gray-200 dark:border-gray-200 hover:border-purple-300'
       }`}
     >
       <div className="flex items-center gap-3">
         <span className="text-3xl">{type.icon}</span>
         <div>
-          <p className="font-semibold text-gray-900 dark:text-white">{type.label}</p>
+          <p className="font-semibold text-gray-900 dark:text-gray-900">{type.label}</p>
           <p className="text-sm text-gray-500">{type.description}</p>
         </div>
         {selected && <CheckCircle className="w-5 h-5 text-purple-500 ml-auto" />}
@@ -60,12 +60,12 @@ function TransactionCard({ transaction }) {
   const type = givingTypes.find(t => t.id === transaction.type) || givingTypes[1];
   
   return (
-    <div className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
-      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${type.color} flex items-center justify-center text-white text-xl`}>
+    <div className="flex items-center gap-4 p-4 bg-white dark:bg-white rounded-xl border border-gray-100 dark:border-gray-200">
+      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${type.color} flex items-center justify-center text-gray-900 text-xl`}>
         {type.icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-gray-900 dark:text-white">{type.label}</p>
+        <p className="font-medium text-gray-900 dark:text-gray-900">{type.label}</p>
         <p className="text-sm text-gray-500">
           {new Date(transaction.createdAt).toLocaleDateString('en-US', {
             month: 'short', day: 'numeric', year: 'numeric'
@@ -73,7 +73,7 @@ function TransactionCard({ transaction }) {
         </p>
       </div>
       <div className="text-right">
-        <p className="font-bold text-gray-900 dark:text-white">
+        <p className="font-bold text-gray-900 dark:text-gray-900">
           {transaction.currency} {transaction.amount.toLocaleString()}
         </p>
         <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -199,19 +199,19 @@ export default function GivingPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full text-center shadow-xl">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-xl">
           <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="w-10 h-10 text-green-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-900 mb-2">
             Thank You for Giving!
           </h2>
           <p className="text-gray-500 mb-6">
             Your {selectedType.label.toLowerCase()} of {form.currency} {parseFloat(form.amount).toLocaleString()} has been received.
           </p>
           <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4 mb-6">
-            <p className="text-purple-700 dark:text-purple-300 italic">
+            <p className="text-purple-700 dark:text-purple-600 italic">
               "Give, and it will be given to you. A good measure, pressed down, shaken together and running over."
             </p>
             <p className="text-sm text-purple-500 mt-1">— Luke 6:38</p>
@@ -219,12 +219,12 @@ export default function GivingPage() {
           <div className="flex gap-3">
             <button
               onClick={() => { setSuccess(false); setStep(1); setForm(f => ({ ...f, amount: '' })); }}
-              className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-600"
+              className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-300"
             >
               Give Again
             </button>
             <Link href="/church" className="flex-1">
-              <button className="w-full py-3 rounded-xl font-semibold bg-purple-600 text-white">
+              <button className="w-full py-3 rounded-xl font-semibold bg-purple-600 text-gray-900">
                 Back to Dashboard
               </button>
             </Link>
@@ -235,15 +235,15 @@ export default function GivingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
       <Head>
         <title>Giving - CYBEV Church</title>
       </Head>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+      <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-gray-900">
         <div className="max-w-5xl mx-auto px-4 py-8">
-          <Link href="/church" className="inline-flex items-center gap-2 text-green-200 hover:text-white mb-4">
+          <Link href="/church" className="inline-flex items-center gap-2 text-green-200 hover:text-gray-900 mb-4">
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </Link>
@@ -289,8 +289,8 @@ export default function GivingPage() {
           <div className="lg:col-span-2">
             {/* Step 1: Type */}
             {step === 1 && (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-900 mb-6">
                   1. Select Giving Type
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-4">
@@ -305,7 +305,7 @@ export default function GivingPage() {
                 </div>
                 <button
                   onClick={() => setStep(2)}
-                  className="w-full mt-6 py-4 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 flex items-center justify-center gap-2"
+                  className="w-full mt-6 py-4 bg-purple-600 text-gray-900 rounded-xl font-semibold hover:bg-purple-700 flex items-center justify-center gap-2"
                 >
                   Continue <ChevronRight className="w-5 h-5" />
                 </button>
@@ -314,26 +314,26 @@ export default function GivingPage() {
 
             {/* Step 2: Amount */}
             {step === 2 && (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-900 mb-6">
                   2. Enter Amount
                 </h2>
 
                 {/* Selected Type Badge */}
-                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${selectedType.color} text-white mb-6`}>
+                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${selectedType.color} text-gray-900 mb-6`}>
                   <span>{selectedType.icon}</span>
                   <span className="font-medium">{selectedType.label}</span>
                 </div>
 
                 {/* Organization */}
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                     Church / Organization
                   </label>
                   <select
                     value={form.organizationId}
                     onChange={(e) => setForm(f => ({ ...f, organizationId: e.target.value }))}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700"
                   >
                     {myOrgs.map(org => (
                       <option key={org._id} value={org._id}>{org.name}</option>
@@ -343,14 +343,14 @@ export default function GivingPage() {
 
                 {/* Amount Input */}
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                     Amount
                   </label>
                   <div className="relative">
                     <select
                       value={form.currency}
                       onChange={(e) => setForm(f => ({ ...f, currency: e.target.value }))}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 bg-transparent font-semibold text-gray-700 dark:text-gray-300"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 bg-transparent font-semibold text-gray-700 dark:text-gray-600"
                     >
                       <option value="GHS">GHS</option>
                       <option value="USD">USD</option>
@@ -361,7 +361,7 @@ export default function GivingPage() {
                       type="number"
                       value={form.amount}
                       onChange={(e) => setForm(f => ({ ...f, amount: e.target.value }))}
-                      className="w-full pl-20 pr-4 py-4 text-2xl font-bold rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 focus:border-purple-500"
+                      className="w-full pl-20 pr-4 py-4 text-2xl font-bold rounded-xl border-2 border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 focus:border-purple-500"
                       placeholder="0.00"
                     />
                   </div>
@@ -376,7 +376,7 @@ export default function GivingPage() {
                       className={`py-2 rounded-lg font-medium transition ${
                         form.amount === amt.toString()
                           ? 'bg-purple-600 text-white'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-purple-100'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-600 hover:bg-purple-100'
                       }`}
                     >
                       {amt}
@@ -385,7 +385,7 @@ export default function GivingPage() {
                 </div>
 
                 {/* Recurring */}
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 mb-6">
+                <div className="bg-gray-50 dark:bg-gray-100 rounded-xl p-4 mb-6">
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
                       type="checkbox"
@@ -395,7 +395,7 @@ export default function GivingPage() {
                     />
                     <Repeat className="w-5 h-5 text-purple-500" />
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">Make this recurring</p>
+                      <p className="font-medium text-gray-900 dark:text-gray-900">Make this recurring</p>
                       <p className="text-sm text-gray-500">Automatically give each month</p>
                     </div>
                   </label>
@@ -403,7 +403,7 @@ export default function GivingPage() {
                     <select
                       value={form.frequency}
                       onChange={(e) => setForm(f => ({ ...f, frequency: e.target.value }))}
-                      className="mt-3 w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
+                      className="mt-3 w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700"
                     >
                       <option value="weekly">Weekly</option>
                       <option value="monthly">Monthly</option>
@@ -414,14 +414,14 @@ export default function GivingPage() {
 
                 {/* Note */}
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                     Note (Optional)
                   </label>
                   <input
                     type="text"
                     value={form.note}
                     onChange={(e) => setForm(f => ({ ...f, note: e.target.value }))}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700"
                     placeholder="Add a note..."
                   />
                 </div>
@@ -429,14 +429,14 @@ export default function GivingPage() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => setStep(1)}
-                    className="px-6 py-4 border border-gray-200 dark:border-gray-600 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="px-6 py-4 border border-gray-200 dark:border-gray-300 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-100"
                   >
                     Back
                   </button>
                   <button
                     onClick={() => setStep(3)}
                     disabled={!form.amount || parseFloat(form.amount) <= 0}
-                    className="flex-1 py-4 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex-1 py-4 bg-purple-600 text-gray-900 rounded-xl font-semibold hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     Continue <ChevronRight className="w-5 h-5" />
                   </button>
@@ -446,8 +446,8 @@ export default function GivingPage() {
 
             {/* Step 3: Payment Method */}
             {step === 3 && (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-900 mb-6">
                   3. Payment Method
                 </h2>
 
@@ -461,18 +461,18 @@ export default function GivingPage() {
                         className={`p-4 rounded-xl border-2 text-left transition flex items-center gap-3 ${
                           form.paymentMethod === method.id
                             ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                            : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
+                            : 'border-gray-200 dark:border-gray-200 hover:border-purple-300'
                         }`}
                       >
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                           form.paymentMethod === method.id
                             ? 'bg-purple-500 text-white'
-                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-500'
                         }`}>
                           <Icon className="w-6 h-6" />
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900 dark:text-white">{method.label}</p>
+                          <p className="font-semibold text-gray-900 dark:text-gray-900">{method.label}</p>
                           <p className="text-sm text-gray-500">{method.description}</p>
                         </div>
                         {form.paymentMethod === method.id && (
@@ -484,7 +484,7 @@ export default function GivingPage() {
                 </div>
 
                 {/* Anonymous Option */}
-                <label className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl cursor-pointer mb-6">
+                <label className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-100 rounded-xl cursor-pointer mb-6">
                   <input
                     type="checkbox"
                     checked={form.isAnonymous}
@@ -492,14 +492,14 @@ export default function GivingPage() {
                     className="w-5 h-5 rounded border-gray-300 text-purple-600"
                   />
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">Give Anonymously</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-900">Give Anonymously</p>
                     <p className="text-sm text-gray-500">Your name won't be displayed</p>
                   </div>
                 </label>
 
                 {/* Summary */}
                 <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl p-4 mb-6">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Summary</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-3">Summary</h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-500">Type</span>
@@ -516,7 +516,7 @@ export default function GivingPage() {
                       </div>
                     )}
                     <div className="flex justify-between pt-2 border-t border-purple-200 dark:border-purple-700">
-                      <span className="font-semibold text-gray-900 dark:text-white">Total</span>
+                      <span className="font-semibold text-gray-900 dark:text-gray-900">Total</span>
                       <span className="font-bold text-purple-600 text-lg">
                         {form.currency} {parseFloat(form.amount || 0).toLocaleString()}
                       </span>
@@ -527,14 +527,14 @@ export default function GivingPage() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => setStep(2)}
-                    className="px-6 py-4 border border-gray-200 dark:border-gray-600 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="px-6 py-4 border border-gray-200 dark:border-gray-300 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-100"
                   >
                     Back
                   </button>
                   <button
                     onClick={handleSubmit}
                     disabled={processing}
-                    className="flex-1 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex-1 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-gray-900 rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {processing ? (
                       <>
@@ -556,7 +556,7 @@ export default function GivingPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Scripture */}
-            <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-6 text-white">
+            <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-6 text-gray-900">
               <Star className="w-8 h-8 mb-3 opacity-80" />
               <p className="italic mb-2">
                 "Bring the whole tithe into the storehouse, that there may be food in my house. Test me in this," says the LORD Almighty, "and see if I will not throw open the floodgates of heaven and pour out so much blessing that there will not be room enough to store it."
@@ -565,8 +565,8 @@ export default function GivingPage() {
             </div>
 
             {/* Recent Transactions */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center justify-between">
+            <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center justify-between">
                 Recent Giving
                 <Link href="/church/giving/history">
                   <span className="text-sm text-purple-600 font-normal">View All</span>
@@ -588,12 +588,12 @@ export default function GivingPage() {
             </div>
 
             {/* Secure Badge */}
-            <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 flex items-center gap-3">
+            <div className="bg-gray-100 dark:bg-white rounded-xl p-4 flex items-center gap-3">
               <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
                 <CheckCircle className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="font-medium text-gray-900 dark:text-white text-sm">Secure Giving</p>
+                <p className="font-medium text-gray-900 dark:text-gray-900 text-sm">Secure Giving</p>
                 <p className="text-xs text-gray-500">256-bit SSL encryption</p>
               </div>
             </div>

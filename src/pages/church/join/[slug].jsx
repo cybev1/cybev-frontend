@@ -143,14 +143,14 @@ export default function JoinOrganizationPage() {
   if (error && !org) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full text-center shadow-xl">
+        <div className="bg-white dark:bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-xl">
           <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-900 mb-2">
             Organization Not Found
           </h2>
           <p className="text-gray-500 mb-6">{error}</p>
           <Link href="/church">
-            <button className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium transition">
+            <button className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-gray-900 rounded-xl font-medium transition">
               Browse Organizations
             </button>
           </Link>
@@ -169,9 +169,9 @@ export default function JoinOrganizationPage() {
         <meta name="description" content={`Join ${org?.name} on CYBEV`} />
       </Head>
 
-      <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden">
+      <div className="bg-white dark:bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden">
         {/* Header with gradient */}
-        <div className={`bg-gradient-to-r ${config.color} p-8 text-white text-center`}>
+        <div className={`bg-gradient-to-r ${config.color} p-8 text-gray-900 text-center`}>
           <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
             {org?.logo ? (
               <img src={org.logo} alt={org.name} className="w-14 h-14 object-contain rounded-xl" />
@@ -192,18 +192,18 @@ export default function JoinOrganizationPage() {
         <div className="p-8">
           {/* Description */}
           {org?.description && (
-            <p className="text-gray-600 dark:text-gray-400 text-center mb-6">
+            <p className="text-gray-600 dark:text-gray-500 text-center mb-6">
               {org.description}
             </p>
           )}
 
           {/* Stats */}
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+            <div className="text-center p-4 bg-gray-50 dark:bg-gray-100 rounded-xl">
               <p className="text-2xl font-bold text-purple-600">{org?.memberCount || 0}</p>
               <p className="text-sm text-gray-500">Members</p>
             </div>
-            <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+            <div className="text-center p-4 bg-gray-50 dark:bg-gray-100 rounded-xl">
               <p className="text-2xl font-bold text-green-600">{org?.stats?.totalSouls || 0}</p>
               <p className="text-sm text-gray-500">Souls Won</p>
             </div>
@@ -213,20 +213,20 @@ export default function JoinOrganizationPage() {
           {(org?.contact?.address || org?.contact?.email || org?.contact?.phone) && (
             <div className="mb-6 space-y-2">
               {org.contact.address && (
-                <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
-                  <MapPin className="w-4 h-4 text-gray-400" />
+                <div className="flex items-center gap-3 text-gray-600 dark:text-gray-500 text-sm">
+                  <MapPin className="w-4 h-4 text-gray-500" />
                   <span>{org.contact.address}{org.contact.city && `, ${org.contact.city}`}</span>
                 </div>
               )}
               {org.contact.email && (
-                <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
-                  <Mail className="w-4 h-4 text-gray-400" />
+                <div className="flex items-center gap-3 text-gray-600 dark:text-gray-500 text-sm">
+                  <Mail className="w-4 h-4 text-gray-500" />
                   <span>{org.contact.email}</span>
                 </div>
               )}
               {org.contact.phone && (
-                <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
-                  <Phone className="w-4 h-4 text-gray-400" />
+                <div className="flex items-center gap-3 text-gray-600 dark:text-gray-500 text-sm">
+                  <Phone className="w-4 h-4 text-gray-500" />
                   <span>{org.contact.phone}</span>
                 </div>
               )}
@@ -236,15 +236,15 @@ export default function JoinOrganizationPage() {
           {/* Meeting Schedule */}
           {org?.meetingSchedule?.length > 0 && (
             <div className="mb-6">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Meeting Schedule:</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">Meeting Schedule:</p>
               <div className="space-y-1">
                 {org.meetingSchedule.slice(0, 2).map((schedule, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <Calendar className="w-4 h-4 text-gray-400" />
+                  <div key={i} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-500">
+                    <Calendar className="w-4 h-4 text-gray-500" />
                     <span className="capitalize">{schedule.day}</span>
                     <span>at</span>
                     <span>{schedule.time}</span>
-                    {schedule.title && <span className="text-gray-400">- {schedule.title}</span>}
+                    {schedule.title && <span className="text-gray-500">- {schedule.title}</span>}
                   </div>
                 ))}
               </div>
@@ -277,7 +277,7 @@ export default function JoinOrganizationPage() {
                     <p className="font-medium">You're already a member!</p>
                   </div>
                   <Link href={`/church/org/${org._id}`}>
-                    <button className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition">
+                    <button className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-gray-900 rounded-xl font-medium flex items-center justify-center gap-2 transition">
                       View Organization
                       <ArrowRight className="w-5 h-5" />
                     </button>
@@ -293,7 +293,7 @@ export default function JoinOrganizationPage() {
                   <button
                     onClick={handleJoin}
                     disabled={joining}
-                    className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-50 transition"
+                    className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-gray-900 rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-50 transition"
                   >
                     {joining ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -319,8 +319,8 @@ export default function JoinOrganizationPage() {
           )}
 
           {/* Powered by */}
-          <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700 text-center">
-            <p className="text-xs text-gray-400">
+          <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-200 text-center">
+            <p className="text-xs text-gray-500">
               Powered by{' '}
               <Link href="/">
                 <span className="text-purple-600 hover:underline cursor-pointer">CYBEV</span>

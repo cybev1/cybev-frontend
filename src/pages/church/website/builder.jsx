@@ -184,23 +184,23 @@ export default function ChurchWebsiteBuilder() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
       <Head>
         <title>Website Builder - {org?.name || 'Church'}</title>
       </Head>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <header className="sticky top-0 z-50 bg-white dark:bg-white border-b border-gray-200 dark:border-gray-200">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-4">
             <Link
               href={`/church/org/${orgId}`}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-100 rounded-lg"
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
-              <h1 className="font-semibold text-gray-900 dark:text-white">{org?.name} Website</h1>
+              <h1 className="font-semibold text-gray-900 dark:text-gray-900">{org?.name} Website</h1>
               <p className="text-sm text-gray-500">
                 {website.published ? (
                   <span className="text-green-600 flex items-center gap-1">
@@ -224,7 +224,7 @@ export default function ChurchWebsiteBuilder() {
             <button
               onClick={saveWebsite}
               disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700 disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               {saving ? 'Saving...' : 'Save'}
@@ -233,7 +233,7 @@ export default function ChurchWebsiteBuilder() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 px-4 border-t border-gray-100 dark:border-gray-700">
+        <div className="flex gap-1 px-4 border-t border-gray-100 dark:border-gray-200">
           {[
             { id: 'blocks', label: 'Content', icon: Layout },
             { id: 'theme', label: 'Theme', icon: Palette },
@@ -258,7 +258,7 @@ export default function ChurchWebsiteBuilder() {
       <div className="flex">
         {/* Left Sidebar - Block Types */}
         {activeTab === 'blocks' && (
-          <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 h-[calc(100vh-120px)] overflow-y-auto">
+          <aside className="w-64 bg-white dark:bg-white border-r border-gray-200 dark:border-gray-200 p-4 h-[calc(100vh-120px)] overflow-y-auto">
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
               Add Sections
             </h3>
@@ -267,13 +267,13 @@ export default function ChurchWebsiteBuilder() {
                 <button
                   key={block.type}
                   onClick={() => addBlock(block.type)}
-                  className="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                  className="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-gray-50 dark:hover:bg-gray-100 transition"
                 >
                   <div className="p-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
                     <block.icon className="w-4 h-4 text-purple-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{block.label}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-900">{block.label}</p>
                     <p className="text-xs text-gray-500">{block.description}</p>
                   </div>
                 </button>
@@ -287,8 +287,8 @@ export default function ChurchWebsiteBuilder() {
           {activeTab === 'blocks' && (
             <div className="max-w-3xl mx-auto">
               {website.blocks.length === 0 ? (
-                <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-200">
-                  <Plus className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <div className="text-center py-16 bg-white dark:bg-white rounded-xl border-2 border-dashed border-gray-200">
+                  <Plus className="w-12 h-12 text-gray-600 mx-auto mb-4" />
                   <p className="text-gray-500">Add sections from the sidebar to build your website</p>
                 </div>
               ) : (
@@ -297,16 +297,16 @@ export default function ChurchWebsiteBuilder() {
                     <div
                       key={block.id}
                       onClick={() => setSelectedBlock(block.id)}
-                      className={`bg-white dark:bg-gray-800 rounded-xl border-2 p-4 cursor-pointer transition ${
+                      className={`bg-white dark:bg-white rounded-xl border-2 p-4 cursor-pointer transition ${
                         selectedBlock === block.id
                           ? 'border-purple-500 ring-2 ring-purple-100'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
+                          : 'border-gray-200 dark:border-gray-200 hover:border-purple-300'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                          <GripVertical className="w-5 h-5 text-gray-400 cursor-grab" />
-                          <span className="font-medium text-gray-900 dark:text-white">
+                          <GripVertical className="w-5 h-5 text-gray-500 cursor-grab" />
+                          <span className="font-medium text-gray-900 dark:text-gray-900">
                             {BLOCK_TYPES.find(b => b.type === block.type)?.label || block.type}
                           </span>
                         </div>
@@ -314,7 +314,7 @@ export default function ChurchWebsiteBuilder() {
                           {index > 0 && (
                             <button
                               onClick={(e) => { e.stopPropagation(); moveBlock(index, index - 1); }}
-                              className="p-1 text-gray-400 hover:text-gray-600"
+                              className="p-1 text-gray-500 hover:text-gray-600"
                             >
                               <ChevronUp className="w-4 h-4" />
                             </button>
@@ -322,14 +322,14 @@ export default function ChurchWebsiteBuilder() {
                           {index < website.blocks.length - 1 && (
                             <button
                               onClick={(e) => { e.stopPropagation(); moveBlock(index, index + 1); }}
-                              className="p-1 text-gray-400 hover:text-gray-600"
+                              className="p-1 text-gray-500 hover:text-gray-600"
                             >
                               <ChevronDown className="w-4 h-4" />
                             </button>
                           )}
                           <button
                             onClick={(e) => { e.stopPropagation(); removeBlock(block.id); }}
-                            className="p-1 text-gray-400 hover:text-red-500"
+                            className="p-1 text-gray-500 hover:text-red-500"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -360,10 +360,10 @@ export default function ChurchWebsiteBuilder() {
 
         {/* Right Sidebar - Block Editor */}
         {activeTab === 'blocks' && selectedBlockData && (
-          <aside className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 p-4 h-[calc(100vh-120px)] overflow-y-auto">
+          <aside className="w-80 bg-white dark:bg-white border-l border-gray-200 dark:border-gray-200 p-4 h-[calc(100vh-120px)] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900 dark:text-white">Edit Section</h3>
-              <button onClick={() => setSelectedBlock(null)} className="p-1 text-gray-400 hover:text-gray-600">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-900">Edit Section</h3>
+              <button onClick={() => setSelectedBlock(null)} className="p-1 text-gray-500 hover:text-gray-600">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -479,7 +479,7 @@ function BlockPreview({ block, theme }) {
     case 'hero':
       return (
         <div
-          className="h-32 rounded-lg flex items-center justify-center text-white"
+          className="h-32 rounded-lg flex items-center justify-center text-gray-900"
           style={{
             background: content.backgroundImage
               ? `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${content.backgroundImage})`
@@ -506,7 +506,7 @@ function BlockPreview({ block, theme }) {
     case 'livestream':
       return (
         <div className="h-24 bg-gray-100 rounded-lg flex items-center justify-center">
-          <Play className="w-8 h-8 text-gray-400" />
+          <Play className="w-8 h-8 text-gray-500" />
         </div>
       );
     default:
@@ -531,7 +531,7 @@ function BlockEditor({ block, onUpdate, org }) {
       {/* Common title field */}
       {content.title !== undefined && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
             Title
           </label>
           <input
@@ -547,7 +547,7 @@ function BlockEditor({ block, onUpdate, org }) {
       {type === 'hero' && (
         <>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Subtitle
             </label>
             <input
@@ -558,7 +558,7 @@ function BlockEditor({ block, onUpdate, org }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Background Image URL
             </label>
             <input
@@ -570,7 +570,7 @@ function BlockEditor({ block, onUpdate, org }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Button Text
             </label>
             <input
@@ -585,7 +585,7 @@ function BlockEditor({ block, onUpdate, org }) {
 
       {type === 'about' && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
             Description
           </label>
           <textarea
@@ -599,7 +599,7 @@ function BlockEditor({ block, onUpdate, org }) {
 
       {type === 'services' && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
             Service Times
           </label>
           <div className="space-y-3">
@@ -668,7 +668,7 @@ function BlockEditor({ block, onUpdate, org }) {
 
       {type === 'livestream' && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
             Embed URL
           </label>
           <input
@@ -684,7 +684,7 @@ function BlockEditor({ block, onUpdate, org }) {
       {type === 'giving' && (
         <>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Description
             </label>
             <textarea
@@ -695,7 +695,7 @@ function BlockEditor({ block, onUpdate, org }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Button Text
             </label>
             <input
@@ -711,7 +711,7 @@ function BlockEditor({ block, onUpdate, org }) {
       {(type === 'cta') && (
         <>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Description
             </label>
             <textarea
@@ -722,7 +722,7 @@ function BlockEditor({ block, onUpdate, org }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Button Text
             </label>
             <input
@@ -733,7 +733,7 @@ function BlockEditor({ block, onUpdate, org }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Button Link
             </label>
             <input
@@ -760,12 +760,12 @@ function ThemePanel({ theme, onChange }) {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Colors</h3>
+      <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Colors</h3>
         
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
               Primary Color
             </label>
             <div className="flex flex-wrap gap-2">
@@ -783,7 +783,7 @@ function ThemePanel({ theme, onChange }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
               Secondary Color
             </label>
             <div className="flex flex-wrap gap-2">
@@ -802,11 +802,11 @@ function ThemePanel({ theme, onChange }) {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Typography</h3>
+      <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Typography</h3>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
             Font Family
           </label>
           <select
@@ -831,12 +831,12 @@ function ThemePanel({ theme, onChange }) {
 function SEOPanel({ seo, onChange }) {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Search Engine Optimization</h3>
+      <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Search Engine Optimization</h3>
         
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Page Title
             </label>
             <input
@@ -850,7 +850,7 @@ function SEOPanel({ seo, onChange }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Meta Description
             </label>
             <textarea
@@ -864,7 +864,7 @@ function SEOPanel({ seo, onChange }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Social Share Image (OG Image)
             </label>
             <input
@@ -880,8 +880,8 @@ function SEOPanel({ seo, onChange }) {
       </div>
 
       {/* Preview */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Search Preview</h3>
+      <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Search Preview</h3>
         
         <div className="p-4 bg-gray-50 rounded-lg">
           <p className="text-blue-600 text-lg hover:underline cursor-pointer">
@@ -904,7 +904,7 @@ function WebsitePreview({ website, org, onClose }) {
   const secondary = theme?.secondaryColor || '#ec4899';
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 overflow-auto">
+    <div className="fixed inset-0 bg-gray-900/80 z-50 overflow-auto">
       <div className="sticky top-0 bg-white border-b px-4 py-3 flex items-center justify-between z-10">
         <div className="flex items-center gap-4">
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
@@ -927,8 +927,8 @@ function WebsitePreview({ website, org, onClose }) {
         )}
 
         {/* Footer */}
-        <footer className="bg-gray-900 text-white py-8 text-center">
-          <p className="text-gray-400">
+        <footer className="bg-gray-50 text-gray-900 py-8 text-center">
+          <p className="text-gray-500">
             Powered by <a href="https://cybev.io" className="hover:underline" style={{ color: primary }}>CYBEV</a>
           </p>
         </footer>
@@ -947,7 +947,7 @@ function PreviewBlock({ block, theme, org }) {
     case 'hero':
       return (
         <section
-          className="min-h-[70vh] flex items-center justify-center text-white"
+          className="min-h-[70vh] flex items-center justify-center text-gray-900"
           style={{
             background: content.backgroundImage
               ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${content.backgroundImage})`
@@ -1002,7 +1002,7 @@ function PreviewBlock({ block, theme, org }) {
         <section className="py-20 px-6">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl font-bold text-center mb-8">{content.title}</h2>
-            <div className="aspect-video bg-gray-900 rounded-xl flex items-center justify-center">
+            <div className="aspect-video bg-gray-50 rounded-xl flex items-center justify-center">
               {content.embedUrl ? (
                 <iframe
                   src={content.embedUrl}
@@ -1010,7 +1010,7 @@ function PreviewBlock({ block, theme, org }) {
                   allowFullScreen
                 />
               ) : (
-                <div className="text-white text-center">
+                <div className="text-gray-900 text-center">
                   <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
                   <p className="opacity-50">Live stream will appear here</p>
                 </div>
@@ -1024,7 +1024,7 @@ function PreviewBlock({ block, theme, org }) {
     case 'cta':
       return (
         <section
-          className="py-20 px-6 text-white"
+          className="py-20 px-6 text-gray-900"
           style={{ background: `linear-gradient(135deg, ${primary}, ${secondary})` }}
         >
           <div className="max-w-4xl mx-auto text-center">
@@ -1041,7 +1041,7 @@ function PreviewBlock({ block, theme, org }) {
 
     case 'contact':
       return (
-        <section className="py-20 px-6 bg-gray-900 text-white">
+        <section className="py-20 px-6 bg-gray-50 text-gray-900">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl font-bold text-center mb-12">{content.title}</h2>
             <div className="grid md:grid-cols-3 gap-8 text-center">

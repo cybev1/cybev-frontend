@@ -312,18 +312,18 @@ export default function CellTrainingPage() {
         <div className="flex items-center gap-4 mb-8">
           <Link
             href={`/church/cells/dashboard?orgId=${orgId}`}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-white rounded-lg"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Cell Leader Training</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900">Cell Leader Training</h1>
             <p className="text-gray-500">Comprehensive curriculum for cell leadership development</p>
           </div>
         </div>
 
         {/* Overall Progress */}
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-6 text-white mb-8">
+        <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-6 text-gray-900 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-semibold">Your Progress</h2>
@@ -353,7 +353,7 @@ export default function CellTrainingPage() {
                 <button
                   key={module.id}
                   onClick={() => setSelectedModule(module)}
-                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 text-left hover:shadow-lg transition group"
+                  className="bg-white dark:bg-white rounded-xl border border-gray-200 dark:border-gray-200 p-6 text-left hover:shadow-lg transition group"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div
@@ -369,7 +369,7 @@ export default function CellTrainingPage() {
                     )}
                   </div>
 
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-1">
                     Module {index + 1}: {module.title}
                   </h3>
                   <p className="text-sm text-gray-500 mb-4">{module.description}</p>
@@ -397,11 +397,11 @@ export default function CellTrainingPage() {
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-200 flex items-center justify-between">
                     <span className="text-sm font-medium" style={{ color: module.color }}>
                       {moduleProgress === 0 ? 'Start Learning' : moduleProgress === 100 ? 'Review' : 'Continue'}
                     </span>
-                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+                    <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-gray-600" />
                   </div>
                 </button>
               );
@@ -418,12 +418,12 @@ export default function CellTrainingPage() {
               Back to Modules
             </button>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="bg-white dark:bg-white rounded-xl border border-gray-200 dark:border-gray-200 overflow-hidden">
               <div
                 className="p-6"
                 style={{ background: `linear-gradient(135deg, ${selectedModule.color}, ${selectedModule.color}88)` }}
               >
-                <div className="flex items-center gap-4 text-white">
+                <div className="flex items-center gap-4 text-gray-900">
                   <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center">
                     <selectedModule.icon className="w-8 h-8" />
                   </div>
@@ -434,7 +434,7 @@ export default function CellTrainingPage() {
                 </div>
               </div>
 
-              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+              <div className="divide-y divide-gray-200 dark:divide-gray-200">
                 {selectedModule.lessons.map((lesson, index) => {
                   const isComplete = progress[`${selectedModule.id}-${lesson.id}`];
 
@@ -442,7 +442,7 @@ export default function CellTrainingPage() {
                     <button
                       key={lesson.id}
                       onClick={() => setSelectedLesson(lesson)}
-                      className="w-full p-5 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-gray-700 text-left transition"
+                      className="w-full p-5 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-gray-100 text-left transition"
                     >
                       <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
@@ -452,10 +452,10 @@ export default function CellTrainingPage() {
                         {isComplete ? <CheckCircle className="w-5 h-5" /> : index + 1}
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-medium text-gray-900 dark:text-white">{lesson.title}</h4>
+                        <h4 className="font-medium text-gray-900 dark:text-gray-900">{lesson.title}</h4>
                         <p className="text-sm text-gray-500">{lesson.description}</p>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                      <ChevronRight className="w-5 h-5 text-gray-500" />
                     </button>
                   );
                 })}
@@ -473,7 +473,7 @@ export default function CellTrainingPage() {
               Back to {selectedModule.title}
             </button>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="bg-white dark:bg-white rounded-xl border border-gray-200 dark:border-gray-200 overflow-hidden">
               <div
                 className="p-6"
                 style={{ backgroundColor: `${selectedModule.color}15` }}
@@ -481,10 +481,10 @@ export default function CellTrainingPage() {
                 <p className="text-sm font-medium mb-2" style={{ color: selectedModule.color }}>
                   {selectedModule.title}
                 </p>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-900">
                   {selectedLesson.title}
                 </h2>
-                <p className="text-gray-600 dark:text-gray-400 mt-2">
+                <p className="text-gray-600 dark:text-gray-500 mt-2">
                   {selectedLesson.description}
                 </p>
               </div>
@@ -493,7 +493,7 @@ export default function CellTrainingPage() {
                 {/* Key Points */}
                 {selectedLesson.keyPoints && (
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
                       <Target className="w-5 h-5" style={{ color: selectedModule.color }} />
                       Key Points
                     </h3>
@@ -501,12 +501,12 @@ export default function CellTrainingPage() {
                       {selectedLesson.keyPoints.map((point, index) => (
                         <li key={index} className="flex items-start gap-3">
                           <div
-                            className="w-6 h-6 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0 mt-0.5"
+                            className="w-6 h-6 rounded-full flex items-center justify-center text-gray-900 text-sm font-medium flex-shrink-0 mt-0.5"
                             style={{ backgroundColor: selectedModule.color }}
                           >
                             {index + 1}
                           </div>
-                          <p className="text-gray-700 dark:text-gray-300">{point}</p>
+                          <p className="text-gray-700 dark:text-gray-600">{point}</p>
                         </li>
                       ))}
                     </ul>
@@ -527,7 +527,7 @@ export default function CellTrainingPage() {
                 )}
 
                 {/* Mark Complete Button */}
-                <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+                <div className="pt-6 border-t border-gray-200 dark:border-gray-200">
                   {progress[`${selectedModule.id}-${selectedLesson.id}`] ? (
                     <div className="flex items-center gap-2 text-green-600">
                       <CheckCircle className="w-5 h-5" />
@@ -536,7 +536,7 @@ export default function CellTrainingPage() {
                   ) : (
                     <button
                       onClick={() => markComplete(selectedModule.id, selectedLesson.id)}
-                      className="flex items-center gap-2 px-6 py-3 text-white rounded-lg font-medium"
+                      className="flex items-center gap-2 px-6 py-3 text-gray-900 rounded-lg font-medium"
                       style={{ backgroundColor: selectedModule.color }}
                     >
                       <CheckCircle className="w-5 h-5" />
@@ -574,7 +574,7 @@ export default function CellTrainingPage() {
 
         {/* Certificate Section */}
         {totalProgress() === 100 && !selectedModule && (
-          <div className="mt-8 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl p-8 text-white text-center">
+          <div className="mt-8 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl p-8 text-gray-900 text-center">
             <Award className="w-16 h-16 mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-2">Congratulations! 🎉</h2>
             <p className="text-white/90 mb-6">

@@ -578,19 +578,19 @@ export default function GoLivePage() {
       return <span className="flex items-center gap-1.5 px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-full"><Loader2 className="w-3 h-3 animate-spin" />Connecting</span>;
     if (webrtcState === WEBRTC_STATES.ERROR) 
       return <span className="flex items-center gap-1.5 px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-full"><AlertCircle className="w-3 h-3" />Error</span>;
-    return <span className="flex items-center gap-1.5 px-2 py-1 bg-gray-500/20 text-gray-400 text-xs rounded-full"><span className="w-1.5 h-1.5 bg-gray-400 rounded-full"></span>Not connected</span>;
+    return <span className="flex items-center gap-1.5 px-2 py-1 bg-gray-500/20 text-gray-500 text-xs rounded-full"><span className="w-1.5 h-1.5 bg-gray-400 rounded-full"></span>Not connected</span>;
   };
 
   return (
     <>
       <Head><title>{isLive ? '🔴 LIVE' : 'Go Live'} | CYBEV</title></Head>
       
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-black text-white">
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-black text-gray-900">
         {/* Header */}
-        <header className="sticky top-0 z-50 bg-gray-900/95 backdrop-blur-md border-b border-gray-800">
+        <header className="sticky top-0 z-50 bg-white shadow-sm-md border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <button onClick={() => !isLive && router.back()} disabled={isLive} className="p-2 hover:bg-gray-800 rounded-lg disabled:opacity-50">
+              <button onClick={() => !isLive && router.back()} disabled={isLive} className="p-2 hover:bg-white rounded-lg disabled:opacity-50">
                 <ArrowLeft className="w-5 h-5" />
               </button>
               {isLive && (
@@ -602,7 +602,7 @@ export default function GoLivePage() {
             </div>
             
             {isLive && (
-              <div className="flex items-center gap-4 text-sm text-gray-400">
+              <div className="flex items-center gap-4 text-sm text-gray-500">
                 <div className="flex items-center gap-1"><Eye className="w-4 h-4" />{viewerCount}</div>
                 <div className="flex items-center gap-1"><Clock className="w-4 h-4" />{formatDuration(streamDuration)}</div>
                 {webrtcState === WEBRTC_STATES.STREAMING && (
@@ -622,14 +622,14 @@ export default function GoLivePage() {
                 <div className="flex gap-2">
                   <button 
                     onClick={() => setStreamMode(STREAM_MODES.CAMERA)} 
-                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition ${streamMode === STREAM_MODES.CAMERA ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition ${streamMode === STREAM_MODES.CAMERA ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
                   >
                     <Smartphone className="w-5 h-5" />Device Camera
                     {webrtcSupported && <span className="px-1.5 py-0.5 bg-green-500/20 text-green-400 text-xs rounded">Ready</span>}
                   </button>
                   <button 
                     onClick={() => setStreamMode(STREAM_MODES.SOFTWARE)} 
-                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition ${streamMode === STREAM_MODES.SOFTWARE ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition ${streamMode === STREAM_MODES.SOFTWARE ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
                   >
                     <Monitor className="w-5 h-5" />OBS / Software
                   </button>
@@ -637,7 +637,7 @@ export default function GoLivePage() {
               )}
 
               {/* Video Preview */}
-              <div className="relative bg-black rounded-2xl overflow-hidden aspect-video shadow-2xl">
+              <div className="relative bg-gray-900 rounded-2xl overflow-hidden aspect-video shadow-2xl">
                 {streamMode === STREAM_MODES.CAMERA ? (
                   <>
                     <video 
@@ -648,15 +648,15 @@ export default function GoLivePage() {
                       className={`w-full h-full object-cover ${!videoEnabled ? 'hidden' : ''}`} 
                     />
                     {!videoEnabled && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
+                      <div className="absolute inset-0 flex items-center justify-center bg-white">
                         <VideoOff className="w-16 h-16 text-gray-500" />
                       </div>
                     )}
                     {cameraError && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-gray-900/95">
+                      <div className="absolute inset-0 flex items-center justify-center bg-gray-50/95">
                         <div className="text-center p-6">
                           <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
-                          <p className="text-white mb-4">{cameraError}</p>
+                          <p className="text-gray-900 mb-4">{cameraError}</p>
                           <button onClick={startCamera} className="px-4 py-2 bg-purple-600 rounded-lg hover:bg-purple-700">Retry</button>
                         </div>
                       </div>
@@ -668,18 +668,18 @@ export default function GoLivePage() {
                       obsConnected ? (
                         <div className="text-center">
                           <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-3" />
-                          <p className="text-white">OBS Connected!</p>
+                          <p className="text-gray-900">OBS Connected!</p>
                         </div>
                       ) : (
                         <div className="text-center">
-                          <Loader2 className="w-12 h-12 text-purple-400 animate-spin mx-auto mb-3" />
-                          <p className="text-white">Waiting for OBS...</p>
+                          <Loader2 className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-3" />
+                          <p className="text-gray-900">Waiting for OBS...</p>
                         </div>
                       )
                     ) : (
                       <div className="text-center">
                         <Key className="w-12 h-12 text-gray-500 mx-auto mb-3" />
-                        <p className="text-gray-400">Generate stream key to start</p>
+                        <p className="text-gray-500">Generate stream key to start</p>
                       </div>
                     )}
                   </div>
@@ -697,7 +697,7 @@ export default function GoLivePage() {
                 {/* Resolution & Status Badge */}
                 <div className="absolute top-4 right-4 flex items-center gap-2">
                   {actualResolution && !isLive && (
-                    <span className="px-2 py-1 bg-black/60 rounded text-xs">{actualResolution}</span>
+                    <span className="px-2 py-1 bg-gray-900/60 rounded text-xs">{actualResolution}</span>
                   )}
                   {streamMode === STREAM_MODES.CAMERA && getStatusBadge()}
                 </div>
@@ -705,14 +705,14 @@ export default function GoLivePage() {
                 {/* Camera Controls */}
                 {streamMode === STREAM_MODES.CAMERA && (
                   <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2">
-                    <button onClick={toggleVideo} className={`p-3 rounded-full transition ${videoEnabled ? 'bg-gray-800/80 hover:bg-gray-700' : 'bg-red-600'}`}>
+                    <button onClick={toggleVideo} className={`p-3 rounded-full transition ${videoEnabled ? 'bg-white hover:bg-gray-100' : 'bg-red-600'}`}>
                       {videoEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
                     </button>
-                    <button onClick={toggleAudio} className={`p-3 rounded-full transition ${audioEnabled ? 'bg-gray-800/80 hover:bg-gray-700' : 'bg-red-600'}`}>
+                    <button onClick={toggleAudio} className={`p-3 rounded-full transition ${audioEnabled ? 'bg-white hover:bg-gray-100' : 'bg-red-600'}`}>
                       {audioEnabled ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
                     </button>
                     {devices.video.length > 1 && (
-                      <button onClick={switchCamera} className="p-3 rounded-full bg-gray-800/80 hover:bg-gray-700">
+                      <button onClick={switchCamera} className="p-3 rounded-full bg-white hover:bg-gray-100">
                         <SwitchCamera className="w-5 h-5" />
                       </button>
                     )}
@@ -721,13 +721,13 @@ export default function GoLivePage() {
               </div>
 
               {/* Debug Panel */}
-              <div className="bg-gray-800/50 rounded-xl overflow-hidden">
-                <button onClick={() => setShowDebug(!showDebug)} className="w-full p-3 flex items-center justify-between text-sm hover:bg-gray-800/50">
-                  <span className="text-gray-400">Debug Log</span>
-                  <ChevronDown className={`w-4 h-4 text-gray-400 transition ${showDebug ? 'rotate-180' : ''}`} />
+              <div className="bg-white/50 rounded-xl overflow-hidden">
+                <button onClick={() => setShowDebug(!showDebug)} className="w-full p-3 flex items-center justify-between text-sm hover:bg-gray-50/50">
+                  <span className="text-gray-500">Debug Log</span>
+                  <ChevronDown className={`w-4 h-4 text-gray-500 transition ${showDebug ? 'rotate-180' : ''}`} />
                 </button>
                 {showDebug && (
-                  <div className="p-3 bg-gray-900/50 max-h-40 overflow-y-auto font-mono text-xs space-y-1">
+                  <div className="p-3 bg-gray-50 max-h-40 overflow-y-auto font-mono text-xs space-y-1">
                     {debugLogs.length > 0 ? debugLogs.map((log, i) => (
                       <div key={i} className="text-gray-500">{log}</div>
                     )) : <div className="text-gray-600">No logs yet...</div>}
@@ -741,38 +741,38 @@ export default function GoLivePage() {
               {!isLive ? (
                 <>
                   {/* Stream Settings */}
-                  <div className="bg-gray-800/50 rounded-xl p-4 space-y-4">
+                  <div className="bg-white/50 rounded-xl p-4 space-y-4">
                     <h3 className="font-semibold flex items-center gap-2">
-                      <Settings className="w-5 h-5 text-purple-400" />Stream Settings
+                      <Settings className="w-5 h-5 text-purple-600" />Stream Settings
                     </h3>
                     
                     <div>
-                      <label className="block text-sm text-gray-400 mb-1">Title *</label>
+                      <label className="block text-sm text-gray-500 mb-1">Title *</label>
                       <input 
                         type="text" 
                         value={title} 
                         onChange={(e) => setTitle(e.target.value)} 
                         placeholder="What's your stream about?"
-                        className="w-full bg-gray-700/50 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-purple-500 outline-none"
+                        className="w-full bg-gray-100 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-purple-500 outline-none"
                         maxLength={100}
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm text-gray-400 mb-1">Description</label>
+                      <label className="block text-sm text-gray-500 mb-1">Description</label>
                       <textarea 
                         value={description} 
                         onChange={(e) => setDescription(e.target.value)} 
                         placeholder="Tell viewers what to expect..."
                         rows={2}
-                        className="w-full bg-gray-700/50 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-purple-500 outline-none resize-none"
+                        className="w-full bg-gray-100 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-purple-500 outline-none resize-none"
                       />
                     </div>
 
                     {/* QUALITY SELECTOR - NEW */}
                     {streamMode === STREAM_MODES.CAMERA && (
                       <div>
-                        <label className="block text-sm text-gray-400 mb-2 flex items-center gap-2">
+                        <label className="block text-sm text-gray-500 mb-2 flex items-center gap-2">
                           <Gauge className="w-4 h-4" />Stream Quality
                         </label>
                         <div className="space-y-2">
@@ -783,14 +783,14 @@ export default function GoLivePage() {
                               className={`w-full flex items-center justify-between p-3 rounded-lg border transition ${
                                 qualityPreset === key 
                                   ? 'border-purple-500 bg-purple-500/10' 
-                                  : 'border-gray-700 hover:border-gray-600'
+                                  : 'border-gray-200 hover:border-gray-300'
                               }`}
                             >
                               <div className="text-left">
                                 <div className="font-medium text-sm">{preset.label}</div>
-                                <div className="text-xs text-gray-400">{preset.desc}</div>
+                                <div className="text-xs text-gray-500">{preset.desc}</div>
                               </div>
-                              {qualityPreset === key && <CheckCircle className="w-5 h-5 text-purple-400" />}
+                              {qualityPreset === key && <CheckCircle className="w-5 h-5 text-purple-600" />}
                             </button>
                           ))}
                         </div>
@@ -799,7 +799,7 @@ export default function GoLivePage() {
 
                     {/* Privacy */}
                     <div>
-                      <label className="block text-sm text-gray-400 mb-2">Privacy</label>
+                      <label className="block text-sm text-gray-500 mb-2">Privacy</label>
                       <div className="flex gap-2">
                         {PRIVACY_OPTIONS.map((opt) => (
                           <button
@@ -808,7 +808,7 @@ export default function GoLivePage() {
                             className={`flex-1 flex flex-col items-center gap-1 p-3 rounded-lg border transition ${
                               privacy === opt.value 
                                 ? 'border-purple-500 bg-purple-500/10' 
-                                : 'border-gray-700 hover:border-gray-600'
+                                : 'border-gray-200 hover:border-gray-300'
                             }`}
                           >
                             <opt.icon className="w-5 h-5" />
@@ -820,7 +820,7 @@ export default function GoLivePage() {
 
                     {/* Thumbnail */}
                     <div>
-                      <label className="block text-sm text-gray-400 mb-2">Thumbnail</label>
+                      <label className="block text-sm text-gray-500 mb-2">Thumbnail</label>
                       {thumbnail ? (
                         <div className="relative">
                           <img src={thumbnail} alt="Thumbnail" className="w-full h-24 object-cover rounded-lg" />
@@ -829,14 +829,14 @@ export default function GoLivePage() {
                           </button>
                         </div>
                       ) : (
-                        <label className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer hover:border-gray-500 transition">
+                        <label className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-500 transition">
                           <input type="file" accept="image/*" onChange={handleThumbnailUpload} className="hidden" disabled={uploadingThumbnail} />
                           {uploadingThumbnail ? (
-                            <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                            <Loader2 className="w-6 h-6 animate-spin text-gray-500" />
                           ) : (
                             <>
-                              <Upload className="w-6 h-6 text-gray-400 mb-1" />
-                              <span className="text-xs text-gray-400">Upload thumbnail</span>
+                              <Upload className="w-6 h-6 text-gray-500 mb-1" />
+                              <span className="text-xs text-gray-500">Upload thumbnail</span>
                             </>
                           )}
                         </label>
@@ -846,14 +846,14 @@ export default function GoLivePage() {
 
                   {/* OBS Credentials (Software mode only) */}
                   {streamMode === STREAM_MODES.SOFTWARE && (
-                    <div className="bg-gray-800/50 rounded-xl p-4 space-y-3">
+                    <div className="bg-white/50 rounded-xl p-4 space-y-3">
                       <h3 className="font-semibold flex items-center gap-2">
-                        <Key className="w-5 h-5 text-purple-400" />Stream Key
+                        <Key className="w-5 h-5 text-purple-600" />Stream Key
                       </h3>
                       {streamCredentials ? (
                         <div className="space-y-3">
                           <div>
-                            <label className="text-xs text-gray-400">Server URL</label>
+                            <label className="text-xs text-gray-500">Server URL</label>
                             <div className="flex gap-2 mt-1">
                               <input type="text" value={streamCredentials.rtmpUrl} readOnly className="flex-1 px-3 py-2 bg-gray-700 rounded-lg text-sm" />
                               <button onClick={() => copyToClipboard(streamCredentials.rtmpUrl, 'URL')} className="p-2 bg-gray-700 rounded-lg hover:bg-gray-600">
@@ -862,7 +862,7 @@ export default function GoLivePage() {
                             </div>
                           </div>
                           <div>
-                            <label className="text-xs text-gray-400">Stream Key</label>
+                            <label className="text-xs text-gray-500">Stream Key</label>
                             <div className="flex gap-2 mt-1">
                               <input type={showStreamKey ? 'text' : 'password'} value={streamCredentials.streamKey} readOnly className="flex-1 px-3 py-2 bg-gray-700 rounded-lg text-sm font-mono" />
                               <button onClick={() => setShowStreamKey(!showStreamKey)} className="p-2 bg-gray-700 rounded-lg hover:bg-gray-600">
@@ -899,44 +899,44 @@ export default function GoLivePage() {
               ) : (
                 <>
                   {/* Live Stats */}
-                  <div className="bg-gray-800/50 rounded-xl p-4">
+                  <div className="bg-white/50 rounded-xl p-4">
                     <h3 className="font-semibold mb-4">{title}</h3>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="text-center p-3 bg-gray-700/50 rounded-lg">
-                        <Eye className="w-6 h-6 mx-auto mb-1 text-purple-400" />
+                      <div className="text-center p-3 bg-gray-100 rounded-lg">
+                        <Eye className="w-6 h-6 mx-auto mb-1 text-purple-600" />
                         <div className="text-2xl font-bold">{viewerCount}</div>
-                        <div className="text-xs text-gray-400">Viewers</div>
+                        <div className="text-xs text-gray-500">Viewers</div>
                       </div>
-                      <div className="text-center p-3 bg-gray-700/50 rounded-lg">
+                      <div className="text-center p-3 bg-gray-100 rounded-lg">
                         <Heart className="w-6 h-6 mx-auto mb-1 text-red-400" />
                         <div className="text-2xl font-bold">{likeCount}</div>
-                        <div className="text-xs text-gray-400">Likes</div>
+                        <div className="text-xs text-gray-500">Likes</div>
                       </div>
-                      <div className="text-center p-3 bg-gray-700/50 rounded-lg">
+                      <div className="text-center p-3 bg-gray-100 rounded-lg">
                         <Clock className="w-6 h-6 mx-auto mb-1 text-blue-400" />
                         <div className="text-2xl font-bold">{formatDuration(streamDuration)}</div>
-                        <div className="text-xs text-gray-400">Duration</div>
+                        <div className="text-xs text-gray-500">Duration</div>
                       </div>
-                      <div className="text-center p-3 bg-gray-700/50 rounded-lg">
+                      <div className="text-center p-3 bg-gray-100 rounded-lg">
                         <Zap className="w-6 h-6 mx-auto mb-1 text-yellow-400" />
                         <div className="text-2xl font-bold">{formatBytes(bytesSent)}</div>
-                        <div className="text-xs text-gray-400">Sent</div>
+                        <div className="text-xs text-gray-500">Sent</div>
                       </div>
                     </div>
                   </div>
 
                   {/* Stream Info */}
-                  <div className="bg-gray-800/50 rounded-xl p-4 space-y-2 text-sm">
+                  <div className="bg-white/50 rounded-xl p-4 space-y-2 text-sm">
                     <h4 className="font-medium">Stream Info</h4>
-                    <div className="flex justify-between text-gray-400">
+                    <div className="flex justify-between text-gray-500">
                       <span>Quality</span>
                       <span>{QUALITY_PRESETS[qualityPreset].label}</span>
                     </div>
-                    <div className="flex justify-between text-gray-400">
+                    <div className="flex justify-between text-gray-500">
                       <span>Bitrate</span>
                       <span>{(QUALITY_PRESETS[qualityPreset].videoBitrate / 1000000).toFixed(1)} Mbps</span>
                     </div>
-                    <div className="flex justify-between text-gray-400">
+                    <div className="flex justify-between text-gray-500">
                       <span>Status</span>
                       {getStatusBadge()}
                     </div>

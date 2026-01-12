@@ -177,23 +177,23 @@ export default function CreateEventPage() {
         <title>Create Event | CYBEV</title>
       </Head>
 
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-50 py-8">
         <div className="max-w-3xl mx-auto px-4">
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <button
               onClick={() => router.back()}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-white rounded-lg transition"
             >
-              <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-500" />
             </button>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create Event</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900">Create Event</h1>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Cover Image */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <div className="bg-white dark:bg-white rounded-xl p-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                 Cover Image
               </label>
               <div className="relative aspect-video bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
@@ -207,7 +207,7 @@ export default function CreateEventPage() {
                     <button
                       type="button"
                       onClick={() => setForm(f => ({ ...f, coverImage: '' }))}
-                      className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white hover:bg-black/70"
+                      className="absolute top-2 right-2 p-1 bg-gray-900/50 rounded-full text-gray-900 hover:bg-gray-900/70"
                     >
                       <X className="w-5 h-5" />
                     </button>
@@ -215,11 +215,11 @@ export default function CreateEventPage() {
                 ) : (
                   <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition">
                     {uploadingImage ? (
-                      <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                      <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
                     ) : (
                       <>
-                        <ImageIcon className="w-12 h-12 text-gray-400 mb-2" />
-                        <span className="text-gray-500 dark:text-gray-400">Click to upload cover image</span>
+                        <ImageIcon className="w-12 h-12 text-gray-500 mb-2" />
+                        <span className="text-gray-500 dark:text-gray-500">Click to upload cover image</span>
                       </>
                     )}
                     <input
@@ -234,11 +234,11 @@ export default function CreateEventPage() {
             </div>
 
             {/* Basic Info */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 space-y-4">
-              <h2 className="font-semibold text-gray-900 dark:text-white">Event Details</h2>
+            <div className="bg-white dark:bg-white rounded-xl p-6 space-y-4">
+              <h2 className="font-semibold text-gray-900 dark:text-gray-900">Event Details</h2>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   Event Title *
                 </label>
                 <input
@@ -246,13 +246,13 @@ export default function CreateEventPage() {
                   value={form.title}
                   onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))}
                   placeholder="Give your event a name"
-                  className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   Description
                 </label>
                 <textarea
@@ -260,12 +260,12 @@ export default function CreateEventPage() {
                   onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))}
                   placeholder="What's your event about?"
                   rows={4}
-                  className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+                  className="w-full px-4 py-3 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                   Category
                 </label>
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -276,8 +276,8 @@ export default function CreateEventPage() {
                       onClick={() => setForm(f => ({ ...f, category: cat.value }))}
                       className={`p-3 rounded-lg border text-sm font-medium transition ${
                         form.category === cat.value
-                          ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-500 text-purple-600 dark:text-purple-400'
-                          : 'border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                          ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-500 text-purple-600 dark:text-purple-600'
+                          : 'border-gray-200 dark:border-gray-300 text-gray-700 dark:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-100'
                       }`}
                     >
                       <span className="text-lg">{cat.icon}</span>
@@ -289,15 +289,15 @@ export default function CreateEventPage() {
             </div>
 
             {/* Date & Time */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 space-y-4">
-              <h2 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <div className="bg-white dark:bg-white rounded-xl p-6 space-y-4">
+              <h2 className="font-semibold text-gray-900 dark:text-gray-900 flex items-center gap-2">
                 <Calendar className="w-5 h-5" />
                 Date & Time
               </h2>
               
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                     Start Date *
                   </label>
                   <input
@@ -305,24 +305,24 @@ export default function CreateEventPage() {
                     value={form.startDate}
                     onChange={(e) => setForm(f => ({ ...f, startDate: e.target.value }))}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                     Start Time *
                   </label>
                   <input
                     type="time"
                     value={form.startTime}
                     onChange={(e) => setForm(f => ({ ...f, startTime: e.target.value }))}
-                    className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                     End Date
                   </label>
                   <input
@@ -330,26 +330,26 @@ export default function CreateEventPage() {
                     value={form.endDate}
                     onChange={(e) => setForm(f => ({ ...f, endDate: e.target.value }))}
                     min={form.startDate || new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                     End Time
                   </label>
                   <input
                     type="time"
                     value={form.endTime}
                     onChange={(e) => setForm(f => ({ ...f, endTime: e.target.value }))}
-                    className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                   />
                 </div>
               </div>
             </div>
 
             {/* Event Type */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 space-y-4">
-              <h2 className="font-semibold text-gray-900 dark:text-white">Event Type</h2>
+            <div className="bg-white dark:bg-white rounded-xl p-6 space-y-4">
+              <h2 className="font-semibold text-gray-900 dark:text-gray-900">Event Type</h2>
               
               <div className="grid grid-cols-3 gap-3">
                 {[
@@ -363,8 +363,8 @@ export default function CreateEventPage() {
                     onClick={() => setForm(f => ({ ...f, type: type.value }))}
                     className={`p-4 rounded-lg border text-center transition ${
                       form.type === type.value
-                        ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-500 text-purple-600 dark:text-purple-400'
-                        : 'border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-500 text-purple-600 dark:text-purple-600'
+                        : 'border-gray-200 dark:border-gray-300 text-gray-700 dark:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-100'
                     }`}
                   >
                     <type.icon className="w-6 h-6 mx-auto mb-2" />
@@ -376,20 +376,20 @@ export default function CreateEventPage() {
               {/* Location for in-person/hybrid */}
               {form.type !== 'online' && (
                 <div className="space-y-3 pt-4">
-                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Location Details</h3>
+                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-600">Location Details</h3>
                   <input
                     type="text"
                     value={form.location.name}
                     onChange={(e) => setForm(f => ({ ...f, location: { ...f.location, name: e.target.value } }))}
                     placeholder="Venue name"
-                    className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                   />
                   <input
                     type="text"
                     value={form.location.address}
                     onChange={(e) => setForm(f => ({ ...f, location: { ...f.location, address: e.target.value } }))}
                     placeholder="Address"
-                    className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                   />
                   <div className="grid grid-cols-2 gap-3">
                     <input
@@ -397,14 +397,14 @@ export default function CreateEventPage() {
                       value={form.location.city}
                       onChange={(e) => setForm(f => ({ ...f, location: { ...f.location, city: e.target.value } }))}
                       placeholder="City"
-                      className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-3 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                     />
                     <input
                       type="text"
                       value={form.location.country}
                       onChange={(e) => setForm(f => ({ ...f, location: { ...f.location, country: e.target.value } }))}
                       placeholder="Country"
-                      className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-3 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                     />
                   </div>
                 </div>
@@ -413,11 +413,11 @@ export default function CreateEventPage() {
               {/* Online details */}
               {form.type !== 'in-person' && (
                 <div className="space-y-3 pt-4">
-                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Online Details</h3>
+                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-600">Online Details</h3>
                   <select
                     value={form.onlineDetails.platform}
                     onChange={(e) => setForm(f => ({ ...f, onlineDetails: { ...f.onlineDetails, platform: e.target.value } }))}
-                    className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                   >
                     <option value="cybev-live">CYBEV Live Stream</option>
                     <option value="zoom">Zoom</option>
@@ -432,7 +432,7 @@ export default function CreateEventPage() {
                       value={form.onlineDetails.link}
                       onChange={(e) => setForm(f => ({ ...f, onlineDetails: { ...f.onlineDetails, link: e.target.value } }))}
                       placeholder="Meeting link"
-                      className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-3 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                     />
                   )}
                 </div>
@@ -440,11 +440,11 @@ export default function CreateEventPage() {
             </div>
 
             {/* Settings */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 space-y-4">
-              <h2 className="font-semibold text-gray-900 dark:text-white">Settings</h2>
+            <div className="bg-white dark:bg-white rounded-xl p-6 space-y-4">
+              <h2 className="font-semibold text-gray-900 dark:text-gray-900">Settings</h2>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   Max Attendees (0 = unlimited)
                 </label>
                 <input
@@ -452,18 +452,18 @@ export default function CreateEventPage() {
                   min="0"
                   value={form.maxAttendees}
                   onChange={(e) => setForm(f => ({ ...f, maxAttendees: e.target.value }))}
-                  className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   Visibility
                 </label>
                 <select
                   value={form.visibility}
                   onChange={(e) => setForm(f => ({ ...f, visibility: e.target.value }))}
-                  className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                 >
                   <option value="public">Public - Anyone can see and join</option>
                   <option value="private">Private - Only invited users can join</option>
@@ -472,7 +472,7 @@ export default function CreateEventPage() {
 
               {/* Tags */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   Tags
                 </label>
                 <div className="flex gap-2">
@@ -482,12 +482,12 @@ export default function CreateEventPage() {
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
                     placeholder="Add a tag"
-                    className="flex-1 px-4 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="flex-1 px-4 py-2 border dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                   />
                   <button
                     type="button"
                     onClick={addTag}
-                    className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                    className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition"
                   >
                     Add
                   </button>
@@ -497,7 +497,7 @@ export default function CreateEventPage() {
                     {form.tags.map((tag, i) => (
                       <span
                         key={i}
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full text-sm"
+                        className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-600 rounded-full text-sm"
                       >
                         #{tag}
                         <button type="button" onClick={() => removeTag(i)}>
@@ -514,7 +514,7 @@ export default function CreateEventPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              className="w-full py-4 bg-purple-600 text-gray-900 font-semibold rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>

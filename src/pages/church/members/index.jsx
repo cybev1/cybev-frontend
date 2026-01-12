@@ -20,7 +20,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 const roleConfig = {
   pastor: { 
     label: 'Pastor', 
-    color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+    color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-600',
     icon: Star
   },
   leader: { 
@@ -40,7 +40,7 @@ const roleConfig = {
   },
   member: { 
     label: 'Member', 
-    color: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400',
+    color: 'bg-gray-100 text-gray-700 dark:bg-gray-50/30 dark:text-gray-500',
     icon: Users
   }
 };
@@ -52,7 +52,7 @@ function MemberCard({ member, onEdit, onRemove, isLeader }) {
   const user = member.user || {};
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 hover:shadow-md transition group">
+    <div className="bg-white dark:bg-white rounded-xl p-4 border border-gray-100 dark:border-gray-200 hover:shadow-md transition group">
       <div className="flex items-start gap-4">
         <img
           src={user.profilePicture || '/default-avatar.png'}
@@ -62,7 +62,7 @@ function MemberCard({ member, onEdit, onRemove, isLeader }) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-gray-900 dark:text-white truncate">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-900 truncate">
               {user.name || user.username || 'Unknown'}
             </h3>
             <span className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 ${config.color}`}>
@@ -78,7 +78,7 @@ function MemberCard({ member, onEdit, onRemove, isLeader }) {
             </p>
           )}
 
-          <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
+          <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
             <span className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
               Joined {new Date(member.joinedAt).toLocaleDateString()}
@@ -97,25 +97,25 @@ function MemberCard({ member, onEdit, onRemove, isLeader }) {
           <div className="relative">
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 opacity-0 group-hover:opacity-100 transition"
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition"
             >
-              <MoreHorizontal className="w-5 h-5 text-gray-400" />
+              <MoreHorizontal className="w-5 h-5 text-gray-500" />
             </button>
 
             {showMenu && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                <div className="absolute right-0 top-10 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 py-2 w-48 z-20">
+                <div className="absolute right-0 top-10 bg-white dark:bg-white rounded-xl shadow-lg border border-gray-100 dark:border-gray-200 py-2 w-48 z-20">
                   <button
                     onClick={() => { onEdit(member); setShowMenu(false); }}
-                    className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-300"
+                    className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-100 flex items-center gap-2 text-gray-700 dark:text-gray-600"
                   >
                     <Edit className="w-4 h-4" />
                     Change Role
                   </button>
                   <button
                     onClick={() => { onRemove(member); setShowMenu(false); }}
-                    className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-red-600"
+                    className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-100 flex items-center gap-2 text-red-600"
                   >
                     <Trash2 className="w-4 h-4" />
                     Remove Member
@@ -135,7 +135,7 @@ function MemberListItem({ member, onEdit, onRemove, isLeader }) {
   const user = member.user || {};
 
   return (
-    <div className="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition group">
+    <div className="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-100/50 transition group">
       <img
         src={user.profilePicture || '/default-avatar.png'}
         alt={user.name || 'Member'}
@@ -144,7 +144,7 @@ function MemberListItem({ member, onEdit, onRemove, isLeader }) {
 
       <div className="flex-1 min-w-0 grid grid-cols-4 gap-4 items-center">
         <div className="col-span-1">
-          <p className="font-medium text-gray-900 dark:text-white truncate">
+          <p className="font-medium text-gray-900 dark:text-gray-900 truncate">
             {user.name || user.username || 'Unknown'}
           </p>
         </div>
@@ -156,7 +156,7 @@ function MemberListItem({ member, onEdit, onRemove, isLeader }) {
         <div className="col-span-1 text-sm text-gray-500 truncate">
           {user.email || '-'}
         </div>
-        <div className="col-span-1 text-sm text-gray-400">
+        <div className="col-span-1 text-sm text-gray-500">
           {new Date(member.joinedAt).toLocaleDateString()}
         </div>
       </div>
@@ -165,9 +165,9 @@ function MemberListItem({ member, onEdit, onRemove, isLeader }) {
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
           <button
             onClick={() => onEdit(member)}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-100"
           >
-            <Edit className="w-4 h-4 text-gray-400" />
+            <Edit className="w-4 h-4 text-gray-500" />
           </button>
           <button
             onClick={() => onRemove(member)}
@@ -191,13 +191,13 @@ function EditRoleModal({ isOpen, member, onClose, onSave, loading }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-xl">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+    <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-white rounded-2xl w-full max-w-md shadow-xl">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900">
             Change Member Role
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -210,7 +210,7 @@ function EditRoleModal({ isOpen, member, onClose, onSave, loading }) {
               className="w-12 h-12 rounded-full"
             />
             <div>
-              <p className="font-medium text-gray-900 dark:text-white">
+              <p className="font-medium text-gray-900 dark:text-gray-900">
                 {member?.user?.name || member?.user?.username}
               </p>
               <p className="text-sm text-gray-500">{member?.user?.email}</p>
@@ -227,13 +227,13 @@ function EditRoleModal({ isOpen, member, onClose, onSave, loading }) {
                   className={`w-full p-4 rounded-xl border-2 text-left transition flex items-center gap-3 ${
                     role === key
                       ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                      : 'border-gray-200 dark:border-gray-600 hover:border-purple-300'
+                      : 'border-gray-200 dark:border-gray-300 hover:border-purple-300'
                   }`}
                 >
                   <div className={`w-10 h-10 rounded-lg ${config.color} flex items-center justify-center`}>
                     <Icon className="w-5 h-5" />
                   </div>
-                  <span className="font-medium text-gray-900 dark:text-white">{config.label}</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-900">{config.label}</span>
                   {role === key && (
                     <Check className="w-5 h-5 text-purple-500 ml-auto" />
                   )}
@@ -243,17 +243,17 @@ function EditRoleModal({ isOpen, member, onClose, onSave, loading }) {
           </div>
         </div>
 
-        <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-700">
+        <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-200">
           <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+            className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-100"
           >
             Cancel
           </button>
           <button
             onClick={() => onSave(member, role)}
             disabled={loading}
-            className="flex-1 py-3 rounded-xl font-semibold bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
+            className="flex-1 py-3 rounded-xl font-semibold bg-purple-600 text-gray-900 hover:bg-purple-700 disabled:opacity-50"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Save Changes'}
           </button>
@@ -270,42 +270,42 @@ function AddMemberModal({ isOpen, onClose, onAdd, loading }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-xl">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+    <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-white rounded-2xl w-full max-w-md shadow-xl">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900">
             Add Member
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Search User by Email or Username
             </label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="email@example.com"
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Role
             </label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
             >
               <option value="member">Member</option>
               <option value="worker">Worker</option>
@@ -319,17 +319,17 @@ function AddMemberModal({ isOpen, onClose, onAdd, loading }) {
           </p>
         </div>
 
-        <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-700">
+        <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-200">
           <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+            className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-100"
           >
             Cancel
           </button>
           <button
             onClick={() => onAdd(search, role)}
             disabled={loading || !search}
-            className="flex-1 py-3 rounded-xl font-semibold bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
+            className="flex-1 py-3 rounded-xl font-semibold bg-purple-600 text-gray-900 hover:bg-purple-700 disabled:opacity-50"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Add Member'}
           </button>
@@ -476,15 +476,15 @@ export default function MemberDirectory() {
   }, {});
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
       <Head>
         <title>Member Directory - CYBEV Church</title>
       </Head>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
+      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-gray-900">
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <Link href="/church" className="inline-flex items-center gap-2 text-blue-200 hover:text-white mb-4">
+          <Link href="/church" className="inline-flex items-center gap-2 text-blue-200 hover:text-gray-900 mb-4">
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </Link>
@@ -502,7 +502,7 @@ export default function MemberDirectory() {
               <select
                 value={selectedOrg}
                 onChange={(e) => setSelectedOrg(e.target.value)}
-                className="px-4 py-2 bg-white/20 rounded-xl text-white border border-white/30 focus:outline-none"
+                className="px-4 py-2 bg-white/20 rounded-xl text-gray-900 border border-white/30 focus:outline-none"
               >
                 {myOrgs.map(o => (
                   <option key={o._id} value={o._id} className="text-gray-900">
@@ -551,16 +551,16 @@ export default function MemberDirectory() {
 
       {/* Filters */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 flex flex-wrap gap-4 items-center">
+        <div className="bg-white dark:bg-white rounded-xl p-4 border border-gray-100 dark:border-gray-200 flex flex-wrap gap-4 items-center">
           {/* Search */}
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name or email..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-300 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
             />
           </div>
 
@@ -568,7 +568,7 @@ export default function MemberDirectory() {
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="px-4 py-2 border border-gray-200 dark:border-gray-300 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
           >
             <option value="">All Roles</option>
             <option value="pastor">Pastors</option>
@@ -579,7 +579,7 @@ export default function MemberDirectory() {
           </select>
 
           {/* View Toggle */}
-          <div className="flex border border-gray-200 dark:border-gray-600 rounded-xl overflow-hidden">
+          <div className="flex border border-gray-200 dark:border-gray-300 rounded-xl overflow-hidden">
             <button
               onClick={() => setViewMode('grid')}
               className={`px-4 py-2 ${viewMode === 'grid' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30' : 'text-gray-500'}`}
@@ -596,12 +596,12 @@ export default function MemberDirectory() {
 
           <button
             onClick={fetchOrgDetails}
-            className="p-2 rounded-xl border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+            className="p-2 rounded-xl border border-gray-200 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-100"
           >
             <RefreshCw className="w-5 h-5 text-gray-500" />
           </button>
 
-          <button className="px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-gray-600 dark:text-gray-300">
+          <button className="px-4 py-2 border border-gray-200 dark:border-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-100 flex items-center gap-2 text-gray-600 dark:text-gray-600">
             <Download className="w-4 h-4" />
             Export
           </button>
@@ -615,9 +615,9 @@ export default function MemberDirectory() {
             <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
           </div>
         ) : filteredMembers.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-700">
-            <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <div className="bg-white dark:bg-white rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-200">
+            <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900 mb-2">
               {search || roleFilter ? 'No Members Found' : 'No Members Yet'}
             </h3>
             <p className="text-gray-500 mb-6">
@@ -629,7 +629,7 @@ export default function MemberDirectory() {
             {isLeader && !search && !roleFilter && (
               <button
                 onClick={() => setShowAddModal(true)}
-                className="px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700"
+                className="px-6 py-3 bg-purple-600 text-gray-900 rounded-xl font-semibold hover:bg-purple-700"
               >
                 Add First Member
               </button>
@@ -648,16 +648,16 @@ export default function MemberDirectory() {
             ))}
           </div>
         ) : (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div className="bg-white dark:bg-white rounded-2xl border border-gray-100 dark:border-gray-200 overflow-hidden">
             {/* List Header */}
-            <div className="grid grid-cols-4 gap-4 px-4 py-3 bg-gray-50 dark:bg-gray-700/50 text-sm font-medium text-gray-500 border-b border-gray-100 dark:border-gray-700">
+            <div className="grid grid-cols-4 gap-4 px-4 py-3 bg-gray-50 dark:bg-gray-100 text-sm font-medium text-gray-500 border-b border-gray-100 dark:border-gray-200">
               <div className="pl-14">Name</div>
               <div>Role</div>
               <div>Email</div>
               <div>Joined</div>
             </div>
             {/* List Items */}
-            <div className="divide-y divide-gray-100 dark:divide-gray-700">
+            <div className="divide-y divide-gray-100 dark:divide-gray-200">
               {filteredMembers.map((member, i) => (
                 <MemberListItem
                   key={i}

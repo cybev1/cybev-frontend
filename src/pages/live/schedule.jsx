@@ -164,20 +164,20 @@ export default function ScheduleLive() {
 
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
         {/* Header */}
-        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+        <div className="bg-white dark:bg-gray-50 border-b border-gray-200 dark:border-gray-200">
           <div className="max-w-4xl mx-auto px-4 py-6">
             <button
               onClick={() => router.back()}
-              className="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-4"
+              className="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-600 mb-4"
             >
               <ChevronLeft className="w-5 h-5" />
               Back
             </button>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900 flex items-center gap-2">
               <Calendar className="w-7 h-7 text-purple-600" />
               Schedule Live Stream
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-gray-500 dark:text-gray-500 mt-1">
               Plan your streams ahead and notify your followers
             </p>
           </div>
@@ -187,10 +187,10 @@ export default function ScheduleLive() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
             {/* Schedule Form */}
             <div className="lg:col-span-3">
-              <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 space-y-6">
+              <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-50 rounded-2xl p-6 border border-gray-100 dark:border-gray-200 space-y-6">
                 {/* Title */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                     Stream Title *
                   </label>
                   <input
@@ -199,14 +199,14 @@ export default function ScheduleLive() {
                     onChange={(e) => setForm({ ...form, title: e.target.value })}
                     placeholder="What's your stream about?"
                     maxLength={100}
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-white border border-gray-200 dark:border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     required
                   />
                 </div>
 
                 {/* Description */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                     Description
                   </label>
                   <textarea
@@ -215,14 +215,14 @@ export default function ScheduleLive() {
                     placeholder="Tell viewers what to expect..."
                     rows={3}
                     maxLength={500}
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-white border border-gray-200 dark:border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                   />
                 </div>
 
                 {/* Date & Time */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                       <Calendar className="w-4 h-4 inline mr-1" />
                       Date *
                     </label>
@@ -231,12 +231,12 @@ export default function ScheduleLive() {
                       value={form.date}
                       min={today}
                       onChange={(e) => setForm({ ...form, date: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-4 py-3 bg-gray-50 dark:bg-white border border-gray-200 dark:border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                       <Clock className="w-4 h-4 inline mr-1" />
                       Time *
                     </label>
@@ -244,7 +244,7 @@ export default function ScheduleLive() {
                       type="time"
                       value={form.time}
                       onChange={(e) => setForm({ ...form, time: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-4 py-3 bg-gray-50 dark:bg-white border border-gray-200 dark:border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                       required
                     />
                   </div>
@@ -252,13 +252,13 @@ export default function ScheduleLive() {
 
                 {/* Duration */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                     Expected Duration
                   </label>
                   <select
                     value={form.duration}
                     onChange={(e) => setForm({ ...form, duration: parseInt(e.target.value) })}
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-white border border-gray-200 dark:border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   >
                     <option value={30}>30 minutes</option>
                     <option value={60}>1 hour</option>
@@ -270,7 +270,7 @@ export default function ScheduleLive() {
 
                 {/* Category */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                     Category
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -282,7 +282,7 @@ export default function ScheduleLive() {
                         className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${
                           form.category === cat.value
                             ? 'bg-purple-600 text-white'
-                            : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                            : 'bg-gray-100 dark:bg-white text-gray-700 dark:text-gray-600 hover:bg-gray-200 dark:hover:bg-gray-100'
                         }`}
                       >
                         {cat.label}
@@ -293,7 +293,7 @@ export default function ScheduleLive() {
 
                 {/* Tags */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                     <Tag className="w-4 h-4 inline mr-1" />
                     Tags (comma separated)
                   </label>
@@ -302,7 +302,7 @@ export default function ScheduleLive() {
                     value={form.tags}
                     onChange={(e) => setForm({ ...form, tags: e.target.value })}
                     placeholder="e.g., tutorial, beginner, live coding"
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-white border border-gray-200 dark:border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
 
@@ -314,7 +314,7 @@ export default function ScheduleLive() {
                     onChange={(e) => setForm({ ...form, notifyFollowers: e.target.checked })}
                     className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                   />
-                  <span className="text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                  <span className="text-gray-700 dark:text-gray-600 flex items-center gap-2">
                     <Bell className="w-4 h-4" />
                     Notify my followers about this stream
                   </span>
@@ -324,7 +324,7 @@ export default function ScheduleLive() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
@@ -343,8 +343,8 @@ export default function ScheduleLive() {
 
             {/* My Scheduled Streams */}
             <div className="lg:col-span-2">
-              <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <div className="bg-white dark:bg-gray-50 rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
                   <Video className="w-5 h-5 text-purple-600" />
                   My Scheduled Streams
                 </h2>
@@ -360,18 +360,18 @@ export default function ScheduleLive() {
                       .map((stream) => (
                         <div
                           key={stream._id}
-                          className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl"
+                          className="p-4 bg-gray-50 dark:bg-white rounded-xl"
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-gray-900 dark:text-white truncate">
+                              <p className="font-medium text-gray-900 dark:text-gray-900 truncate">
                                 {stream.title}
                               </p>
                               <p className="text-sm text-purple-600 mt-1">
                                 {formatDate(stream.scheduledFor)}
                               </p>
                               <div className="flex items-center gap-2 mt-2">
-                                <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full">
+                                <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-600 rounded-full">
                                   {CATEGORIES.find(c => c.value === stream.category)?.label || stream.category}
                                 </span>
                                 <span className="text-xs text-gray-500 flex items-center gap-1">
@@ -382,7 +382,7 @@ export default function ScheduleLive() {
                             </div>
                             <button
                               onClick={() => cancelStream(stream._id)}
-                              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                              className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>

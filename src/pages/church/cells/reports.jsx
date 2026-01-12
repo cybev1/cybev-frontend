@@ -158,12 +158,12 @@ export default function CellReportsPage() {
           <div className="flex items-center gap-4">
             <Link
               href={`/church/org/${orgId}`}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-white rounded-lg"
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Cell Reports</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900">Cell Reports</h1>
               <p className="text-gray-500">Track weekly meetings and growth</p>
             </div>
           </div>
@@ -177,7 +177,7 @@ export default function CellReportsPage() {
             </button>
             <button
               onClick={() => setShowNewReport(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700"
             >
               <Plus className="w-4 h-4" />
               New Report
@@ -225,7 +225,7 @@ export default function CellReportsPage() {
                 className={`p-4 rounded-xl border-2 text-left transition ${
                   isSelected
                     ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
+                    : 'border-gray-200 dark:border-gray-200 hover:border-purple-300'
                 }`}
               >
                 <div
@@ -234,7 +234,7 @@ export default function CellReportsPage() {
                 >
                   <type.icon className="w-5 h-5" style={{ color: type.color }} />
                 </div>
-                <p className="font-semibold text-gray-900 dark:text-white text-sm">{type.name}</p>
+                <p className="font-semibold text-gray-900 dark:text-gray-900 text-sm">{type.name}</p>
                 <p className="text-2xl font-bold mt-1" style={{ color: type.color }}>
                   {typeReports.length}
                 </p>
@@ -249,7 +249,7 @@ export default function CellReportsPage() {
           <select
             value={selectedCell}
             onChange={(e) => setSelectedCell(e.target.value)}
-            className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
+            className="px-4 py-2 border border-gray-200 dark:border-gray-200 rounded-lg bg-white dark:bg-white"
           >
             <option value="">All Cells</option>
             {cells.map(cell => (
@@ -260,7 +260,7 @@ export default function CellReportsPage() {
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
+            className="px-4 py-2 border border-gray-200 dark:border-gray-200 rounded-lg bg-white dark:bg-white"
           >
             <option value="week">This Week</option>
             <option value="month">This Month</option>
@@ -273,16 +273,16 @@ export default function CellReportsPage() {
         {loading ? (
           <div className="space-y-4">
             {[1, 2, 3].map(i => (
-              <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 animate-pulse">
+              <div key={i} className="bg-white dark:bg-white rounded-xl p-6 animate-pulse">
                 <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
                 <div className="h-4 bg-gray-200 rounded w-1/2"></div>
               </div>
             ))}
           </div>
         ) : reports.length === 0 ? (
-          <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <div className="text-center py-16 bg-white dark:bg-white rounded-xl border border-gray-200 dark:border-gray-200">
+            <Calendar className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900 mb-2">
               No reports found
             </h3>
             <p className="text-gray-500 mb-6">
@@ -290,7 +290,7 @@ export default function CellReportsPage() {
             </p>
             <button
               onClick={() => setShowNewReport(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg"
             >
               <Plus className="w-4 h-4" />
               Create First Report
@@ -303,7 +303,7 @@ export default function CellReportsPage() {
               return (
                 <div
                   key={report._id}
-                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition"
+                  className="bg-white dark:bg-white rounded-xl border border-gray-200 dark:border-gray-200 p-5 hover:shadow-md transition"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-4">
@@ -315,7 +315,7 @@ export default function CellReportsPage() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-gray-900 dark:text-white">
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-900">
                             {meetingType?.name || 'Meeting'}
                           </h3>
                           <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">
@@ -342,7 +342,7 @@ export default function CellReportsPage() {
                     {/* Stats */}
                     <div className="flex items-center gap-6 text-sm">
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                        <p className="text-2xl font-bold text-gray-900 dark:text-gray-900">
                           {report.attendance?.total || 0}
                         </p>
                         <p className="text-gray-500">Attendance</p>
@@ -367,7 +367,7 @@ export default function CellReportsPage() {
                   </div>
 
                   {report.notes && (
-                    <p className="mt-4 text-sm text-gray-600 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700 pt-4">
+                    <p className="mt-4 text-sm text-gray-600 dark:text-gray-500 border-t border-gray-100 dark:border-gray-200 pt-4">
                       {report.notes}
                     </p>
                   )}
@@ -404,11 +404,11 @@ function StatCard({ icon: Icon, label, value, color }) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+    <div className="bg-white dark:bg-white rounded-xl p-5 border border-gray-200 dark:border-gray-200">
       <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${colors[color]}`}>
         <Icon className="w-5 h-5" />
       </div>
-      <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+      <p className="text-2xl font-bold text-gray-900 dark:text-gray-900">{value}</p>
       <p className="text-sm text-gray-500">{label}</p>
     </div>
   );
@@ -480,10 +480,10 @@ function NewReportModal({ orgId, cells, onClose, onSuccess }) {
   const selectedMeetingType = MEETING_TYPES.find(m => m.id === formData.meetingType);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
-        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">New Cell Report</h3>
+    <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+        <div className="sticky top-0 bg-white dark:bg-white border-b border-gray-200 dark:border-gray-200 px-6 py-4 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900">New Cell Report</h3>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
             <X className="w-5 h-5" />
           </button>
@@ -492,7 +492,7 @@ function NewReportModal({ orgId, cells, onClose, onSuccess }) {
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
           {/* Meeting Type Selection */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
               Meeting Type
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -525,7 +525,7 @@ function NewReportModal({ orgId, cells, onClose, onSuccess }) {
           <div className="grid grid-cols-2 gap-4 mb-6">
             {/* Cell Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                 Cell <span className="text-red-500">*</span>
               </label>
               <select
@@ -543,7 +543,7 @@ function NewReportModal({ orgId, cells, onClose, onSuccess }) {
 
             {/* Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                 Date <span className="text-red-500">*</span>
               </label>
               <input
@@ -558,7 +558,7 @@ function NewReportModal({ orgId, cells, onClose, onSuccess }) {
 
           {/* Venue */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Venue/Location
             </label>
             <input
@@ -572,7 +572,7 @@ function NewReportModal({ orgId, cells, onClose, onSuccess }) {
 
           {/* Attendance Section */}
           <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <h4 className="font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <h4 className="font-medium text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
               <Users className="w-4 h-4" />
               Attendance
             </h4>
@@ -622,7 +622,7 @@ function NewReportModal({ orgId, cells, onClose, onSuccess }) {
           {/* Souls & Growth */}
           {(formData.meetingType === 'outreach' || formData.meetingType === 'follow_up') && (
             <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <h4 className="font-medium text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
                 <Heart className="w-4 h-4 text-red-500" />
                 Soul Winning Results
               </h4>
@@ -654,7 +654,7 @@ function NewReportModal({ orgId, cells, onClose, onSuccess }) {
           {/* Topic (for Cell Meeting or Leaders Meeting) */}
           {(formData.meetingType === 'cell_meeting' || formData.meetingType === 'leaders_meeting') && (
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                 {formData.meetingType === 'leaders_meeting' ? 'Training Topic' : 'Bible Study Topic'}
               </label>
               <input
@@ -669,7 +669,7 @@ function NewReportModal({ orgId, cells, onClose, onSuccess }) {
 
           {/* Offerings */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Offerings Collected
             </label>
             <input
@@ -684,7 +684,7 @@ function NewReportModal({ orgId, cells, onClose, onSuccess }) {
 
           {/* Notes */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Notes/Highlights
             </label>
             <textarea
@@ -698,7 +698,7 @@ function NewReportModal({ orgId, cells, onClose, onSuccess }) {
 
           {/* Testimonies */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Testimonies
             </label>
             <textarea
@@ -722,7 +722,7 @@ function NewReportModal({ orgId, cells, onClose, onSuccess }) {
             <button
               type="submit"
               disabled={saving || !formData.cellId}
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+              className="px-6 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700 disabled:opacity-50"
             >
               {saving ? 'Saving...' : 'Submit Report'}
             </button>

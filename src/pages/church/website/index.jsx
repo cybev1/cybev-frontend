@@ -85,15 +85,15 @@ function TemplateCard({ template, selected, onSelect }) {
   return (
     <div
       onClick={() => onSelect(template.id)}
-      className={`relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border-2 transition-all cursor-pointer group ${
+      className={`relative bg-white dark:bg-white rounded-2xl overflow-hidden border-2 transition-all cursor-pointer group ${
         selected 
           ? 'border-purple-500 shadow-lg shadow-purple-500/20' 
-          : 'border-gray-100 dark:border-gray-700 hover:border-purple-300 hover:shadow-lg'
+          : 'border-gray-100 dark:border-gray-200 hover:border-purple-300 hover:shadow-lg'
       }`}
     >
       {/* Popular Badge */}
       {template.popular && (
-        <div className="absolute top-3 right-3 z-10 px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
+        <div className="absolute top-3 right-3 z-10 px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 text-xs font-bold rounded-full flex items-center gap-1">
           <Star className="w-3 h-3" />
           Popular
         </div>
@@ -102,7 +102,7 @@ function TemplateCard({ template, selected, onSelect }) {
       {/* Selected Checkmark */}
       {selected && (
         <div className="absolute top-3 left-3 z-10 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-          <Check className="w-5 h-5 text-white" />
+          <Check className="w-5 h-5 text-gray-900" />
         </div>
       )}
 
@@ -112,7 +112,7 @@ function TemplateCard({ template, selected, onSelect }) {
           <img src={template.preview} alt={template.name} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Layout className="w-16 h-16 text-gray-300" />
+            <Layout className="w-16 h-16 text-gray-600" />
           </div>
         )}
         
@@ -128,7 +128,7 @@ function TemplateCard({ template, selected, onSelect }) {
         </div>
 
         {/* Preview Button */}
-        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+        <div className="absolute inset-0 bg-gray-900/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <button className="px-4 py-2 bg-white text-gray-900 rounded-lg font-medium flex items-center gap-2">
             <Eye className="w-4 h-4" />
             Preview
@@ -138,12 +138,12 @@ function TemplateCard({ template, selected, onSelect }) {
 
       {/* Info */}
       <div className="p-4">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{template.name}</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-1">{template.name}</h3>
         <p className="text-sm text-gray-500 mb-3">{template.description}</p>
         
         <div className="flex flex-wrap gap-1">
           {template.features.slice(0, 3).map((feature, i) => (
-            <span key={i} className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
+            <span key={i} className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-500 rounded">
               {feature}
             </span>
           ))}
@@ -297,15 +297,15 @@ export default function ChurchWebsiteTemplates() {
   const steps = ['Template', 'Customize', 'Content', 'Generate'];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
       <Head>
         <title>Church Website Templates - CYBEV</title>
       </Head>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-gray-900">
         <div className="max-w-6xl mx-auto px-4 py-8">
-          <Link href="/church" className="inline-flex items-center gap-2 text-purple-200 hover:text-white mb-4">
+          <Link href="/church" className="inline-flex items-center gap-2 text-purple-200 hover:text-gray-900 mb-4">
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </Link>
@@ -328,7 +328,7 @@ export default function ChurchWebsiteTemplates() {
         {step === 1 && (
           <div>
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-900 mb-2">
                 Choose a Template
               </h2>
               <p className="text-gray-500">
@@ -350,7 +350,7 @@ export default function ChurchWebsiteTemplates() {
             <div className="flex justify-end">
               <button
                 onClick={() => setStep(2)}
-                className="px-8 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 flex items-center gap-2"
+                className="px-8 py-3 bg-purple-600 text-gray-900 rounded-xl font-semibold hover:bg-purple-700 flex items-center gap-2"
               >
                 Continue
                 <ChevronRight className="w-5 h-5" />
@@ -363,7 +363,7 @@ export default function ChurchWebsiteTemplates() {
         {step === 2 && (
           <div>
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-900 mb-2">
                 Customize Your Site
               </h2>
               <p className="text-gray-500">
@@ -373,15 +373,15 @@ export default function ChurchWebsiteTemplates() {
 
             <div className="max-w-2xl mx-auto space-y-8">
               {/* Organization Selection */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
                   <Church className="w-5 h-5 text-purple-500" />
                   Select Organization
                 </h3>
                 <select
                   value={selectedOrg}
                   onChange={(e) => setSelectedOrg(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                 >
                   {myOrgs.map(org => (
                     <option key={org._id} value={org._id}>{org.name}</option>
@@ -390,8 +390,8 @@ export default function ChurchWebsiteTemplates() {
               </div>
 
               {/* Color Scheme */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
                   <Palette className="w-5 h-5 text-purple-500" />
                   Color Scheme
                 </h3>
@@ -403,22 +403,22 @@ export default function ChurchWebsiteTemplates() {
                       className={`p-3 rounded-xl border-2 transition ${
                         selectedColor === scheme.id
                           ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                          : 'border-gray-200 dark:border-gray-600 hover:border-purple-300'
+                          : 'border-gray-200 dark:border-gray-300 hover:border-purple-300'
                       }`}
                     >
                       <div className="flex gap-1 justify-center mb-2">
                         <div className="w-6 h-6 rounded-full" style={{ backgroundColor: scheme.primary }} />
                         <div className="w-6 h-6 rounded-full" style={{ backgroundColor: scheme.secondary }} />
                       </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 text-center">{scheme.name}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-500 text-center">{scheme.name}</p>
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* Subdomain */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
                   <Globe className="w-5 h-5 text-purple-500" />
                   Website Address
                 </h3>
@@ -427,7 +427,7 @@ export default function ChurchWebsiteTemplates() {
                     type="text"
                     value={siteInfo.subdomain}
                     onChange={(e) => setSiteInfo(prev => ({ ...prev, subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
-                    className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                     placeholder="your-church"
                   />
                   <span className="text-gray-500 font-medium">.cybev.io</span>
@@ -438,8 +438,8 @@ export default function ChurchWebsiteTemplates() {
               </div>
 
               {/* Features */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
                   <Zap className="w-5 h-5 text-purple-500" />
                   Features
                 </h3>
@@ -452,16 +452,16 @@ export default function ChurchWebsiteTemplates() {
                   ].map(feature => {
                     const Icon = feature.icon;
                     return (
-                      <label key={feature.key} className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer">
+                      <label key={feature.key} className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-100/50 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={siteInfo[feature.key]}
                           onChange={(e) => setSiteInfo(prev => ({ ...prev, [feature.key]: e.target.checked }))}
                           className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                         />
-                        <Icon className="w-5 h-5 text-gray-400" />
+                        <Icon className="w-5 h-5 text-gray-500" />
                         <div>
-                          <p className="font-medium text-gray-900 dark:text-white">{feature.label}</p>
+                          <p className="font-medium text-gray-900 dark:text-gray-900">{feature.label}</p>
                           <p className="text-sm text-gray-500">{feature.desc}</p>
                         </div>
                       </label>
@@ -474,13 +474,13 @@ export default function ChurchWebsiteTemplates() {
             <div className="flex justify-between mt-8 max-w-2xl mx-auto">
               <button
                 onClick={() => setStep(1)}
-                className="px-6 py-3 border border-gray-200 dark:border-gray-600 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700"
+                className="px-6 py-3 border border-gray-200 dark:border-gray-300 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-100"
               >
                 Back
               </button>
               <button
                 onClick={() => setStep(3)}
-                className="px-8 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 flex items-center gap-2"
+                className="px-8 py-3 bg-purple-600 text-gray-900 rounded-xl font-semibold hover:bg-purple-700 flex items-center gap-2"
               >
                 Continue
                 <ChevronRight className="w-5 h-5" />
@@ -493,7 +493,7 @@ export default function ChurchWebsiteTemplates() {
         {step === 3 && (
           <div>
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-900 mb-2">
                 Add Your Content
               </h2>
               <p className="text-gray-500">
@@ -503,72 +503,72 @@ export default function ChurchWebsiteTemplates() {
 
             <div className="max-w-2xl mx-auto space-y-6">
               {/* Tagline */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                   Church Tagline
                 </label>
                 <input
                   type="text"
                   value={siteInfo.tagline}
                   onChange={(e) => setSiteInfo(prev => ({ ...prev, tagline: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                   placeholder="e.g., A Place of Love, Hope & Faith"
                 />
               </div>
 
               {/* Welcome Message */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                   Welcome Message
                 </label>
                 <textarea
                   value={siteInfo.welcomeMessage}
                   onChange={(e) => setSiteInfo(prev => ({ ...prev, welcomeMessage: e.target.value }))}
                   rows={3}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 resize-none"
                   placeholder="Welcome to our church! We're a community of believers..."
                 />
               </div>
 
               {/* Pastor Info */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Pastor Information</h3>
+              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Pastor Information</h3>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                         Name
                       </label>
                       <input
                         type="text"
                         value={siteInfo.pastorName}
                         onChange={(e) => setSiteInfo(prev => ({ ...prev, pastorName: e.target.value }))}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700"
                         placeholder="Pastor John Doe"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                         Title
                       </label>
                       <input
                         type="text"
                         value={siteInfo.pastorTitle}
                         onChange={(e) => setSiteInfo(prev => ({ ...prev, pastorTitle: e.target.value }))}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700"
                         placeholder="Senior Pastor"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                       Bio
                     </label>
                     <textarea
                       value={siteInfo.pastorBio}
                       onChange={(e) => setSiteInfo(prev => ({ ...prev, pastorBio: e.target.value }))}
                       rows={3}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 resize-none"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 resize-none"
                       placeholder="A brief bio about the pastor..."
                     />
                   </div>
@@ -579,13 +579,13 @@ export default function ChurchWebsiteTemplates() {
             <div className="flex justify-between mt-8 max-w-2xl mx-auto">
               <button
                 onClick={() => setStep(2)}
-                className="px-6 py-3 border border-gray-200 dark:border-gray-600 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700"
+                className="px-6 py-3 border border-gray-200 dark:border-gray-300 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-100"
               >
                 Back
               </button>
               <button
                 onClick={() => setStep(4)}
-                className="px-8 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 flex items-center gap-2"
+                className="px-8 py-3 bg-purple-600 text-gray-900 rounded-xl font-semibold hover:bg-purple-700 flex items-center gap-2"
               >
                 Continue
                 <ChevronRight className="w-5 h-5" />
@@ -598,7 +598,7 @@ export default function ChurchWebsiteTemplates() {
         {step === 4 && (
           <div>
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-900 mb-2">
                 Ready to Generate
               </h2>
               <p className="text-gray-500">
@@ -608,34 +608,34 @@ export default function ChurchWebsiteTemplates() {
 
             <div className="max-w-2xl mx-auto">
               {/* Summary */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 mb-6">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Summary</h3>
+              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200 mb-6">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Summary</h3>
                 
                 <div className="space-y-4">
-                  <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                  <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-200">
                     <span className="text-gray-500">Template</span>
-                    <span className="font-medium text-gray-900 dark:text-white">
+                    <span className="font-medium text-gray-900 dark:text-gray-900">
                       {templates.find(t => t.id === selectedTemplate)?.name}
                     </span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                  <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-200">
                     <span className="text-gray-500">Color Scheme</span>
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 rounded-full" style={{ backgroundColor: colorSchemes.find(c => c.id === selectedColor)?.primary }} />
-                      <span className="font-medium text-gray-900 dark:text-white">
+                      <span className="font-medium text-gray-900 dark:text-gray-900">
                         {colorSchemes.find(c => c.id === selectedColor)?.name}
                       </span>
                     </div>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                  <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-200">
                     <span className="text-gray-500">URL</span>
                     <span className="font-medium text-purple-600">
                       {siteInfo.subdomain}.cybev.io
                     </span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                  <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-200">
                     <span className="text-gray-500">Features</span>
-                    <span className="font-medium text-gray-900 dark:text-white">
+                    <span className="font-medium text-gray-900 dark:text-gray-900">
                       {[
                         siteInfo.showServiceTimes && 'Services',
                         siteInfo.enableLiveStream && 'Live',
@@ -646,7 +646,7 @@ export default function ChurchWebsiteTemplates() {
                   </div>
                   <div className="flex justify-between py-2">
                     <span className="text-gray-500">Organization</span>
-                    <span className="font-medium text-gray-900 dark:text-white">
+                    <span className="font-medium text-gray-900 dark:text-gray-900">
                       {myOrgs.find(o => o._id === selectedOrg)?.name}
                     </span>
                   </div>
@@ -660,10 +660,10 @@ export default function ChurchWebsiteTemplates() {
                     <Sparkles className="w-6 h-6 text-purple-600" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-900 mb-1">
                       AI-Powered Generation
                     </h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-gray-600 dark:text-gray-500">
                       Our AI will generate professional imagery and content based on your church name and settings. 
                       You can customize everything after generation.
                     </p>
@@ -674,14 +674,14 @@ export default function ChurchWebsiteTemplates() {
               <div className="flex justify-between">
                 <button
                   onClick={() => setStep(3)}
-                  className="px-6 py-3 border border-gray-200 dark:border-gray-600 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="px-6 py-3 border border-gray-200 dark:border-gray-300 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-100"
                 >
                   Back
                 </button>
                 <button
                   onClick={handleGenerate}
                   disabled={generating}
-                  className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-purple-500/30"
+                  className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-gray-900 rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-purple-500/15"
                 >
                   {generating ? (
                     <>

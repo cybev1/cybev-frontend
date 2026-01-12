@@ -22,10 +22,10 @@ const statusConfig = {
   contacted: { label: 'Contacted', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400', icon: Phone },
   followup: { label: 'Follow-up', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', icon: Clock },
   attending: { label: 'Attending', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', icon: CheckCircle },
-  member: { label: 'Member', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400', icon: Users },
+  member: { label: 'Member', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-600', icon: Users },
   foundation_school: { label: 'Foundation School', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400', icon: GraduationCap },
   graduated: { label: 'Graduated', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', icon: GraduationCap },
-  inactive: { label: 'Inactive', color: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400', icon: AlertCircle },
+  inactive: { label: 'Inactive', color: 'bg-gray-100 text-gray-700 dark:bg-gray-50/30 dark:text-gray-500', icon: AlertCircle },
   lost: { label: 'Lost', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', icon: XCircle }
 };
 
@@ -36,16 +36,16 @@ function SoulCard({ soul, onClick }) {
   return (
     <div 
       onClick={onClick}
-      className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-purple-200 dark:hover:border-purple-800 transition-all cursor-pointer group"
+      className="bg-white dark:bg-white rounded-xl p-4 border border-gray-100 dark:border-gray-200 hover:shadow-lg hover:border-purple-200 dark:hover:border-purple-800 transition-all cursor-pointer group"
     >
       <div className="flex items-start gap-4">
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-gray-900 font-bold text-lg flex-shrink-0">
           {soul.firstName?.[0]}{soul.lastName?.[0] || ''}
         </div>
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
-            <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 transition truncate">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-900 group-hover:text-purple-600 transition truncate">
               {soul.firstName} {soul.lastName}
             </h3>
             <span className={`text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1 ${status.color}`}>
@@ -54,7 +54,7 @@ function SoulCard({ soul, onClick }) {
             </span>
           </div>
           
-          <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-500">
             <span className="flex items-center gap-1">
               <Phone className="w-3.5 h-3.5" />
               {soul.phone}
@@ -67,7 +67,7 @@ function SoulCard({ soul, onClick }) {
             )}
           </div>
           
-          <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
+          <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
             <span className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
               {new Date(soul.salvationDate).toLocaleDateString()}
@@ -85,7 +85,7 @@ function SoulCard({ soul, onClick }) {
           </div>
         </div>
         
-        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-purple-500 transition flex-shrink-0" />
+        <ChevronRight className="w-5 h-5 text-gray-600 group-hover:text-purple-500 transition flex-shrink-0" />
       </div>
     </div>
   );
@@ -93,14 +93,14 @@ function SoulCard({ soul, onClick }) {
 
 function StatBox({ label, value, icon: Icon, color }) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
+    <div className="bg-white dark:bg-white rounded-xl p-4 border border-gray-100 dark:border-gray-200">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-gray-900">{value}</p>
           <p className="text-sm text-gray-500">{label}</p>
         </div>
         <div className={`w-10 h-10 rounded-lg ${color} flex items-center justify-center`}>
-          <Icon className="w-5 h-5 text-white" />
+          <Icon className="w-5 h-5 text-gray-900" />
         </div>
       </div>
     </div>
@@ -175,18 +175,18 @@ export default function SoulTracker() {
   const totalSouls = Object.values(stats).reduce((a, b) => a + b, 0);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
       <Head>
         <title>Soul Tracker - CYBEV Church</title>
       </Head>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-pink-600 to-rose-600 text-white">
+      <div className="bg-gradient-to-r from-pink-600 to-rose-600 text-gray-900">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2 text-pink-200 text-sm mb-2">
-                <Link href="/church" className="hover:text-white">Church</Link>
+                <Link href="/church" className="hover:text-gray-900">Church</Link>
                 <ChevronRight className="w-4 h-4" />
                 <span>Soul Tracker</span>
               </div>
@@ -234,13 +234,13 @@ export default function SoulTracker() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 mb-6 border border-gray-100 dark:border-gray-700">
+        <div className="bg-white dark:bg-white rounded-xl p-4 mb-6 border border-gray-100 dark:border-gray-200">
           <div className="flex flex-wrap gap-4">
             {/* Organization Select */}
             <select
               value={selectedOrg}
               onChange={(e) => setSelectedOrg(e.target.value)}
-              className="px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="px-4 py-2 border border-gray-200 dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
             >
               {myOrgs.map(org => (
                 <option key={org._id} value={org._id}>{org.name}</option>
@@ -249,13 +249,13 @@ export default function SoulTracker() {
 
             {/* Search */}
             <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by name or phone..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
               />
             </div>
 
@@ -263,7 +263,7 @@ export default function SoulTracker() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="px-4 py-2 border border-gray-200 dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
             >
               <option value="">All Status</option>
               <option value="new">New</option>
@@ -281,7 +281,7 @@ export default function SoulTracker() {
               onClick={fetchSouls}
               className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
             >
-              <RefreshCw className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              <RefreshCw className="w-5 h-5 text-gray-600 dark:text-gray-600" />
             </button>
           </div>
         </div>
@@ -293,7 +293,7 @@ export default function SoulTracker() {
             className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition ${
               !statusFilter 
                 ? 'bg-purple-600 text-white' 
-                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-purple-300'
+                : 'bg-white dark:bg-white text-gray-600 dark:text-gray-600 border border-gray-200 dark:border-gray-200 hover:border-purple-300'
             }`}
           >
             All ({totalSouls})
@@ -305,7 +305,7 @@ export default function SoulTracker() {
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition flex items-center gap-1 ${
                 statusFilter === key 
                   ? 'bg-purple-600 text-white' 
-                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-purple-300'
+                  : 'bg-white dark:bg-white text-gray-600 dark:text-gray-600 border border-gray-200 dark:border-gray-200 hover:border-purple-300'
               }`}
             >
               {config.label} ({stats[key] || 0})
@@ -319,9 +319,9 @@ export default function SoulTracker() {
             <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
           </div>
         ) : souls.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-700">
-            <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <div className="bg-white dark:bg-white rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-200">
+            <Heart className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900 mb-2">
               No Souls Found
             </h3>
             <p className="text-gray-500 mb-6">
@@ -330,7 +330,7 @@ export default function SoulTracker() {
                 : 'Start adding souls to track new converts'}
             </p>
             <Link href="/church/souls/add">
-              <button className="px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-semibold hover:from-pink-600 hover:to-rose-600">
+              <button className="px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-gray-900 rounded-xl font-semibold hover:from-pink-600 hover:to-rose-600">
                 Add First Soul
               </button>
             </Link>
@@ -353,17 +353,17 @@ export default function SoulTracker() {
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-4 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 disabled:opacity-50"
+                  className="px-4 py-2 rounded-lg bg-white dark:bg-white border border-gray-200 dark:border-gray-200 disabled:opacity-50"
                 >
                   Previous
                 </button>
-                <span className="px-4 py-2 text-gray-600 dark:text-gray-400">
+                <span className="px-4 py-2 text-gray-600 dark:text-gray-500">
                   Page {page} of {pagination.pages}
                 </span>
                 <button
                   onClick={() => setPage(p => Math.min(pagination.pages, p + 1))}
                   disabled={page === pagination.pages}
-                  className="px-4 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 disabled:opacity-50"
+                  className="px-4 py-2 rounded-lg bg-white dark:bg-white border border-gray-200 dark:border-gray-200 disabled:opacity-50"
                 >
                   Next
                 </button>

@@ -42,13 +42,13 @@ export default function BlogSitePublic() {
   const title = site ? `${site.name} • CYBEV BlogSite` : 'CYBEV BlogSite';
 
   return (
-    <div className="min-h-screen bg-[#0B0F1A] text-white">
+    <div className="min-h-screen bg-[#0B0F1A] text-gray-900">
       <Head>
         <title>{title}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
 
-      <header className="border-b border-white/10 bg-black/20">
+      <header className="border-b border-gray-200 bg-gray-900/20">
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="flex items-center justify-between gap-4">
             <div>
@@ -63,10 +63,10 @@ export default function BlogSitePublic() {
             </div>
 
             <div className="flex gap-2">
-              <Link href="/feed" className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 border border-white/10 text-sm">
+              <Link href="/feed" className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 border border-gray-200 text-sm">
                 Social Feed
               </Link>
-              <Link href="/studio/blogsite" className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 border border-white/10 text-sm">
+              <Link href="/studio/blogsite" className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 border border-gray-200 text-sm">
                 Creator Studio
               </Link>
             </div>
@@ -80,7 +80,7 @@ export default function BlogSitePublic() {
         ) : error ? (
           <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm">{error}</div>
         ) : posts.length === 0 ? (
-          <div className="p-6 rounded-xl border border-white/10 bg-white/5">
+          <div className="p-6 rounded-xl border border-gray-200 bg-white/5">
             <h2 className="font-semibold text-lg">No posts yet</h2>
             <p className="opacity-80 mt-1">This site is live, but no posts have been published to it yet.</p>
             <div className="mt-4">
@@ -92,7 +92,7 @@ export default function BlogSitePublic() {
         ) : (
           <div className="space-y-4">
             {posts.map((p) => (
-              <article key={p._id} className="p-5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/7 transition">
+              <article key={p._id} className="p-5 rounded-xl border border-gray-200 bg-white/5 hover:bg-white/7 transition">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-xl font-semibold">
                     <Link href={`/blog/${p._id}`} className="hover:underline">
@@ -118,7 +118,7 @@ export default function BlogSitePublic() {
         )}
       </main>
 
-      <footer className="border-t border-white/10 bg-black/20">
+      <footer className="border-t border-gray-200 bg-gray-900/20">
         <div className="max-w-4xl mx-auto px-4 py-6 text-sm opacity-70">
           Powered by CYBEV • BlogSite
         </div>

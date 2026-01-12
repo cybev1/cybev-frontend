@@ -137,12 +137,12 @@ export default function CellDashboard() {
           <div className="flex items-center gap-4">
             <Link
               href={`/church/org/${orgId}`}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-white rounded-lg"
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Cell Ministry</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900">Cell Ministry</h1>
               <p className="text-gray-500">Manage cells and track growth</p>
             </div>
           </div>
@@ -156,7 +156,7 @@ export default function CellDashboard() {
             </Link>
             <button
               onClick={() => setShowNewCell(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700"
             >
               <Plus className="w-4 h-4" />
               New Cell
@@ -193,8 +193,8 @@ export default function CellDashboard() {
         </div>
 
         {/* Cell Structure Overview */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+        <div className="bg-white dark:bg-white rounded-xl border border-gray-200 dark:border-gray-200 p-6 mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-900 mb-6">
             Cell Structure Overview
           </h2>
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -205,7 +205,7 @@ export default function CellDashboard() {
                   className={`flex flex-col items-center p-4 rounded-xl transition min-w-[140px] ${
                     selectedLevel === level.id
                       ? 'bg-purple-50 dark:bg-purple-900/20 ring-2 ring-purple-500'
-                      : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                      : 'hover:bg-gray-50 dark:hover:bg-gray-100'
                   }`}
                 >
                   <div
@@ -214,7 +214,7 @@ export default function CellDashboard() {
                   >
                     <level.icon className="w-7 h-7" style={{ color: level.color }} />
                   </div>
-                  <p className="font-medium text-sm text-gray-900 dark:text-white text-center">
+                  <p className="font-medium text-sm text-gray-900 dark:text-gray-900 text-center">
                     {level.name}
                   </p>
                   <p className="text-2xl font-bold mt-1" style={{ color: level.color }}>
@@ -225,7 +225,7 @@ export default function CellDashboard() {
                   </p>
                 </button>
                 {index < CELL_LEVELS.length - 1 && (
-                  <ChevronRight className="w-6 h-6 text-gray-300 mx-2 hidden md:block" />
+                  <ChevronRight className="w-6 h-6 text-gray-600 mx-2 hidden md:block" />
                 )}
               </div>
             ))}
@@ -267,16 +267,16 @@ export default function CellDashboard() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map(i => (
-              <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 animate-pulse">
+              <div key={i} className="bg-white dark:bg-white rounded-xl p-6 animate-pulse">
                 <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
                 <div className="h-4 bg-gray-200 rounded w-1/2"></div>
               </div>
             ))}
           </div>
         ) : filteredCells.length === 0 ? (
-          <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <div className="text-center py-16 bg-white dark:bg-white rounded-xl border border-gray-200 dark:border-gray-200">
+            <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900 mb-2">
               No cells found
             </h3>
             <p className="text-gray-500 mb-6">
@@ -284,7 +284,7 @@ export default function CellDashboard() {
             </p>
             <button
               onClick={() => setShowNewCell(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg"
             >
               <Plus className="w-4 h-4" />
               Create Cell
@@ -302,7 +302,7 @@ export default function CellDashboard() {
                 <Link
                   key={cell._id}
                   href={`/church/cells/${cell._id}?orgId=${orgId}`}
-                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition group"
+                  className="bg-white dark:bg-white rounded-xl border border-gray-200 dark:border-gray-200 overflow-hidden hover:shadow-lg transition group"
                 >
                   {/* Header with Level Color */}
                   <div
@@ -315,11 +315,11 @@ export default function CellDashboard() {
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-gray-900 dark:text-white">
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-900">
                             {cell.name}
                           </h3>
                           <span
-                            className="text-xs px-2 py-0.5 rounded-full text-white"
+                            className="text-xs px-2 py-0.5 rounded-full text-gray-900"
                             style={{ backgroundColor: level?.color }}
                           >
                             {level?.name}
@@ -351,7 +351,7 @@ export default function CellDashboard() {
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          <p className="text-sm font-medium text-gray-900 dark:text-gray-900">
                             {cell.leader.name || cell.leader.username}
                           </p>
                           <p className="text-xs text-gray-500">Cell Leader</p>
@@ -361,12 +361,12 @@ export default function CellDashboard() {
 
                     {/* Stats */}
                     <div className="flex items-center gap-6 text-sm mb-4">
-                      <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center gap-1 text-gray-600 dark:text-gray-500">
                         <Users className="w-4 h-4" />
                         <span>{cell.members?.length || 0} members</span>
                       </div>
                       {cell.meetingDay && (
-                        <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-1 text-gray-600 dark:text-gray-500">
                           <Calendar className="w-4 h-4" />
                           <span>{cell.meetingDay}s</span>
                         </div>
@@ -393,9 +393,9 @@ export default function CellDashboard() {
                     )}
 
                     {/* Action Hint */}
-                    <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between text-sm">
+                    <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-200 flex items-center justify-between text-sm">
                       <span className="text-gray-500">View Details</span>
-                      <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-purple-600 transition" />
+                      <ArrowUpRight className="w-4 h-4 text-gray-500 group-hover:text-purple-600 transition" />
                     </div>
                   </div>
                 </Link>
@@ -405,7 +405,7 @@ export default function CellDashboard() {
         )}
 
         {/* Growth Tips */}
-        <div className="mt-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-6 text-white">
+        <div className="mt-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-6 text-gray-900">
           <h3 className="text-lg font-semibold mb-4">Cell Growth Pathway</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {CELL_LEVELS.map((level, index) => (
@@ -451,11 +451,11 @@ function StatCard({ icon: Icon, label, value, color }) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+    <div className="bg-white dark:bg-white rounded-xl p-5 border border-gray-200 dark:border-gray-200">
       <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${colors[color]}`}>
         <Icon className="w-5 h-5" />
       </div>
-      <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+      <p className="text-2xl font-bold text-gray-900 dark:text-gray-900">{value}</p>
       <p className="text-sm text-gray-500">{label}</p>
     </div>
   );
@@ -524,10 +524,10 @@ function NewCellModal({ orgId, onClose, onSuccess }) {
   const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full">
-        <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Create New Cell</h3>
+    <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-white rounded-xl max-w-lg w-full">
+        <div className="border-b border-gray-200 dark:border-gray-200 px-6 py-4 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900">Create New Cell</h3>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
             <X className="w-5 h-5" />
           </button>
@@ -535,7 +535,7 @@ function NewCellModal({ orgId, onClose, onSuccess }) {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Cell Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -549,7 +549,7 @@ function NewCellModal({ orgId, onClose, onSuccess }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Description
             </label>
             <textarea
@@ -562,7 +562,7 @@ function NewCellModal({ orgId, onClose, onSuccess }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Location/Area
             </label>
             <input
@@ -576,7 +576,7 @@ function NewCellModal({ orgId, onClose, onSuccess }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                 Meeting Day
               </label>
               <select
@@ -590,7 +590,7 @@ function NewCellModal({ orgId, onClose, onSuccess }) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                 Meeting Time
               </label>
               <input
@@ -603,7 +603,7 @@ function NewCellModal({ orgId, onClose, onSuccess }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Cell Leader
             </label>
             <select
@@ -631,7 +631,7 @@ function NewCellModal({ orgId, onClose, onSuccess }) {
             <button
               type="submit"
               disabled={saving || !formData.name}
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+              className="px-6 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700 disabled:opacity-50"
             >
               {saving ? 'Creating...' : 'Create Cell'}
             </button>

@@ -59,7 +59,7 @@ function NFTCard({ nft }) {
 
   return (
     <Link href={`/nft/${nft._id}`}>
-      <div className="group bg-gray-800/50 rounded-2xl overflow-hidden border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 hover:transform hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/10">
+      <div className="group bg-white/50 rounded-2xl overflow-hidden border border-gray-200 hover:border-purple-500/50 transition-all duration-300 hover:transform hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/10">
         {/* Image */}
         <div className="relative aspect-square overflow-hidden">
           {nft.image ? (
@@ -83,7 +83,7 @@ function NFTCard({ nft }) {
               </span>
             )}
             {nft.isFeatured && (
-              <span className="px-2 py-1 bg-purple-500 text-white text-xs font-bold rounded-lg">
+              <span className="px-2 py-1 bg-purple-500 text-gray-900 text-xs font-bold rounded-lg">
                 FEATURED
               </span>
             )}
@@ -92,14 +92,14 @@ function NFTCard({ nft }) {
           {/* Like button */}
           <button
             onClick={handleLike}
-            className="absolute top-3 right-3 p-2 bg-black/50 backdrop-blur-sm rounded-full hover:bg-black/70 transition-colors"
+            className="absolute top-3 right-3 p-2 bg-gray-900/50 backdrop-blur-sm rounded-full hover:bg-gray-900/70 transition-colors"
           >
             <Heart className={`w-5 h-5 ${liked ? 'text-red-500 fill-red-500' : 'text-white'}`} />
           </button>
 
           {/* Quick stats overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-            <div className="flex items-center justify-between text-white text-sm">
+            <div className="flex items-center justify-between text-gray-900 text-sm">
               <span className="flex items-center gap-1">
                 <Eye className="w-4 h-4" />
                 {nft.views || 0}
@@ -116,31 +116,31 @@ function NFTCard({ nft }) {
         <div className="p-4">
           {/* Collection */}
           {nft.collection && (
-            <p className="text-purple-400 text-xs mb-1 flex items-center gap-1">
+            <p className="text-purple-600 text-xs mb-1 flex items-center gap-1">
               {nft.collection.name}
               <Verified className="w-3 h-3" />
             </p>
           )}
 
           {/* Name */}
-          <h3 className="text-white font-bold truncate mb-2">{nft.name}</h3>
+          <h3 className="text-gray-900 font-bold truncate mb-2">{nft.name}</h3>
 
           {/* Creator */}
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+            <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-gray-900 text-xs font-bold">
               {nft.creator?.name?.[0] || 'C'}
             </div>
-            <span className="text-gray-400 text-sm">@{nft.creator?.username || 'creator'}</span>
+            <span className="text-gray-500 text-sm">@{nft.creator?.username || 'creator'}</span>
           </div>
 
           {/* Price */}
-          <div className="flex items-center justify-between pt-3 border-t border-gray-700">
+          <div className="flex items-center justify-between pt-3 border-t border-gray-200">
             {nft.isListed ? (
               <div>
-                <p className="text-gray-400 text-xs">
+                <p className="text-gray-500 text-xs">
                   {nft.listingType === 'auction' ? 'Current Bid' : 'Price'}
                 </p>
-                <p className="text-white font-bold">
+                <p className="text-gray-900 font-bold">
                   {nft.listingType === 'auction' 
                     ? (nft.highestBid || nft.listingPrice) 
                     : nft.listingPrice
@@ -149,13 +149,13 @@ function NFTCard({ nft }) {
               </div>
             ) : (
               <div>
-                <p className="text-gray-400 text-xs">Status</p>
-                <p className="text-gray-300">Not Listed</p>
+                <p className="text-gray-500 text-xs">Status</p>
+                <p className="text-gray-600">Not Listed</p>
               </div>
             )}
 
             {nft.isListed && (
-              <button className="px-4 py-2 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 transition-colors">
+              <button className="px-4 py-2 bg-purple-500 text-gray-900 text-sm rounded-lg hover:bg-purple-600 transition-colors">
                 {nft.listingType === 'auction' ? 'Bid' : 'Buy'}
               </button>
             )}
@@ -379,15 +379,15 @@ export default function NFTMarketplace() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-              <Sparkles className="w-8 h-8 text-purple-400" />
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <Sparkles className="w-8 h-8 text-purple-600" />
               NFT Marketplace
             </h1>
-            <p className="text-gray-400 mt-1">Discover, collect, and trade unique digital assets</p>
+            <p className="text-gray-500 mt-1">Discover, collect, and trade unique digital assets</p>
           </div>
 
           <Link href="/nft/create">
-            <button className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:opacity-90 transition-opacity">
+            <button className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-xl font-medium hover:opacity-90 transition-opacity">
               <Plus className="w-5 h-5" />
               Create NFT
             </button>
@@ -397,8 +397,8 @@ export default function NFTMarketplace() {
         {/* Featured Section */}
         {featuredNfts.length > 0 && selectedCategory === 'all' && !searchQuery && (
           <div className="mb-10">
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-purple-400" />
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-purple-600" />
               Featured
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -413,13 +413,13 @@ export default function NFTMarketplace() {
         <div className="flex flex-col lg:flex-row gap-4 mb-6">
           {/* Search */}
           <form onSubmit={handleSearch} className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
             <input
               type="text"
               placeholder="Search NFTs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-800/50 border border-purple-500/20 rounded-xl pl-12 pr-4 py-3 text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+              className="w-full bg-white/50 border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-gray-900 placeholder-gray-400 focus:border-purple-500 focus:outline-none"
             />
           </form>
 
@@ -428,7 +428,7 @@ export default function NFTMarketplace() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="appearance-none bg-gray-800/50 border border-purple-500/20 rounded-xl px-4 py-3 pr-10 text-white focus:border-purple-500 focus:outline-none cursor-pointer"
+              className="appearance-none bg-white/50 border border-gray-200 rounded-xl px-4 py-3 pr-10 text-gray-900 focus:border-purple-500 focus:outline-none cursor-pointer"
             >
               {SORT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -436,14 +436,14 @@ export default function NFTMarketplace() {
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" />
           </div>
 
           {/* Filter Toggle */}
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-colors ${
-              showFilters ? 'bg-purple-500 text-white' : 'bg-gray-800/50 text-gray-400 border border-purple-500/20'
+              showFilters ? 'bg-purple-500 text-white' : 'bg-white/50 text-gray-500 border border-gray-200'
             }`}
           >
             <Filter className="w-5 h-5" />
@@ -453,7 +453,7 @@ export default function NFTMarketplace() {
 
         {/* Filters Panel */}
         {showFilters && (
-          <div className="bg-gray-800/50 rounded-xl p-4 mb-6 border border-purple-500/20">
+          <div className="bg-white/50 rounded-xl p-4 mb-6 border border-gray-200">
             <div className="flex flex-wrap gap-4 items-center">
               {/* Listed Only */}
               <label className="flex items-center gap-2 cursor-pointer">
@@ -461,36 +461,36 @@ export default function NFTMarketplace() {
                   type="checkbox"
                   checked={showListedOnly}
                   onChange={(e) => setShowListedOnly(e.target.checked)}
-                  className="w-4 h-4 rounded bg-gray-700 border-gray-600 text-purple-500 focus:ring-purple-500"
+                  className="w-4 h-4 rounded bg-gray-700 border-gray-300 text-purple-500 focus:ring-purple-500"
                 />
-                <span className="text-gray-300">Listed Only</span>
+                <span className="text-gray-600">Listed Only</span>
               </label>
 
               {/* Price Range */}
               <div className="flex items-center gap-2">
-                <span className="text-gray-400">Price:</span>
+                <span className="text-gray-500">Price:</span>
                 <input
                   type="number"
                   placeholder="Min"
                   value={priceRange.min}
                   onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
-                  className="w-24 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm"
+                  className="w-24 bg-gray-700 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm"
                 />
-                <span className="text-gray-400">-</span>
+                <span className="text-gray-500">-</span>
                 <input
                   type="number"
                   placeholder="Max"
                   value={priceRange.max}
                   onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
-                  className="w-24 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm"
+                  className="w-24 bg-gray-700 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm"
                 />
-                <span className="text-gray-400">CYBEV</span>
+                <span className="text-gray-500">CYBEV</span>
               </div>
 
               {/* Apply */}
               <button
                 onClick={() => { setPage(1); fetchNFTs(); }}
-                className="px-4 py-2 bg-purple-500 text-white rounded-lg text-sm"
+                className="px-4 py-2 bg-purple-500 text-gray-900 rounded-lg text-sm"
               >
                 Apply
               </button>
@@ -504,7 +504,7 @@ export default function NFTMarketplace() {
                   setSelectedCategory('all');
                   setPage(1);
                 }}
-                className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg text-sm"
+                className="px-4 py-2 bg-gray-700 text-gray-600 rounded-lg text-sm"
               >
                 Clear All
               </button>
@@ -521,7 +521,7 @@ export default function NFTMarketplace() {
               className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
                 selectedCategory === cat.id
                   ? 'bg-purple-500 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                  : 'bg-white text-gray-500 hover:bg-gray-100'
               }`}
             >
               <cat.icon className="w-4 h-4" />
@@ -531,7 +531,7 @@ export default function NFTMarketplace() {
         </div>
 
         {/* Results Count */}
-        <p className="text-gray-400 mb-4">
+        <p className="text-gray-500 mb-4">
           {total} NFT{total !== 1 ? 's' : ''} found
         </p>
 
@@ -543,10 +543,10 @@ export default function NFTMarketplace() {
         ) : nfts.length === 0 ? (
           <div className="text-center py-20">
             <Sparkles className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-white mb-2">No NFTs found</h3>
-            <p className="text-gray-400 mb-6">Be the first to create one!</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">No NFTs found</h3>
+            <p className="text-gray-500 mb-6">Be the first to create one!</p>
             <Link href="/nft/create">
-              <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl">
+              <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-xl">
                 Create NFT
               </button>
             </Link>
@@ -564,7 +564,7 @@ export default function NFTMarketplace() {
               <div className="text-center mt-8">
                 <button
                   onClick={() => setPage(page + 1)}
-                  className="px-8 py-3 bg-gray-800 text-white rounded-xl hover:bg-gray-700 transition-colors"
+                  className="px-8 py-3 bg-white text-gray-900 rounded-xl hover:bg-gray-100 transition-colors"
                 >
                   Load More
                 </button>

@@ -97,13 +97,13 @@ export default function ScheduleMeeting() {
 
         {!scheduled ? (
           <>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Schedule a Meeting</h1>
-            <p className="text-gray-600 dark:text-gray-400 mb-8">Plan a video meeting for a specific time</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900 mb-2">Schedule a Meeting</h1>
+            <p className="text-gray-600 dark:text-gray-500 mb-8">Plan a video meeting for a specific time</p>
 
-            <form onSubmit={scheduleMeeting} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+            <form onSubmit={scheduleMeeting} className="bg-white dark:bg-white rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-200">
               {/* Title */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                   Meeting Title *
                 </label>
                 <input
@@ -112,14 +112,14 @@ export default function ScheduleMeeting() {
                   value={formData.title}
                   onChange={handleChange}
                   placeholder="e.g., Team Standup"
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                   required
                 />
               </div>
 
               {/* Description */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                   Description (optional)
                 </label>
                 <textarea
@@ -128,14 +128,14 @@ export default function ScheduleMeeting() {
                   onChange={handleChange}
                   placeholder="What's this meeting about?"
                   rows={3}
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 resize-none"
                 />
               </div>
 
               {/* Date & Time */}
               <div className="grid md:grid-cols-2 gap-4 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                     <Calendar className="w-4 h-4 inline mr-1" />
                     Date *
                   </label>
@@ -145,12 +145,12 @@ export default function ScheduleMeeting() {
                     value={formData.date}
                     onChange={handleChange}
                     min={today}
-                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                     <Clock className="w-4 h-4 inline mr-1" />
                     Time *
                   </label>
@@ -159,7 +159,7 @@ export default function ScheduleMeeting() {
                     name="time"
                     value={formData.time}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                     required
                   />
                 </div>
@@ -167,14 +167,14 @@ export default function ScheduleMeeting() {
 
               {/* Duration */}
               <div className="mb-8">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                   Duration
                 </label>
                 <select
                   name="duration"
                   value={formData.duration}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-300 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                 >
                   <option value="15">15 minutes</option>
                   <option value="30">30 minutes</option>
@@ -189,7 +189,7 @@ export default function ScheduleMeeting() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-purple-600 text-gray-900 rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -207,17 +207,17 @@ export default function ScheduleMeeting() {
           </>
         ) : (
           /* Success State */
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+          <div className="bg-white dark:bg-white rounded-xl p-8 shadow-sm border border-gray-100 dark:border-gray-200 text-center">
             <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
               <Check className="w-8 h-8 text-green-600" />
             </div>
             
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Meeting Scheduled!</h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">{scheduled.title}</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-900 mb-2">Meeting Scheduled!</h2>
+            <p className="text-gray-600 dark:text-gray-500 mb-6">{scheduled.title}</p>
 
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-gray-500 dark:text-gray-400">Meeting Link</span>
+                <span className="text-gray-500 dark:text-gray-500">Meeting Link</span>
                 <button
                   onClick={copyLink}
                   className="text-purple-600 hover:text-purple-700 flex items-center gap-1 text-sm"
@@ -226,24 +226,24 @@ export default function ScheduleMeeting() {
                   {copied ? 'Copied!' : 'Copy'}
                 </button>
               </div>
-              <p className="text-gray-900 dark:text-white font-mono text-sm break-all">
+              <p className="text-gray-900 dark:text-gray-900 font-mono text-sm break-all">
                 https://cybev.io/meet/{scheduled.roomId}
               </p>
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400 mb-8">
+            <div className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-500 mb-8">
               <Calendar className="w-4 h-4" />
               <span>{new Date(scheduled.scheduledAt).toLocaleString()}</span>
             </div>
 
             <div className="flex gap-3">
               <Link href="/meet" className="flex-1">
-                <button className="w-full py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600">
+                <button className="w-full py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-600 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600">
                   Back to Meet
                 </button>
               </Link>
               <Link href={`/meet/${scheduled.roomId}`} className="flex-1">
-                <button className="w-full py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 flex items-center justify-center gap-2">
+                <button className="w-full py-3 bg-purple-600 text-gray-900 rounded-lg font-medium hover:bg-purple-700 flex items-center justify-center gap-2">
                   <Video className="w-4 h-4" />
                   Join Now
                 </button>

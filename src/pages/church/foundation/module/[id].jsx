@@ -18,13 +18,13 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
 function LessonContent({ lesson, index }) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+    <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
       <div className="flex items-start gap-4 mb-4">
-        <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold">
+        <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-600 font-bold">
           {index + 1}
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900">
             {lesson.title}
           </h3>
           {lesson.duration && (
@@ -37,18 +37,18 @@ function LessonContent({ lesson, index }) {
       </div>
       
       <div className="prose dark:prose-invert max-w-none">
-        <p className="text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+        <p className="text-gray-600 dark:text-gray-600 leading-relaxed whitespace-pre-wrap">
           {lesson.content}
         </p>
       </div>
 
       {lesson.videoUrl && (
-        <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+        <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-100 rounded-xl">
           <a 
             href={lesson.videoUrl} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-purple-600 dark:text-purple-400 hover:underline"
+            className="flex items-center gap-2 text-purple-600 dark:text-purple-600 hover:underline"
           >
             <Play className="w-5 h-5" />
             Watch Video Lesson
@@ -61,12 +61,12 @@ function LessonContent({ lesson, index }) {
 
 function QuizQuestion({ question, index, selectedAnswer, onSelect, showResult }) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+    <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
       <div className="flex items-start gap-3 mb-4">
-        <span className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold text-sm flex-shrink-0">
+        <span className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-600 font-bold text-sm flex-shrink-0">
           {index + 1}
         </span>
-        <p className="text-gray-900 dark:text-white font-medium">{question.question}</p>
+        <p className="text-gray-900 dark:text-gray-900 font-medium">{question.question}</p>
       </div>
 
       <div className="space-y-2 ml-11">
@@ -74,8 +74,8 @@ function QuizQuestion({ question, index, selectedAnswer, onSelect, showResult })
           const isSelected = selectedAnswer === i;
           const isCorrect = i === question.correctAnswer;
           
-          let bgClass = 'bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700';
-          let borderClass = 'border-gray-200 dark:border-gray-600';
+          let bgClass = 'bg-gray-50 dark:bg-gray-100 hover:bg-gray-100 dark:hover:bg-gray-100';
+          let borderClass = 'border-gray-200 dark:border-gray-300';
           
           if (showResult) {
             if (isCorrect) {
@@ -116,7 +116,7 @@ function QuizQuestion({ question, index, selectedAnswer, onSelect, showResult })
                     ? 'text-green-700 dark:text-green-400 font-medium' 
                     : showResult && isSelected && !isCorrect
                       ? 'text-red-700 dark:text-red-400'
-                      : 'text-gray-700 dark:text-gray-300'
+                      : 'text-gray-700 dark:text-gray-600'
                 }`}>
                   {option}
                 </span>
@@ -226,7 +226,7 @@ export default function ModuleViewer() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
       </div>
     );
@@ -234,11 +234,11 @@ export default function ModuleViewer() {
 
   if (!module) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500 mb-4">Module not found</p>
           <Link href="/church/foundation">
-            <button className="px-6 py-2 bg-purple-600 text-white rounded-lg">
+            <button className="px-6 py-2 bg-purple-600 text-gray-900 rounded-lg">
               Back to Modules
             </button>
           </Link>
@@ -252,15 +252,15 @@ export default function ModuleViewer() {
   const passed = quizScore !== null && quizScore >= (module.passingScore || 70);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
       <Head>
         <title>Module {module.moduleNumber}: {module.title} - Foundation School</title>
       </Head>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-gray-900">
         <div className="max-w-4xl mx-auto px-4 py-6">
-          <Link href="/church/foundation" className="inline-flex items-center gap-2 text-purple-200 hover:text-white mb-3">
+          <Link href="/church/foundation" className="inline-flex items-center gap-2 text-purple-200 hover:text-gray-900 mb-3">
             <ArrowLeft className="w-4 h-4" />
             Back to Foundation School
           </Link>
@@ -278,14 +278,14 @@ export default function ModuleViewer() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 sticky top-0 z-10">
+      <div className="bg-white dark:bg-white border-b border-gray-100 dark:border-gray-200 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4">
           <div className="flex gap-1">
             <button
               onClick={() => setActiveTab('lessons')}
               className={`px-6 py-4 font-medium border-b-2 transition ${
                 activeTab === 'lessons'
-                  ? 'border-purple-500 text-purple-600 dark:text-purple-400'
+                  ? 'border-purple-500 text-purple-600 dark:text-purple-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -296,7 +296,7 @@ export default function ModuleViewer() {
               onClick={() => setActiveTab('scriptures')}
               className={`px-6 py-4 font-medium border-b-2 transition ${
                 activeTab === 'scriptures'
-                  ? 'border-purple-500 text-purple-600 dark:text-purple-400'
+                  ? 'border-purple-500 text-purple-600 dark:text-purple-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -307,7 +307,7 @@ export default function ModuleViewer() {
               onClick={() => setActiveTab('quiz')}
               className={`px-6 py-4 font-medium border-b-2 transition ${
                 activeTab === 'quiz'
-                  ? 'border-purple-500 text-purple-600 dark:text-purple-400'
+                  ? 'border-purple-500 text-purple-600 dark:text-purple-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -325,11 +325,11 @@ export default function ModuleViewer() {
             {/* Memory Verse */}
             {module.content?.memoryVerse && (
               <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-2xl p-6 border border-amber-200 dark:border-amber-800">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-2 flex items-center gap-2">
                   <BookMarked className="w-5 h-5 text-amber-500" />
                   Memory Verse
                 </h3>
-                <blockquote className="text-gray-700 dark:text-gray-300 italic text-lg">
+                <blockquote className="text-gray-700 dark:text-gray-600 italic text-lg">
                   "{module.content.memoryVerse}"
                 </blockquote>
               </div>
@@ -337,9 +337,9 @@ export default function ModuleViewer() {
 
             {/* Introduction */}
             {module.content?.introduction && (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Introduction</h3>
-                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-3">Introduction</h3>
+                <p className="text-gray-600 dark:text-gray-600 leading-relaxed">
                   {module.content.introduction}
                 </p>
               </div>
@@ -354,7 +354,7 @@ export default function ModuleViewer() {
             <div className="flex justify-center pt-6">
               <button
                 onClick={() => setActiveTab('quiz')}
-                className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 flex items-center gap-2"
+                className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-gray-900 rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 flex items-center gap-2"
               >
                 Continue to Quiz
                 <ChevronRight className="w-5 h-5" />
@@ -365,8 +365,8 @@ export default function ModuleViewer() {
 
         {/* Scriptures Tab */}
         {activeTab === 'scriptures' && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
               <BookMarked className="w-5 h-5 text-purple-500" />
               Key Scriptures
             </h3>
@@ -375,12 +375,12 @@ export default function ModuleViewer() {
               {module.content?.scriptures?.map((scripture, i) => (
                 <div 
                   key={i}
-                  className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl flex items-center gap-3"
+                  className="p-4 bg-gray-50 dark:bg-gray-100 rounded-xl flex items-center gap-3"
                 >
-                  <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 text-sm font-bold">
+                  <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-600 text-sm font-bold">
                     {i + 1}
                   </div>
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">
+                  <span className="text-gray-700 dark:text-gray-600 font-medium">
                     {scripture}
                   </span>
                 </div>
@@ -417,7 +417,7 @@ export default function ModuleViewer() {
                 }`}>
                   {passed ? 'Congratulations!' : 'Keep Learning!'}
                 </h3>
-                <p className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                <p className="text-4xl font-bold text-gray-900 dark:text-gray-900 mb-2">
                   {quizScore}%
                 </p>
                 <p className={`${passed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
@@ -431,13 +431,13 @@ export default function ModuleViewer() {
                   {!passed && (
                     <button
                       onClick={resetQuiz}
-                      className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-600"
+                      className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-600 rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-600"
                     >
                       Try Again
                     </button>
                   )}
                   <Link href="/church/foundation">
-                    <button className="px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700">
+                    <button className="px-6 py-3 bg-purple-600 text-gray-900 rounded-xl font-semibold hover:bg-purple-700">
                       {passed ? 'Continue' : 'Back to Modules'}
                     </button>
                   </Link>
@@ -463,7 +463,7 @@ export default function ModuleViewer() {
                 <button
                   onClick={handleSubmitQuiz}
                   disabled={Object.keys(quizAnswers).length < quiz.length || submitting}
-                  className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-gray-900 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {submitting ? (
                     <>

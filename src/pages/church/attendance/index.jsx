@@ -24,10 +24,10 @@ function StatCard({ label, value, icon: Icon, trend, color = 'purple' }) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-100 dark:border-gray-700">
+    <div className="bg-white dark:bg-white rounded-xl p-5 border border-gray-100 dark:border-gray-200">
       <div className="flex items-center justify-between mb-3">
         <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${colors[color]} flex items-center justify-center`}>
-          <Icon className="w-5 h-5 text-white" />
+          <Icon className="w-5 h-5 text-gray-900" />
         </div>
         {trend !== undefined && (
           <span className={`text-sm font-medium ${trend >= 0 ? 'text-green-500' : 'text-red-500'}`}>
@@ -35,7 +35,7 @@ function StatCard({ label, value, icon: Icon, trend, color = 'purple' }) {
           </span>
         )}
       </div>
-      <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+      <p className="text-2xl font-bold text-gray-900 dark:text-gray-900">{value}</p>
       <p className="text-sm text-gray-500">{label}</p>
     </div>
   );
@@ -78,15 +78,15 @@ function AttendanceForm({ orgs, onSubmit, loading }) {
   const totalAttendance = form.members + form.visitors + form.firstTimers + form.children + form.online;
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-900 mb-6 flex items-center gap-2">
         <Plus className="w-5 h-5 text-purple-500" />
         Record Attendance
       </h2>
 
       <div className="grid md:grid-cols-2 gap-4 mb-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
             Organization
           </label>
           <select
@@ -94,7 +94,7 @@ function AttendanceForm({ orgs, onSubmit, loading }) {
             value={form.organizationId}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
           >
             {orgs.map(org => (
               <option key={org._id} value={org._id}>{org.name}</option>
@@ -103,7 +103,7 @@ function AttendanceForm({ orgs, onSubmit, loading }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
             Date
           </label>
           <input
@@ -112,19 +112,19 @@ function AttendanceForm({ orgs, onSubmit, loading }) {
             value={form.date}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
             Service Type
           </label>
           <select
             name="serviceType"
             value={form.serviceType}
             onChange={handleChange}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
           >
             <option value="sunday">Sunday Service</option>
             <option value="midweek">Midweek Service</option>
@@ -138,7 +138,7 @@ function AttendanceForm({ orgs, onSubmit, loading }) {
       {/* Attendance Numbers */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
             Members
           </label>
           <input
@@ -147,12 +147,12 @@ function AttendanceForm({ orgs, onSubmit, loading }) {
             value={form.members}
             onChange={handleChange}
             min="0"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center text-lg font-semibold"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 text-center text-lg font-semibold"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
             Visitors
           </label>
           <input
@@ -161,12 +161,12 @@ function AttendanceForm({ orgs, onSubmit, loading }) {
             value={form.visitors}
             onChange={handleChange}
             min="0"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center text-lg font-semibold"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 text-center text-lg font-semibold"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
             First Timers
           </label>
           <input
@@ -175,12 +175,12 @@ function AttendanceForm({ orgs, onSubmit, loading }) {
             value={form.firstTimers}
             onChange={handleChange}
             min="0"
-            className="w-full px-4 py-3 rounded-xl border border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-gray-900 dark:text-white text-center text-lg font-semibold"
+            className="w-full px-4 py-3 rounded-xl border border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-gray-900 dark:text-gray-900 text-center text-lg font-semibold"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
             Children
           </label>
           <input
@@ -189,12 +189,12 @@ function AttendanceForm({ orgs, onSubmit, loading }) {
             value={form.children}
             onChange={handleChange}
             min="0"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center text-lg font-semibold"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 text-center text-lg font-semibold"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
             Online
           </label>
           <input
@@ -203,12 +203,12 @@ function AttendanceForm({ orgs, onSubmit, loading }) {
             value={form.online}
             onChange={handleChange}
             min="0"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center text-lg font-semibold"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 text-center text-lg font-semibold"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-pink-600 dark:text-pink-400 mb-1">
+          <label className="block text-sm font-medium text-pink-600 dark:text-pink-600 mb-1">
             Souls Won 🙏
           </label>
           <input
@@ -217,13 +217,13 @@ function AttendanceForm({ orgs, onSubmit, loading }) {
             value={form.soulsWon}
             onChange={handleChange}
             min="0"
-            className="w-full px-4 py-3 rounded-xl border border-pink-300 dark:border-pink-600 bg-pink-50 dark:bg-pink-900/20 text-gray-900 dark:text-white text-center text-lg font-semibold"
+            className="w-full px-4 py-3 rounded-xl border border-pink-300 dark:border-pink-600 bg-pink-50 dark:bg-pink-900/20 text-gray-900 dark:text-gray-900 text-center text-lg font-semibold"
           />
         </div>
       </div>
 
       {/* Total */}
-      <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl p-4 mb-6 text-white">
+      <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl p-4 mb-6 text-gray-900">
         <div className="flex items-center justify-between">
           <span className="font-medium">Total Attendance</span>
           <span className="text-3xl font-bold">{totalAttendance}</span>
@@ -232,7 +232,7 @@ function AttendanceForm({ orgs, onSubmit, loading }) {
 
       {/* Notes */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
           Notes (Optional)
         </label>
         <textarea
@@ -240,7 +240,7 @@ function AttendanceForm({ orgs, onSubmit, loading }) {
           value={form.notes}
           onChange={handleChange}
           rows={2}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 resize-none"
           placeholder="Any highlights or notes about this service..."
         />
       </div>
@@ -248,7 +248,7 @@ function AttendanceForm({ orgs, onSubmit, loading }) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-4 rounded-xl font-semibold bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2"
+        className="w-full py-4 rounded-xl font-semibold bg-gradient-to-r from-green-500 to-emerald-600 text-gray-900 hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2"
       >
         {loading ? (
           <>
@@ -276,13 +276,13 @@ function RecentRecord({ record }) {
   };
 
   return (
-    <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
+    <div className="flex items-center justify-between p-4 bg-white dark:bg-white rounded-xl border border-gray-100 dark:border-gray-200">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-          <Calendar className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+          <Calendar className="w-5 h-5 text-purple-600 dark:text-purple-600" />
         </div>
         <div>
-          <p className="font-medium text-gray-900 dark:text-white">
+          <p className="font-medium text-gray-900 dark:text-gray-900">
             {serviceLabels[record.serviceType] || 'Service'}
           </p>
           <p className="text-sm text-gray-500">
@@ -291,7 +291,7 @@ function RecentRecord({ record }) {
         </div>
       </div>
       <div className="text-right">
-        <p className="text-xl font-bold text-gray-900 dark:text-white">
+        <p className="text-xl font-bold text-gray-900 dark:text-gray-900">
           {record.totalAttendance}
         </p>
         {record.soulsWon > 0 && (
@@ -377,22 +377,22 @@ export default function AttendancePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
       <Head>
         <title>Attendance - CYBEV Church</title>
       </Head>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+      <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-gray-900">
         <div className="max-w-6xl mx-auto px-4 py-8">
-          <Link href="/church" className="inline-flex items-center gap-2 text-green-200 hover:text-white mb-4">
+          <Link href="/church" className="inline-flex items-center gap-2 text-green-200 hover:text-gray-900 mb-4">
             <ArrowLeft className="w-4 h-4" />
             Back to Church Dashboard
           </Link>
@@ -406,7 +406,7 @@ export default function AttendancePage() {
 
       {/* Success Toast */}
       {success && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 z-50 animate-in slide-in-from-top">
+        <div className="fixed top-4 right-4 bg-green-500 text-gray-900 px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 z-50 animate-in slide-in-from-top">
           <CheckCircle className="w-5 h-5" />
           Attendance saved successfully!
         </div>
@@ -419,7 +419,7 @@ export default function AttendancePage() {
             <select
               value={selectedOrg}
               onChange={(e) => setSelectedOrg(e.target.value)}
-              className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-white text-gray-900 dark:text-gray-900"
             >
               {myOrgs.map(org => (
                 <option key={org._id} value={org._id}>{org.name}</option>
@@ -469,7 +469,7 @@ export default function AttendancePage() {
           {/* Right Column */}
           <div className="space-y-6">
             {/* Quick Tips */}
-            <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-6 text-white">
+            <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-6 text-gray-900">
               <h3 className="font-semibold text-lg mb-3">💡 Tips for Accurate Records</h3>
               <ul className="space-y-2 text-purple-100 text-sm">
                 <li>• Count heads during worship for most accurate numbers</li>
@@ -480,8 +480,8 @@ export default function AttendancePage() {
             </div>
 
             {/* Recent Records Preview */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
                 <Clock className="w-5 h-5 text-purple-500" />
                 Recent Records
               </h3>
@@ -501,8 +501,8 @@ export default function AttendancePage() {
 
             {/* Growth Trend */}
             {stats?.weeklyTrend && stats.weeklyTrend.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-green-500" />
                   Weekly Trend
                 </h3>
@@ -516,7 +516,7 @@ export default function AttendancePage() {
                           style={{ width: `${Math.min(100, (week.avgAttendance / (stats.highestAttendance || 100)) * 100)}%` }}
                         />
                       </div>
-                      <span className="text-sm font-medium text-gray-900 dark:text-white w-12 text-right">
+                      <span className="text-sm font-medium text-gray-900 dark:text-gray-900 w-12 text-right">
                         {Math.round(week.avgAttendance)}
                       </span>
                     </div>

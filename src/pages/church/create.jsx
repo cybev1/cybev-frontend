@@ -211,12 +211,12 @@ export default function CreateOrganization() {
 
   if (success && createdOrg) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center max-w-md w-full shadow-xl">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-white rounded-2xl p-8 text-center max-w-md w-full shadow-xl">
           <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="w-10 h-10 text-green-500" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-900 mb-2">
             Organization Created!
           </h2>
           <p className="text-gray-500 mb-6">
@@ -226,13 +226,13 @@ export default function CreateOrganization() {
           <div className="flex flex-col gap-3">
             <button
               onClick={() => router.push(`/church/org/${createdOrg._id}`)}
-              className="w-full py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700"
+              className="w-full py-3 bg-purple-600 text-gray-900 rounded-xl font-semibold hover:bg-purple-700"
             >
               View Organization
             </button>
             <button
               onClick={() => router.push('/church')}
-              className="w-full py-3 border border-gray-200 dark:border-gray-600 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="w-full py-3 border border-gray-200 dark:border-gray-300 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-100"
             >
               Back to Dashboard
             </button>
@@ -243,15 +243,15 @@ export default function CreateOrganization() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
       <Head>
         <title>Create Organization - CYBEV Church</title>
       </Head>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-gray-900">
         <div className="max-w-3xl mx-auto px-4 py-8">
-          <Link href="/church" className="inline-flex items-center gap-2 text-purple-200 hover:text-white mb-4">
+          <Link href="/church" className="inline-flex items-center gap-2 text-purple-200 hover:text-gray-900 mb-4">
             <ArrowLeft className="w-4 h-4" />
             Back to Church Dashboard
           </Link>
@@ -287,7 +287,7 @@ export default function CreateOrganization() {
         {/* Step 1: Select Type */}
         {step === 1 && (
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-900 mb-6">
               What type of organization are you creating?
             </h2>
             
@@ -298,19 +298,19 @@ export default function CreateOrganization() {
                   <button
                     key={type.id}
                     onClick={() => handleTypeSelect(type.id)}
-                    className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-100 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-lg transition-all text-left group"
+                    className="bg-white dark:bg-white rounded-xl p-6 border border-gray-100 dark:border-gray-200 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-lg transition-all text-left group"
                   >
                     <div className="flex items-center gap-4">
                       <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${type.color} flex items-center justify-center`}>
-                        <Icon className="w-7 h-7 text-white" />
+                        <Icon className="w-7 h-7 text-gray-900" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 dark:text-white text-lg group-hover:text-purple-600 transition">
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-900 text-lg group-hover:text-purple-600 transition">
                           {type.name}
                         </h3>
                         <p className="text-gray-500 text-sm">{type.description}</p>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-purple-500 transition" />
+                      <ChevronRight className="w-5 h-5 text-gray-600 group-hover:text-purple-500 transition" />
                     </div>
                   </button>
                 );
@@ -322,7 +322,7 @@ export default function CreateOrganization() {
         {/* Step 2: Basic Info */}
         {step === 2 && (
           <form onSubmit={(e) => { e.preventDefault(); setStep(3); }}>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-900 mb-6">
               Basic Information
             </h2>
 
@@ -332,18 +332,18 @@ export default function CreateOrganization() {
               </div>
             )}
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-100 dark:border-gray-700 space-y-4">
+            <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-100 dark:border-gray-200 space-y-4">
               {/* Parent Organization */}
               {form.type !== 'zone' && getValidParents().length > 0 && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                     Parent Organization
                   </label>
                   <select
                     name="parentId"
                     value={form.parentId}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                   >
                     <option value="">None (Independent)</option>
                     {getValidParents().map(org => (
@@ -356,7 +356,7 @@ export default function CreateOrganization() {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   Organization Name *
                 </label>
                 <input
@@ -365,13 +365,13 @@ export default function CreateOrganization() {
                   value={form.name}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                   placeholder="e.g., Christ Embassy Lagos Zone"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   Description
                 </label>
                 <textarea
@@ -379,13 +379,13 @@ export default function CreateOrganization() {
                   value={form.description}
                   onChange={handleChange}
                   rows={3}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 resize-none"
                   placeholder="Tell people about your organization..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   Motto
                 </label>
                 <input
@@ -393,13 +393,13 @@ export default function CreateOrganization() {
                   name="motto"
                   value={form.motto}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                   placeholder="e.g., Spreading the Gospel to the Nations"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                   Color Theme
                 </label>
                 <div className="flex gap-2 flex-wrap">
@@ -424,13 +424,13 @@ export default function CreateOrganization() {
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-100"
               >
                 Back
               </button>
               <button
                 type="submit"
-                className="flex-1 py-3 rounded-xl font-semibold bg-purple-600 text-white hover:bg-purple-700"
+                className="flex-1 py-3 rounded-xl font-semibold bg-purple-600 text-gray-900 hover:bg-purple-700"
               >
                 Continue
               </button>
@@ -441,7 +441,7 @@ export default function CreateOrganization() {
         {/* Step 3: Contact & Schedule */}
         {step === 3 && (
           <form onSubmit={handleSubmit}>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-900 mb-6">
               Contact & Meeting Schedule
             </h2>
 
@@ -452,65 +452,65 @@ export default function CreateOrganization() {
             )}
 
             {/* Contact Information */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-100 dark:border-gray-700 mb-6">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-100 dark:border-gray-200 mb-6">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
                 <Phone className="w-5 h-5 text-purple-500" />
                 Contact Information
               </h3>
               
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">Email</label>
                   <input
                     type="email"
                     name="contact.email"
                     value={form.contact.email}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                     placeholder="contact@church.com"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">Phone</label>
                   <input
                     type="tel"
                     name="contact.phone"
                     value={form.contact.phone}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                     placeholder="+234 xxx xxx xxxx"
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Address</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">Address</label>
                   <input
                     type="text"
                     name="contact.address"
                     value={form.contact.address}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                     placeholder="123 Church Street"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">City</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">City</label>
                   <input
                     type="text"
                     name="contact.city"
                     value={form.contact.city}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                     placeholder="Lagos"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Country</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">Country</label>
                   <input
                     type="text"
                     name="contact.country"
                     value={form.contact.country}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
                     placeholder="Nigeria"
                   />
                 </div>
@@ -518,8 +518,8 @@ export default function CreateOrganization() {
             </div>
 
             {/* Meeting Schedule */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-100 dark:border-gray-700 mb-6">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-100 dark:border-gray-200 mb-6">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
                 <Clock className="w-5 h-5 text-purple-500" />
                 Meeting Schedule
               </h3>
@@ -528,9 +528,9 @@ export default function CreateOrganization() {
               {form.meetingSchedule.length > 0 && (
                 <div className="space-y-2 mb-4">
                   {form.meetingSchedule.map((meeting, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <div key={i} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-100 rounded-lg">
                       <div>
-                        <span className="font-medium text-gray-900 dark:text-white">{meeting.title}</span>
+                        <span className="font-medium text-gray-900 dark:text-gray-900">{meeting.title}</span>
                         <span className="text-gray-500 ml-2">
                           {meeting.day.charAt(0).toUpperCase() + meeting.day.slice(1)} at {meeting.time}
                         </span>
@@ -552,7 +552,7 @@ export default function CreateOrganization() {
                 <select
                   value={newMeeting.day}
                   onChange={(e) => setNewMeeting(m => ({ ...m, day: e.target.value }))}
-                  className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm"
+                  className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-sm"
                 >
                   {days.map(d => (
                     <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
@@ -562,19 +562,19 @@ export default function CreateOrganization() {
                   type="time"
                   value={newMeeting.time}
                   onChange={(e) => setNewMeeting(m => ({ ...m, time: e.target.value }))}
-                  className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm"
+                  className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-sm"
                 />
                 <input
                   type="text"
                   value={newMeeting.title}
                   onChange={(e) => setNewMeeting(m => ({ ...m, title: e.target.value }))}
                   placeholder="Service name"
-                  className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm"
+                  className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-sm"
                 />
                 <button
                   type="button"
                   onClick={addMeeting}
-                  className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-lg text-sm font-medium hover:bg-purple-200 flex items-center justify-center gap-1"
+                  className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-600 rounded-lg text-sm font-medium hover:bg-purple-200 flex items-center justify-center gap-1"
                 >
                   <Plus className="w-4 h-4" />
                   Add
@@ -586,14 +586,14 @@ export default function CreateOrganization() {
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-100"
               >
                 Back
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 py-3 rounded-xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 text-gray-900 hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>

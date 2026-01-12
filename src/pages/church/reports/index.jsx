@@ -129,8 +129,8 @@ function DonutChart({ data, size = 160 }) {
         {data.map((d, i) => (
           <div key={i} className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }} />
-            <span className="text-sm text-gray-600 dark:text-gray-400">{d.label}</span>
-            <span className="text-sm font-medium text-gray-900 dark:text-white">{d.value}</span>
+            <span className="text-sm text-gray-600 dark:text-gray-500">{d.label}</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-900">{d.value}</span>
           </div>
         ))}
       </div>
@@ -148,10 +148,10 @@ function StatCard({ icon: Icon, label, value, change, color = 'purple', subtitle
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+    <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
       <div className="flex items-start justify-between mb-4">
         <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors[color]} flex items-center justify-center`}>
-          <Icon className="w-6 h-6 text-white" />
+          <Icon className="w-6 h-6 text-gray-900" />
         </div>
         {change !== undefined && (
           <div className={`flex items-center gap-1 text-sm font-medium ${
@@ -162,9 +162,9 @@ function StatCard({ icon: Icon, label, value, change, color = 'purple', subtitle
           </div>
         )}
       </div>
-      <p className="text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
+      <p className="text-3xl font-bold text-gray-900 dark:text-gray-900">{value}</p>
       <p className="text-sm text-gray-500 mt-1">{label}</p>
-      {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+      {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
     </div>
   );
 }
@@ -177,7 +177,7 @@ function ConversionFunnel({ data }) {
       {data.map((item, i) => (
         <div key={i} className="relative">
           <div className="flex items-center gap-4">
-            <div className="w-24 text-sm text-gray-600 dark:text-gray-400">{item.label}</div>
+            <div className="w-24 text-sm text-gray-600 dark:text-gray-500">{item.label}</div>
             <div className="flex-1">
               <div className="h-10 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
                 <div
@@ -187,18 +187,18 @@ function ConversionFunnel({ data }) {
                     backgroundColor: item.color
                   }}
                 >
-                  <span className="text-white font-semibold text-sm">{item.value}</span>
+                  <span className="text-gray-900 font-semibold text-sm">{item.value}</span>
                 </div>
               </div>
             </div>
             <div className="w-16 text-right">
-              <span className="text-sm font-medium text-gray-900 dark:text-white">
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-900">
                 {item.percent}%
               </span>
             </div>
           </div>
           {i < data.length - 1 && (
-            <div className="absolute left-32 top-10 text-gray-300 text-lg">↓</div>
+            <div className="absolute left-32 top-10 text-gray-600 text-lg">↓</div>
           )}
         </div>
       ))}
@@ -340,15 +340,15 @@ export default function ReportsDashboard() {
     : 40;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
       <Head>
         <title>Reports - CYBEV Church</title>
       </Head>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-gray-900">
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <Link href="/church" className="inline-flex items-center gap-2 text-purple-200 hover:text-white mb-4">
+          <Link href="/church" className="inline-flex items-center gap-2 text-purple-200 hover:text-gray-900 mb-4">
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </Link>
@@ -367,7 +367,7 @@ export default function ReportsDashboard() {
               <select
                 value={selectedOrg}
                 onChange={(e) => setSelectedOrg(e.target.value)}
-                className="px-4 py-2 bg-white/20 rounded-xl text-white border border-white/30 focus:outline-none"
+                className="px-4 py-2 bg-white/20 rounded-xl text-gray-900 border border-white/30 focus:outline-none"
               >
                 {myOrgs.map(org => (
                   <option key={org._id} value={org._id} className="text-gray-900">
@@ -380,7 +380,7 @@ export default function ReportsDashboard() {
               <select
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value)}
-                className="px-4 py-2 bg-white/20 rounded-xl text-white border border-white/30 focus:outline-none"
+                className="px-4 py-2 bg-white/20 rounded-xl text-gray-900 border border-white/30 focus:outline-none"
               >
                 <option value="7d" className="text-gray-900">Last 7 days</option>
                 <option value="30d" className="text-gray-900">Last 30 days</option>
@@ -447,10 +447,10 @@ export default function ReportsDashboard() {
 
           <div className="grid lg:grid-cols-2 gap-6 mb-8">
             {/* Soul Winning Trend */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+            <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Soul Winning Trend</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-900">Soul Winning Trend</h3>
                   <p className="text-sm text-gray-500">Weekly new souls</p>
                 </div>
                 <div className="flex items-center gap-2 text-green-500">
@@ -462,10 +462,10 @@ export default function ReportsDashboard() {
             </div>
 
             {/* Attendance Trend */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+            <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Attendance Trend</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-900">Attendance Trend</h3>
                   <p className="text-sm text-gray-500">Weekly average</p>
                 </div>
                 <div className="flex items-center gap-2 text-green-500">
@@ -479,14 +479,14 @@ export default function ReportsDashboard() {
 
           <div className="grid lg:grid-cols-3 gap-6 mb-8">
             {/* Soul Status Distribution */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-6">Soul Status Distribution</h3>
+            <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-6">Soul Status Distribution</h3>
               <DonutChart data={soulStatusData} />
             </div>
 
             {/* Conversion Funnel */}
-            <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-6">Soul Conversion Funnel</h3>
+            <div className="lg:col-span-2 bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-6">Soul Conversion Funnel</h3>
               <ConversionFunnel data={funnelData} />
             </div>
           </div>
@@ -494,13 +494,13 @@ export default function ReportsDashboard() {
           {/* Additional Metrics */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Gender Distribution */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Gender Distribution</h3>
+            <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Gender Distribution</h3>
               <div className="flex items-center gap-4">
                 <div className="flex-1">
                   <div className="flex justify-between text-sm mb-1">
                     <span className="text-gray-500">Male</span>
-                    <span className="font-medium text-gray-900 dark:text-white">
+                    <span className="font-medium text-gray-900 dark:text-gray-900">
                       {soulStats?.stats?.male || 58}
                     </span>
                   </div>
@@ -511,7 +511,7 @@ export default function ReportsDashboard() {
                 <div className="flex-1">
                   <div className="flex justify-between text-sm mb-1">
                     <span className="text-gray-500">Female</span>
-                    <span className="font-medium text-gray-900 dark:text-white">
+                    <span className="font-medium text-gray-900 dark:text-gray-900">
                       {soulStats?.stats?.female || 77}
                     </span>
                   </div>
@@ -523,24 +523,24 @@ export default function ReportsDashboard() {
             </div>
 
             {/* Service Highlights */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Service Highlights</h3>
+            <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Service Highlights</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500">Highest Attendance</span>
-                  <span className="font-bold text-gray-900 dark:text-white text-xl">
+                  <span className="font-bold text-gray-900 dark:text-gray-900 text-xl">
                     {attendanceStats?.stats?.highestAttendance || 210}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500">Total Services</span>
-                  <span className="font-bold text-gray-900 dark:text-white text-xl">
+                  <span className="font-bold text-gray-900 dark:text-gray-900 text-xl">
                     {attendanceStats?.stats?.totalServices || 24}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500">Online Viewers</span>
-                  <span className="font-bold text-gray-900 dark:text-white text-xl">
+                  <span className="font-bold text-gray-900 dark:text-gray-900 text-xl">
                     {attendanceStats?.stats?.totalOnline || 1250}
                   </span>
                 </div>
@@ -548,7 +548,7 @@ export default function ReportsDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-6 text-white">
+            <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-6 text-gray-900">
               <h3 className="font-semibold mb-4">Export Reports</h3>
               <div className="space-y-3">
                 <button className="w-full py-3 bg-white/20 rounded-xl font-medium hover:bg-white/30 flex items-center justify-center gap-2">
@@ -568,8 +568,8 @@ export default function ReportsDashboard() {
           </div>
 
           {/* Bottom Stats */}
-          <div className="mt-8 bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-6">Performance Summary</h3>
+          <div className="mt-8 bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-6">Performance Summary</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="text-center">
                 <p className="text-4xl font-bold text-purple-600">{conversionRate}%</p>

@@ -23,10 +23,10 @@ function ModuleCard({ module, progress, isUnlocked, onClick }) {
   return (
     <div 
       onClick={isUnlocked ? onClick : undefined}
-      className={`bg-white dark:bg-gray-800 rounded-2xl p-6 border transition-all ${
+      className={`bg-white dark:bg-white rounded-2xl p-6 border transition-all ${
         isUnlocked 
-          ? 'border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-purple-200 dark:hover:border-purple-800 cursor-pointer' 
-          : 'border-gray-100 dark:border-gray-700 opacity-60 cursor-not-allowed'
+          ? 'border-gray-100 dark:border-gray-200 hover:shadow-lg hover:border-purple-200 dark:hover:border-purple-800 cursor-pointer' 
+          : 'border-gray-100 dark:border-gray-200 opacity-60 cursor-not-allowed'
       }`}
     >
       <div className="flex items-start gap-4">
@@ -42,17 +42,17 @@ function ModuleCard({ module, progress, isUnlocked, onClick }) {
           {isCompleted ? (
             <CheckCircle className="w-7 h-7 text-green-500" />
           ) : isUnlocked ? (
-            <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+            <span className="text-2xl font-bold text-purple-600 dark:text-purple-600">
               {module.moduleNumber}
             </span>
           ) : (
-            <Lock className="w-6 h-6 text-gray-400" />
+            <Lock className="w-6 h-6 text-gray-500" />
           )}
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-gray-900 dark:text-white">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-900">
               Module {module.moduleNumber}: {module.title}
             </h3>
             {isCompleted && (
@@ -67,11 +67,11 @@ function ModuleCard({ module, progress, isUnlocked, onClick }) {
             )}
           </div>
           
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
+          <p className="text-sm text-gray-500 dark:text-gray-500 mb-3 line-clamp-2">
             {module.description}
           </p>
 
-          <div className="flex items-center gap-4 text-sm text-gray-400">
+          <div className="flex items-center gap-4 text-sm text-gray-500">
             <span className="flex items-center gap-1">
               <FileText className="w-4 h-4" />
               {module.content?.lessons?.length || 3} Lessons
@@ -102,7 +102,7 @@ function ModuleCard({ module, progress, isUnlocked, onClick }) {
         </div>
 
         {isUnlocked && (
-          <ChevronRight className="w-5 h-5 text-gray-300 flex-shrink-0" />
+          <ChevronRight className="w-5 h-5 text-gray-600 flex-shrink-0" />
         )}
       </div>
     </div>
@@ -114,7 +114,7 @@ function ProgressOverview({ enrollment, totalModules }) {
   const progressPercent = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
 
   return (
-    <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-6 text-white">
+    <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-6 text-gray-900">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="font-semibold text-lg">Your Progress</h3>
@@ -250,22 +250,22 @@ export default function FoundationSchool() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
       <Head>
         <title>Foundation School - CYBEV Church</title>
       </Head>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-gray-900">
         <div className="max-w-5xl mx-auto px-4 py-8">
-          <Link href="/church" className="inline-flex items-center gap-2 text-purple-200 hover:text-white mb-4">
+          <Link href="/church" className="inline-flex items-center gap-2 text-purple-200 hover:text-gray-900 mb-4">
             <ArrowLeft className="w-4 h-4" />
             Back to Church Dashboard
           </Link>
@@ -285,11 +285,11 @@ export default function FoundationSchool() {
           <div className="lg:col-span-2">
             {/* Not Enrolled State */}
             {!enrollment && (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center mb-8 border border-gray-100 dark:border-gray-700">
+              <div className="bg-white dark:bg-white rounded-2xl p-8 text-center mb-8 border border-gray-100 dark:border-gray-200">
                 <div className="w-20 h-20 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <GraduationCap className="w-10 h-10 text-purple-600 dark:text-purple-400" />
+                  <GraduationCap className="w-10 h-10 text-purple-600 dark:text-purple-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-900 mb-2">
                   Welcome to Foundation School
                 </h2>
                 <p className="text-gray-500 mb-6 max-w-md mx-auto">
@@ -299,7 +299,7 @@ export default function FoundationSchool() {
                 <button
                   onClick={handleEnroll}
                   disabled={enrolling}
-                  className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 flex items-center gap-2 mx-auto"
+                  className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-gray-900 rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 flex items-center gap-2 mx-auto"
                 >
                   {enrolling ? (
                     <>
@@ -318,7 +318,7 @@ export default function FoundationSchool() {
 
             {/* Modules List */}
             <div className="space-y-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-900 mb-4">
                 Course Modules
               </h2>
               
@@ -342,8 +342,8 @@ export default function FoundationSchool() {
             )}
 
             {/* What You'll Learn */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
                 <Target className="w-5 h-5 text-purple-500" />
                 What You'll Learn
               </h3>
@@ -356,7 +356,7 @@ export default function FoundationSchool() {
                   'The importance of church fellowship',
                   'Living the Christian life daily'
                 ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <li key={i} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-500">
                     <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
                     {item}
                   </li>
@@ -368,23 +368,23 @@ export default function FoundationSchool() {
             <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-2xl p-6 border border-amber-200 dark:border-amber-800">
               <div className="flex items-center gap-3 mb-3">
                 <Award className="w-8 h-8 text-amber-500" />
-                <h3 className="font-semibold text-gray-900 dark:text-white">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900">
                   Earn a Certificate
                 </h3>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-500">
                 Complete all 6 modules and pass the quizzes to receive your official Foundation School certificate!
               </p>
             </div>
 
             {/* Memory Verse Preview */}
             {modules[0] && (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-3 flex items-center gap-2">
                   <BookMarked className="w-5 h-5 text-purple-500" />
                   Featured Memory Verse
                 </h3>
-                <blockquote className="text-sm text-gray-600 dark:text-gray-400 italic border-l-4 border-purple-500 pl-4">
+                <blockquote className="text-sm text-gray-600 dark:text-gray-500 italic border-l-4 border-purple-500 pl-4">
                   "{modules[0].content?.memoryVerse || 'Therefore if any man be in Christ, he is a new creature: old things are passed away; behold, all things are become new. - 2 Corinthians 5:17'}"
                 </blockquote>
               </div>

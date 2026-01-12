@@ -107,23 +107,23 @@ export default function MeetingRoom() {
         <title>Meeting - CYBEV</title>
       </Head>
 
-      <div className="h-screen bg-gray-900 flex flex-col">
+      <div className="h-screen bg-gray-50 flex flex-col">
         {/* Header */}
-        <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
+        <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <span className="text-white font-semibold">CYBEV Meet</span>
-            <span className="text-gray-400 text-sm">Room: {roomId}</span>
+            <span className="text-gray-900 font-semibold">CYBEV Meet</span>
+            <span className="text-gray-500 text-sm">Room: {roomId}</span>
           </div>
           
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-gray-400 text-sm">
+            <div className="flex items-center gap-2 text-gray-500 text-sm">
               <Users className="w-4 h-4" />
               <span>{participants}</span>
             </div>
             
             <button
               onClick={copyLink}
-              className="flex items-center gap-2 px-3 py-1.5 bg-gray-700 text-white rounded-lg text-sm hover:bg-gray-600"
+              className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-900 rounded-lg text-sm hover:bg-gray-600"
             >
               {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
               {copied ? 'Copied!' : 'Copy Link'}
@@ -131,7 +131,7 @@ export default function MeetingRoom() {
             
             <button
               onClick={leaveMeeting}
-              className="flex items-center gap-2 px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"
+              className="flex items-center gap-2 px-3 py-1.5 bg-red-600 text-gray-900 rounded-lg text-sm hover:bg-red-700"
             >
               <PhoneOff className="w-4 h-4" />
               Leave
@@ -142,11 +142,11 @@ export default function MeetingRoom() {
         {/* Jitsi Container */}
         <div className="flex-1 relative">
           {loading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-10">
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
               <div className="text-center">
                 <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
-                <p className="text-white text-lg">Joining meeting...</p>
-                <p className="text-gray-400 text-sm mt-2">Please allow camera and microphone access</p>
+                <p className="text-gray-900 text-lg">Joining meeting...</p>
+                <p className="text-gray-500 text-sm mt-2">Please allow camera and microphone access</p>
               </div>
             </div>
           )}

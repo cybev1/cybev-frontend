@@ -21,12 +21,12 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
 function LiveIndicator({ isLive }) {
   return isLive ? (
-    <span className="flex items-center gap-2 px-3 py-1 bg-red-500 text-white rounded-full text-sm font-medium animate-pulse">
+    <span className="flex items-center gap-2 px-3 py-1 bg-red-500 text-gray-900 rounded-full text-sm font-medium animate-pulse">
       <Radio className="w-4 h-4" />
       LIVE
     </span>
   ) : (
-    <span className="flex items-center gap-2 px-3 py-1 bg-gray-500 text-white rounded-full text-sm font-medium">
+    <span className="flex items-center gap-2 px-3 py-1 bg-gray-500 text-gray-900 rounded-full text-sm font-medium">
       <WifiOff className="w-4 h-4" />
       Offline
     </span>
@@ -42,11 +42,11 @@ function StatCard({ icon: Icon, label, value, color = 'purple' }) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
+    <div className="bg-white dark:bg-white rounded-xl p-4 border border-gray-100 dark:border-gray-200">
       <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${colors[color]} flex items-center justify-center mb-3`}>
-        <Icon className="w-5 h-5 text-white" />
+        <Icon className="w-5 h-5 text-gray-900" />
       </div>
-      <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+      <p className="text-2xl font-bold text-gray-900 dark:text-gray-900">{value}</p>
       <p className="text-sm text-gray-500">{label}</p>
     </div>
   );
@@ -65,10 +65,10 @@ function StreamCard({ stream, onSelect }) {
   return (
     <div 
       onClick={() => onSelect(stream)}
-      className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-lg transition cursor-pointer group"
+      className="bg-white dark:bg-white rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-200 hover:shadow-lg transition cursor-pointer group"
     >
       {/* Thumbnail */}
-      <div className="relative aspect-video bg-gray-900">
+      <div className="relative aspect-video bg-gray-50">
         {stream.thumbnail ? (
           <img src={stream.thumbnail} alt={stream.title} className="w-full h-full object-cover" />
         ) : (
@@ -85,7 +85,7 @@ function StreamCard({ stream, onSelect }) {
         {/* Duration / Viewers */}
         <div className="absolute bottom-3 right-3 flex gap-2">
           {stream.status === 'live' && stream.viewerCount > 0 && (
-            <span className="px-2 py-1 bg-black/70 text-white rounded text-xs flex items-center gap-1">
+            <span className="px-2 py-1 bg-gray-900/70 text-gray-900 rounded text-xs flex items-center gap-1">
               <Eye className="w-3 h-3" />
               {stream.viewerCount}
             </span>
@@ -93,16 +93,16 @@ function StreamCard({ stream, onSelect }) {
         </div>
 
         {/* Play Overlay */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/30">
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-gray-900/30">
           <div className="w-16 h-16 rounded-full bg-white/30 flex items-center justify-center">
-            <Play className="w-8 h-8 text-white fill-white" />
+            <Play className="w-8 h-8 text-gray-900 fill-white" />
           </div>
         </div>
       </div>
 
       {/* Info */}
       <div className="p-4">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-1 line-clamp-1">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-1 line-clamp-1">
           {stream.title}
         </h3>
         <p className="text-sm text-gray-500 mb-3">
@@ -114,7 +114,7 @@ function StreamCard({ stream, onSelect }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {stream.organization && (
-              <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-full">
+              <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-600 rounded-full">
                 {stream.organization.name}
               </span>
             )}
@@ -122,12 +122,12 @@ function StreamCard({ stream, onSelect }) {
           
           <button
             onClick={copyLink}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-100"
           >
             {copied ? (
               <Check className="w-4 h-4 text-green-500" />
             ) : (
-              <Copy className="w-4 h-4 text-gray-400" />
+              <Copy className="w-4 h-4 text-gray-500" />
             )}
           </button>
         </div>
@@ -160,21 +160,21 @@ function CreateStreamModal({ isOpen, onClose, orgs, onCreate, loading }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg shadow-xl">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+    <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-white rounded-2xl w-full max-w-lg shadow-xl">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900 flex items-center gap-2">
             <Video className="w-5 h-5 text-red-500" />
             Create Live Stream
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600">
             ✕
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Stream Title *
             </label>
             <input
@@ -182,32 +182,32 @@ function CreateStreamModal({ isOpen, onClose, orgs, onCreate, loading }) {
               value={form.title}
               onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))}
               required
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
               placeholder="Sunday Service Live"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Description
             </label>
             <textarea
               value={form.description}
               onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))}
               rows={2}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 resize-none"
               placeholder="Join us for worship..."
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Organization
             </label>
             <select
               value={form.organizationId}
               onChange={(e) => setForm(f => ({ ...f, organizationId: e.target.value }))}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
             >
               {orgs.map(org => (
                 <option key={org._id} value={org._id}>{org.name}</option>
@@ -216,14 +216,14 @@ function CreateStreamModal({ isOpen, onClose, orgs, onCreate, loading }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Schedule For (Optional)
             </label>
             <input
               type="datetime-local"
               value={form.scheduledFor}
               onChange={(e) => setForm(f => ({ ...f, scheduledFor: e.target.value }))}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
             />
           </div>
 
@@ -236,7 +236,7 @@ function CreateStreamModal({ isOpen, onClose, orgs, onCreate, loading }) {
                 className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
               />
               <div>
-                <span className="font-medium text-gray-900 dark:text-white">Public Stream</span>
+                <span className="font-medium text-gray-900 dark:text-gray-900">Public Stream</span>
                 <p className="text-sm text-gray-500">Anyone can watch</p>
               </div>
             </label>
@@ -249,7 +249,7 @@ function CreateStreamModal({ isOpen, onClose, orgs, onCreate, loading }) {
                 className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
               />
               <div>
-                <span className="font-medium text-gray-900 dark:text-white">Auto-publish to CYBEV Feed</span>
+                <span className="font-medium text-gray-900 dark:text-gray-900">Auto-publish to CYBEV Feed</span>
                 <p className="text-sm text-gray-500">Share stream as a post when live</p>
               </div>
             </label>
@@ -259,14 +259,14 @@ function CreateStreamModal({ isOpen, onClose, orgs, onCreate, loading }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-100"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !form.title}
-              className="flex-1 py-3 rounded-xl font-semibold bg-gradient-to-r from-red-500 to-rose-600 text-white hover:from-red-600 hover:to-rose-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 py-3 rounded-xl font-semibold bg-gradient-to-r from-red-500 to-rose-600 text-gray-900 hover:from-red-600 hover:to-rose-700 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -299,23 +299,23 @@ function StreamDetailsModal({ stream, onClose, onGoLive, onEndStream, loading })
   const embedCode = `<iframe src="${streamUrl}/embed" width="640" height="360" frameborder="0" allowfullscreen></iframe>`;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl shadow-xl my-8">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
+    <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-white rounded-2xl w-full max-w-2xl shadow-xl my-8">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-200">
           <div className="flex items-center gap-3">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900">
               {stream.title}
             </h3>
             <LiveIndicator isLive={stream.status === 'live'} />
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600">
             ✕
           </button>
         </div>
 
         <div className="p-6 space-y-6">
           {/* Stream Preview */}
-          <div className="aspect-video bg-gray-900 rounded-xl overflow-hidden flex items-center justify-center">
+          <div className="aspect-video bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center">
             {stream.status === 'live' ? (
               <video 
                 src={stream.playbackUrl}
@@ -334,7 +334,7 @@ function StreamDetailsModal({ stream, onClose, onGoLive, onEndStream, loading })
 
           {/* Stream URL */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
               Stream URL
             </label>
             <div className="flex gap-2">
@@ -342,25 +342,25 @@ function StreamDetailsModal({ stream, onClose, onGoLive, onEndStream, loading })
                 type="text"
                 value={streamUrl}
                 readOnly
-                className="flex-1 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="flex-1 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-300 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-900"
               />
               <button
                 onClick={() => copyToClipboard(streamUrl, 'url')}
-                className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-xl hover:bg-purple-200"
+                className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-600 rounded-xl hover:bg-purple-200"
               >
                 {copied.url ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
               </button>
               <a href={streamUrl} target="_blank" rel="noopener noreferrer">
                 <button className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600">
-                  <ExternalLink className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                  <ExternalLink className="w-5 h-5 text-gray-600 dark:text-gray-600" />
                 </button>
               </a>
             </div>
           </div>
 
           {/* RTMP Settings (for streaming software) */}
-          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 space-y-4">
-            <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
+          <div className="bg-gray-50 dark:bg-gray-100 rounded-xl p-4 space-y-4">
+            <h4 className="font-medium text-gray-900 dark:text-gray-900 flex items-center gap-2">
               <Settings className="w-4 h-4" />
               Streaming Software Settings
             </h4>
@@ -372,7 +372,7 @@ function StreamDetailsModal({ stream, onClose, onGoLive, onEndStream, loading })
                   type="text"
                   value={stream.rtmpUrl || 'rtmp://live.cybev.io/stream'}
                   readOnly
-                  className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800"
+                  className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-300 bg-white dark:bg-white"
                 />
                 <button
                   onClick={() => copyToClipboard(stream.rtmpUrl || 'rtmp://live.cybev.io/stream', 'rtmpUrl')}
@@ -390,7 +390,7 @@ function StreamDetailsModal({ stream, onClose, onGoLive, onEndStream, loading })
                   type="password"
                   value={stream.streamKey || 'sk_live_xxxxxxxxxxxx'}
                   readOnly
-                  className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800"
+                  className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-300 bg-white dark:bg-white"
                 />
                 <button
                   onClick={() => copyToClipboard(stream.streamKey || 'sk_live_xxxxxxxxxxxx', 'streamKey')}
@@ -404,7 +404,7 @@ function StreamDetailsModal({ stream, onClose, onGoLive, onEndStream, loading })
 
           {/* Embed Code */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
               Embed Code
             </label>
             <div className="relative">
@@ -412,7 +412,7 @@ function StreamDetailsModal({ stream, onClose, onGoLive, onEndStream, loading })
                 value={embedCode}
                 readOnly
                 rows={2}
-                className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white text-sm font-mono"
+                className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-300 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-900 text-sm font-mono"
               />
               <button
                 onClick={() => copyToClipboard(embedCode, 'embed')}
@@ -428,19 +428,19 @@ function StreamDetailsModal({ stream, onClose, onGoLive, onEndStream, loading })
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 text-center">
                 <Eye className="w-6 h-6 text-red-500 mx-auto mb-1" />
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stream.viewerCount || 0}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-900">{stream.viewerCount || 0}</p>
                 <p className="text-xs text-gray-500">Viewers</p>
               </div>
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-center">
                 <Clock className="w-6 h-6 text-blue-500 mx-auto mb-1" />
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-900">
                   {Math.floor((Date.now() - new Date(stream.startedAt).getTime()) / 60000)} min
                 </p>
                 <p className="text-xs text-gray-500">Duration</p>
               </div>
               <div className="bg-pink-50 dark:bg-pink-900/20 rounded-xl p-4 text-center">
                 <Heart className="w-6 h-6 text-pink-500 mx-auto mb-1" />
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stream.reactions || 0}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-900">{stream.reactions || 0}</p>
                 <p className="text-xs text-gray-500">Reactions</p>
               </div>
             </div>
@@ -452,7 +452,7 @@ function StreamDetailsModal({ stream, onClose, onGoLive, onEndStream, loading })
               <button
                 onClick={() => onEndStream(stream._id)}
                 disabled={loading}
-                className="flex-1 py-3 rounded-xl font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-xl font-semibold bg-red-500 text-gray-900 hover:bg-red-600 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Square className="w-5 h-5" />}
                 End Stream
@@ -461,7 +461,7 @@ function StreamDetailsModal({ stream, onClose, onGoLive, onEndStream, loading })
               <button
                 onClick={() => onGoLive(stream._id)}
                 disabled={loading}
-                className="flex-1 py-3 rounded-xl font-semibold bg-gradient-to-r from-red-500 to-rose-600 text-white hover:from-red-600 hover:to-rose-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-xl font-semibold bg-gradient-to-r from-red-500 to-rose-600 text-gray-900 hover:from-red-600 hover:to-rose-700 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Radio className="w-5 h-5" />}
                 Go Live
@@ -469,7 +469,7 @@ function StreamDetailsModal({ stream, onClose, onGoLive, onEndStream, loading })
             )}
             <button
               onClick={onClose}
-              className="px-6 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="px-6 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-100"
             >
               Close
             </button>
@@ -606,15 +606,15 @@ export default function LiveStreamPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
       <Head>
         <title>Live Streaming - CYBEV Church</title>
       </Head>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-red-600 to-rose-600 text-white">
+      <div className="bg-gradient-to-r from-red-600 to-rose-600 text-gray-900">
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <Link href="/church" className="inline-flex items-center gap-2 text-red-200 hover:text-white mb-4">
+          <Link href="/church" className="inline-flex items-center gap-2 text-red-200 hover:text-gray-900 mb-4">
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </Link>
@@ -691,12 +691,12 @@ export default function LiveStreamPage() {
               className={`px-4 py-2 rounded-xl font-medium transition flex items-center gap-2 ${
                 filter === tab.id
                   ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+                  : 'bg-white dark:bg-white text-gray-600 dark:text-gray-600 border border-gray-200 dark:border-gray-200'
               }`}
             >
               {tab.label}
               {tab.count !== undefined && tab.count > 0 && (
-                <span className="px-2 py-0.5 bg-red-500 text-white rounded-full text-xs">
+                <span className="px-2 py-0.5 bg-red-500 text-gray-900 rounded-full text-xs">
                   {tab.count}
                 </span>
               )}
@@ -705,7 +705,7 @@ export default function LiveStreamPage() {
 
           <button
             onClick={fetchData}
-            className="ml-auto p-2 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+            className="ml-auto p-2 rounded-xl border border-gray-200 dark:border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-100"
           >
             <RefreshCw className="w-5 h-5 text-gray-500" />
           </button>
@@ -717,9 +717,9 @@ export default function LiveStreamPage() {
             <Loader2 className="w-8 h-8 text-red-500 animate-spin" />
           </div>
         ) : filteredStreams.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-700">
-            <Video className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <div className="bg-white dark:bg-white rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-200">
+            <Video className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900 mb-2">
               {filter === 'live' ? 'No Live Streams' : 'No Streams Yet'}
             </h3>
             <p className="text-gray-500 mb-6">
@@ -730,7 +730,7 @@ export default function LiveStreamPage() {
             </p>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl font-semibold hover:from-red-600 hover:to-rose-700"
+              className="px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-gray-900 rounded-xl font-semibold hover:from-red-600 hover:to-rose-700"
             >
               Create Stream
             </button>
@@ -748,7 +748,7 @@ export default function LiveStreamPage() {
         )}
 
         {/* Quick Tips */}
-        <div className="mt-12 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 text-white">
+        <div className="mt-12 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 text-gray-900">
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
             <Zap className="w-6 h-6 text-yellow-400" />
             Quick Tips for Great Streams
@@ -756,19 +756,19 @@ export default function LiveStreamPage() {
           <div className="grid md:grid-cols-3 gap-6">
             <div>
               <h4 className="font-semibold mb-2">📹 Setup</h4>
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-500 text-sm">
                 Use OBS Studio or Streamlabs. Copy your RTMP URL and Stream Key from the stream settings.
               </p>
             </div>
             <div>
               <h4 className="font-semibold mb-2">🎤 Audio</h4>
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-500 text-sm">
                 Good audio is crucial. Use a dedicated microphone and test levels before going live.
               </p>
             </div>
             <div>
               <h4 className="font-semibold mb-2">📱 Engage</h4>
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-500 text-sm">
                 Enable auto-publish to share your stream on CYBEV feed and reach more people.
               </p>
             </div>

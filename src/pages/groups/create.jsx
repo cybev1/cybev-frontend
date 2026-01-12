@@ -182,19 +182,19 @@ export default function CreateGroupPage() {
         <div className="flex items-center gap-4 mb-6">
           <button
             onClick={() => router.back()}
-            className="p-2 hover:bg-white/10 rounded-lg text-white"
+            className="p-2 hover:bg-white/10 rounded-lg text-gray-900"
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-white">Create a Group</h1>
-            <p className="text-gray-400">Build a community around your interests</p>
+            <h1 className="text-2xl font-bold text-gray-900">Create a Group</h1>
+            <p className="text-gray-500">Build a community around your interests</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Cover Image */}
-          <div className="bg-white/5 rounded-2xl border border-purple-500/20 overflow-hidden">
+          <div className="bg-white/5 rounded-2xl border border-gray-200 overflow-hidden">
             <div
               onClick={() => coverInputRef.current?.click()}
               className="h-40 bg-gradient-to-r from-purple-600/50 to-pink-600/50 relative cursor-pointer hover:opacity-90 transition-opacity"
@@ -217,7 +217,7 @@ export default function CreateGroupPage() {
                     setCoverPreview('');
                     handleChange('coverImage', '');
                   }}
-                  className="absolute top-2 right-2 p-2 bg-black/50 rounded-full text-white hover:bg-black/70"
+                  className="absolute top-2 right-2 p-2 bg-gray-900/50 rounded-full text-gray-900 hover:bg-gray-900/70"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -254,35 +254,35 @@ export default function CreateGroupPage() {
               </div>
 
               <div>
-                <label className="block text-white font-medium mb-2">Group Name *</label>
+                <label className="block text-gray-900 font-medium mb-2">Group Name *</label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={(e) => handleChange('name', e.target.value)}
                   placeholder="Enter group name..."
                   maxLength={100}
-                  className="w-full px-4 py-3 bg-white/5 border border-purple-500/30 rounded-xl text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
+                  className="w-full px-4 py-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:border-purple-500 focus:outline-none"
                 />
               </div>
             </div>
           </div>
 
           {/* Description */}
-          <div className="bg-white/5 rounded-2xl border border-purple-500/20 p-6">
-            <label className="block text-white font-medium mb-2">Description</label>
+          <div className="bg-white/5 rounded-2xl border border-gray-200 p-6">
+            <label className="block text-gray-900 font-medium mb-2">Description</label>
             <textarea
               value={form.description}
               onChange={(e) => handleChange('description', e.target.value)}
               placeholder="What is this group about?"
               rows={4}
               maxLength={5000}
-              className="w-full px-4 py-3 bg-white/5 border border-purple-500/30 rounded-xl text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none resize-none"
+              className="w-full px-4 py-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:border-purple-500 focus:outline-none resize-none"
             />
           </div>
 
           {/* Privacy */}
-          <div className="bg-white/5 rounded-2xl border border-purple-500/20 p-6">
-            <label className="block text-white font-medium mb-4">Privacy</label>
+          <div className="bg-white/5 rounded-2xl border border-gray-200 p-6">
+            <label className="block text-gray-900 font-medium mb-4">Privacy</label>
             <div className="space-y-3">
               {PRIVACY_OPTIONS.map(option => (
                 <label
@@ -304,11 +304,11 @@ export default function CreateGroupPage() {
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                     form.privacy === option.id ? 'bg-purple-600' : 'bg-white/10'
                   }`}>
-                    <option.icon className="w-5 h-5 text-white" />
+                    <option.icon className="w-5 h-5 text-gray-900" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-white font-medium">{option.name}</p>
-                    <p className="text-gray-400 text-sm">{option.description}</p>
+                    <p className="text-gray-900 font-medium">{option.name}</p>
+                    <p className="text-gray-500 text-sm">{option.description}</p>
                   </div>
                 </label>
               ))}
@@ -316,8 +316,8 @@ export default function CreateGroupPage() {
           </div>
 
           {/* Category */}
-          <div className="bg-white/5 rounded-2xl border border-purple-500/20 p-6">
-            <label className="block text-white font-medium mb-4">Category</label>
+          <div className="bg-white/5 rounded-2xl border border-gray-200 p-6">
+            <label className="block text-gray-900 font-medium mb-4">Category</label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {CATEGORIES.map(cat => (
                 <button
@@ -327,7 +327,7 @@ export default function CreateGroupPage() {
                   className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-colors ${
                     form.category === cat.id
                       ? 'bg-purple-600 text-white'
-                      : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                      : 'bg-white/5 text-gray-500 hover:bg-white/10'
                   }`}
                 >
                   <span>{cat.icon}</span>
@@ -338,8 +338,8 @@ export default function CreateGroupPage() {
           </div>
 
           {/* Tags */}
-          <div className="bg-white/5 rounded-2xl border border-purple-500/20 p-6">
-            <label className="block text-white font-medium mb-2">Tags</label>
+          <div className="bg-white/5 rounded-2xl border border-gray-200 p-6">
+            <label className="block text-gray-900 font-medium mb-2">Tags</label>
             <p className="text-gray-500 text-sm mb-4">Add up to 10 tags to help people discover your group</p>
             
             {form.tags.length > 0 && (
@@ -347,7 +347,7 @@ export default function CreateGroupPage() {
                 {form.tags.map(tag => (
                   <span
                     key={tag}
-                    className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm flex items-center gap-2"
+                    className="px-3 py-1 bg-purple-500/20 text-purple-600 rounded-full text-sm flex items-center gap-2"
                   >
                     #{tag}
                     <button type="button" onClick={() => removeTag(tag)}>
@@ -366,12 +366,12 @@ export default function CreateGroupPage() {
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
                 placeholder="Add a tag..."
                 maxLength={30}
-                className="flex-1 px-4 py-2 bg-white/5 border border-purple-500/30 rounded-lg text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
+                className="flex-1 px-4 py-2 bg-white/5 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:border-purple-500 focus:outline-none"
               />
               <button
                 type="button"
                 onClick={addTag}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                className="px-4 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700"
               >
                 Add
               </button>
@@ -379,19 +379,19 @@ export default function CreateGroupPage() {
           </div>
 
           {/* Rules */}
-          <div className="bg-white/5 rounded-2xl border border-purple-500/20 p-6">
-            <label className="block text-white font-medium mb-2">Group Rules</label>
+          <div className="bg-white/5 rounded-2xl border border-gray-200 p-6">
+            <label className="block text-gray-900 font-medium mb-2">Group Rules</label>
             <p className="text-gray-500 text-sm mb-4">Set rules to help members know what's expected</p>
 
             {form.rules.length > 0 && (
               <div className="space-y-2 mb-4">
                 {form.rules.map((rule, i) => (
                   <div key={i} className="flex items-start gap-3 p-3 bg-white/5 rounded-lg">
-                    <span className="text-purple-400 font-bold">{i + 1}.</span>
+                    <span className="text-purple-600 font-bold">{i + 1}.</span>
                     <div className="flex-1">
-                      <p className="text-white">{rule.title}</p>
+                      <p className="text-gray-900">{rule.title}</p>
                       {rule.description && (
-                        <p className="text-gray-400 text-sm">{rule.description}</p>
+                        <p className="text-gray-500 text-sm">{rule.description}</p>
                       )}
                     </div>
                     <button type="button" onClick={() => removeRule(i)} className="text-red-400 hover:text-red-300">
@@ -409,7 +409,7 @@ export default function CreateGroupPage() {
                 onChange={(e) => setRuleInput(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="Rule title (e.g., Be respectful)"
                 maxLength={100}
-                className="w-full px-4 py-2 bg-white/5 border border-purple-500/30 rounded-lg text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
+                className="w-full px-4 py-2 bg-white/5 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:border-purple-500 focus:outline-none"
               />
               <input
                 type="text"
@@ -417,13 +417,13 @@ export default function CreateGroupPage() {
                 onChange={(e) => setRuleInput(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Rule description (optional)"
                 maxLength={500}
-                className="w-full px-4 py-2 bg-white/5 border border-purple-500/30 rounded-lg text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
+                className="w-full px-4 py-2 bg-white/5 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:border-purple-500 focus:outline-none"
               />
               <button
                 type="button"
                 onClick={addRule}
                 disabled={!ruleInput.title.trim()}
-                className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-white/10 text-gray-900 rounded-lg hover:bg-white/20 disabled:opacity-50"
               >
                 <Plus className="w-4 h-4" />
                 Add Rule
@@ -435,7 +435,7 @@ export default function CreateGroupPage() {
           <button
             type="submit"
             disabled={loading || !form.name.trim()}
-            className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold text-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-xl font-bold text-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>

@@ -47,7 +47,7 @@ const statusConfig = {
   },
   member: { 
     label: 'Member', 
-    color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+    color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-600',
     bgColor: 'bg-purple-500',
     description: 'Active church member'
   },
@@ -65,7 +65,7 @@ const statusConfig = {
   },
   inactive: { 
     label: 'Inactive', 
-    color: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400',
+    color: 'bg-gray-100 text-gray-700 dark:bg-gray-50/30 dark:text-gray-500',
     bgColor: 'bg-gray-500',
     description: 'No recent activity'
   },
@@ -120,7 +120,7 @@ function StatusProgress({ currentStatus }) {
           <div key={status} className="flex items-center">
             <div 
               className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                isActive ? `${config.bgColor} text-white` : 'bg-gray-200 dark:bg-gray-700 text-gray-400'
+                isActive ? `${config.bgColor} text-white` : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
               }`}
               title={config.label}
             >
@@ -141,15 +141,15 @@ function FollowUpCard({ followUp }) {
   const outcomeColor = outcomeColors[followUp.outcome] || 'text-gray-500';
   
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
+    <div className="bg-white dark:bg-white rounded-xl p-4 border border-gray-100 dark:border-gray-200">
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
-          <Icon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+          <Icon className="w-5 h-5 text-purple-600 dark:text-purple-600" />
         </div>
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
-            <span className="font-medium text-gray-900 dark:text-white capitalize">
+            <span className="font-medium text-gray-900 dark:text-gray-900 capitalize">
               {followUp.type?.replace('_', ' ')}
             </span>
             <span className={`text-sm font-medium capitalize ${outcomeColor}`}>
@@ -158,12 +158,12 @@ function FollowUpCard({ followUp }) {
           </div>
           
           {followUp.notes && (
-            <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
+            <p className="text-gray-600 dark:text-gray-500 text-sm mb-2">
               {followUp.notes}
             </p>
           )}
           
-          <div className="flex items-center gap-4 text-xs text-gray-400">
+          <div className="flex items-center gap-4 text-xs text-gray-500">
             <span className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
               {new Date(followUp.date).toLocaleDateString()}
@@ -199,20 +199,20 @@ function AddFollowUpModal({ isOpen, onClose, onSubmit, loading }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-xl">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+    <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-white rounded-2xl w-full max-w-md shadow-xl">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900">
             Add Follow-up
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
               Type
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -228,11 +228,11 @@ function AddFollowUpModal({ isOpen, onClose, onSubmit, loading }) {
                   className={`p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition ${
                     form.type === id
                       ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                      : 'border-gray-200 dark:border-gray-600 hover:border-purple-300'
+                      : 'border-gray-200 dark:border-gray-300 hover:border-purple-300'
                   }`}
                 >
-                  <Icon className={`w-5 h-5 ${form.type === id ? 'text-purple-600' : 'text-gray-400'}`} />
-                  <span className={`text-sm ${form.type === id ? 'text-purple-600 font-medium' : 'text-gray-600 dark:text-gray-400'}`}>
+                  <Icon className={`w-5 h-5 ${form.type === id ? 'text-purple-600' : 'text-gray-500'}`} />
+                  <span className={`text-sm ${form.type === id ? 'text-purple-600 font-medium' : 'text-gray-600 dark:text-gray-500'}`}>
                     {label}
                   </span>
                 </button>
@@ -241,13 +241,13 @@ function AddFollowUpModal({ isOpen, onClose, onSubmit, loading }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Outcome
             </label>
             <select
               value={form.outcome}
               onChange={(e) => setForm(f => ({ ...f, outcome: e.target.value }))}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
             >
               <option value="successful">✅ Successful</option>
               <option value="no_answer">📞 No Answer</option>
@@ -258,27 +258,27 @@ function AddFollowUpModal({ isOpen, onClose, onSubmit, loading }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Notes
             </label>
             <textarea
               value={form.notes}
               onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))}
               rows={3}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 resize-none"
               placeholder="How did the follow-up go?"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
               Next Follow-up Date (Optional)
             </label>
             <input
               type="date"
               value={form.nextFollowUpDate}
               onChange={(e) => setForm(f => ({ ...f, nextFollowUpDate: e.target.value }))}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900"
             />
           </div>
 
@@ -286,14 +286,14 @@ function AddFollowUpModal({ isOpen, onClose, onSubmit, loading }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-100"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-3 rounded-xl font-semibold bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 py-3 rounded-xl font-semibold bg-purple-600 text-gray-900 hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -327,13 +327,13 @@ function UpdateStatusModal({ isOpen, onClose, currentStatus, onSubmit, loading }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-xl">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+    <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-white rounded-2xl w-full max-w-md shadow-xl">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-900">
             Update Status
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -346,12 +346,12 @@ function UpdateStatusModal({ isOpen, onClose, currentStatus, onSubmit, loading }
               className={`w-full p-4 rounded-xl border-2 text-left transition flex items-center gap-3 ${
                 newStatus === key
                   ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                  : 'border-gray-200 dark:border-gray-600 hover:border-purple-300'
+                  : 'border-gray-200 dark:border-gray-300 hover:border-purple-300'
               }`}
             >
               <div className={`w-4 h-4 rounded-full ${config.bgColor}`} />
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">{config.label}</p>
+                <p className="font-medium text-gray-900 dark:text-gray-900">{config.label}</p>
                 <p className="text-sm text-gray-500">{config.description}</p>
               </div>
               {newStatus === key && (
@@ -361,17 +361,17 @@ function UpdateStatusModal({ isOpen, onClose, currentStatus, onSubmit, loading }
           ))}
         </div>
 
-        <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-700">
+        <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-200">
           <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+            className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-100"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading || newStatus === currentStatus}
-            className="flex-1 py-3 rounded-xl font-semibold bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 py-3 rounded-xl font-semibold bg-purple-600 text-gray-900 hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -392,22 +392,22 @@ function EnrollFoundationModal({ isOpen, onClose, soul, onSubmit, loading }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-xl">
+    <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-white rounded-2xl w-full max-w-md shadow-xl">
         <div className="p-6 text-center">
           <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-            <GraduationCap className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+            <GraduationCap className="w-8 h-8 text-purple-600 dark:text-purple-600" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-900 mb-2">
             Enroll in Foundation School
           </h3>
           <p className="text-gray-500 mb-6">
             Enroll <strong>{soul?.firstName} {soul?.lastName}</strong> in the 6-module Foundation School discipleship program?
           </p>
 
-          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 mb-6 text-left">
-            <h4 className="font-medium text-gray-900 dark:text-white mb-2">Program includes:</h4>
-            <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+          <div className="bg-gray-50 dark:bg-gray-100 rounded-xl p-4 mb-6 text-left">
+            <h4 className="font-medium text-gray-900 dark:text-gray-900 mb-2">Program includes:</h4>
+            <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-500">
               <li>✓ Salvation & New Birth</li>
               <li>✓ The Word of God</li>
               <li>✓ Prayer & Fellowship</li>
@@ -420,14 +420,14 @@ function EnrollFoundationModal({ isOpen, onClose, soul, onSubmit, loading }) {
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="flex-1 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-100"
             >
               Cancel
             </button>
             <button
               onClick={onSubmit}
               disabled={loading}
-              className="flex-1 py-3 rounded-xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 py-3 rounded-xl font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 text-gray-900 hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -553,7 +553,7 @@ export default function SoulDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
       </div>
     );
@@ -561,11 +561,11 @@ export default function SoulDetail() {
 
   if (!soul) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500 mb-4">Soul not found</p>
           <Link href="/church/souls">
-            <button className="px-6 py-2 bg-purple-600 text-white rounded-lg">
+            <button className="px-6 py-2 bg-purple-600 text-gray-900 rounded-lg">
               Back to Soul Tracker
             </button>
           </Link>
@@ -579,15 +579,15 @@ export default function SoulDetail() {
   const daysSinceSalvation = Math.floor((Date.now() - new Date(soul.salvationDate).getTime()) / (1000 * 60 * 60 * 24));
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
       <Head>
         <title>{soul.firstName} {soul.lastName} - Soul Tracker</title>
       </Head>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-pink-600 to-rose-600 text-white">
+      <div className="bg-gradient-to-r from-pink-600 to-rose-600 text-gray-900">
         <div className="max-w-5xl mx-auto px-4 py-6">
-          <Link href="/church/souls" className="inline-flex items-center gap-2 text-pink-200 hover:text-white mb-4">
+          <Link href="/church/souls" className="inline-flex items-center gap-2 text-pink-200 hover:text-gray-900 mb-4">
             <ArrowLeft className="w-4 h-4" />
             Back to Soul Tracker
           </Link>
@@ -646,7 +646,7 @@ export default function SoulDetail() {
               </button>
               <button
                 onClick={() => setShowStatusModal(true)}
-                className="px-4 py-2 bg-white/20 text-white rounded-xl font-semibold hover:bg-white/30 flex items-center gap-2"
+                className="px-4 py-2 bg-white/20 text-gray-900 rounded-xl font-semibold hover:bg-white/30 flex items-center gap-2"
               >
                 <TrendingUp className="w-4 h-4" />
                 Update Status
@@ -657,7 +657,7 @@ export default function SoulDetail() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 sticky top-0 z-10">
+      <div className="bg-white dark:bg-white border-b border-gray-100 dark:border-gray-200 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4">
           <div className="flex gap-1">
             {[
@@ -670,7 +670,7 @@ export default function SoulDetail() {
                 onClick={() => setActiveTab(id)}
                 className={`px-6 py-4 font-medium border-b-2 transition flex items-center gap-2 ${
                   activeTab === id
-                    ? 'border-purple-500 text-purple-600 dark:text-purple-400'
+                    ? 'border-purple-500 text-purple-600 dark:text-purple-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
               >
@@ -694,8 +694,8 @@ export default function SoulDetail() {
             {/* Main Info */}
             <div className="lg:col-span-2 space-y-6">
               {/* Personal Information */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
                   <User className="w-5 h-5 text-purple-500" />
                   Personal Information
                 </h3>
@@ -703,30 +703,30 @@ export default function SoulDetail() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm text-gray-500">Full Name</label>
-                    <p className="font-medium text-gray-900 dark:text-white">
+                    <p className="font-medium text-gray-900 dark:text-gray-900">
                       {soul.firstName} {soul.lastName}
                     </p>
                   </div>
                   <div>
                     <label className="text-sm text-gray-500">Phone</label>
-                    <p className="font-medium text-gray-900 dark:text-white">{soul.phone}</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-900">{soul.phone}</p>
                   </div>
                   {soul.email && (
                     <div>
                       <label className="text-sm text-gray-500">Email</label>
-                      <p className="font-medium text-gray-900 dark:text-white">{soul.email}</p>
+                      <p className="font-medium text-gray-900 dark:text-gray-900">{soul.email}</p>
                     </div>
                   )}
                   {soul.gender && (
                     <div>
                       <label className="text-sm text-gray-500">Gender</label>
-                      <p className="font-medium text-gray-900 dark:text-white capitalize">{soul.gender}</p>
+                      <p className="font-medium text-gray-900 dark:text-gray-900 capitalize">{soul.gender}</p>
                     </div>
                   )}
                   {soul.ageGroup && (
                     <div>
                       <label className="text-sm text-gray-500">Age Group</label>
-                      <p className="font-medium text-gray-900 dark:text-white capitalize">
+                      <p className="font-medium text-gray-900 dark:text-gray-900 capitalize">
                         {soul.ageGroup.replace('_', ' ')}
                       </p>
                     </div>
@@ -734,7 +734,7 @@ export default function SoulDetail() {
                   {soul.address && (
                     <div className="md:col-span-2">
                       <label className="text-sm text-gray-500">Address</label>
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium text-gray-900 dark:text-gray-900">
                         {soul.address}{soul.city && `, ${soul.city}`}
                       </p>
                     </div>
@@ -743,8 +743,8 @@ export default function SoulDetail() {
               </div>
 
               {/* Salvation Information */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
                   <Heart className="w-5 h-5 text-pink-500" />
                   Salvation Information
                 </h3>
@@ -752,7 +752,7 @@ export default function SoulDetail() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm text-gray-500">Salvation Date</label>
-                    <p className="font-medium text-gray-900 dark:text-white">
+                    <p className="font-medium text-gray-900 dark:text-gray-900">
                       {new Date(soul.salvationDate).toLocaleDateString('en-US', {
                         weekday: 'long',
                         year: 'numeric',
@@ -763,14 +763,14 @@ export default function SoulDetail() {
                   </div>
                   <div>
                     <label className="text-sm text-gray-500">Type</label>
-                    <p className="font-medium text-gray-900 dark:text-white capitalize">
+                    <p className="font-medium text-gray-900 dark:text-gray-900 capitalize">
                       {soul.salvationType?.replace('_', ' ') || 'First Time'}
                     </p>
                   </div>
                   {soul.howTheyHeard && (
                     <div>
                       <label className="text-sm text-gray-500">How They Heard</label>
-                      <p className="font-medium text-gray-900 dark:text-white capitalize">
+                      <p className="font-medium text-gray-900 dark:text-gray-900 capitalize">
                         {soul.howTheyHeard.replace('_', ' ')}
                       </p>
                     </div>
@@ -778,7 +778,7 @@ export default function SoulDetail() {
                   {soul.witnessedBy && (
                     <div>
                       <label className="text-sm text-gray-500">Witnessed By</label>
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium text-gray-900 dark:text-gray-900">
                         {soul.witnessedBy.name || soul.witnessedBy.username}
                       </p>
                     </div>
@@ -788,25 +788,25 @@ export default function SoulDetail() {
 
               {/* Notes */}
               {soul.notes && (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-3 flex items-center gap-2">
                     <FileText className="w-5 h-5 text-purple-500" />
                     Notes
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400">{soul.notes}</p>
+                  <p className="text-gray-600 dark:text-gray-500">{soul.notes}</p>
                 </div>
               )}
 
               {/* Prayer Requests */}
               {soul.prayerRequests?.length > 0 && (
                 <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-purple-200 dark:border-purple-800">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-3 flex items-center gap-2">
                     <Bookmark className="w-5 h-5 text-purple-500" />
                     Prayer Requests
                   </h3>
                   <ul className="space-y-2">
                     {soul.prayerRequests.map((request, i) => (
-                      <li key={i} className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
+                      <li key={i} className="flex items-start gap-2 text-gray-700 dark:text-gray-600">
                         <span className="text-purple-500">•</span>
                         {request}
                       </li>
@@ -819,16 +819,16 @@ export default function SoulDetail() {
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Quick Stats */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Quick Stats</h3>
+              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Quick Stats</h3>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-500">Follow-ups</span>
-                    <span className="font-bold text-gray-900 dark:text-white">{followUps.length}</span>
+                    <span className="font-bold text-gray-900 dark:text-gray-900">{followUps.length}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-500">Days Since Salvation</span>
-                    <span className="font-bold text-gray-900 dark:text-white">{daysSinceSalvation}</span>
+                    <span className="font-bold text-gray-900 dark:text-gray-900">{daysSinceSalvation}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-500">Current Status</span>
@@ -838,25 +838,25 @@ export default function SoulDetail() {
               </div>
 
               {/* Assignment */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Assignment</h3>
+              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Assignment</h3>
                 
                 {soul.church && (
                   <div className="mb-3">
                     <label className="text-sm text-gray-500">Church</label>
-                    <p className="font-medium text-gray-900 dark:text-white">{soul.church.name}</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-900">{soul.church.name}</p>
                   </div>
                 )}
                 
                 {soul.cell && (
                   <div className="mb-3">
                     <label className="text-sm text-gray-500">Cell</label>
-                    <p className="font-medium text-gray-900 dark:text-white">{soul.cell.name}</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-900">{soul.cell.name}</p>
                   </div>
                 )}
                 
                 {soul.assignedTo && (
-                  <div className="flex items-center gap-3 mt-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div className="flex items-center gap-3 mt-4 p-3 bg-gray-50 dark:bg-gray-100 rounded-xl">
                     <img
                       src={soul.assignedTo.profilePicture || '/default-avatar.png'}
                       alt={soul.assignedTo.name}
@@ -864,7 +864,7 @@ export default function SoulDetail() {
                     />
                     <div>
                       <p className="text-sm text-gray-500">Assigned to</p>
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium text-gray-900 dark:text-gray-900">
                         {soul.assignedTo.name || soul.assignedTo.username}
                       </p>
                     </div>
@@ -874,7 +874,7 @@ export default function SoulDetail() {
 
               {/* Foundation School CTA */}
               {!soul.foundationSchool?.enrolled && soul.status !== 'foundation_school' && soul.status !== 'graduated' && (
-                <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-6 text-white">
+                <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-6 text-gray-900">
                   <GraduationCap className="w-10 h-10 mb-3" />
                   <h3 className="font-bold text-lg mb-2">Foundation School</h3>
                   <p className="text-purple-200 text-sm mb-4">
@@ -891,7 +891,7 @@ export default function SoulDetail() {
 
               {/* Foundation School Progress */}
               {(soul.foundationSchool?.enrolled || soul.status === 'foundation_school' || soul.status === 'graduated') && (
-                <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-white">
+                <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-gray-900">
                   <div className="flex items-center gap-3 mb-4">
                     {soul.status === 'graduated' ? (
                       <Award className="w-10 h-10" />
@@ -920,12 +920,12 @@ export default function SoulDetail() {
         {activeTab === 'followups' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-900">
                 Follow-up History ({followUps.length})
               </h2>
               <button
                 onClick={() => setShowFollowUpModal(true)}
-                className="px-4 py-2 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 flex items-center gap-2"
+                className="px-4 py-2 bg-purple-600 text-gray-900 rounded-xl font-semibold hover:bg-purple-700 flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
                 Add Follow-up
@@ -933,9 +933,9 @@ export default function SoulDetail() {
             </div>
 
             {followUps.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-700">
-                <Activity className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              <div className="bg-white dark:bg-white rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-200">
+                <Activity className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900 mb-2">
                   No Follow-ups Yet
                 </h3>
                 <p className="text-gray-500 mb-6">
@@ -943,7 +943,7 @@ export default function SoulDetail() {
                 </p>
                 <button
                   onClick={() => setShowFollowUpModal(true)}
-                  className="px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700"
+                  className="px-6 py-3 bg-purple-600 text-gray-900 rounded-xl font-semibold hover:bg-purple-700"
                 >
                   Add First Follow-up
                 </button>
@@ -964,7 +964,7 @@ export default function SoulDetail() {
             {soul.foundationSchool?.enrolled || soul.status === 'foundation_school' || soul.status === 'graduated' ? (
               <>
                 {/* Enrolled State */}
-                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-6 text-white">
+                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-6 text-gray-900">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       {soul.status === 'graduated' ? (
@@ -995,13 +995,13 @@ export default function SoulDetail() {
                 </div>
 
                 {/* Module Progress would go here */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Module Progress</h3>
+                <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Module Progress</h3>
                   <p className="text-gray-500">
                     View detailed progress in the Foundation School section.
                   </p>
                   <Link href="/church/foundation">
-                    <button className="mt-4 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-lg font-medium">
+                    <button className="mt-4 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-600 rounded-lg font-medium">
                       View Foundation School →
                     </button>
                   </Link>
@@ -1009,11 +1009,11 @@ export default function SoulDetail() {
               </>
             ) : (
               /* Not Enrolled State */
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-700">
+              <div className="bg-white dark:bg-white rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-200">
                 <div className="w-20 h-20 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <GraduationCap className="w-10 h-10 text-purple-600 dark:text-purple-400" />
+                  <GraduationCap className="w-10 h-10 text-purple-600 dark:text-purple-600" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-900 mb-2">
                   Not Enrolled Yet
                 </h3>
                 <p className="text-gray-500 mb-6 max-w-md mx-auto">
@@ -1022,7 +1022,7 @@ export default function SoulDetail() {
                 </p>
                 <button
                   onClick={() => setShowEnrollModal(true)}
-                  className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700"
+                  className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-gray-900 rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700"
                 >
                   Enroll in Foundation School
                 </button>

@@ -249,7 +249,7 @@ export default function FormViewPage() {
             {form.settings?.confirmationMessage || 'Your response has been recorded.'}
           </p>
           {form.settings?.redirectUrl && (
-            <p className="text-sm text-gray-400">Redirecting...</p>
+            <p className="text-sm text-gray-500">Redirecting...</p>
           )}
           <Link
             href="/"
@@ -377,7 +377,7 @@ export default function FormViewPage() {
           <button
             type="submit"
             disabled={submitting || (form.settings?.requireLogin && !localStorage.getItem('token'))}
-            className="w-full mt-6 py-4 text-white rounded-xl font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full mt-6 py-4 text-gray-900 rounded-xl font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             style={{ backgroundColor: primaryColor }}
           >
             {submitting ? (
@@ -393,7 +393,7 @@ export default function FormViewPage() {
 
         {/* Footer */}
         <div className="mt-8 text-center">
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-gray-500">
             Powered by{' '}
             <Link href="https://cybev.io" className="font-medium hover:underline" style={{ color: primaryColor }}>
               CYBEV
@@ -458,7 +458,7 @@ function FormField({ field, value, onChange, onCheckboxChange, primaryColor, err
     case 'date':
       return (
         <div className="relative">
-          <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
           <input
             type="date"
             value={value || ''}
@@ -474,7 +474,7 @@ function FormField({ field, value, onChange, onCheckboxChange, primaryColor, err
     case 'time':
       return (
         <div className="relative">
-          <Clock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Clock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
           <input
             type="time"
             value={value || ''}
@@ -571,7 +571,7 @@ function FormField({ field, value, onChange, onCheckboxChange, primaryColor, err
             >
               <Star
                 className={`w-8 h-8 transition ${
-                  star <= value ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                  star <= value ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'
                 }`}
               />
             </button>
@@ -594,7 +594,7 @@ function FormField({ field, value, onChange, onCheckboxChange, primaryColor, err
                 onClick={() => onChange(num)}
                 className={`flex-1 py-3 rounded-lg border-2 text-sm font-medium transition ${
                   value === num
-                    ? 'text-white border-transparent'
+                    ? 'text-gray-900 border-transparent'
                     : 'border-gray-200 text-gray-700 hover:border-gray-300'
                 }`}
                 style={{
@@ -612,9 +612,9 @@ function FormField({ field, value, onChange, onCheckboxChange, primaryColor, err
     case 'image':
       return (
         <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center hover:border-gray-300 transition cursor-pointer">
-          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+          <Upload className="w-8 h-8 text-gray-500 mx-auto mb-2" />
           <p className="text-sm text-gray-500">Click or drag to upload</p>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-gray-500 mt-1">
             {field.type === 'image' ? 'PNG, JPG, GIF up to 10MB' : 'Any file up to 10MB'}
           </p>
           <input
@@ -629,7 +629,7 @@ function FormField({ field, value, onChange, onCheckboxChange, primaryColor, err
     case 'location':
       return (
         <div className="relative">
-          <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
           <input
             type="text"
             value={value || ''}

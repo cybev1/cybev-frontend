@@ -67,7 +67,7 @@ function PostCard({ post, onLike, onComment, onDelete, onPin, isAdmin, currentUs
   };
 
   return (
-    <div className="bg-white/5 backdrop-blur-lg rounded-2xl border border-purple-500/20 overflow-hidden">
+    <div className="bg-white/5 backdrop-blur-lg rounded-2xl border border-gray-200 overflow-hidden">
       {/* Post Header */}
       <div className="p-4 flex items-start gap-3">
         <Link href={`/profile/${post.author?.username}`}>
@@ -75,14 +75,14 @@ function PostCard({ post, onLike, onComment, onDelete, onPin, isAdmin, currentUs
             {post.author?.avatar ? (
               <img src={post.author.avatar} alt="" className="w-full h-full object-cover" />
             ) : (
-              <span className="text-white font-bold">{post.author?.name?.[0]}</span>
+              <span className="text-gray-900 font-bold">{post.author?.name?.[0]}</span>
             )}
           </div>
         </Link>
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <Link href={`/profile/${post.author?.username}`}>
-              <span className="text-white font-semibold hover:underline cursor-pointer">
+              <span className="text-gray-900 font-semibold hover:underline cursor-pointer">
                 {post.author?.name}
               </span>
             </Link>
@@ -98,13 +98,13 @@ function PostCard({ post, onLike, onComment, onDelete, onPin, isAdmin, currentUs
         {(isAdmin || post.author?._id === currentUserId) && (
           <div className="relative group">
             <button className="p-2 hover:bg-white/10 rounded-lg">
-              <MoreHorizontal className="w-5 h-5 text-gray-400" />
+              <MoreHorizontal className="w-5 h-5 text-gray-500" />
             </button>
-            <div className="absolute right-0 top-full mt-1 bg-gray-900 border border-purple-500/20 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 min-w-[150px]">
+            <div className="absolute right-0 top-full mt-1 bg-gray-50 border border-gray-200 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 min-w-[150px]">
               {isAdmin && (
                 <button
                   onClick={() => onPin(post._id)}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-white hover:bg-white/10 text-left"
+                  className="w-full flex items-center gap-2 px-4 py-2 text-gray-900 hover:bg-white/10 text-left"
                 >
                   <Pin className="w-4 h-4" />
                   {post.isPinned ? 'Unpin' : 'Pin Post'}
@@ -124,7 +124,7 @@ function PostCard({ post, onLike, onComment, onDelete, onPin, isAdmin, currentUs
 
       {/* Content */}
       <div className="px-4 pb-4">
-        <p className="text-white whitespace-pre-wrap">{post.content}</p>
+        <p className="text-gray-900 whitespace-pre-wrap">{post.content}</p>
       </div>
 
       {/* Media */}
@@ -148,7 +148,7 @@ function PostCard({ post, onLike, onComment, onDelete, onPin, isAdmin, currentUs
       {post.postType === 'poll' && post.poll && (
         <div className="px-4 pb-4">
           <div className="bg-white/5 rounded-xl p-4">
-            <h4 className="text-white font-semibold mb-3">{post.poll.question}</h4>
+            <h4 className="text-gray-900 font-semibold mb-3">{post.poll.question}</h4>
             <div className="space-y-2">
               {post.poll.options?.map((opt, i) => {
                 const totalVotes = post.poll.options.reduce((sum, o) => sum + (o.votes?.length || 0), 0);
@@ -160,8 +160,8 @@ function PostCard({ post, onLike, onComment, onDelete, onPin, isAdmin, currentUs
                       style={{ width: `${percent}%` }}
                     />
                     <div className="relative flex items-center justify-between px-4 py-2">
-                      <span className="text-white">{opt.text}</span>
-                      <span className="text-gray-400 text-sm">{percent}%</span>
+                      <span className="text-gray-900">{opt.text}</span>
+                      <span className="text-gray-500 text-sm">{percent}%</span>
                     </div>
                   </div>
                 );
@@ -172,17 +172,17 @@ function PostCard({ post, onLike, onComment, onDelete, onPin, isAdmin, currentUs
       )}
 
       {/* Stats */}
-      <div className="px-4 py-2 border-t border-purple-500/20 flex items-center justify-between text-sm text-gray-500">
+      <div className="px-4 py-2 border-t border-gray-200 flex items-center justify-between text-sm text-gray-500">
         <span>{post.likeCount || 0} likes</span>
         <span>{post.commentCount || 0} comments</span>
       </div>
 
       {/* Actions */}
-      <div className="px-4 py-2 border-t border-purple-500/20 flex items-center gap-1">
+      <div className="px-4 py-2 border-t border-gray-200 flex items-center gap-1">
         <button
           onClick={() => onLike(post._id)}
           className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${
-            post.isLiked ? 'text-pink-500' : 'text-gray-400 hover:bg-white/5'
+            post.isLiked ? 'text-pink-500' : 'text-gray-500 hover:bg-white/5'
           }`}
         >
           <Heart className={`w-5 h-5 ${post.isLiked ? 'fill-current' : ''}`} />
@@ -190,12 +190,12 @@ function PostCard({ post, onLike, onComment, onDelete, onPin, isAdmin, currentUs
         </button>
         <button
           onClick={() => setShowComments(!showComments)}
-          className="flex-1 flex items-center justify-center gap-2 py-2 text-gray-400 hover:bg-white/5 rounded-lg"
+          className="flex-1 flex items-center justify-center gap-2 py-2 text-gray-500 hover:bg-white/5 rounded-lg"
         >
           <MessageCircle className="w-5 h-5" />
           Comment
         </button>
-        <button className="flex-1 flex items-center justify-center gap-2 py-2 text-gray-400 hover:bg-white/5 rounded-lg">
+        <button className="flex-1 flex items-center justify-center gap-2 py-2 text-gray-500 hover:bg-white/5 rounded-lg">
           <Share2 className="w-5 h-5" />
           Share
         </button>
@@ -203,7 +203,7 @@ function PostCard({ post, onLike, onComment, onDelete, onPin, isAdmin, currentUs
 
       {/* Comments */}
       {showComments && (
-        <div className="px-4 py-4 border-t border-purple-500/20">
+        <div className="px-4 py-4 border-t border-gray-200">
           {/* Comment Input */}
           <form onSubmit={handleSubmitComment} className="flex gap-2 mb-4">
             <input
@@ -211,12 +211,12 @@ function PostCard({ post, onLike, onComment, onDelete, onPin, isAdmin, currentUs
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Write a comment..."
-              className="flex-1 px-4 py-2 bg-white/5 border border-purple-500/30 rounded-full text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
+              className="flex-1 px-4 py-2 bg-white/5 border border-gray-200 rounded-full text-gray-900 placeholder-gray-400 focus:border-purple-500 focus:outline-none"
             />
             <button
               type="submit"
               disabled={!comment.trim() || submitting}
-              className="p-2 bg-purple-600 text-white rounded-full disabled:opacity-50"
+              className="p-2 bg-purple-600 text-gray-900 rounded-full disabled:opacity-50"
             >
               {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             </button>
@@ -230,12 +230,12 @@ function PostCard({ post, onLike, onComment, onDelete, onPin, isAdmin, currentUs
                   {c.author?.avatar ? (
                     <img src={c.author.avatar} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-white text-xs font-bold">{c.author?.name?.[0]}</span>
+                    <span className="text-gray-900 text-xs font-bold">{c.author?.name?.[0]}</span>
                   )}
                 </div>
                 <div className="flex-1 bg-white/5 rounded-2xl px-3 py-2">
-                  <p className="text-white text-sm font-semibold">{c.author?.name}</p>
-                  <p className="text-gray-300 text-sm">{c.content}</p>
+                  <p className="text-gray-900 text-sm font-semibold">{c.author?.name}</p>
+                  <p className="text-gray-600 text-sm">{c.content}</p>
                 </div>
               </div>
             ))}
@@ -391,9 +391,9 @@ export default function GroupDetailPage() {
     return (
       <AppLayout>
         <div className="text-center py-20">
-          <h2 className="text-2xl font-bold text-white mb-4">Group not found</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Group not found</h2>
           <Link href="/groups">
-            <button className="text-purple-400 hover:underline">Back to Groups</button>
+            <button className="text-purple-600 hover:underline">Back to Groups</button>
           </Link>
         </div>
       </AppLayout>
@@ -428,21 +428,21 @@ export default function GroupDetailPage() {
               {group.avatar ? (
                 <img src={group.avatar} alt="" className="w-full h-full object-cover" />
               ) : (
-                <Users className="w-12 h-12 md:w-16 md:h-16 text-white" />
+                <Users className="w-12 h-12 md:w-16 md:h-16 text-gray-900" />
               )}
             </div>
 
             {/* Info */}
             <div className="flex-1 pb-4">
               <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-2xl md:text-3xl font-bold text-white">{group.name}</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{group.name}</h1>
                 {group.isVerified && (
                   <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                    <Check className="w-4 h-4 text-white" />
+                    <Check className="w-4 h-4 text-gray-900" />
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-4 text-gray-400 text-sm">
+              <div className="flex items-center gap-4 text-gray-500 text-sm">
                 <span className="flex items-center gap-1">
                   {privacyIcon[group.privacy]}
                   <span className="capitalize">{group.privacy} Group</span>
@@ -458,19 +458,19 @@ export default function GroupDetailPage() {
             <div className="flex items-center gap-2 pb-4">
               {group.isMember ? (
                 <>
-                  <button className="p-2 bg-white/10 text-white rounded-lg hover:bg-white/20">
+                  <button className="p-2 bg-white/10 text-gray-900 rounded-lg hover:bg-white/20">
                     <Bell className="w-5 h-5" />
                   </button>
                   <button
                     onClick={handleLeave}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-red-500/20 hover:text-red-400"
+                    className="flex items-center gap-2 px-4 py-2 bg-white/10 text-gray-900 rounded-lg hover:bg-red-500/20 hover:text-red-400"
                   >
                     <LogOut className="w-4 h-4" />
                     Leave
                   </button>
                   {group.isAdmin && (
                     <Link href={`/groups/${id}/settings`}>
-                      <button className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20">
+                      <button className="flex items-center gap-2 px-4 py-2 bg-white/10 text-gray-900 rounded-lg hover:bg-white/20">
                         <Settings className="w-4 h-4" />
                         Manage
                       </button>
@@ -485,7 +485,7 @@ export default function GroupDetailPage() {
                 <button
                   onClick={handleJoin}
                   disabled={joining}
-                  className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-lg"
+                  className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-lg font-semibold hover:shadow-lg"
                 >
                   {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
                   {group.privacy === 'private' ? 'Request to Join' : 'Join Group'}
@@ -495,15 +495,15 @@ export default function GroupDetailPage() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 border-b border-purple-500/20 mt-4">
+          <div className="flex gap-1 border-b border-gray-200 mt-4">
             {['posts', 'about', 'members'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`px-6 py-3 font-medium transition-colors relative ${
                   activeTab === tab
-                    ? 'text-purple-400'
-                    : 'text-gray-400 hover:text-white'
+                    ? 'text-purple-600'
+                    : 'text-gray-500 hover:text-gray-900'
                 }`}
               >
                 <span className="capitalize">{tab}</span>
@@ -525,30 +525,30 @@ export default function GroupDetailPage() {
               <div className="space-y-4">
                 {/* Create Post */}
                 {group.isMember && (
-                  <form onSubmit={handlePost} className="bg-white/5 rounded-2xl border border-purple-500/20 p-4">
+                  <form onSubmit={handlePost} className="bg-white/5 rounded-2xl border border-gray-200 p-4">
                     <textarea
                       value={postContent}
                       onChange={(e) => setPostContent(e.target.value)}
                       placeholder="Write something..."
                       rows={3}
-                      className="w-full bg-transparent border-none text-white placeholder-gray-500 focus:outline-none resize-none"
+                      className="w-full bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none resize-none"
                     />
-                    <div className="flex items-center justify-between pt-3 border-t border-purple-500/20">
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                       <div className="flex gap-2">
-                        <button type="button" className="p-2 hover:bg-white/10 rounded-lg text-gray-400">
+                        <button type="button" className="p-2 hover:bg-white/10 rounded-lg text-gray-500">
                           <Image className="w-5 h-5" />
                         </button>
-                        <button type="button" className="p-2 hover:bg-white/10 rounded-lg text-gray-400">
+                        <button type="button" className="p-2 hover:bg-white/10 rounded-lg text-gray-500">
                           <Video className="w-5 h-5" />
                         </button>
-                        <button type="button" className="p-2 hover:bg-white/10 rounded-lg text-gray-400">
+                        <button type="button" className="p-2 hover:bg-white/10 rounded-lg text-gray-500">
                           <BarChart2 className="w-5 h-5" />
                         </button>
                       </div>
                       <button
                         type="submit"
                         disabled={!postContent.trim() || posting}
-                        className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold disabled:opacity-50 flex items-center gap-2"
+                        className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-lg font-semibold disabled:opacity-50 flex items-center gap-2"
                       >
                         {posting && <Loader2 className="w-4 h-4 animate-spin" />}
                         Post
@@ -559,9 +559,9 @@ export default function GroupDetailPage() {
 
                 {/* Posts List */}
                 {posts.length === 0 ? (
-                  <div className="text-center py-12 bg-white/5 rounded-2xl border border-purple-500/20">
+                  <div className="text-center py-12 bg-white/5 rounded-2xl border border-gray-200">
                     <FileText className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                    <p className="text-gray-400">No posts yet</p>
+                    <p className="text-gray-500">No posts yet</p>
                     {group.isMember && (
                       <p className="text-gray-500 text-sm mt-1">Be the first to post!</p>
                     )}
@@ -584,21 +584,21 @@ export default function GroupDetailPage() {
             )}
 
             {activeTab === 'about' && (
-              <div className="bg-white/5 rounded-2xl border border-purple-500/20 p-6">
-                <h2 className="text-xl font-bold text-white mb-4">About this group</h2>
-                <p className="text-gray-300 whitespace-pre-wrap mb-6">
+              <div className="bg-white/5 rounded-2xl border border-gray-200 p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">About this group</h2>
+                <p className="text-gray-600 whitespace-pre-wrap mb-6">
                   {group.description || 'No description provided.'}
                 </p>
 
                 {group.rules?.length > 0 && (
                   <div className="mt-6">
-                    <h3 className="text-lg font-semibold text-white mb-3">Group Rules</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Group Rules</h3>
                     <div className="space-y-3">
                       {group.rules.map((rule, i) => (
                         <div key={i} className="bg-white/5 rounded-lg p-4">
-                          <p className="text-white font-medium">{i + 1}. {rule.title}</p>
+                          <p className="text-gray-900 font-medium">{i + 1}. {rule.title}</p>
                           {rule.description && (
-                            <p className="text-gray-400 text-sm mt-1">{rule.description}</p>
+                            <p className="text-gray-500 text-sm mt-1">{rule.description}</p>
                           )}
                         </div>
                       ))}
@@ -608,10 +608,10 @@ export default function GroupDetailPage() {
 
                 {group.tags?.length > 0 && (
                   <div className="mt-6">
-                    <h3 className="text-lg font-semibold text-white mb-3">Tags</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Tags</h3>
                     <div className="flex flex-wrap gap-2">
                       {group.tags.map((tag, i) => (
-                        <span key={i} className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm">
+                        <span key={i} className="px-3 py-1 bg-purple-500/20 text-purple-600 rounded-full text-sm">
                           #{tag}
                         </span>
                       ))}
@@ -622,8 +622,8 @@ export default function GroupDetailPage() {
             )}
 
             {activeTab === 'members' && (
-              <div className="bg-white/5 rounded-2xl border border-purple-500/20 p-6">
-                <h2 className="text-xl font-bold text-white mb-4">
+              <div className="bg-white/5 rounded-2xl border border-gray-200 p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">
                   Members ({members.length})
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -634,11 +634,11 @@ export default function GroupDetailPage() {
                           {m.user?.avatar ? (
                             <img src={m.user.avatar} alt="" className="w-full h-full object-cover" />
                           ) : (
-                            <span className="text-white font-bold">{m.user?.name?.[0]}</span>
+                            <span className="text-gray-900 font-bold">{m.user?.name?.[0]}</span>
                           )}
                         </div>
                         <div>
-                          <p className="text-white font-medium">{m.user?.name}</p>
+                          <p className="text-gray-900 font-medium">{m.user?.name}</p>
                           <p className="text-gray-500 text-xs capitalize">{m.role}</p>
                         </div>
                       </div>
@@ -652,22 +652,22 @@ export default function GroupDetailPage() {
           {/* Sidebar */}
           <div className="space-y-4">
             {/* About Card */}
-            <div className="bg-white/5 rounded-2xl border border-purple-500/20 p-4">
-              <h3 className="text-white font-semibold mb-3">About</h3>
-              <p className="text-gray-400 text-sm line-clamp-3 mb-3">
+            <div className="bg-white/5 rounded-2xl border border-gray-200 p-4">
+              <h3 className="text-gray-900 font-semibold mb-3">About</h3>
+              <p className="text-gray-500 text-sm line-clamp-3 mb-3">
                 {group.description || 'No description'}
               </p>
               <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2 text-gray-400">
+                <div className="flex items-center gap-2 text-gray-500">
                   {privacyIcon[group.privacy]}
                   <span className="capitalize">{group.privacy}</span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-400">
+                <div className="flex items-center gap-2 text-gray-500">
                   <Users className="w-4 h-4" />
                   {group.stats?.memberCount || 0} members
                 </div>
                 {group.category && (
-                  <div className="flex items-center gap-2 text-gray-400">
+                  <div className="flex items-center gap-2 text-gray-500">
                     <span className="text-lg">{CATEGORIES.find(c => c.id === group.category)?.icon || '📌'}</span>
                     <span className="capitalize">{group.category}</span>
                   </div>
@@ -677,8 +677,8 @@ export default function GroupDetailPage() {
 
             {/* Admins */}
             {group.admins?.length > 0 && (
-              <div className="bg-white/5 rounded-2xl border border-purple-500/20 p-4">
-                <h3 className="text-white font-semibold mb-3">Admins</h3>
+              <div className="bg-white/5 rounded-2xl border border-gray-200 p-4">
+                <h3 className="text-gray-900 font-semibold mb-3">Admins</h3>
                 <div className="space-y-2">
                   {group.admins.map((admin, i) => (
                     <Link key={i} href={`/profile/${admin.username}`}>
@@ -687,12 +687,12 @@ export default function GroupDetailPage() {
                           {admin.avatar ? (
                             <img src={admin.avatar} alt="" className="w-full h-full object-cover" />
                           ) : (
-                            <span className="text-white font-bold text-sm">{admin.name?.[0]}</span>
+                            <span className="text-gray-900 font-bold text-sm">{admin.name?.[0]}</span>
                           )}
                         </div>
                         <div>
-                          <p className="text-white text-sm font-medium">{admin.name}</p>
-                          <p className="text-purple-400 text-xs flex items-center gap-1">
+                          <p className="text-gray-900 text-sm font-medium">{admin.name}</p>
+                          <p className="text-purple-600 text-xs flex items-center gap-1">
                             <Shield className="w-3 h-3" /> Admin
                           </p>
                         </div>

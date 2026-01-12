@@ -253,7 +253,7 @@ export default function StartStream() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
@@ -265,18 +265,18 @@ export default function StartStream() {
         <title>Go Live - CYBEV</title>
       </Head>
 
-      <div className="min-h-screen bg-gray-900">
+      <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <div className="bg-gray-950 border-b border-gray-800">
+        <div className="bg-gray-950 border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => router.push('/live')}
-                className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                className="p-2 hover:bg-white rounded-lg transition-colors"
               >
-                <ChevronLeft className="w-5 h-5 text-gray-400" />
+                <ChevronLeft className="w-5 h-5 text-gray-500" />
               </button>
-              <h1 className="text-xl font-bold text-white flex items-center gap-2">
+              <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <Radio className="w-6 h-6 text-red-500" />
                 Go Live
               </h1>
@@ -287,7 +287,7 @@ export default function StartStream() {
                 <button
                   onClick={goLive}
                   disabled={starting || !streamSettings.title.trim()}
-                  className="px-6 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="px-6 py-2 bg-red-500 text-gray-900 rounded-lg font-medium hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
                   {starting ? (
                     <>
@@ -310,17 +310,17 @@ export default function StartStream() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content - Video Preview */}
             <div className="lg:col-span-2">
-              <div className="bg-gray-950 rounded-2xl overflow-hidden border border-gray-800">
+              <div className="bg-gray-950 rounded-2xl overflow-hidden border border-gray-200">
                 {/* Video Preview */}
-                <div className="aspect-video bg-black relative">
+                <div className="aspect-video bg-gray-900 relative">
                   {step === 1 ? (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="text-center">
                         <Video className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                        <p className="text-gray-400 mb-4">Camera preview will appear here</p>
+                        <p className="text-gray-500 mb-4">Camera preview will appear here</p>
                         <button
                           onClick={startPreview}
-                          className="px-6 py-3 bg-purple-500 text-white rounded-lg font-medium hover:bg-purple-600 transition-colors"
+                          className="px-6 py-3 bg-purple-500 text-gray-900 rounded-lg font-medium hover:bg-purple-600 transition-colors"
                         >
                           Enable Camera
                         </button>
@@ -338,7 +338,7 @@ export default function StartStream() {
                       
                       {/* Stream Info Overlay */}
                       <div className="absolute top-4 left-4 flex items-center gap-2">
-                        <span className="px-3 py-1.5 bg-gray-900/80 text-white text-sm rounded-lg backdrop-blur-sm">
+                        <span className="px-3 py-1.5 bg-gray-50/80 text-gray-900 text-sm rounded-lg backdrop-blur-sm">
                           Preview Mode
                         </span>
                       </div>
@@ -348,7 +348,7 @@ export default function StartStream() {
 
                 {/* Controls */}
                 {step === 2 && (
-                  <div className="p-4 flex items-center justify-center gap-4 bg-gray-900">
+                  <div className="p-4 flex items-center justify-center gap-4 bg-gray-50">
                     <button
                       onClick={toggleVideo}
                       className={`p-3 rounded-full transition-colors ${
@@ -356,9 +356,9 @@ export default function StartStream() {
                       }`}
                     >
                       {videoEnabled ? (
-                        <Video className="w-5 h-5 text-white" />
+                        <Video className="w-5 h-5 text-gray-900" />
                       ) : (
-                        <VideoOff className="w-5 h-5 text-white" />
+                        <VideoOff className="w-5 h-5 text-gray-900" />
                       )}
                     </button>
                     
@@ -369,9 +369,9 @@ export default function StartStream() {
                       }`}
                     >
                       {audioEnabled ? (
-                        <Mic className="w-5 h-5 text-white" />
+                        <Mic className="w-5 h-5 text-gray-900" />
                       ) : (
-                        <MicOff className="w-5 h-5 text-white" />
+                        <MicOff className="w-5 h-5 text-gray-900" />
                       )}
                     </button>
                     
@@ -381,14 +381,14 @@ export default function StartStream() {
                         screenShare ? 'bg-purple-500 hover:bg-purple-600' : 'bg-gray-700 hover:bg-gray-600'
                       }`}
                     >
-                      <ScreenShare className="w-5 h-5 text-white" />
+                      <ScreenShare className="w-5 h-5 text-gray-900" />
                     </button>
                     
                     <button
                       onClick={() => setShowSettings(!showSettings)}
                       className="p-3 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors"
                     >
-                      <Settings className="w-5 h-5 text-white" />
+                      <Settings className="w-5 h-5 text-gray-900" />
                     </button>
                   </div>
                 )}
@@ -396,15 +396,15 @@ export default function StartStream() {
 
               {/* Device Settings */}
               {showSettings && step === 2 && (
-                <div className="mt-4 bg-gray-950 rounded-xl p-4 border border-gray-800">
-                  <h3 className="text-white font-medium mb-4">Device Settings</h3>
+                <div className="mt-4 bg-gray-950 rounded-xl p-4 border border-gray-200">
+                  <h3 className="text-gray-900 font-medium mb-4">Device Settings</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm text-gray-400 mb-2">Camera</label>
+                      <label className="block text-sm text-gray-500 mb-2">Camera</label>
                       <select
                         value={selectedDevices.video}
                         onChange={(e) => setSelectedDevices(prev => ({ ...prev, video: e.target.value }))}
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white"
+                        className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-900"
                       >
                         {devices.video.map(device => (
                           <option key={device.deviceId} value={device.deviceId}>
@@ -414,11 +414,11 @@ export default function StartStream() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-400 mb-2">Microphone</label>
+                      <label className="block text-sm text-gray-500 mb-2">Microphone</label>
                       <select
                         value={selectedDevices.audio}
                         onChange={(e) => setSelectedDevices(prev => ({ ...prev, audio: e.target.value }))}
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white"
+                        className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-900"
                       >
                         {devices.audio.map(device => (
                           <option key={device.deviceId} value={device.deviceId}>
@@ -434,41 +434,41 @@ export default function StartStream() {
 
             {/* Sidebar - Stream Settings */}
             <div className="lg:col-span-1">
-              <div className="bg-gray-950 rounded-2xl border border-gray-800 p-6">
-                <h2 className="text-lg font-bold text-white mb-6">Stream Settings</h2>
+              <div className="bg-gray-950 rounded-2xl border border-gray-200 p-6">
+                <h2 className="text-lg font-bold text-gray-900 mb-6">Stream Settings</h2>
 
                 <div className="space-y-6">
                   {/* Title */}
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">Stream Title *</label>
+                    <label className="block text-sm text-gray-500 mb-2">Stream Title *</label>
                     <input
                       type="text"
                       value={streamSettings.title}
                       onChange={(e) => setStreamSettings(prev => ({ ...prev, title: e.target.value }))}
                       placeholder="Enter a catchy title..."
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
+                      className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-purple-500 focus:outline-none"
                     />
                   </div>
 
                   {/* Description */}
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">Description</label>
+                    <label className="block text-sm text-gray-500 mb-2">Description</label>
                     <textarea
                       value={streamSettings.description}
                       onChange={(e) => setStreamSettings(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="What's your stream about?"
                       rows={3}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none resize-none"
+                      className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-purple-500 focus:outline-none resize-none"
                     />
                   </div>
 
                   {/* Category */}
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">Category</label>
+                    <label className="block text-sm text-gray-500 mb-2">Category</label>
                     <select
                       value={streamSettings.category}
                       onChange={(e) => setStreamSettings(prev => ({ ...prev, category: e.target.value }))}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
+                      className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-gray-900 focus:border-purple-500 focus:outline-none"
                     >
                       {CATEGORIES.map(cat => (
                         <option key={cat} value={cat}>{cat}</option>
@@ -478,7 +478,7 @@ export default function StartStream() {
 
                   {/* Thumbnail */}
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">Thumbnail</label>
+                    <label className="block text-sm text-gray-500 mb-2">Thumbnail</label>
                     <div className="relative">
                       {streamSettings.thumbnail ? (
                         <div className="relative aspect-video rounded-lg overflow-hidden">
@@ -487,11 +487,11 @@ export default function StartStream() {
                             onClick={() => setStreamSettings(prev => ({ ...prev, thumbnail: null }))}
                             className="absolute top-2 right-2 p-1 bg-red-500 rounded-full"
                           >
-                            <X className="w-4 h-4 text-white" />
+                            <X className="w-4 h-4 text-gray-900" />
                           </button>
                         </div>
                       ) : (
-                        <label className="flex flex-col items-center justify-center w-full aspect-video bg-gray-800 border-2 border-dashed border-gray-700 rounded-lg cursor-pointer hover:border-purple-500 transition-colors">
+                        <label className="flex flex-col items-center justify-center w-full aspect-video bg-white border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-purple-500 transition-colors">
                           <ImageIcon className="w-8 h-8 text-gray-600 mb-2" />
                           <span className="text-sm text-gray-500">Click to upload</span>
                           <input
@@ -507,7 +507,7 @@ export default function StartStream() {
 
                   {/* Visibility */}
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">Visibility</label>
+                    <label className="block text-sm text-gray-500 mb-2">Visibility</label>
                     <div className="grid grid-cols-3 gap-2">
                       {[
                         { id: 'public', icon: Globe, label: 'Public' },
@@ -519,8 +519,8 @@ export default function StartStream() {
                           onClick={() => setStreamSettings(prev => ({ ...prev, visibility: option.id }))}
                           className={`p-3 rounded-lg border transition-colors flex flex-col items-center gap-1 ${
                             streamSettings.visibility === option.id
-                              ? 'bg-purple-500/20 border-purple-500 text-purple-400'
-                              : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
+                              ? 'bg-purple-500/20 border-purple-500 text-purple-600'
+                              : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
                           }`}
                         >
                           <option.icon className="w-5 h-5" />
@@ -532,29 +532,29 @@ export default function StartStream() {
 
                   {/* Options */}
                   <div className="space-y-3">
-                    <label className="flex items-center justify-between p-3 bg-gray-800 rounded-lg cursor-pointer">
+                    <label className="flex items-center justify-between p-3 bg-white rounded-lg cursor-pointer">
                       <div className="flex items-center gap-3">
-                        <MessageCircle className="w-5 h-5 text-gray-400" />
-                        <span className="text-white">Enable Chat</span>
+                        <MessageCircle className="w-5 h-5 text-gray-500" />
+                        <span className="text-gray-900">Enable Chat</span>
                       </div>
                       <input
                         type="checkbox"
                         checked={streamSettings.enableChat}
                         onChange={(e) => setStreamSettings(prev => ({ ...prev, enableChat: e.target.checked }))}
-                        className="w-5 h-5 rounded bg-gray-700 border-gray-600 text-purple-500 focus:ring-purple-500"
+                        className="w-5 h-5 rounded bg-gray-700 border-gray-300 text-purple-500 focus:ring-purple-500"
                       />
                     </label>
 
-                    <label className="flex items-center justify-between p-3 bg-gray-800 rounded-lg cursor-pointer">
+                    <label className="flex items-center justify-between p-3 bg-white rounded-lg cursor-pointer">
                       <div className="flex items-center gap-3">
-                        <Gift className="w-5 h-5 text-gray-400" />
-                        <span className="text-white">Enable Tips</span>
+                        <Gift className="w-5 h-5 text-gray-500" />
+                        <span className="text-gray-900">Enable Tips</span>
                       </div>
                       <input
                         type="checkbox"
                         checked={streamSettings.enableTips}
                         onChange={(e) => setStreamSettings(prev => ({ ...prev, enableTips: e.target.checked }))}
-                        className="w-5 h-5 rounded bg-gray-700 border-gray-600 text-purple-500 focus:ring-purple-500"
+                        className="w-5 h-5 rounded bg-gray-700 border-gray-300 text-purple-500 focus:ring-purple-500"
                       />
                     </label>
                   </div>
@@ -563,7 +563,7 @@ export default function StartStream() {
                   {step === 1 && (
                     <button
                       onClick={startPreview}
-                      className="w-full py-3 bg-purple-500 text-white rounded-lg font-medium hover:bg-purple-600 transition-colors flex items-center justify-center gap-2"
+                      className="w-full py-3 bg-purple-500 text-gray-900 rounded-lg font-medium hover:bg-purple-600 transition-colors flex items-center justify-center gap-2"
                     >
                       <Camera className="w-5 h-5" />
                       Setup Camera
@@ -574,7 +574,7 @@ export default function StartStream() {
                     <button
                       onClick={goLive}
                       disabled={starting || !streamSettings.title.trim()}
-                      className="w-full py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="w-full py-3 bg-red-500 text-gray-900 rounded-lg font-medium hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {starting ? (
                         <>

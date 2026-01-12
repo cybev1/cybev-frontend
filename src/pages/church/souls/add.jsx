@@ -144,12 +144,12 @@ export default function AddSoul() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center max-w-md w-full shadow-xl">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-white rounded-2xl p-8 text-center max-w-md w-full shadow-xl">
           <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="w-10 h-10 text-green-500" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Soul Added!</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-900 mb-2">Soul Added!</h2>
           <p className="text-gray-500 mb-6">
             {form.firstName} {form.lastName} has been added to the Soul Tracker.
             Redirecting to souls list...
@@ -161,15 +161,15 @@ export default function AddSoul() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
       <Head>
         <title>Add Soul - CYBEV Church</title>
       </Head>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-pink-600 to-rose-600 text-white">
+      <div className="bg-gradient-to-r from-pink-600 to-rose-600 text-gray-900">
         <div className="max-w-3xl mx-auto px-4 py-8">
-          <Link href="/church/souls" className="inline-flex items-center gap-2 text-pink-200 hover:text-white mb-4">
+          <Link href="/church/souls" className="inline-flex items-center gap-2 text-pink-200 hover:text-gray-900 mb-4">
             <ArrowLeft className="w-4 h-4" />
             Back to Soul Tracker
           </Link>
@@ -192,15 +192,15 @@ export default function AddSoul() {
           )}
 
           {/* Personal Information */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
               <User className="w-5 h-5 text-purple-500" />
               Personal Information
             </h2>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   First Name *
                 </label>
                 <input
@@ -209,13 +209,13 @@ export default function AddSoul() {
                   value={form.firstName}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="John"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   Last Name
                 </label>
                 <input
@@ -223,55 +223,55 @@ export default function AddSoul() {
                   name="lastName"
                   value={form.lastName}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="Doe"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   Phone Number *
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                   <input
                     type="tel"
                     name="phone"
                     value={form.phone}
                     onChange={handleChange}
                     required
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="+1 234 567 8900"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   Email
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                   <input
                     type="email"
                     name="email"
                     value={form.email}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="john@example.com"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   Gender
                 </label>
                 <select
                   name="gender"
                   value={form.gender}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
                   <option value="">Select Gender</option>
                   <option value="male">Male</option>
@@ -280,14 +280,14 @@ export default function AddSoul() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   Age Group
                 </label>
                 <select
                   name="ageGroup"
                   value={form.ageGroup}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
                   <option value="">Select Age Group</option>
                   <option value="child">Child (0-12)</option>
@@ -300,24 +300,24 @@ export default function AddSoul() {
             </div>
 
             <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                 Address
               </label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <MapPin className="absolute left-3 top-3 w-5 h-5 text-gray-500" />
                 <input
                   type="text"
                   name="address"
                   value={form.address}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="123 Main Street"
                 />
               </div>
             </div>
 
             <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                 City
               </label>
               <input
@@ -325,29 +325,29 @@ export default function AddSoul() {
                 name="city"
                 value={form.city}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 placeholder="Lagos"
               />
             </div>
           </div>
 
           {/* Salvation Information */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
               <Heart className="w-5 h-5 text-pink-500" />
               Salvation Information
             </h2>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   Salvation Type
                 </label>
                 <select
                   name="salvationType"
                   value={form.salvationType}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
                   <option value="first_time">First Time Salvation</option>
                   <option value="rededication">Rededication</option>
@@ -357,14 +357,14 @@ export default function AddSoul() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   How They Heard
                 </label>
                 <select
                   name="howTheyHeard"
                   value={form.howTheyHeard}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
                   <option value="">Select Option</option>
                   <option value="service">Church Service</option>
@@ -380,15 +380,15 @@ export default function AddSoul() {
           </div>
 
           {/* Assignment */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
               <Church className="w-5 h-5 text-purple-500" />
               Assignment
             </h2>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   Church/Zone *
                 </label>
                 <select
@@ -396,7 +396,7 @@ export default function AddSoul() {
                   value={form.churchId}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
                   <option value="">Select Church</option>
                   {myOrgs.map(org => (
@@ -406,14 +406,14 @@ export default function AddSoul() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   Cell (Optional)
                 </label>
                 <select
                   name="cellId"
                   value={form.cellId}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
                   <option value="">Select Cell</option>
                   {cells.map(cell => (
@@ -425,14 +425,14 @@ export default function AddSoul() {
           </div>
 
           {/* Notes */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-900 mb-4">
               Additional Notes
             </h2>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   Notes
                 </label>
                 <textarea
@@ -440,13 +440,13 @@ export default function AddSoul() {
                   value={form.notes}
                   onChange={handleChange}
                   rows={3}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                   placeholder="Any additional notes about this person..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-1">
                   Prayer Request
                 </label>
                 <textarea
@@ -454,7 +454,7 @@ export default function AddSoul() {
                   value={form.prayerRequests}
                   onChange={handleChange}
                   rows={2}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                   placeholder="Any prayer requests..."
                 />
               </div>
@@ -466,7 +466,7 @@ export default function AddSoul() {
             <Link href="/church/souls" className="flex-1">
               <button
                 type="button"
-                className="w-full py-4 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                className="w-full py-4 rounded-xl font-semibold border border-gray-200 dark:border-gray-300 text-gray-700 dark:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-100 transition"
               >
                 Cancel
               </button>
@@ -474,7 +474,7 @@ export default function AddSoul() {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-4 rounded-xl font-semibold bg-gradient-to-r from-pink-500 to-rose-500 text-white hover:from-pink-600 hover:to-rose-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 py-4 rounded-xl font-semibold bg-gradient-to-r from-pink-500 to-rose-500 text-gray-900 hover:from-pink-600 hover:to-rose-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>

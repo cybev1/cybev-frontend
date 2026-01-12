@@ -76,8 +76,8 @@ export default function OrganizationDetailPage() {
     return (
       <AppLayout>
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-          <Building className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <Building className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-900 mb-2">
             Organization not found
           </h2>
           <p className="text-gray-500 mb-6">
@@ -85,7 +85,7 @@ export default function OrganizationDetailPage() {
           </p>
           <Link
             href="/church"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Church Dashboard
@@ -115,7 +115,7 @@ export default function OrganizationDetailPage() {
         <div className="flex items-start gap-4 mb-8">
           <Link
             href="/church"
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-white rounded-lg"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -123,7 +123,7 @@ export default function OrganizationDetailPage() {
           <div className="flex-1">
             <div className="flex items-start justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{org.name}</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900">{org.name}</h1>
                 <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
                   <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
                     {org.type || 'Church'}
@@ -140,11 +140,11 @@ export default function OrganizationDetailPage() {
               <div className="flex items-center gap-2">
                 <Link
                   href={`/church/org/${id}/settings`}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-white rounded-lg"
                 >
                   <Settings className="w-5 h-5 text-gray-500" />
                 </Link>
-                <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+                <button className="p-2 hover:bg-gray-100 dark:hover:bg-white rounded-lg">
                   <MoreVertical className="w-5 h-5 text-gray-500" />
                 </button>
               </div>
@@ -164,21 +164,21 @@ export default function OrganizationDetailPage() {
         <div className="flex flex-wrap gap-3 mb-8">
           <Link
             href={`/church/souls/add?orgId=${id}`}
-            className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            className="flex items-center gap-2 px-4 py-2 bg-red-500 text-gray-900 rounded-lg hover:bg-red-600"
           >
             <Heart className="w-4 h-4" />
             Add Soul
           </Link>
           <Link
             href={`/church/cells/dashboard?orgId=${id}`}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700"
           >
             <Target className="w-4 h-4" />
             Cell Ministry
           </Link>
           <Link
             href={`/church/cells/reports?orgId=${id}`}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-gray-900 rounded-lg hover:bg-blue-700"
           >
             <FileText className="w-4 h-4" />
             Submit Report
@@ -193,7 +193,7 @@ export default function OrganizationDetailPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-6 overflow-x-auto">
+        <div className="flex gap-1 border-b border-gray-200 dark:border-gray-200 mb-6 overflow-x-auto">
           {tabs.map(tab => (
             <button
               key={tab.id}
@@ -249,11 +249,11 @@ function StatCard({ icon: Icon, label, value, color }) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+    <div className="bg-white dark:bg-white rounded-xl p-4 border border-gray-200 dark:border-gray-200">
       <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-2 ${colors[color]}`}>
         <Icon className="w-5 h-5" />
       </div>
-      <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+      <p className="text-2xl font-bold text-gray-900 dark:text-gray-900">{value}</p>
       <p className="text-sm text-gray-500">{label}</p>
     </div>
   );
@@ -265,37 +265,37 @@ function OverviewTab({ org, stats }) {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-6">
         {/* About */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">About</h3>
-          <p className="text-gray-600 dark:text-gray-400">
+        <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">About</h3>
+          <p className="text-gray-600 dark:text-gray-500">
             {org.description || 'No description provided.'}
           </p>
         </div>
 
         {/* Contact Info */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Contact Information</h3>
+        <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Contact Information</h3>
           <div className="space-y-3">
             {org.location && (
-              <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-3 text-gray-600 dark:text-gray-500">
                 <MapPin className="w-5 h-5" />
                 <span>{org.location}</span>
               </div>
             )}
             {org.phone && (
-              <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-3 text-gray-600 dark:text-gray-500">
                 <Phone className="w-5 h-5" />
                 <span>{org.phone}</span>
               </div>
             )}
             {org.email && (
-              <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-3 text-gray-600 dark:text-gray-500">
                 <Mail className="w-5 h-5" />
                 <span>{org.email}</span>
               </div>
             )}
             {org.website && (
-              <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-3 text-gray-600 dark:text-gray-500">
                 <Globe className="w-5 h-5" />
                 <a href={org.website} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">
                   {org.website}
@@ -310,8 +310,8 @@ function OverviewTab({ org, stats }) {
       <div className="space-y-6">
         {/* Leader */}
         {org.leader && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Leader</h3>
+          <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Leader</h3>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
                 <span className="text-lg text-purple-600 font-semibold">
@@ -319,7 +319,7 @@ function OverviewTab({ org, stats }) {
                 </span>
               </div>
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">
+                <p className="font-medium text-gray-900 dark:text-gray-900">
                   {org.leader.name || org.leader.username}
                 </p>
                 <p className="text-sm text-gray-500">Organization Leader</p>
@@ -329,8 +329,8 @@ function OverviewTab({ org, stats }) {
         )}
 
         {/* Quick Links */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Quick Links</h3>
+        <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Quick Links</h3>
           <div className="space-y-2">
             <QuickLink href={`/church/cells/dashboard?orgId=${org._id}`} label="Cell Dashboard" />
             <QuickLink href={`/church/cells/reports?orgId=${org._id}`} label="Cell Reports" />
@@ -348,10 +348,10 @@ function QuickLink({ href, label }) {
   return (
     <Link
       href={href}
-      className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+      className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-100 transition"
     >
-      <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
-      <ChevronRight className="w-4 h-4 text-gray-400" />
+      <span className="text-sm text-gray-700 dark:text-gray-600">{label}</span>
+      <ChevronRight className="w-4 h-4 text-gray-500" />
     </Link>
   );
 }
@@ -391,7 +391,7 @@ function MembersTab({ orgId }) {
         <h3 className="text-lg font-semibold">Members ({members.length})</h3>
         <Link
           href={`/church/org/${orgId}/members/add`}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg"
+          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg"
         >
           <UserPlus className="w-4 h-4" />
           Add Member
@@ -399,13 +399,13 @@ function MembersTab({ orgId }) {
       </div>
 
       {members.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border">
-          <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+        <div className="text-center py-12 bg-white dark:bg-white rounded-xl border">
+          <Users className="w-12 h-12 text-gray-600 mx-auto mb-3" />
           <p className="text-gray-500">No members yet</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border overflow-hidden">
-          <div className="divide-y divide-gray-200 dark:divide-gray-700">
+        <div className="bg-white dark:bg-white rounded-xl border overflow-hidden">
+          <div className="divide-y divide-gray-200 dark:divide-gray-200">
             {members.map(member => (
               <div key={member._id} className="p-4 flex items-center justify-between hover:bg-gray-50">
                 <div className="flex items-center gap-3">
@@ -430,12 +430,12 @@ function MembersTab({ orgId }) {
 function CellsTab({ orgId }) {
   return (
     <div className="text-center py-12">
-      <Target className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-      <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Cell Ministry</h3>
+      <Target className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+      <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-2">Cell Ministry</h3>
       <p className="text-gray-500 mb-4">Manage your cells and track growth</p>
       <Link
         href={`/church/cells/dashboard?orgId=${orgId}`}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg"
+        className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg"
       >
         Open Cell Dashboard
       </Link>
@@ -447,12 +447,12 @@ function CellsTab({ orgId }) {
 function ReportsTab({ orgId }) {
   return (
     <div className="text-center py-12">
-      <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-      <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Cell Reports</h3>
+      <FileText className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+      <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-2">Cell Reports</h3>
       <p className="text-gray-500 mb-4">View and submit cell meeting reports</p>
       <Link
         href={`/church/cells/reports?orgId=${orgId}`}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg"
+        className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg"
       >
         Open Reports
       </Link>
@@ -464,12 +464,12 @@ function ReportsTab({ orgId }) {
 function EventsTab({ orgId }) {
   return (
     <div className="text-center py-12">
-      <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-      <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Events</h3>
+      <Calendar className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+      <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-2">Events</h3>
       <p className="text-gray-500 mb-4">Create and manage church events</p>
       <Link
         href={`/church/org/${orgId}/events/create`}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg"
+        className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg"
       >
         <Plus className="w-4 h-4" />
         Create Event
@@ -482,8 +482,8 @@ function EventsTab({ orgId }) {
 function SettingsTab({ org }) {
   return (
     <div className="max-w-2xl">
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Organization Settings</h3>
+      <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Organization Settings</h3>
         <Link
           href={`/church/org/${org._id}/settings`}
           className="flex items-center gap-2 text-purple-600 hover:underline"

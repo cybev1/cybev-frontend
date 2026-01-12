@@ -105,7 +105,7 @@ export default function CellDetailPage() {
     return (
       <AppLayout>
         <div className="max-w-7xl mx-auto px-4 py-8 text-center">
-          <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Cell not found</h2>
           <Link href={`/church/cells/dashboard?orgId=${orgId}`} className="text-purple-600 hover:underline">
             Back to Cell Dashboard
@@ -135,15 +135,15 @@ export default function CellDetailPage() {
           <div className="flex items-start gap-4">
             <Link
               href={`/church/cells/dashboard?orgId=${orgId}`}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg mt-1"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-white rounded-lg mt-1"
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{cell.name}</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900">{cell.name}</h1>
                 <span
-                  className="px-3 py-1 rounded-full text-white text-sm font-medium flex items-center gap-1"
+                  className="px-3 py-1 rounded-full text-gray-900 text-sm font-medium flex items-center gap-1"
                   style={{ backgroundColor: level?.color }}
                 >
                   {level && <level.icon className="w-4 h-4" />}
@@ -175,7 +175,7 @@ export default function CellDetailPage() {
             </Link>
             <button
               onClick={() => setShowEditCell(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700"
             >
               <Edit className="w-4 h-4" />
               Edit
@@ -192,7 +192,7 @@ export default function CellDetailPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-6">
+        <div className="flex gap-1 border-b border-gray-200 dark:border-gray-200 mb-6">
           {[
             { id: 'overview', label: 'Overview' },
             { id: 'members', label: `Members (${cell.members?.length || 0})` },
@@ -219,8 +219,8 @@ export default function CellDetailPage() {
             <div className="lg:col-span-2 space-y-6">
               {/* Leader Card */}
               {cell.leader && (
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
                     <Crown className="w-5 h-5 text-amber-500" />
                     Cell Leader
                   </h3>
@@ -233,7 +233,7 @@ export default function CellDetailPage() {
                       )}
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900 dark:text-white text-lg">
+                      <p className="font-semibold text-gray-900 dark:text-gray-900 text-lg">
                         {cell.leader.name || cell.leader.username}
                       </p>
                       {cell.leader.phone && (
@@ -255,15 +255,15 @@ export default function CellDetailPage() {
 
               {/* Description */}
               {cell.description && (
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3">About this Cell</h3>
-                  <p className="text-gray-600 dark:text-gray-400">{cell.description}</p>
+                <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-3">About this Cell</h3>
+                  <p className="text-gray-600 dark:text-gray-500">{cell.description}</p>
                 </div>
               )}
 
               {/* Meeting Info */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Meeting Details</h3>
+              <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Meeting Details</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
@@ -298,26 +298,26 @@ export default function CellDetailPage() {
 
             {/* Quick Actions */}
             <div className="space-y-6">
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
+              <div className="bg-white dark:bg-white rounded-xl p-6 border border-gray-200 dark:border-gray-200">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4">Quick Actions</h3>
                 <div className="space-y-3">
                   <button
                     onClick={() => setShowAddMember(true)}
-                    className="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                    className="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-gray-50 dark:hover:bg-gray-100 transition"
                   >
                     <UserPlus className="w-5 h-5 text-purple-600" />
                     <span>Add Member</span>
                   </button>
                   <Link
                     href={`/church/cells/reports?orgId=${orgId}&cellId=${cellId}`}
-                    className="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                    className="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-gray-50 dark:hover:bg-gray-100 transition"
                   >
                     <FileText className="w-5 h-5 text-blue-600" />
                     <span>Submit Report</span>
                   </Link>
                   <Link
                     href={`/church/cells/training?orgId=${orgId}`}
-                    className="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                    className="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-gray-50 dark:hover:bg-gray-100 transition"
                   >
                     <Award className="w-5 h-5 text-amber-600" />
                     <span>Leader Training</span>
@@ -326,7 +326,7 @@ export default function CellDetailPage() {
               </div>
 
               {/* Growth Progress */}
-              <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl p-6 text-white">
+              <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl p-6 text-gray-900">
                 <h3 className="font-semibold mb-2">Growth Progress</h3>
                 <p className="text-white/80 text-sm mb-4">
                   {cell.members?.length || 0} / {
@@ -356,14 +356,14 @@ export default function CellDetailPage() {
         )}
 
         {activeTab === 'members' && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900 dark:text-white">
+          <div className="bg-white dark:bg-white rounded-xl border border-gray-200 dark:border-gray-200">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-200 flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-900">
                 Members ({cell.members?.length || 0})
               </h3>
               <button
                 onClick={() => setShowAddMember(true)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700"
+                className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 text-gray-900 rounded-lg text-sm hover:bg-purple-700"
               >
                 <Plus className="w-4 h-4" />
                 Add Member
@@ -372,13 +372,13 @@ export default function CellDetailPage() {
 
             {cell.members?.length === 0 ? (
               <div className="text-center py-12">
-                <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <Users className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                 <p className="text-gray-500">No members yet</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+              <div className="divide-y divide-gray-200 dark:divide-gray-200">
                 {cell.members?.map((member, index) => (
-                  <div key={member._id || index} className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <div key={member._id || index} className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-100">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
                         {member.user?.avatar ? (
@@ -388,7 +388,7 @@ export default function CellDetailPage() {
                         )}
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">
+                        <p className="font-medium text-gray-900 dark:text-gray-900">
                           {member.user?.name || member.user?.username || member.name || 'Unknown'}
                         </p>
                         <p className="text-sm text-gray-500">
@@ -399,7 +399,7 @@ export default function CellDetailPage() {
                     </div>
                     <button
                       onClick={() => removeMember(member._id)}
-                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg"
+                      className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -413,12 +413,12 @@ export default function CellDetailPage() {
         {activeTab === 'reports' && (
           <div className="space-y-4">
             {reports.length === 0 ? (
-              <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <div className="text-center py-16 bg-white dark:bg-white rounded-xl border border-gray-200 dark:border-gray-200">
+                <FileText className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                 <p className="text-gray-500 mb-4">No reports yet</p>
                 <Link
                   href={`/church/cells/reports?orgId=${orgId}&cellId=${cellId}`}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg"
                 >
                   <Plus className="w-4 h-4" />
                   Create Report
@@ -428,11 +428,11 @@ export default function CellDetailPage() {
               reports.map(report => (
                 <div
                   key={report._id}
-                  className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700"
+                  className="bg-white dark:bg-white rounded-xl p-5 border border-gray-200 dark:border-gray-200"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <p className="font-semibold text-gray-900 dark:text-white">
+                      <p className="font-semibold text-gray-900 dark:text-gray-900">
                         {report.meetingType?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                       </p>
                       <p className="text-sm text-gray-500">
@@ -446,7 +446,7 @@ export default function CellDetailPage() {
                     </div>
                     <div className="flex items-center gap-4 text-sm">
                       <div className="text-center">
-                        <p className="text-xl font-bold text-gray-900 dark:text-white">
+                        <p className="text-xl font-bold text-gray-900 dark:text-gray-900">
                           {report.attendance?.total || 0}
                         </p>
                         <p className="text-gray-500">Attendance</p>
@@ -460,7 +460,7 @@ export default function CellDetailPage() {
                     </div>
                   </div>
                   {report.notes && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
+                    <p className="text-sm text-gray-600 dark:text-gray-500 border-t border-gray-100 dark:border-gray-200 pt-3 mt-3">
                       {report.notes}
                     </p>
                   )}
@@ -489,14 +489,14 @@ export default function CellDetailPage() {
 
 function StatCard({ icon: Icon, label, value, color }) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+    <div className="bg-white dark:bg-white rounded-xl p-5 border border-gray-200 dark:border-gray-200">
       <div
         className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
         style={{ backgroundColor: `${color}15` }}
       >
         <Icon className="w-5 h-5" style={{ color }} />
       </div>
-      <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+      <p className="text-2xl font-bold text-gray-900 dark:text-gray-900">{value}</p>
       <p className="text-sm text-gray-500">{label}</p>
     </div>
   );
@@ -559,9 +559,9 @@ function AddMemberModal({ cellId, orgId, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full">
-        <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
+    <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-white rounded-xl max-w-md w-full">
+        <div className="border-b border-gray-200 dark:border-gray-200 px-6 py-4 flex items-center justify-between">
           <h3 className="text-lg font-semibold">Add Member to Cell</h3>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
             <X className="w-5 h-5" />
@@ -616,7 +616,7 @@ function AddMemberModal({ cellId, orgId, onClose, onSuccess }) {
             <button
               onClick={handleAdd}
               disabled={!selectedMember || saving}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+              className="px-4 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700 disabled:opacity-50"
             >
               {saving ? 'Adding...' : 'Add Member'}
             </button>

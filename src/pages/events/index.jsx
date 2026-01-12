@@ -124,23 +124,23 @@ export default function EventsPage() {
         <meta name="description" content="Discover and join community events on CYBEV" />
       </Head>
 
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
         {/* Header */}
-        <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+        <div className="bg-white dark:bg-white border-b dark:border-gray-200">
           <div className="max-w-6xl mx-auto px-4 py-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900 flex items-center gap-2">
                   <CalendarDays className="w-7 h-7 text-purple-600" />
                   Events
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-1">
+                <p className="text-gray-600 dark:text-gray-500 mt-1">
                   Discover meetups, workshops, and more
                 </p>
               </div>
               <Link
                 href="/events/create"
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition w-fit"
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700 transition w-fit"
               >
                 <Plus className="w-5 h-5" />
                 Create Event
@@ -153,8 +153,8 @@ export default function EventsPage() {
                 onClick={() => setFilters(f => ({ ...f, upcoming: true }))}
                 className={`px-4 py-2 rounded-lg font-medium transition ${
                   filters.upcoming
-                    ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-600'
+                    : 'text-gray-600 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-100'
                 }`}
               >
                 Upcoming
@@ -163,8 +163,8 @@ export default function EventsPage() {
                 onClick={() => setFilters(f => ({ ...f, upcoming: false }))}
                 className={`px-4 py-2 rounded-lg font-medium transition ${
                   !filters.upcoming
-                    ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-600'
+                    : 'text-gray-600 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-100'
                 }`}
               >
                 Past
@@ -178,13 +178,13 @@ export default function EventsPage() {
           <div className="flex flex-wrap gap-3">
             {/* Search */}
             <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
               <input
                 type="text"
                 placeholder="Search events..."
                 value={filters.search}
                 onChange={(e) => setFilters(f => ({ ...f, search: e.target.value }))}
-                className="w-full pl-10 pr-4 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                className="w-full pl-10 pr-4 py-2 border dark:border-gray-300 rounded-lg bg-white dark:bg-white text-gray-900 dark:text-gray-900"
               />
             </div>
 
@@ -192,7 +192,7 @@ export default function EventsPage() {
             <select
               value={filters.category}
               onChange={(e) => setFilters(f => ({ ...f, category: e.target.value }))}
-              className="px-4 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="px-4 py-2 border dark:border-gray-300 rounded-lg bg-white dark:bg-white text-gray-900 dark:text-gray-900"
             >
               {CATEGORIES.map(cat => (
                 <option key={cat.value} value={cat.value}>{cat.label}</option>
@@ -203,7 +203,7 @@ export default function EventsPage() {
             <select
               value={filters.type}
               onChange={(e) => setFilters(f => ({ ...f, type: e.target.value }))}
-              className="px-4 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="px-4 py-2 border dark:border-gray-300 rounded-lg bg-white dark:bg-white text-gray-900 dark:text-gray-900"
             >
               {EVENT_TYPES.map(t => (
                 <option key={t.value} value={t.value}>{t.label}</option>
@@ -220,14 +220,14 @@ export default function EventsPage() {
             </div>
           ) : events.length === 0 ? (
             <div className="text-center py-12">
-              <CalendarDays className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">No events found</h3>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
+              <CalendarDays className="w-16 h-16 mx-auto text-gray-600 dark:text-gray-600 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-900">No events found</h3>
+              <p className="text-gray-600 dark:text-gray-500 mt-2">
                 {filters.upcoming ? 'Be the first to create an event!' : 'No past events match your criteria'}
               </p>
               <Link
                 href="/events/create"
-                className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+                className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700 transition"
               >
                 <Plus className="w-5 h-5" />
                 Create Event
@@ -239,7 +239,7 @@ export default function EventsPage() {
                 <Link
                   key={event._id}
                   href={`/events/${event._id}`}
-                  className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition group"
+                  className="bg-white dark:bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition group"
                 >
                   {/* Cover Image */}
                   <div className="aspect-video bg-gradient-to-br from-purple-500 to-pink-500 relative">
@@ -255,16 +255,16 @@ export default function EventsPage() {
                       </div>
                     )}
                     {/* Date Badge */}
-                    <div className="absolute top-3 left-3 bg-white dark:bg-gray-900 rounded-lg px-3 py-2 text-center shadow">
+                    <div className="absolute top-3 left-3 bg-white dark:bg-gray-50 rounded-lg px-3 py-2 text-center shadow">
                       <div className="text-xs font-medium text-purple-600 uppercase">
                         {new Date(event.startDate).toLocaleDateString('en-US', { month: 'short' })}
                       </div>
-                      <div className="text-xl font-bold text-gray-900 dark:text-white">
+                      <div className="text-xl font-bold text-gray-900 dark:text-gray-900">
                         {new Date(event.startDate).getDate()}
                       </div>
                     </div>
                     {/* Type Badge */}
-                    <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1.5 text-white text-sm">
+                    <div className="absolute top-3 right-3 bg-gray-900/50 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1.5 text-gray-900 text-sm">
                       {getTypeIcon(event.type)}
                       <span className="capitalize">{event.type}</span>
                     </div>
@@ -272,11 +272,11 @@ export default function EventsPage() {
 
                   {/* Content */}
                   <div className="p-4">
-                    <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition line-clamp-2">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-900 group-hover:text-purple-600 dark:group-hover:text-purple-600 transition line-clamp-2">
                       {event.title}
                     </h3>
                     
-                    <div className="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-500">
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4" />
                         <span>{formatTime(event.startDate)}</span>
@@ -298,20 +298,20 @@ export default function EventsPage() {
                         <Users className="w-4 h-4" />
                         <span>{event.goingCount} going</span>
                         {event.interestedCount > 0 && (
-                          <span className="text-gray-400">• {event.interestedCount} interested</span>
+                          <span className="text-gray-500">• {event.interestedCount} interested</span>
                         )}
                       </div>
                     </div>
 
                     {/* Organizer */}
-                    <div className="mt-4 pt-4 border-t dark:border-gray-700 flex items-center gap-3">
+                    <div className="mt-4 pt-4 border-t dark:border-gray-200 flex items-center gap-3">
                       <img
                         src={event.organizer?.avatar || `https://ui-avatars.com/api/?name=${event.organizer?.name || 'U'}&background=7c3aed&color=fff`}
                         alt={event.organizer?.name}
                         className="w-8 h-8 rounded-full"
                       />
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        By <span className="text-gray-900 dark:text-white">{event.organizer?.name}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-500">
+                        By <span className="text-gray-900 dark:text-gray-900">{event.organizer?.name}</span>
                       </span>
                     </div>
                   </div>
@@ -330,7 +330,7 @@ export default function EventsPage() {
                   className={`w-10 h-10 rounded-lg font-medium transition ${
                     pagination.page === page
                       ? 'bg-purple-600 text-white'
-                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      : 'bg-white dark:bg-white text-gray-700 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-100'
                   }`}
                 >
                   {page}
