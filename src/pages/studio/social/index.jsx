@@ -1,15 +1,8 @@
 /**
- * Social Tools - Facebook Engagement Studio
+ * Social Tools - Facebook Automation
  * CYBEV Studio v2.0
- * GitHub: https://github.com/cybev1/cybev-frontend/pages/studio/social/index.jsx
  * 
- * Features:
- * - Data Scraping (search, followers, friends, group members)
- * - Auto Engagement (like, comment, follow, friend request)
- * - Messaging (individual and bulk)
- * - Groups (join, post)
- * - Audience Data (view, filter, export)
- * - Analytics
+ * Facebook-style clean white design with CYBEV purple accents
  */
 
 import { useState, useEffect } from 'react';
@@ -21,7 +14,6 @@ export default function SocialTools() {
   const [accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [audience, setAudience] = useState([]);
-  const [automations, setAutomations] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [stats, setStats] = useState({ friendsSent: 0, messagesSent: 0, postsLiked: 0, totalAudience: 0 });
   const [loading, setLoading] = useState(false);
@@ -39,14 +31,12 @@ export default function SocialTools() {
     type: 'auto_like',
     targetUrl: '',
     comment: '',
-    message: '',
   });
 
   // Message form state
   const [messageForm, setMessageForm] = useState({
     profileUrl: '',
     message: '',
-    selectedAudience: [],
   });
 
   useEffect(() => {
@@ -224,80 +214,95 @@ export default function SocialTools() {
         <title>Social Tools - CYBEV Studio</title>
       </Head>
 
-      <div style={styles.container}>
-        {/* Header */}
-        <div style={styles.header}>
-          <div>
-            <Link href="/studio" style={styles.backLink}>← Back to Studio</Link>
-            <h1 style={styles.title}>Social Tools</h1>
-            <p style={styles.subtitle}>Automate your Facebook engagement</p>
-          </div>
-          
-          {/* Account Selector */}
-          <div style={styles.accountSelector}>
-            <label style={styles.selectorLabel}>Active Account:</label>
-            <select
-              value={selectedAccount || ''}
-              onChange={(e) => setSelectedAccount(e.target.value)}
-              style={styles.select}
-            >
-              <option value="">Select account...</option>
-              {accounts.map(acc => (
-                <option key={acc._id} value={acc._id}>{acc.email}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div style={styles.statsGrid}>
-          <div style={styles.statCard}>
-            <span style={styles.statValue}>{stats.friendsSent || 0}</span>
-            <span style={styles.statLabel}>Friend Requests</span>
-          </div>
-          <div style={styles.statCard}>
-            <span style={styles.statValue}>{stats.messagesSent || 0}</span>
-            <span style={styles.statLabel}>Messages Sent</span>
-          </div>
-          <div style={styles.statCard}>
-            <span style={styles.statValue}>{stats.postsLiked || 0}</span>
-            <span style={styles.statLabel}>Posts Liked</span>
-          </div>
-          <div style={styles.statCard}>
-            <span style={styles.statValue}>{audience.length}</span>
-            <span style={styles.statLabel}>Total Audience</span>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div style={styles.tabsContainer}>
-          <div style={styles.tabs}>
-            {tabs.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                style={{
-                  ...styles.tab,
-                  ...(activeTab === tab.id ? styles.activeTab : {})
-                }}
+      <div style={styles.page}>
+        <div style={styles.container}>
+          {/* Header */}
+          <div style={styles.header}>
+            <div style={styles.headerLeft}>
+              <Link href="/studio" style={styles.backLink}>← Back to Studio</Link>
+              <h1 style={styles.title}>Social Tools</h1>
+              <p style={styles.subtitle}>Automate your Facebook engagement</p>
+            </div>
+            
+            {/* Account Selector */}
+            <div style={styles.accountSelector}>
+              <label style={styles.selectorLabel}>Active Account:</label>
+              <select
+                value={selectedAccount || ''}
+                onChange={(e) => setSelectedAccount(e.target.value)}
+                style={styles.select}
               >
-                <span style={styles.tabIcon}>{tab.icon}</span>
-                {tab.label}
-              </button>
-            ))}
+                <option value="">Select account...</option>
+                {accounts.map(acc => (
+                  <option key={acc._id} value={acc._id}>{acc.email}</option>
+                ))}
+              </select>
+              <Link href="/studio/social/accounts" style={styles.manageLink}>
+                Manage Accounts
+              </Link>
+            </div>
           </div>
-        </div>
 
-        {/* Tab Content */}
-        <div style={styles.content}>
-          {/* Data Scraping Tab */}
-          {activeTab === 'scraping' && (
-            <div style={styles.tabContent}>
+          {/* Stats Cards */}
+          <div style={styles.statsGrid}>
+            <div style={styles.statCard}>
+              <span style={styles.statIcon}>👥</span>
+              <div style={styles.statInfo}>
+                <span style={styles.statValue}>{stats.friendsSent || 0}</span>
+                <span style={styles.statLabel}>Friend Requests</span>
+              </div>
+            </div>
+            <div style={styles.statCard}>
+              <span style={styles.statIcon}>💬</span>
+              <div style={styles.statInfo}>
+                <span style={styles.statValue}>{stats.messagesSent || 0}</span>
+                <span style={styles.statLabel}>Messages Sent</span>
+              </div>
+            </div>
+            <div style={styles.statCard}>
+              <span style={styles.statIcon}>❤️</span>
+              <div style={styles.statInfo}>
+                <span style={styles.statValue}>{stats.postsLiked || 0}</span>
+                <span style={styles.statLabel}>Posts Liked</span>
+              </div>
+            </div>
+            <div style={styles.statCard}>
+              <span style={styles.statIcon}>📊</span>
+              <div style={styles.statInfo}>
+                <span style={styles.statValue}>{audience.length}</span>
+                <span style={styles.statLabel}>Total Audience</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div style={styles.tabsCard}>
+            <div style={styles.tabs}>
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    ...styles.tab,
+                    ...(activeTab === tab.id ? styles.activeTab : {})
+                  }}
+                >
+                  <span style={styles.tabIcon}>{tab.icon}</span>
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tab Content */}
+          <div style={styles.content}>
+            {/* Data Scraping Tab */}
+            {activeTab === 'scraping' && (
               <div style={styles.contentCard}>
                 <h2 style={styles.cardTitle}>Scrape Data</h2>
                 <p style={styles.cardDesc}>Find and collect profiles from Facebook</p>
                 
-                <form onSubmit={handleScrape}>
+                <form onSubmit={handleScrape} style={styles.form}>
                   <div style={styles.formGroup}>
                     <label style={styles.label}>Scrape Type</label>
                     <select
@@ -356,17 +361,15 @@ export default function SocialTools() {
                   </button>
                 </form>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Auto Engagement Tab */}
-          {activeTab === 'engagement' && (
-            <div style={styles.tabContent}>
+            {/* Auto Engagement Tab */}
+            {activeTab === 'engagement' && (
               <div style={styles.contentCard}>
                 <h2 style={styles.cardTitle}>Auto Engagement</h2>
                 <p style={styles.cardDesc}>Automatically like, comment, and follow</p>
                 
-                <form onSubmit={handleEngage}>
+                <form onSubmit={handleEngage} style={styles.form}>
                   <div style={styles.formGroup}>
                     <label style={styles.label}>Action Type</label>
                     <select
@@ -413,17 +416,15 @@ export default function SocialTools() {
                   </button>
                 </form>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Messaging Tab */}
-          {activeTab === 'messaging' && (
-            <div style={styles.tabContent}>
+            {/* Messaging Tab */}
+            {activeTab === 'messaging' && (
               <div style={styles.contentCard}>
                 <h2 style={styles.cardTitle}>Send Message</h2>
                 <p style={styles.cardDesc}>Send direct messages to profiles</p>
                 
-                <form onSubmit={handleMessage}>
+                <form onSubmit={handleMessage} style={styles.form}>
                   <div style={styles.formGroup}>
                     <label style={styles.label}>Profile URL</label>
                     <input
@@ -451,12 +452,10 @@ export default function SocialTools() {
                   </button>
                 </form>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Groups Tab */}
-          {activeTab === 'groups' && (
-            <div style={styles.tabContent}>
+            {/* Groups Tab */}
+            {activeTab === 'groups' && (
               <div style={styles.contentCard}>
                 <h2 style={styles.cardTitle}>Group Actions</h2>
                 <p style={styles.cardDesc}>Join groups and post content</p>
@@ -464,17 +463,13 @@ export default function SocialTools() {
                 <div style={styles.comingSoon}>
                   <span style={styles.comingSoonIcon}>🚧</span>
                   <h3 style={styles.comingSoonTitle}>Coming Soon</h3>
-                  <p style={styles.comingSoonDesc}>
-                    Group automation features are being developed
-                  </p>
+                  <p style={styles.comingSoonDesc}>Group automation features are being developed</p>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Audience Data Tab */}
-          {activeTab === 'audience' && (
-            <div style={styles.tabContent}>
+            {/* Audience Data Tab */}
+            {activeTab === 'audience' && (
               <div style={styles.contentCard}>
                 <div style={styles.cardHeader}>
                   <div>
@@ -522,12 +517,10 @@ export default function SocialTools() {
                   )}
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Analytics Tab */}
-          {activeTab === 'analytics' && (
-            <div style={styles.tabContent}>
+            {/* Analytics Tab */}
+            {activeTab === 'analytics' && (
               <div style={styles.contentCard}>
                 <h2 style={styles.cardTitle}>Analytics</h2>
                 <p style={styles.cardDesc}>Track your engagement performance</p>
@@ -557,10 +550,10 @@ export default function SocialTools() {
                       </div>
                       <span style={{
                         ...styles.jobStatus,
-                        background: job.status === 'completed' ? '#D1FAE5' : 
-                                   job.status === 'failed' ? '#FEE2E2' :
-                                   job.status === 'processing' ? '#DBEAFE' : '#F3F4F6',
-                        color: job.status === 'completed' ? '#065F46' :
+                        backgroundColor: job.status === 'completed' ? '#DCFCE7' : 
+                                        job.status === 'failed' ? '#FEE2E2' :
+                                        job.status === 'processing' ? '#DBEAFE' : '#F3F4F6',
+                        color: job.status === 'completed' ? '#166534' :
                                job.status === 'failed' ? '#991B1B' :
                                job.status === 'processing' ? '#1E40AF' : '#374151',
                       }}>
@@ -573,151 +566,187 @@ export default function SocialTools() {
                   )}
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </>
   );
 }
 
+// Facebook-style clean white design
 const styles = {
+  page: {
+    minHeight: '100vh',
+    backgroundColor: '#F0F2F5',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  },
   container: {
     maxWidth: '1200px',
     margin: '0 auto',
-    padding: '32px 24px',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    padding: '24px 16px',
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: '32px',
+    marginBottom: '24px',
     flexWrap: 'wrap',
-    gap: '20px',
+    gap: '16px',
   },
+  headerLeft: {},
   backLink: {
     display: 'inline-block',
-    color: '#64748B',
+    color: '#8B5CF6',
     textDecoration: 'none',
     fontSize: '14px',
     marginBottom: '8px',
   },
   title: {
-    fontSize: '32px',
+    fontSize: '28px',
     fontWeight: '700',
-    color: '#1E293B',
+    color: '#1C1E21',
     margin: '0 0 8px 0',
   },
   subtitle: {
-    fontSize: '16px',
-    color: '#64748B',
+    fontSize: '15px',
+    color: '#65676B',
     margin: 0,
   },
   accountSelector: {
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
+    flexWrap: 'wrap',
   },
   selectorLabel: {
     fontSize: '14px',
     fontWeight: '500',
-    color: '#64748B',
+    color: '#65676B',
   },
   select: {
     padding: '10px 16px',
-    border: '2px solid #E2E8F0',
-    borderRadius: '10px',
+    border: '1px solid #CED0D4',
+    borderRadius: '6px',
     fontSize: '14px',
-    color: '#1E293B',
-    background: '#FFFFFF',
+    color: '#1C1E21',
+    backgroundColor: '#FFFFFF',
     minWidth: '200px',
   },
+  manageLink: {
+    color: '#8B5CF6',
+    fontSize: '14px',
+    textDecoration: 'none',
+  },
+  
+  // Stats
   statsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '16px',
-    marginBottom: '32px',
+    gap: '12px',
+    marginBottom: '24px',
   },
   statCard: {
-    background: '#FFFFFF',
-    padding: '24px',
-    borderRadius: '16px',
-    border: '1px solid #E2E8F0',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    backgroundColor: '#FFFFFF',
+    padding: '20px',
+    borderRadius: '8px',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+  },
+  statIcon: {
+    fontSize: '28px',
+    width: '48px',
+    height: '48px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F0F2F5',
+    borderRadius: '50%',
+  },
+  statInfo: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
   },
   statValue: {
-    fontSize: '32px',
+    fontSize: '24px',
     fontWeight: '700',
-    color: '#8B5CF6',
+    color: '#1C1E21',
   },
   statLabel: {
-    fontSize: '14px',
-    color: '#64748B',
+    fontSize: '13px',
+    color: '#65676B',
   },
-  tabsContainer: {
-    marginBottom: '24px',
+
+  // Tabs
+  tabsCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: '8px 8px 0 0',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+    marginBottom: '-1px',
     overflowX: 'auto',
   },
   tabs: {
     display: 'flex',
-    gap: '8px',
-    background: '#F1F5F9',
-    padding: '6px',
-    borderRadius: '14px',
-    minWidth: 'fit-content',
+    gap: '0',
+    padding: '0 8px',
+    borderBottom: '1px solid #E4E6EB',
   },
   tab: {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    padding: '12px 20px',
-    background: 'transparent',
+    padding: '16px 16px',
+    background: 'none',
     border: 'none',
-    borderRadius: '10px',
+    borderBottom: '3px solid transparent',
     fontSize: '14px',
     fontWeight: '500',
-    color: '#64748B',
+    color: '#65676B',
     cursor: 'pointer',
     whiteSpace: 'nowrap',
-    transition: 'all 0.2s',
+    marginBottom: '-1px',
   },
   activeTab: {
-    background: '#FFFFFF',
-    color: '#1E293B',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+    color: '#8B5CF6',
+    borderBottomColor: '#8B5CF6',
   },
   tabIcon: {
     fontSize: '16px',
   },
+
+  // Content
   content: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: '0 0 8px 8px',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
     minHeight: '400px',
   },
-  tabContent: {},
   contentCard: {
-    background: '#FFFFFF',
-    borderRadius: '20px',
-    padding: '32px',
-    border: '1px solid #E2E8F0',
+    padding: '24px',
   },
   cardHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: '24px',
+    marginBottom: '20px',
   },
   cardTitle: {
-    fontSize: '20px',
+    fontSize: '18px',
     fontWeight: '600',
-    color: '#1E293B',
+    color: '#1C1E21',
     margin: '0 0 8px 0',
   },
   cardDesc: {
     fontSize: '14px',
-    color: '#64748B',
+    color: '#65676B',
     margin: 0,
+  },
+
+  // Forms
+  form: {
+    maxWidth: '500px',
   },
   formGroup: {
     marginBottom: '20px',
@@ -726,63 +755,65 @@ const styles = {
     display: 'block',
     fontSize: '14px',
     fontWeight: '600',
-    color: '#374151',
+    color: '#1C1E21',
     marginBottom: '8px',
   },
   input: {
     width: '100%',
-    padding: '14px 16px',
-    border: '2px solid #E2E8F0',
-    borderRadius: '12px',
+    padding: '12px 16px',
+    border: '1px solid #CED0D4',
+    borderRadius: '6px',
     fontSize: '15px',
-    color: '#1E293B',
+    color: '#1C1E21',
+    backgroundColor: '#FFFFFF',
     outline: 'none',
     boxSizing: 'border-box',
-    transition: 'border-color 0.2s',
   },
   formSelect: {
     width: '100%',
-    padding: '14px 16px',
-    border: '2px solid #E2E8F0',
-    borderRadius: '12px',
+    padding: '12px 16px',
+    border: '1px solid #CED0D4',
+    borderRadius: '6px',
     fontSize: '15px',
-    color: '#1E293B',
-    outline: 'none',
-    background: '#FFFFFF',
+    color: '#1C1E21',
+    backgroundColor: '#FFFFFF',
     boxSizing: 'border-box',
   },
   textarea: {
     width: '100%',
-    padding: '14px 16px',
-    border: '2px solid #E2E8F0',
-    borderRadius: '12px',
+    padding: '12px 16px',
+    border: '1px solid #CED0D4',
+    borderRadius: '6px',
     fontSize: '15px',
-    color: '#1E293B',
+    color: '#1C1E21',
+    backgroundColor: '#FFFFFF',
     outline: 'none',
     resize: 'vertical',
     fontFamily: 'inherit',
     boxSizing: 'border-box',
   },
   primaryButton: {
-    padding: '14px 32px',
-    background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
+    padding: '12px 24px',
+    backgroundColor: '#8B5CF6',
     color: '#FFFFFF',
     border: 'none',
-    borderRadius: '12px',
+    borderRadius: '6px',
     fontSize: '15px',
     fontWeight: '600',
     cursor: 'pointer',
   },
   exportButton: {
     padding: '10px 20px',
-    background: '#10B981',
-    color: '#FFFFFF',
+    backgroundColor: '#E4E6EB',
+    color: '#1C1E21',
     border: 'none',
-    borderRadius: '10px',
+    borderRadius: '6px',
     fontSize: '14px',
     fontWeight: '600',
     cursor: 'pointer',
   },
+
+  // Table
   tableContainer: {
     overflowX: 'auto',
   },
@@ -795,28 +826,28 @@ const styles = {
     padding: '12px 16px',
     fontSize: '13px',
     fontWeight: '600',
-    color: '#64748B',
-    borderBottom: '2px solid #E2E8F0',
-    background: '#F8FAFC',
+    color: '#65676B',
+    borderBottom: '1px solid #E4E6EB',
+    backgroundColor: '#F7F8FA',
   },
   tr: {
-    borderBottom: '1px solid #F1F5F9',
+    borderBottom: '1px solid #F0F2F5',
   },
   td: {
     padding: '14px 16px',
     fontSize: '14px',
-    color: '#374151',
+    color: '#1C1E21',
   },
   profileName: {
     fontWeight: '500',
-    color: '#1E293B',
+    color: '#1C1E21',
   },
   sourceBadge: {
     display: 'inline-block',
     padding: '4px 10px',
-    background: '#F1F5F9',
-    color: '#64748B',
-    borderRadius: '6px',
+    backgroundColor: '#F0F2F5',
+    color: '#65676B',
+    borderRadius: '4px',
     fontSize: '12px',
     fontWeight: '500',
   },
@@ -826,13 +857,15 @@ const styles = {
     fontWeight: '500',
   },
   emptyTable: {
-    padding: '48px 24px',
+    padding: '40px 24px',
     textAlign: 'center',
-    color: '#94A3B8',
+    color: '#65676B',
   },
+
+  // Coming Soon
   comingSoon: {
     textAlign: 'center',
-    padding: '48px 24px',
+    padding: '60px 24px',
   },
   comingSoonIcon: {
     fontSize: '48px',
@@ -842,14 +875,16 @@ const styles = {
   comingSoonTitle: {
     fontSize: '18px',
     fontWeight: '600',
-    color: '#1E293B',
+    color: '#1C1E21',
     margin: '0 0 8px 0',
   },
   comingSoonDesc: {
     fontSize: '14px',
-    color: '#64748B',
+    color: '#65676B',
     margin: 0,
   },
+
+  // Analytics
   analyticsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -857,39 +892,41 @@ const styles = {
     marginBottom: '32px',
   },
   analyticCard: {
-    background: '#F8FAFC',
+    backgroundColor: '#F7F8FA',
     padding: '24px',
-    borderRadius: '12px',
+    borderRadius: '8px',
+    border: '1px solid #E4E6EB',
   },
   analyticLabel: {
     fontSize: '14px',
-    color: '#64748B',
+    color: '#65676B',
     margin: '0 0 8px 0',
     fontWeight: '500',
   },
   analyticValue: {
     fontSize: '28px',
     fontWeight: '700',
-    color: '#1E293B',
+    color: '#1C1E21',
   },
   subTitle: {
     fontSize: '16px',
     fontWeight: '600',
-    color: '#1E293B',
+    color: '#1C1E21',
     margin: '0 0 16px 0',
   },
   jobsList: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '12px',
+    gap: '8px',
   },
   jobItem: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '14px 16px',
-    background: '#F8FAFC',
-    borderRadius: '10px',
+    backgroundColor: '#F7F8FA',
+    borderRadius: '8px',
+    border: '1px solid #E4E6EB',
   },
   jobInfo: {
     display: 'flex',
@@ -899,22 +936,22 @@ const styles = {
   jobType: {
     fontSize: '14px',
     fontWeight: '500',
-    color: '#1E293B',
+    color: '#1C1E21',
   },
   jobDate: {
     fontSize: '12px',
-    color: '#94A3B8',
+    color: '#65676B',
   },
   jobStatus: {
     padding: '4px 12px',
-    borderRadius: '6px',
+    borderRadius: '4px',
     fontSize: '12px',
     fontWeight: '600',
     textTransform: 'capitalize',
   },
   noJobs: {
     textAlign: 'center',
-    color: '#94A3B8',
+    color: '#65676B',
     padding: '24px',
     margin: 0,
   },

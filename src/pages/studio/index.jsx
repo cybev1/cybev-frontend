@@ -1,88 +1,18 @@
-// ============================================
-// FILE: src/pages/studio/index.jsx
-// PURPOSE: Creator Studio with Forms, Reports, etc.
-// VERSION: 2.0 - Added Forms, Vlogs, Reports tabs
-// ============================================
+/**
+ * Creator Studio - Main Dashboard
+ * CYBEV Studio v2.0
+ * 
+ * Facebook-style clean white design with CYBEV purple accents
+ * All features visible: Websites, Blog Posts, Forms, Vlogs, Analytics,
+ * + NEW: Meet, Social Tools, Campaigns
+ */
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import {
-  Globe, Church, Sparkles, Video, Coins, Plus, ExternalLink,
-  MoreVertical, Eye, Edit, Trash2, Settings, FileText, BarChart2,
-  PenTool, Grid, Calendar, Users, TrendingUp, Clock, Check
-} from 'lucide-react';
-import AppLayout from '@/components/Layout/AppLayout';
+import { useRouter } from 'next/router';
 
-// Studio Feature Cards
-const STUDIO_FEATURES = [
-  {
-    id: 'website',
-    title: 'Create Website',
-    description: 'Build a stunning website with AI',
-    icon: Globe,
-    href: '/studio/sites/new',
-    color: '#f59e0b',
-    badge: 'Popular'
-  },
-  {
-    id: 'church',
-    title: 'Church Management',
-    description: 'Manage your church & ministry',
-    icon: Church,
-    href: '/church',
-    color: '#7c3aed',
-    badge: 'New'
-  },
-  {
-    id: 'ai-write',
-    title: 'Write with AI',
-    description: 'Generate blog posts instantly',
-    icon: PenTool,
-    href: '/blog/create?ai=true',
-    color: '#10b981',
-    badge: null
-  },
-  {
-    id: 'vlog',
-    title: 'Create Vlog',
-    description: 'Upload and share video content',
-    icon: Video,
-    href: '/vlog/create',
-    color: '#ef4444',
-    badge: null
-  },
-  {
-    id: 'forms',
-    title: 'Forms Builder',
-    description: 'Create surveys & collect responses',
-    icon: FileText,
-    href: '/studio/forms',
-    color: '#3b82f6',
-    badge: 'New'
-  },
-  {
-    id: 'nft',
-    title: 'Mint NFT',
-    description: 'Turn your content into NFTs',
-    icon: Coins,
-    href: '/studio/nft/mint',
-    color: '#8b5cf6',
-    badge: null
-  }
-];
-
-// Tab definitions
-const TABS = [
-  { id: 'websites', label: 'Websites', icon: Globe },
-  { id: 'blogs', label: 'Blog Posts', icon: FileText },
-  { id: 'forms', label: 'Forms', icon: FileText },
-  { id: 'vlogs', label: 'Vlogs', icon: Video },
-  { id: 'analytics', label: 'Analytics', icon: BarChart2 }
-];
-
-export default function StudioPage() {
+export default function Studio() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('websites');
   const [websites, setWebsites] = useState([]);
@@ -90,491 +20,688 @@ export default function StudioPage() {
   const [forms, setForms] = useState([]);
   const [vlogs, setVlogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [counts, setCounts] = useState({
-    websites: 0,
-    blogs: 0,
-    forms: 0,
-    vlogs: 0
-  });
-
-  const API = process.env.NEXT_PUBLIC_API_URL || '';
 
   useEffect(() => {
-    fetchAllContent();
+    fetchData();
   }, []);
 
-  const fetchAllContent = async () => {
-    setLoading(true);
+  const fetchData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        router.push('/login');
-        return;
-      }
-
-      const headers = { Authorization: `Bearer ${token}` };
-
-      // Fetch all content types in parallel
-      const [websitesRes, blogsRes, formsRes, vlogsRes] = await Promise.all([
-        fetch(`${API}/api/sites/my`, { headers }).catch(() => ({ ok: false })),
-        fetch(`${API}/api/blogs/my`, { headers }).catch(() => ({ ok: false })),
-        fetch(`${API}/api/forms`, { headers }).catch(() => ({ ok: false })),
-        fetch(`${API}/api/vlogs/my`, { headers }).catch(() => ({ ok: false }))
+      // Fetch websites, blogs, forms, vlogs
+      const [sitesRes, blogsRes, formsRes, vlogsRes] = await Promise.all([
+        fetch('/api/sites/my').catch(() => ({ json: () => ({ sites: [] }) })),
+        fetch('/api/blogs/my').catch(() => ({ json: () => ({ blogs: [] }) })),
+        fetch('/api/forms').catch(() => ({ json: () => ({ forms: [] }) })),
+        fetch('/api/vlogs/my').catch(() => ({ json: () => ({ vlogs: [] }) })),
       ]);
-
-      // Parse responses
-      const websitesData = websitesRes.ok ? await websitesRes.json() : { sites: [] };
-      const blogsData = blogsRes.ok ? await blogsRes.json() : { blogs: [] };
-      const formsData = formsRes.ok ? await formsRes.json() : { forms: [] };
-      const vlogsData = vlogsRes.ok ? await vlogsRes.json() : { vlogs: [] };
-
-      setWebsites(websitesData.sites || []);
+      
+      const sitesData = await sitesRes.json();
+      const blogsData = await blogsRes.json();
+      const formsData = await formsRes.json();
+      const vlogsData = await vlogsRes.json();
+      
+      setWebsites(sitesData.sites || []);
       setBlogs(blogsData.blogs || []);
       setForms(formsData.forms || []);
       setVlogs(vlogsData.vlogs || []);
-
-      setCounts({
-        websites: websitesData.sites?.length || 0,
-        blogs: blogsData.blogs?.length || 0,
-        forms: formsData.forms?.length || 0,
-        vlogs: vlogsData.vlogs?.length || 0
-      });
-    } catch (err) {
-      console.error('Error fetching content:', err);
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
     } finally {
       setLoading(false);
     }
   };
 
+  // Feature cards - including NEW features
+  const features = [
+    { id: 'website', label: 'Create Website', desc: 'Build a stunning website with AI', href: '/studio/website/new', icon: '🌐', badge: 'Popular', color: '#8B5CF6' },
+    { id: 'church', label: 'Church Management', desc: 'Manage your church & ministry', href: '/church', icon: '⛪', badge: 'New', color: '#10B981' },
+    { id: 'ai-write', label: 'Write with AI', desc: 'Generate blog posts instantly', href: '/studio/ai-writer', icon: '✨', color: '#F59E0B' },
+    { id: 'vlog', label: 'Create Vlog', desc: 'Upload and share video content', href: '/studio/vlog/new', icon: '🎬', color: '#EF4444' },
+    { id: 'forms', label: 'Forms Builder', desc: 'Create surveys & collect responses', href: '/studio/forms/new', icon: '📝', badge: 'New', color: '#3B82F6' },
+    { id: 'nft', label: 'Mint NFT', desc: 'Turn your content into NFTs', href: '/studio/nft/mint', icon: '💎', color: '#EC4899' },
+    // NEW FEATURES
+    { id: 'meet', label: 'Meet', desc: 'Video calls & conferences', href: '/meet', icon: '📹', badge: 'New', color: '#8B5CF6' },
+    { id: 'social', label: 'Social Tools', desc: 'Automate your social media', href: '/studio/social', icon: '🚀', badge: 'New', color: '#10B981' },
+    { id: 'campaigns', label: 'Campaigns', desc: 'Email & SMS marketing', href: '/studio/campaigns', icon: '📧', badge: 'New', color: '#F59E0B' },
+  ];
+
+  // Tabs
+  const tabs = [
+    { id: 'websites', label: 'Websites', count: websites.length },
+    { id: 'blogs', label: 'Blog Posts', count: blogs.length },
+    { id: 'forms', label: 'Forms', count: forms.length },
+    { id: 'vlogs', label: 'Vlogs', count: vlogs.length },
+    { id: 'analytics', label: 'Analytics', count: null },
+  ];
+
   return (
-    <AppLayout>
+    <>
       <Head>
-        <title>Creator Studio | CYBEV</title>
+        <title>Creator Studio - CYBEV</title>
       </Head>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Creator Studio
-          </h1>
-          <p className="text-gray-500">
-            Build websites, write content, and manage your creations
-          </p>
-        </div>
-
-        {/* Feature Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          {STUDIO_FEATURES.map(feature => (
-            <Link
-              key={feature.id}
-              href={feature.href}
-              className="relative bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:border-purple-300 transition group"
-            >
-              {feature.badge && (
-                <span className={`absolute top-2 right-2 text-xs px-2 py-0.5 rounded-full ${
-                  feature.badge === 'New' 
-                    ? 'bg-green-100 text-green-700' 
-                    : 'bg-amber-100 text-amber-700'
-                }`}>
-                  {feature.badge}
-                </span>
-              )}
-              <div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center mb-3"
-                style={{ backgroundColor: `${feature.color}15` }}
-              >
-                <feature.icon className="w-6 h-6" style={{ color: feature.color }} />
-              </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">
-                {feature.title}
-              </h3>
-              <p className="text-xs text-gray-500">{feature.description}</p>
-            </Link>
-          ))}
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-6 overflow-x-auto">
-          {TABS.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-3 border-b-2 whitespace-nowrap transition ${
-                activeTab === tab.id
-                  ? 'border-purple-600 text-purple-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
-              {counts[tab.id] > 0 && (
-                <span className="ml-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs">
-                  {counts[tab.id]}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* Tab Content */}
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full" />
+      <div style={styles.page}>
+        <div style={styles.container}>
+          {/* Header */}
+          <div style={styles.header}>
+            <h1 style={styles.title}>Creator Studio</h1>
+            <p style={styles.subtitle}>Build websites, write content, and manage your creations</p>
           </div>
-        ) : (
-          <>
+
+          {/* Feature Cards */}
+          <div style={styles.featuresGrid}>
+            {features.map((feature) => (
+              <Link key={feature.id} href={feature.href} style={styles.featureCard}>
+                <div style={styles.featureTop}>
+                  <div style={{...styles.featureIcon, backgroundColor: `${feature.color}15`}}>
+                    <span style={styles.featureEmoji}>{feature.icon}</span>
+                  </div>
+                  {feature.badge && (
+                    <span style={{
+                      ...styles.badge,
+                      backgroundColor: feature.badge === 'New' ? '#DCFCE7' : '#FEF3C7',
+                      color: feature.badge === 'New' ? '#166534' : '#92400E',
+                    }}>
+                      {feature.badge}
+                    </span>
+                  )}
+                </div>
+                <h3 style={styles.featureLabel}>{feature.label}</h3>
+                <p style={styles.featureDesc}>{feature.desc}</p>
+              </Link>
+            ))}
+          </div>
+
+          {/* Tabs */}
+          <div style={styles.tabsContainer}>
+            <div style={styles.tabs}>
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    ...styles.tab,
+                    ...(activeTab === tab.id ? styles.activeTab : {}),
+                  }}
+                >
+                  {tab.label}
+                  {tab.count !== null && (
+                    <span style={{
+                      ...styles.tabCount,
+                      backgroundColor: activeTab === tab.id ? '#8B5CF6' : '#E5E7EB',
+                      color: activeTab === tab.id ? '#FFFFFF' : '#6B7280',
+                    }}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tab Content */}
+          <div style={styles.content}>
             {/* Websites Tab */}
             {activeTab === 'websites' && (
-              <WebsitesTab websites={websites} onRefresh={fetchAllContent} />
+              <div>
+                <div style={styles.contentHeader}>
+                  <h2 style={styles.contentTitle}>Your Websites</h2>
+                  <Link href="/studio/website/new" style={styles.newButton}>
+                    + New Website
+                  </Link>
+                </div>
+                
+                {loading ? (
+                  <div style={styles.loading}>Loading...</div>
+                ) : websites.length === 0 ? (
+                  <div style={styles.emptyState}>
+                    <span style={styles.emptyIcon}>🌐</span>
+                    <h3 style={styles.emptyTitle}>No websites yet</h3>
+                    <p style={styles.emptyDesc}>Create your first website with AI</p>
+                    <Link href="/studio/website/new" style={styles.emptyButton}>
+                      Create Website
+                    </Link>
+                  </div>
+                ) : (
+                  <div style={styles.cardsGrid}>
+                    {websites.map((site) => (
+                      <div key={site._id} style={styles.card}>
+                        <div style={styles.cardPreview}>
+                          <span style={styles.cardIcon}>🌐</span>
+                        </div>
+                        <div style={styles.cardBody}>
+                          <h3 style={styles.cardTitle}>{site.name || 'Untitled'}</h3>
+                          <p style={styles.cardMeta}>{site.domain || 'No domain'}</p>
+                          <div style={styles.cardActions}>
+                            <Link href={`/studio/website/${site._id}/edit`} style={styles.cardButton}>
+                              Edit
+                            </Link>
+                            <Link href={`/site/${site.slug || site._id}`} style={styles.cardButtonPrimary}>
+                              View
+                            </Link>
+                          </div>
+                        </div>
+                        <span style={{
+                          ...styles.statusBadge,
+                          backgroundColor: site.published ? '#DCFCE7' : '#FEF3C7',
+                          color: site.published ? '#166534' : '#92400E',
+                        }}>
+                          {site.published ? 'published' : 'draft'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Blog Posts Tab */}
             {activeTab === 'blogs' && (
-              <BlogsTab blogs={blogs} onRefresh={fetchAllContent} />
+              <div>
+                <div style={styles.contentHeader}>
+                  <h2 style={styles.contentTitle}>Your Blog Posts</h2>
+                  <Link href="/studio/ai-writer" style={styles.newButton}>
+                    + New Post
+                  </Link>
+                </div>
+                
+                {loading ? (
+                  <div style={styles.loading}>Loading...</div>
+                ) : blogs.length === 0 ? (
+                  <div style={styles.emptyState}>
+                    <span style={styles.emptyIcon}>📝</span>
+                    <h3 style={styles.emptyTitle}>No blog posts yet</h3>
+                    <p style={styles.emptyDesc}>Write your first post with AI</p>
+                    <Link href="/studio/ai-writer" style={styles.emptyButton}>
+                      Write with AI
+                    </Link>
+                  </div>
+                ) : (
+                  <div style={styles.listContainer}>
+                    {blogs.map((blog) => (
+                      <div key={blog._id} style={styles.listItem}>
+                        <div style={styles.listInfo}>
+                          <h3 style={styles.listTitle}>{blog.title || 'Untitled'}</h3>
+                          <p style={styles.listMeta}>
+                            {new Date(blog.createdAt).toLocaleDateString()} • {blog.views || 0} views
+                          </p>
+                        </div>
+                        <div style={styles.listActions}>
+                          <Link href={`/blog/${blog.slug || blog._id}`} style={styles.listButton}>
+                            View
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Forms Tab */}
             {activeTab === 'forms' && (
-              <FormsTab forms={forms} onRefresh={fetchAllContent} />
+              <div>
+                <div style={styles.contentHeader}>
+                  <h2 style={styles.contentTitle}>Your Forms</h2>
+                  <Link href="/studio/forms/new" style={styles.newButton}>
+                    + New Form
+                  </Link>
+                </div>
+                
+                {loading ? (
+                  <div style={styles.loading}>Loading...</div>
+                ) : forms.length === 0 ? (
+                  <div style={styles.emptyState}>
+                    <span style={styles.emptyIcon}>📋</span>
+                    <h3 style={styles.emptyTitle}>No forms yet</h3>
+                    <p style={styles.emptyDesc}>Create surveys and collect responses</p>
+                    <Link href="/studio/forms/new" style={styles.emptyButton}>
+                      Create Form
+                    </Link>
+                  </div>
+                ) : (
+                  <div style={styles.listContainer}>
+                    {forms.map((form) => (
+                      <div key={form._id} style={styles.listItem}>
+                        <div style={styles.listInfo}>
+                          <h3 style={styles.listTitle}>{form.title || 'Untitled Form'}</h3>
+                          <p style={styles.listMeta}>
+                            {form.responses?.length || 0} responses
+                          </p>
+                        </div>
+                        <div style={styles.listActions}>
+                          <Link href={`/studio/forms/${form._id}`} style={styles.listButton}>
+                            Edit
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Vlogs Tab */}
             {activeTab === 'vlogs' && (
-              <VlogsTab vlogs={vlogs} onRefresh={fetchAllContent} />
+              <div>
+                <div style={styles.contentHeader}>
+                  <h2 style={styles.contentTitle}>Your Vlogs</h2>
+                  <Link href="/studio/vlog/new" style={styles.newButton}>
+                    + New Vlog
+                  </Link>
+                </div>
+                
+                {loading ? (
+                  <div style={styles.loading}>Loading...</div>
+                ) : vlogs.length === 0 ? (
+                  <div style={styles.emptyState}>
+                    <span style={styles.emptyIcon}>🎬</span>
+                    <h3 style={styles.emptyTitle}>No vlogs yet</h3>
+                    <p style={styles.emptyDesc}>Upload and share video content</p>
+                    <Link href="/studio/vlog/new" style={styles.emptyButton}>
+                      Create Vlog
+                    </Link>
+                  </div>
+                ) : (
+                  <div style={styles.cardsGrid}>
+                    {vlogs.map((vlog) => (
+                      <div key={vlog._id} style={styles.card}>
+                        <div style={styles.cardPreview}>
+                          {vlog.thumbnail ? (
+                            <img src={vlog.thumbnail} alt="" style={styles.cardImage} />
+                          ) : (
+                            <span style={styles.cardIcon}>🎬</span>
+                          )}
+                        </div>
+                        <div style={styles.cardBody}>
+                          <h3 style={styles.cardTitle}>{vlog.title || 'Untitled'}</h3>
+                          <p style={styles.cardMeta}>{vlog.views || 0} views</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Analytics Tab */}
             {activeTab === 'analytics' && (
-              <AnalyticsTab />
+              <div>
+                <div style={styles.contentHeader}>
+                  <h2 style={styles.contentTitle}>Analytics</h2>
+                </div>
+                
+                <div style={styles.analyticsGrid}>
+                  <div style={styles.analyticsCard}>
+                    <span style={styles.analyticsValue}>{websites.length}</span>
+                    <span style={styles.analyticsLabel}>Websites</span>
+                  </div>
+                  <div style={styles.analyticsCard}>
+                    <span style={styles.analyticsValue}>{blogs.length}</span>
+                    <span style={styles.analyticsLabel}>Blog Posts</span>
+                  </div>
+                  <div style={styles.analyticsCard}>
+                    <span style={styles.analyticsValue}>{forms.length}</span>
+                    <span style={styles.analyticsLabel}>Forms</span>
+                  </div>
+                  <div style={styles.analyticsCard}>
+                    <span style={styles.analyticsValue}>{vlogs.length}</span>
+                    <span style={styles.analyticsLabel}>Vlogs</span>
+                  </div>
+                </div>
+              </div>
             )}
-          </>
-        )}
-      </div>
-    </AppLayout>
-  );
-}
-
-// Websites Tab Component
-function WebsitesTab({ websites, onRefresh }) {
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Your Websites</h2>
-        <Link
-          href="/studio/sites/new"
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-        >
-          <Plus className="w-4 h-4" />
-          New Website
-        </Link>
-      </div>
-
-      {websites.length === 0 ? (
-        <EmptyState
-          icon={Globe}
-          title="No websites yet"
-          description="Create your first website with our AI-powered builder"
-          action={{ label: 'Create Website', href: '/studio/sites/new' }}
-        />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {websites.map(site => (
-            <WebsiteCard key={site._id} site={site} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Blog Posts Tab Component
-function BlogsTab({ blogs, onRefresh }) {
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Your Blog Posts</h2>
-        <Link
-          href="/blog/create"
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-        >
-          <Plus className="w-4 h-4" />
-          New Post
-        </Link>
-      </div>
-
-      {blogs.length === 0 ? (
-        <EmptyState
-          icon={FileText}
-          title="No blog posts yet"
-          description="Write your first blog post and share it with the world"
-          action={{ label: 'Write Post', href: '/blog/create' }}
-        />
-      ) : (
-        <div className="space-y-4">
-          {blogs.map(blog => (
-            <BlogCard key={blog._id} blog={blog} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Forms Tab Component
-function FormsTab({ forms, onRefresh }) {
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Your Forms</h2>
-        <Link
-          href="/studio/forms/builder"
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-        >
-          <Plus className="w-4 h-4" />
-          New Form
-        </Link>
-      </div>
-
-      {forms.length === 0 ? (
-        <EmptyState
-          icon={FileText}
-          title="No forms yet"
-          description="Create surveys, collect feedback, and gather responses"
-          action={{ label: 'Create Form', href: '/studio/forms/builder' }}
-        />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {forms.map(form => (
-            <FormCard key={form._id} form={form} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Vlogs Tab Component
-function VlogsTab({ vlogs, onRefresh }) {
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Your Vlogs</h2>
-        <Link
-          href="/vlog/create"
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-        >
-          <Plus className="w-4 h-4" />
-          Upload Vlog
-        </Link>
-      </div>
-
-      {vlogs.length === 0 ? (
-        <EmptyState
-          icon={Video}
-          title="No vlogs yet"
-          description="Upload your first video and grow your audience"
-          action={{ label: 'Upload Vlog', href: '/vlog/create' }}
-        />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {vlogs.map(vlog => (
-            <VlogCard key={vlog._id} vlog={vlog} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Analytics Tab Component
-function AnalyticsTab() {
-  return (
-    <div>
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Analytics</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Total Views" value="12.4K" trend="+12%" color="purple" />
-        <StatCard label="Engagement Rate" value="8.2%" trend="+3.1%" color="green" />
-        <StatCard label="New Followers" value="156" trend="+24" color="blue" />
-        <StatCard label="Total Earnings" value="$234.50" trend="+$45" color="amber" />
-      </div>
-
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Performance Over Time</h3>
-        <div className="h-64 flex items-center justify-center text-gray-400">
-          <p>Chart coming soon...</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Reusable Components
-function EmptyState({ icon: Icon, title, description, action }) {
-  return (
-    <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-      <Icon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
-      <p className="text-gray-500 mb-6">{description}</p>
-      <Link
-        href={action.href}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-      >
-        <Plus className="w-4 h-4" />
-        {action.label}
-      </Link>
-    </div>
-  );
-}
-
-function WebsiteCard({ site }) {
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition">
-      <div className="h-40 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 flex items-center justify-center">
-        <Globe className="w-12 h-12 text-purple-300" />
-      </div>
-      <div className="p-4">
-        <div className="flex items-start justify-between mb-2">
-          <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white">{site.name}</h3>
-            <p className="text-sm text-gray-500">{site.domain || 'No domain'}</p>
-          </div>
-          <span className={`text-xs px-2 py-1 rounded-full ${
-            site.status === 'published' 
-              ? 'bg-green-100 text-green-700' 
-              : 'bg-gray-100 text-gray-600'
-          }`}>
-            {site.status || 'Draft'}
-          </span>
-        </div>
-        <div className="flex gap-2">
-          <Link 
-            href={`/studio/sites/${site._id}/edit`}
-            className="flex-1 text-center py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50"
-          >
-            Edit
-          </Link>
-          <a 
-            href={site.url || '#'}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 text-center py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-          >
-            View
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function BlogCard({ blog }) {
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition">
-      <div className="flex items-start gap-4">
-        {blog.coverImage && (
-          <img src={blog.coverImage} alt="" className="w-24 h-24 rounded-lg object-cover" />
-        )}
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 dark:text-white truncate">{blog.title}</h3>
-          <p className="text-sm text-gray-500 mt-1 line-clamp-2">{blog.excerpt || blog.content?.slice(0, 100)}</p>
-          <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
-            <span className="flex items-center gap-1">
-              <Eye className="w-3 h-3" />
-              {blog.views || 0} views
-            </span>
-            <span className={`px-2 py-0.5 rounded-full ${
-              blog.status === 'published' 
-                ? 'bg-green-100 text-green-700' 
-                : 'bg-gray-100 text-gray-600'
-            }`}>
-              {blog.status || 'Draft'}
-            </span>
           </div>
         </div>
-        <Link href={`/blog/${blog._id}/edit`} className="p-2 hover:bg-gray-100 rounded-lg">
-          <Edit className="w-4 h-4 text-gray-400" />
-        </Link>
       </div>
-    </div>
+    </>
   );
 }
 
-function FormCard({ form }) {
-  const statusColors = {
-    draft: 'bg-gray-100 text-gray-600',
-    published: 'bg-green-100 text-green-700',
-    closed: 'bg-red-100 text-red-700'
-  };
+// Facebook-style clean white design with CYBEV purple accents
+const styles = {
+  page: {
+    minHeight: '100vh',
+    backgroundColor: '#F0F2F5', // Facebook gray background
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  },
+  container: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    padding: '24px 16px',
+  },
+  header: {
+    marginBottom: '24px',
+  },
+  title: {
+    fontSize: '28px',
+    fontWeight: '700',
+    color: '#1C1E21', // Facebook dark text
+    margin: '0 0 8px 0',
+  },
+  subtitle: {
+    fontSize: '15px',
+    color: '#65676B', // Facebook secondary text
+    margin: 0,
+  },
+  
+  // Feature Cards
+  featuresGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+    gap: '12px',
+    marginBottom: '24px',
+  },
+  featureCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    padding: '16px',
+    backgroundColor: '#FFFFFF',
+    borderRadius: '8px',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+    textDecoration: 'none',
+    transition: 'box-shadow 0.2s, transform 0.2s',
+    position: 'relative',
+    cursor: 'pointer',
+  },
+  featureTop: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: '12px',
+  },
+  featureIcon: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  featureEmoji: {
+    fontSize: '24px',
+  },
+  badge: {
+    padding: '3px 8px',
+    borderRadius: '4px',
+    fontSize: '11px',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  featureLabel: {
+    fontSize: '15px',
+    fontWeight: '600',
+    color: '#1C1E21',
+    margin: '0 0 4px 0',
+  },
+  featureDesc: {
+    fontSize: '13px',
+    color: '#65676B',
+    margin: 0,
+    lineHeight: '1.4',
+  },
 
-  return (
-    <Link 
-      href={`/studio/forms/builder?id=${form._id}`}
-      className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition block"
-    >
-      <div className="flex items-start justify-between mb-3">
-        <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-          <FileText className="w-5 h-5 text-blue-600" />
-        </div>
-        <span className={`text-xs px-2 py-1 rounded-full ${statusColors[form.status] || statusColors.draft}`}>
-          {form.status || 'Draft'}
-        </span>
-      </div>
-      <h3 className="font-semibold text-gray-900 dark:text-white truncate">{form.title}</h3>
-      <p className="text-sm text-gray-500 mt-1">{form.fields?.length || 0} fields</p>
-      <div className="flex items-center gap-4 mt-3 text-xs text-gray-400">
-        <span>{form.responses?.length || 0} responses</span>
-        <span>{new Date(form.createdAt).toLocaleDateString()}</span>
-      </div>
-    </Link>
-  );
-}
+  // Tabs
+  tabsContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: '8px 8px 0 0',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+    marginBottom: '-1px',
+  },
+  tabs: {
+    display: 'flex',
+    gap: '0',
+    padding: '0 16px',
+    borderBottom: '1px solid #E4E6EB',
+    overflowX: 'auto',
+  },
+  tab: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '16px 16px',
+    background: 'none',
+    border: 'none',
+    borderBottom: '3px solid transparent',
+    fontSize: '15px',
+    fontWeight: '500',
+    color: '#65676B',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    transition: 'color 0.2s',
+    marginBottom: '-1px',
+  },
+  activeTab: {
+    color: '#8B5CF6',
+    borderBottomColor: '#8B5CF6',
+  },
+  tabCount: {
+    padding: '2px 8px',
+    borderRadius: '10px',
+    fontSize: '13px',
+    fontWeight: '600',
+  },
 
-function VlogCard({ vlog }) {
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition">
-      <div className="relative h-40 bg-gray-100">
-        {vlog.thumbnail ? (
-          <img src={vlog.thumbnail} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Video className="w-12 h-12 text-gray-300" />
-          </div>
-        )}
-        {vlog.duration && (
-          <span className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/70 text-white text-xs rounded">
-            {vlog.duration}
-          </span>
-        )}
-      </div>
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900 dark:text-white truncate">{vlog.title}</h3>
-        <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
-          <span className="flex items-center gap-1">
-            <Eye className="w-3 h-3" />
-            {vlog.views || 0}
-          </span>
-          <span>{new Date(vlog.createdAt).toLocaleDateString()}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
+  // Content
+  content: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: '0 0 8px 8px',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+    padding: '20px',
+    minHeight: '400px',
+  },
+  contentHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '20px',
+  },
+  contentTitle: {
+    fontSize: '18px',
+    fontWeight: '600',
+    color: '#1C1E21',
+    margin: 0,
+  },
+  newButton: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '10px 20px',
+    backgroundColor: '#8B5CF6',
+    color: '#FFFFFF',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: '600',
+    textDecoration: 'none',
+    transition: 'background-color 0.2s',
+  },
+  loading: {
+    textAlign: 'center',
+    padding: '40px',
+    color: '#65676B',
+  },
 
-function StatCard({ label, value, trend, color }) {
-  const colors = {
-    purple: 'bg-purple-50 text-purple-600',
-    green: 'bg-green-50 text-green-600',
-    blue: 'bg-blue-50 text-blue-600',
-    amber: 'bg-amber-50 text-amber-600'
-  };
+  // Empty State
+  emptyState: {
+    textAlign: 'center',
+    padding: '60px 20px',
+    backgroundColor: '#F7F8FA',
+    borderRadius: '8px',
+    border: '1px dashed #CED0D4',
+  },
+  emptyIcon: {
+    fontSize: '48px',
+    display: 'block',
+    marginBottom: '16px',
+  },
+  emptyTitle: {
+    fontSize: '17px',
+    fontWeight: '600',
+    color: '#1C1E21',
+    margin: '0 0 8px 0',
+  },
+  emptyDesc: {
+    fontSize: '14px',
+    color: '#65676B',
+    margin: '0 0 20px 0',
+  },
+  emptyButton: {
+    display: 'inline-block',
+    padding: '10px 24px',
+    backgroundColor: '#8B5CF6',
+    color: '#FFFFFF',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: '600',
+    textDecoration: 'none',
+  },
 
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-      <p className="text-sm text-gray-500 mb-1">{label}</p>
-      <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
-      <span className={`text-xs px-2 py-0.5 rounded-full ${colors[color]}`}>{trend}</span>
-    </div>
-  );
-}
+  // Cards Grid
+  cardsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+    gap: '16px',
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: '8px',
+    border: '1px solid #E4E6EB',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  cardPreview: {
+    height: '140px',
+    backgroundColor: '#F0F2F5',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  },
+  cardIcon: {
+    fontSize: '48px',
+    opacity: 0.4,
+  },
+  cardImage: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  cardBody: {
+    padding: '16px',
+  },
+  cardTitle: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#1C1E21',
+    margin: '0 0 4px 0',
+  },
+  cardMeta: {
+    fontSize: '13px',
+    color: '#65676B',
+    margin: '0 0 12px 0',
+  },
+  cardActions: {
+    display: 'flex',
+    gap: '8px',
+  },
+  cardButton: {
+    flex: 1,
+    padding: '8px 16px',
+    backgroundColor: '#E4E6EB',
+    color: '#1C1E21',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: '600',
+    textDecoration: 'none',
+    textAlign: 'center',
+  },
+  cardButtonPrimary: {
+    flex: 1,
+    padding: '8px 16px',
+    backgroundColor: '#8B5CF6',
+    color: '#FFFFFF',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: '600',
+    textDecoration: 'none',
+    textAlign: 'center',
+  },
+  statusBadge: {
+    position: 'absolute',
+    top: '12px',
+    right: '12px',
+    padding: '4px 10px',
+    borderRadius: '4px',
+    fontSize: '12px',
+    fontWeight: '600',
+  },
+
+  // List
+  listContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  listItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '16px',
+    backgroundColor: '#F7F8FA',
+    borderRadius: '8px',
+    border: '1px solid #E4E6EB',
+  },
+  listInfo: {
+    flex: 1,
+  },
+  listTitle: {
+    fontSize: '15px',
+    fontWeight: '600',
+    color: '#1C1E21',
+    margin: '0 0 4px 0',
+  },
+  listMeta: {
+    fontSize: '13px',
+    color: '#65676B',
+    margin: 0,
+  },
+  listActions: {
+    display: 'flex',
+    gap: '8px',
+  },
+  listButton: {
+    padding: '8px 16px',
+    backgroundColor: '#E4E6EB',
+    color: '#1C1E21',
+    borderRadius: '6px',
+    fontSize: '13px',
+    fontWeight: '600',
+    textDecoration: 'none',
+  },
+
+  // Analytics
+  analyticsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '16px',
+  },
+  analyticsCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '32px 24px',
+    backgroundColor: '#F7F8FA',
+    borderRadius: '8px',
+    border: '1px solid #E4E6EB',
+  },
+  analyticsValue: {
+    fontSize: '36px',
+    fontWeight: '700',
+    color: '#8B5CF6',
+  },
+  analyticsLabel: {
+    fontSize: '14px',
+    color: '#65676B',
+    marginTop: '8px',
+  },
+};
