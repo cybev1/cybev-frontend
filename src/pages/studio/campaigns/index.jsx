@@ -1,810 +1,463 @@
-/**
- * Campaigns - Email/SMS/WhatsApp Marketing
- * CYBEV Studio v2.0
- * 
- * Facebook-style clean white design
- */
+// ============================================
+// FILE: src/pages/studio/campaigns/index.jsx
+// Marketing Campaigns Dashboard
+// VERSION: 1.0.0 - NEW FEATURE
+// ============================================
 
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import AppLayout from '@/components/Layout/AppLayout';
+import {
+  Mail, MessageSquare, Smartphone, Bell, Plus, Send, Edit2,
+  Trash2, Copy, Loader2, BarChart3, Users, Clock, CheckCircle
+} from 'lucide-react';
 
-export default function Campaigns() {
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
+
+export default function CampaignsDashboard() {
   const [campaigns, setCampaigns] = useState([]);
-  const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ total: 0, sent: 0, opened: 0, clicked: 0 });
   const [showCreate, setShowCreate] = useState(false);
-  const [createStep, setCreateStep] = useState(1);
   const [creating, setCreating] = useState(false);
-
+  const [step, setStep] = useState(1);
+  
   const [formData, setFormData] = useState({
     name: '',
     type: 'email',
     subject: '',
     content: '',
-    audienceType: 'all',
+    audience: 'all',
   });
 
+  const campaignTypes = [
+    { id: 'email', label: 'Email', icon: Mail, color: 'blue' },
+    { id: 'sms', label: 'SMS', icon: MessageSquare, color: 'green' },
+    { id: 'whatsapp', label: 'WhatsApp', icon: Smartphone, color: 'emerald' },
+    { id: 'push', label: 'Push Notification', icon: Bell, color: 'purple' },
+  ];
+
   useEffect(() => {
-    fetchCampaigns();
-    fetchStats();
+    fetchData();
   }, []);
 
-  const fetchCampaigns = async () => {
+  const getAuth = () => {
+    const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+    return { headers: { Authorization: `Bearer ${token}` } };
+  };
+
+  const fetchData = async () => {
     try {
-      const res = await fetch('/api/campaigns');
-      const data = await res.json();
-      setCampaigns(data.campaigns || []);
-    } catch (error) {
-      console.error('Failed to fetch campaigns:', error);
+      const [campaignsRes, statsRes] = await Promise.all([
+        fetch(`${API_URL}/api/campaigns`, getAuth()),
+        fetch(`${API_URL}/api/campaigns/stats`, getAuth()),
+      ]);
+
+      const campaignsData = await campaignsRes.json();
+      const statsData = await statsRes.json();
+
+      if (campaignsData.campaigns) setCampaigns(campaignsData.campaigns);
+      if (statsData.stats) setStats(statsData.stats);
+    } catch (err) {
+      console.error('Failed to fetch data:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchStats = async () => {
-    try {
-      const res = await fetch('/api/campaigns/stats');
-      const data = await res.json();
-      setStats(data.summary || {});
-    } catch (error) {
-      console.error('Failed to fetch stats:', error);
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
   const createCampaign = async () => {
+    if (!formData.name || !formData.content) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
     setCreating(true);
     try {
-      const res = await fetch('/api/campaigns', {
+      const res = await fetch(`${API_URL}/api/campaigns`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuth().headers },
         body: JSON.stringify(formData)
       });
+      
       const data = await res.json();
-      setCampaigns([data.campaign, ...campaigns]);
-      setShowCreate(false);
-      setCreateStep(1);
-      setFormData({ name: '', type: 'email', subject: '', content: '', audienceType: 'all' });
-    } catch (error) {
+      if (data.campaign) {
+        setCampaigns([data.campaign, ...campaigns]);
+        setShowCreate(false);
+        setFormData({ name: '', type: 'email', subject: '', content: '', audience: 'all' });
+        setStep(1);
+      } else {
+        alert(data.error || 'Failed to create campaign');
+      }
+    } catch (err) {
       alert('Failed to create campaign');
     } finally {
       setCreating(false);
     }
   };
 
+  const sendCampaign = async (id) => {
+    if (!confirm('Are you sure you want to send this campaign?')) return;
+    
+    try {
+      const res = await fetch(`${API_URL}/api/campaigns/${id}/send`, {
+        method: 'POST',
+        ...getAuth()
+      });
+      
+      const data = await res.json();
+      if (data.ok) {
+        setCampaigns(campaigns.map(c => c._id === id ? { ...c, status: 'sending' } : c));
+        alert('Campaign is being sent!');
+      }
+    } catch (err) {
+      alert('Failed to send campaign');
+    }
+  };
+
   const deleteCampaign = async (id) => {
     if (!confirm('Delete this campaign?')) return;
+    
     try {
-      await fetch(`/api/campaigns/${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/api/campaigns/${id}`, { method: 'DELETE', ...getAuth() });
       setCampaigns(campaigns.filter(c => c._id !== id));
-    } catch (error) {
+    } catch (err) {
       alert('Failed to delete');
     }
   };
 
-  const campaignTypes = [
-    { id: 'email', label: 'Email', icon: '📧', color: '#8B5CF6' },
-    { id: 'sms', label: 'SMS', icon: '💬', color: '#10B981' },
-    { id: 'whatsapp', label: 'WhatsApp', icon: '📱', color: '#25D366' },
-    { id: 'push', label: 'Push', icon: '🔔', color: '#F59E0B' },
-  ];
+  const getTypeIcon = (type) => {
+    const t = campaignTypes.find(ct => ct.id === type);
+    return t ? <t.icon className="w-4 h-4" /> : <Mail className="w-4 h-4" />;
+  };
 
-  const getStatusStyle = (status) => {
-    const styles = {
-      draft: { bg: '#E4E6EB', color: '#65676B' },
-      scheduled: { bg: '#DBEAFE', color: '#1E40AF' },
-      sending: { bg: '#FEF3C7', color: '#92400E' },
-      sent: { bg: '#DCFCE7', color: '#166534' },
-      paused: { bg: '#FEE2E2', color: '#991B1B' },
-    };
-    return styles[status] || styles.draft;
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'sent': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+      case 'sending': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
+      case 'scheduled': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'draft': return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400';
+      default: return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400';
+    }
   };
 
   return (
-    <>
+    <AppLayout>
       <Head>
         <title>Campaigns - CYBEV Studio</title>
       </Head>
 
-      <div style={styles.page}>
-        <div style={styles.container}>
-          {/* Header */}
-          <div style={styles.header}>
-            <div>
-              <Link href="/studio" style={styles.backLink}>← Back to Studio</Link>
-              <h1 style={styles.title}>Campaigns</h1>
-              <p style={styles.subtitle}>Create and manage marketing campaigns</p>
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <Link href="/studio" className="text-purple-600 hover:underline text-sm mb-2 inline-block">
+              ← Back to Studio
+            </Link>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Campaigns</h1>
+            <p className="text-gray-600 dark:text-gray-400">Create and manage marketing campaigns</p>
+          </div>
+          
+          <button
+            onClick={() => setShowCreate(true)}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            New Campaign
+          </button>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-3 mb-2">
+              <Mail className="w-5 h-5 text-purple-500" />
+              <span className="text-gray-600 dark:text-gray-400 text-sm">Total Campaigns</span>
             </div>
-            <button onClick={() => setShowCreate(true)} style={styles.createButton}>
-              + New Campaign
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-3 mb-2">
+              <Send className="w-5 h-5 text-green-500" />
+              <span className="text-gray-600 dark:text-gray-400 text-sm">Messages Sent</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.sent}</p>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-3 mb-2">
+              <BarChart3 className="w-5 h-5 text-blue-500" />
+              <span className="text-gray-600 dark:text-gray-400 text-sm">Opens</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.opened}</p>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-3 mb-2">
+              <CheckCircle className="w-5 h-5 text-pink-500" />
+              <span className="text-gray-600 dark:text-gray-400 text-sm">Clicks</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.clicked}</p>
+          </div>
+        </div>
+
+        {/* Campaigns List */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+          </div>
+        ) : campaigns.length === 0 ? (
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Mail className="w-8 h-8 text-purple-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No campaigns yet</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">Create your first marketing campaign</p>
+            <button
+              onClick={() => setShowCreate(true)}
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+            >
+              Create Campaign
             </button>
           </div>
-
-          {/* Stats */}
-          <div style={styles.statsGrid}>
-            <div style={styles.statCard}>
-              <span style={styles.statIcon}>📊</span>
-              <div style={styles.statInfo}>
-                <span style={styles.statValue}>{stats.totalCampaigns || 0}</span>
-                <span style={styles.statLabel}>Total Campaigns</span>
-              </div>
-            </div>
-            <div style={styles.statCard}>
-              <span style={styles.statIcon}>📤</span>
-              <div style={styles.statInfo}>
-                <span style={styles.statValue}>{stats.totalSent || 0}</span>
-                <span style={styles.statLabel}>Messages Sent</span>
-              </div>
-            </div>
-            <div style={styles.statCard}>
-              <span style={styles.statIcon}>👁️</span>
-              <div style={styles.statInfo}>
-                <span style={styles.statValue}>{stats.totalOpened || 0}</span>
-                <span style={styles.statLabel}>Opens</span>
-              </div>
-            </div>
-            <div style={styles.statCard}>
-              <span style={styles.statIcon}>🖱️</span>
-              <div style={styles.statInfo}>
-                <span style={styles.statValue}>{stats.totalClicked || 0}</span>
-                <span style={styles.statLabel}>Clicks</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Campaigns List */}
-          <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>Your Campaigns</h2>
-            
-            {loading ? (
-              <div style={styles.loading}>Loading campaigns...</div>
-            ) : campaigns.length === 0 ? (
-              <div style={styles.emptyState}>
-                <span style={styles.emptyIcon}>📨</span>
-                <h3 style={styles.emptyTitle}>No campaigns yet</h3>
-                <p style={styles.emptyDesc}>Create your first campaign to start reaching your audience</p>
-                <button onClick={() => setShowCreate(true)} style={styles.emptyButton}>
-                  Create Campaign
-                </button>
-              </div>
-            ) : (
-              <div style={styles.campaignsList}>
-                {campaigns.map(campaign => {
-                  const statusStyle = getStatusStyle(campaign.status);
-                  const typeInfo = campaignTypes.find(t => t.id === campaign.type) || campaignTypes[0];
-                  
-                  return (
-                    <div key={campaign._id} style={styles.campaignCard}>
-                      <div style={styles.campaignHeader}>
-                        <div style={{...styles.typeIcon, backgroundColor: `${typeInfo.color}15`}}>
-                          <span>{typeInfo.icon}</span>
-                        </div>
-                        <div style={styles.campaignInfo}>
-                          <h3 style={styles.campaignName}>{campaign.name}</h3>
-                          <p style={styles.campaignMeta}>
-                            {typeInfo.label} • Created {new Date(campaign.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <span style={{
-                          ...styles.statusBadge,
-                          backgroundColor: statusStyle.bg,
-                          color: statusStyle.color,
-                        }}>
-                          {campaign.status}
+        ) : (
+          <div className="space-y-4">
+            {campaigns.map(campaign => (
+              <div
+                key={campaign._id}
+                className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      campaign.type === 'email' ? 'bg-blue-100 text-blue-600' :
+                      campaign.type === 'sms' ? 'bg-green-100 text-green-600' :
+                      campaign.type === 'whatsapp' ? 'bg-emerald-100 text-emerald-600' :
+                      'bg-purple-100 text-purple-600'
+                    }`}>
+                      {getTypeIcon(campaign.type)}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">{campaign.name}</h3>
+                      <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                        <span className="capitalize">{campaign.type}</span>
+                        <span>•</span>
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          {campaign.recipientCount || 0} recipients
                         </span>
-                      </div>
-                      
-                      {campaign.subject && (
-                        <p style={styles.campaignSubject}>Subject: {campaign.subject}</p>
-                      )}
-                      
-                      <div style={styles.campaignStats}>
-                        <span style={styles.campaignStat}>
-                          <strong>{campaign.stats?.sent || 0}</strong> sent
+                        <span>•</span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {new Date(campaign.createdAt).toLocaleDateString()}
                         </span>
-                        <span style={styles.campaignStat}>
-                          <strong>{campaign.stats?.opened || 0}</strong> opened
-                        </span>
-                        <span style={styles.campaignStat}>
-                          <strong>{campaign.stats?.clicked || 0}</strong> clicked
-                        </span>
-                      </div>
-                      
-                      <div style={styles.campaignActions}>
-                        <button style={styles.actionButton}>Edit</button>
-                        <button style={styles.actionButton}>Duplicate</button>
-                        {campaign.status === 'draft' && (
-                          <button style={styles.sendButton}>Send</button>
-                        )}
-                        <button 
-                          onClick={() => deleteCampaign(campaign._id)} 
-                          style={styles.deleteButton}
-                        >
-                          Delete
-                        </button>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Create Campaign Modal */}
-          {showCreate && (
-            <div style={styles.modalOverlay} onClick={() => setShowCreate(false)}>
-              <div style={styles.modal} onClick={e => e.stopPropagation()}>
-                <div style={styles.modalHeader}>
-                  <h2 style={styles.modalTitle}>Create Campaign</h2>
-                  <button onClick={() => setShowCreate(false)} style={styles.closeButton}>×</button>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
+                      {campaign.status}
+                    </span>
+                    
+                    {campaign.status === 'draft' && (
+                      <>
+                        <button
+                          onClick={() => sendCampaign(campaign._id)}
+                          className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg"
+                          title="Send"
+                        >
+                          <Send className="w-4 h-4" />
+                        </button>
+                        <button
+                          className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                          title="Edit"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
+                    
+                    <button
+                      onClick={() => deleteCampaign(campaign._id)}
+                      className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
+                
+                {/* Stats Row */}
+                {campaign.status === 'sent' && (
+                  <div className="flex items-center gap-6 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 text-sm">
+                    <span className="text-gray-500 dark:text-gray-400">
+                      <strong className="text-gray-900 dark:text-white">{campaign.stats?.sent || 0}</strong> sent
+                    </span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      <strong className="text-gray-900 dark:text-white">{campaign.stats?.opened || 0}</strong> opened
+                    </span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      <strong className="text-gray-900 dark:text-white">{campaign.stats?.clicked || 0}</strong> clicked
+                    </span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
+        {/* Create Campaign Modal */}
+        {showCreate && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-lg max-h-[90vh] overflow-auto">
+              <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Create Campaign</h2>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Step {step} of 3</p>
+              </div>
+              
+              <div className="p-6">
                 {/* Step 1: Type */}
-                {createStep === 1 && (
-                  <div style={styles.modalContent}>
-                    <p style={styles.stepLabel}>Step 1 of 3: Choose campaign type</p>
-                    <div style={styles.typeGrid}>
+                {step === 1 && (
+                  <>
+                    <h3 className="font-medium text-gray-900 dark:text-white mb-4">Choose campaign type</h3>
+                    <div className="grid grid-cols-2 gap-3">
                       {campaignTypes.map(type => (
                         <button
                           key={type.id}
                           onClick={() => setFormData({...formData, type: type.id})}
-                          style={{
-                            ...styles.typeCard,
-                            borderColor: formData.type === type.id ? type.color : '#CED0D4',
-                            backgroundColor: formData.type === type.id ? `${type.color}08` : '#FFFFFF',
-                          }}
+                          className={`p-4 rounded-lg border-2 text-left transition ${
+                            formData.type === type.id
+                              ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                          }`}
                         >
-                          <span style={styles.typeCardIcon}>{type.icon}</span>
-                          <span style={styles.typeCardLabel}>{type.label}</span>
+                          <type.icon className={`w-6 h-6 mb-2 ${
+                            formData.type === type.id ? 'text-purple-600' : 'text-gray-500'
+                          }`} />
+                          <p className="font-medium text-gray-900 dark:text-white">{type.label}</p>
                         </button>
                       ))}
                     </div>
-                    <div style={styles.modalActions}>
-                      <button onClick={() => setShowCreate(false)} style={styles.cancelButton}>
-                        Cancel
-                      </button>
-                      <button onClick={() => setCreateStep(2)} style={styles.nextButton}>
-                        Continue
-                      </button>
-                    </div>
-                  </div>
+                  </>
                 )}
 
                 {/* Step 2: Details */}
-                {createStep === 2 && (
-                  <div style={styles.modalContent}>
-                    <p style={styles.stepLabel}>Step 2 of 3: Campaign details</p>
-                    
-                    <div style={styles.formGroup}>
-                      <label style={styles.label}>Campaign Name</label>
+                {step === 2 && (
+                  <>
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Campaign Name
+                      </label>
                       <input
                         type="text"
-                        name="name"
                         value={formData.name}
-                        onChange={handleChange}
-                        placeholder="e.g., Summer Sale Announcement"
-                        style={styles.input}
+                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        placeholder="e.g., Welcome Email"
+                        className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       />
                     </div>
-
+                    
                     {formData.type === 'email' && (
-                      <div style={styles.formGroup}>
-                        <label style={styles.label}>Subject Line</label>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Subject Line
+                        </label>
                         <input
                           type="text"
-                          name="subject"
                           value={formData.subject}
-                          onChange={handleChange}
-                          placeholder="e.g., Don't miss our summer deals!"
-                          style={styles.input}
+                          onChange={(e) => setFormData({...formData, subject: e.target.value})}
+                          placeholder="Email subject"
+                          className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         />
                       </div>
                     )}
-
-                    <div style={styles.formGroup}>
-                      <label style={styles.label}>Message Content</label>
+                    
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Message Content
+                      </label>
                       <textarea
-                        name="content"
                         value={formData.content}
-                        onChange={handleChange}
-                        placeholder="Write your message here..."
-                        style={styles.textarea}
+                        onChange={(e) => setFormData({...formData, content: e.target.value})}
+                        placeholder="Write your message..."
                         rows={5}
+                        className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
                       />
                     </div>
-
-                    <div style={styles.modalActions}>
-                      <button onClick={() => setCreateStep(1)} style={styles.cancelButton}>
-                        Back
-                      </button>
-                      <button 
-                        onClick={() => setCreateStep(3)} 
-                        disabled={!formData.name || !formData.content}
-                        style={{
-                          ...styles.nextButton,
-                          opacity: formData.name && formData.content ? 1 : 0.5
-                        }}
-                      >
-                        Continue
-                      </button>
-                    </div>
-                  </div>
+                  </>
                 )}
 
                 {/* Step 3: Audience */}
-                {createStep === 3 && (
-                  <div style={styles.modalContent}>
-                    <p style={styles.stepLabel}>Step 3 of 3: Select audience</p>
-                    
-                    <div style={styles.formGroup}>
-                      <label style={styles.label}>Send to</label>
-                      <select
-                        name="audienceType"
-                        value={formData.audienceType}
-                        onChange={handleChange}
-                        style={styles.select}
-                      >
-                        <option value="all">All Contacts</option>
-                        <option value="list">Specific List</option>
-                        <option value="segment">Custom Segment</option>
-                      </select>
+                {step === 3 && (
+                  <>
+                    <h3 className="font-medium text-gray-900 dark:text-white mb-4">Select audience</h3>
+                    <div className="space-y-3">
+                      {[
+                        { id: 'all', label: 'All Contacts', desc: 'Send to everyone' },
+                        { id: 'subscribers', label: 'Subscribers', desc: 'Email subscribers only' },
+                        { id: 'members', label: 'Church Members', desc: 'Registered members' },
+                        { id: 'custom', label: 'Custom List', desc: 'Upload or select specific contacts' },
+                      ].map(audience => (
+                        <button
+                          key={audience.id}
+                          onClick={() => setFormData({...formData, audience: audience.id})}
+                          className={`w-full p-4 rounded-lg border-2 text-left transition ${
+                            formData.audience === audience.id
+                              ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                          }`}
+                        >
+                          <p className="font-medium text-gray-900 dark:text-white">{audience.label}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{audience.desc}</p>
+                        </button>
+                      ))}
                     </div>
-
-                    <div style={styles.summaryBox}>
-                      <h4 style={styles.summaryTitle}>Campaign Summary</h4>
-                      <div style={styles.summaryRow}>
-                        <span style={styles.summaryLabel}>Type:</span>
-                        <span style={styles.summaryValue}>
-                          {campaignTypes.find(t => t.id === formData.type)?.label}
-                        </span>
-                      </div>
-                      <div style={styles.summaryRow}>
-                        <span style={styles.summaryLabel}>Name:</span>
-                        <span style={styles.summaryValue}>{formData.name}</span>
-                      </div>
-                      <div style={styles.summaryRow}>
-                        <span style={styles.summaryLabel}>Audience:</span>
-                        <span style={styles.summaryValue}>{formData.audienceType}</span>
-                      </div>
-                    </div>
-
-                    <div style={styles.modalActions}>
-                      <button onClick={() => setCreateStep(2)} style={styles.cancelButton}>
-                        Back
-                      </button>
-                      <button 
-                        onClick={createCampaign} 
-                        disabled={creating}
-                        style={styles.createCampaignButton}
-                      >
-                        {creating ? 'Creating...' : 'Create Campaign'}
-                      </button>
-                    </div>
-                  </div>
+                  </>
+                )}
+              </div>
+              
+              {/* Actions */}
+              <div className="p-6 border-t border-gray-100 dark:border-gray-700 flex justify-between">
+                {step > 1 ? (
+                  <button
+                    onClick={() => setStep(step - 1)}
+                    className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                  >
+                    Back
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setShowCreate(false);
+                      setStep(1);
+                    }}
+                    className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                )}
+                
+                {step < 3 ? (
+                  <button
+                    onClick={() => setStep(step + 1)}
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700"
+                  >
+                    Continue
+                  </button>
+                ) : (
+                  <button
+                    onClick={createCampaign}
+                    disabled={creating}
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                    {creating ? 'Creating...' : 'Create Campaign'}
+                  </button>
                 )}
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-    </>
+    </AppLayout>
   );
 }
-
-// Facebook-style clean white design
-const styles = {
-  page: {
-    minHeight: '100vh',
-    backgroundColor: '#F0F2F5',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-  },
-  container: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '24px 16px',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '24px',
-    flexWrap: 'wrap',
-    gap: '16px',
-  },
-  backLink: {
-    display: 'inline-block',
-    color: '#8B5CF6',
-    textDecoration: 'none',
-    fontSize: '14px',
-    marginBottom: '8px',
-  },
-  title: {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: '#1C1E21',
-    margin: '0 0 8px 0',
-  },
-  subtitle: {
-    fontSize: '15px',
-    color: '#65676B',
-    margin: 0,
-  },
-  createButton: {
-    padding: '12px 24px',
-    backgroundColor: '#8B5CF6',
-    color: '#FFFFFF',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '15px',
-    fontWeight: '600',
-    cursor: 'pointer',
-  },
-
-  // Stats
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '12px',
-    marginBottom: '24px',
-  },
-  statCard: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    backgroundColor: '#FFFFFF',
-    padding: '20px',
-    borderRadius: '8px',
-    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-  },
-  statIcon: {
-    fontSize: '24px',
-  },
-  statInfo: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  statValue: {
-    fontSize: '24px',
-    fontWeight: '700',
-    color: '#1C1E21',
-  },
-  statLabel: {
-    fontSize: '13px',
-    color: '#65676B',
-  },
-
-  // Section
-  section: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: '8px',
-    padding: '20px',
-    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-  },
-  sectionTitle: {
-    fontSize: '17px',
-    fontWeight: '600',
-    color: '#1C1E21',
-    margin: '0 0 16px 0',
-  },
-  loading: {
-    padding: '40px',
-    textAlign: 'center',
-    color: '#65676B',
-  },
-  emptyState: {
-    textAlign: 'center',
-    padding: '60px 20px',
-    backgroundColor: '#F7F8FA',
-    borderRadius: '8px',
-    border: '1px dashed #CED0D4',
-  },
-  emptyIcon: {
-    fontSize: '48px',
-    display: 'block',
-    marginBottom: '16px',
-  },
-  emptyTitle: {
-    fontSize: '17px',
-    fontWeight: '600',
-    color: '#1C1E21',
-    margin: '0 0 8px 0',
-  },
-  emptyDesc: {
-    fontSize: '14px',
-    color: '#65676B',
-    margin: '0 0 20px 0',
-  },
-  emptyButton: {
-    padding: '10px 24px',
-    backgroundColor: '#8B5CF6',
-    color: '#FFFFFF',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-  },
-
-  // Campaign Cards
-  campaignsList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-  },
-  campaignCard: {
-    backgroundColor: '#F7F8FA',
-    borderRadius: '8px',
-    padding: '20px',
-    border: '1px solid #E4E6EB',
-  },
-  campaignHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    marginBottom: '12px',
-  },
-  typeIcon: {
-    width: '44px',
-    height: '44px',
-    borderRadius: '8px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '20px',
-  },
-  campaignInfo: {
-    flex: 1,
-  },
-  campaignName: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: '#1C1E21',
-    margin: '0 0 4px 0',
-  },
-  campaignMeta: {
-    fontSize: '13px',
-    color: '#65676B',
-    margin: 0,
-  },
-  statusBadge: {
-    padding: '6px 12px',
-    borderRadius: '4px',
-    fontSize: '12px',
-    fontWeight: '600',
-    textTransform: 'capitalize',
-  },
-  campaignSubject: {
-    fontSize: '14px',
-    color: '#1C1E21',
-    margin: '0 0 12px 60px',
-  },
-  campaignStats: {
-    display: 'flex',
-    gap: '20px',
-    marginLeft: '60px',
-    marginBottom: '12px',
-  },
-  campaignStat: {
-    fontSize: '13px',
-    color: '#65676B',
-  },
-  campaignActions: {
-    display: 'flex',
-    gap: '8px',
-    marginLeft: '60px',
-  },
-  actionButton: {
-    padding: '8px 16px',
-    backgroundColor: '#E4E6EB',
-    color: '#1C1E21',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '13px',
-    fontWeight: '500',
-    cursor: 'pointer',
-  },
-  sendButton: {
-    padding: '8px 16px',
-    backgroundColor: '#10B981',
-    color: '#FFFFFF',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '13px',
-    fontWeight: '600',
-    cursor: 'pointer',
-  },
-  deleteButton: {
-    padding: '8px 16px',
-    backgroundColor: '#FEE2E2',
-    color: '#DC2626',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '13px',
-    fontWeight: '500',
-    cursor: 'pointer',
-  },
-
-  // Modal
-  modalOverlay: {
-    position: 'fixed',
-    inset: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '24px',
-    zIndex: 1000,
-  },
-  modal: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: '8px',
-    width: '100%',
-    maxWidth: '500px',
-    maxHeight: '90vh',
-    overflow: 'auto',
-  },
-  modalHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '20px',
-    borderBottom: '1px solid #E4E6EB',
-  },
-  modalTitle: {
-    fontSize: '18px',
-    fontWeight: '600',
-    color: '#1C1E21',
-    margin: 0,
-  },
-  closeButton: {
-    background: 'none',
-    border: 'none',
-    fontSize: '24px',
-    color: '#65676B',
-    cursor: 'pointer',
-  },
-  modalContent: {
-    padding: '20px',
-  },
-  stepLabel: {
-    fontSize: '14px',
-    color: '#8B5CF6',
-    fontWeight: '600',
-    marginBottom: '20px',
-  },
-  typeGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '12px',
-    marginBottom: '20px',
-  },
-  typeCard: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '20px',
-    border: '2px solid #CED0D4',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    backgroundColor: '#FFFFFF',
-  },
-  typeCardIcon: {
-    fontSize: '28px',
-  },
-  typeCardLabel: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: '#1C1E21',
-  },
-  formGroup: {
-    marginBottom: '16px',
-  },
-  label: {
-    display: 'block',
-    fontSize: '14px',
-    fontWeight: '600',
-    color: '#1C1E21',
-    marginBottom: '8px',
-  },
-  input: {
-    width: '100%',
-    padding: '12px 16px',
-    border: '1px solid #CED0D4',
-    borderRadius: '6px',
-    fontSize: '14px',
-    color: '#1C1E21',
-    backgroundColor: '#FFFFFF',
-    boxSizing: 'border-box',
-  },
-  textarea: {
-    width: '100%',
-    padding: '12px 16px',
-    border: '1px solid #CED0D4',
-    borderRadius: '6px',
-    fontSize: '14px',
-    color: '#1C1E21',
-    backgroundColor: '#FFFFFF',
-    resize: 'vertical',
-    fontFamily: 'inherit',
-    boxSizing: 'border-box',
-  },
-  select: {
-    width: '100%',
-    padding: '12px 16px',
-    border: '1px solid #CED0D4',
-    borderRadius: '6px',
-    fontSize: '14px',
-    color: '#1C1E21',
-    backgroundColor: '#FFFFFF',
-    boxSizing: 'border-box',
-  },
-  summaryBox: {
-    backgroundColor: '#F7F8FA',
-    borderRadius: '8px',
-    padding: '16px',
-    marginBottom: '20px',
-    border: '1px solid #E4E6EB',
-  },
-  summaryTitle: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: '#1C1E21',
-    margin: '0 0 12px 0',
-  },
-  summaryRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    padding: '8px 0',
-    borderBottom: '1px solid #E4E6EB',
-  },
-  summaryLabel: {
-    fontSize: '13px',
-    color: '#65676B',
-  },
-  summaryValue: {
-    fontSize: '13px',
-    fontWeight: '500',
-    color: '#1C1E21',
-  },
-  modalActions: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    paddingTop: '12px',
-  },
-  cancelButton: {
-    padding: '10px 20px',
-    backgroundColor: '#E4E6EB',
-    color: '#1C1E21',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-  },
-  nextButton: {
-    padding: '10px 24px',
-    backgroundColor: '#8B5CF6',
-    color: '#FFFFFF',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-  },
-  createCampaignButton: {
-    padding: '10px 24px',
-    backgroundColor: '#10B981',
-    color: '#FFFFFF',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-  },
-};

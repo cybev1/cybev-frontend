@@ -1,17 +1,23 @@
-/**
- * Social Accounts Management
- * /studio/social/accounts
- */
+// ============================================
+// FILE: src/pages/studio/social/accounts.jsx
+// Social Accounts Management
+// VERSION: 1.0.0 - NEW FEATURE
+// ============================================
 
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import AppLayout from '@/components/Layout/AppLayout';
+import { Plus, Trash2, Shield, Loader2, Facebook, Instagram, Twitter } from 'lucide-react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
 export default function SocialAccounts() {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showAdd, setShowAdd] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [adding, setAdding] = useState(false);
+  
   const [formData, setFormData] = useState({
     platform: 'facebook',
     email: '',
@@ -22,36 +28,47 @@ export default function SocialAccounts() {
     fetchAccounts();
   }, []);
 
+  const getAuth = () => {
+    const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+    return { headers: { Authorization: `Bearer ${token}` } };
+  };
+
   const fetchAccounts = async () => {
     try {
-      const res = await fetch('/api/social-tools/accounts');
+      const res = await fetch(`${API_URL}/api/social-tools/accounts`, getAuth());
       const data = await res.json();
-      setAccounts(data.accounts || []);
-    } catch (error) {
-      console.error('Failed to fetch accounts:', error);
+      if (data.accounts) setAccounts(data.accounts);
+    } catch (err) {
+      console.error('Failed to fetch accounts:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAdd = async (e) => {
+  const addAccount = async (e) => {
     e.preventDefault();
+    if (!formData.email || !formData.password) {
+      alert('Please fill in all fields');
+      return;
+    }
+
     setAdding(true);
     try {
-      const res = await fetch('/api/social-tools/accounts', {
+      const res = await fetch(`${API_URL}/api/social-tools/accounts`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuth().headers },
         body: JSON.stringify(formData)
       });
+      
       const data = await res.json();
-      if (data.ok) {
+      if (data.account) {
         setAccounts([...accounts, data.account]);
-        setShowAdd(false);
+        setShowModal(false);
         setFormData({ platform: 'facebook', email: '', password: '' });
       } else {
         alert(data.error || 'Failed to add account');
       }
-    } catch (error) {
+    } catch (err) {
       alert('Failed to add account');
     } finally {
       setAdding(false);
@@ -59,381 +76,199 @@ export default function SocialAccounts() {
   };
 
   const deleteAccount = async (id) => {
-    if (!confirm('Delete this account?')) return;
+    if (!confirm('Are you sure you want to remove this account?')) return;
+    
     try {
-      await fetch(`/api/social-tools/accounts/${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/api/social-tools/accounts/${id}`, {
+        method: 'DELETE',
+        ...getAuth()
+      });
       setAccounts(accounts.filter(a => a._id !== id));
-    } catch (error) {
-      alert('Failed to delete');
+    } catch (err) {
+      alert('Failed to delete account');
+    }
+  };
+
+  const getPlatformIcon = (platform) => {
+    switch (platform) {
+      case 'facebook': return <Facebook className="w-5 h-5 text-blue-600" />;
+      case 'instagram': return <Instagram className="w-5 h-5 text-pink-600" />;
+      case 'twitter': return <Twitter className="w-5 h-5 text-sky-500" />;
+      default: return <Shield className="w-5 h-5 text-gray-500" />;
     }
   };
 
   return (
-    <>
+    <AppLayout>
       <Head>
         <title>Social Accounts - CYBEV Studio</title>
       </Head>
 
-      <div style={styles.page}>
-        <div style={styles.container}>
-          {/* Header */}
-          <div style={styles.header}>
-            <div>
-              <Link href="/studio/social" style={styles.backLink}>← Back to Social Tools</Link>
-              <h1 style={styles.title}>Social Accounts</h1>
-              <p style={styles.subtitle}>Manage your connected social media accounts</p>
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <Link href="/studio/social" className="text-purple-600 hover:underline text-sm mb-2 inline-block">
+              ← Back to Social Tools
+            </Link>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Social Accounts</h1>
+            <p className="text-gray-600 dark:text-gray-400">Manage your connected social media accounts</p>
+          </div>
+          
+          <button
+            onClick={() => setShowModal(true)}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add Account
+          </button>
+        </div>
+
+        {/* Accounts List */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+          </div>
+        ) : accounts.length === 0 ? (
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-8 h-8 text-purple-500" />
             </div>
-            <button onClick={() => setShowAdd(true)} style={styles.addButton}>
-              + Add Account
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No accounts connected</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">Add your social media accounts to start automating</p>
+            <button
+              onClick={() => setShowModal(true)}
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+            >
+              Add Your First Account
             </button>
           </div>
-
-          {/* Accounts List */}
-          <div style={styles.section}>
-            {loading ? (
-              <div style={styles.loading}>Loading accounts...</div>
-            ) : accounts.length === 0 ? (
-              <div style={styles.emptyState}>
-                <span style={styles.emptyIcon}>🔗</span>
-                <h3 style={styles.emptyTitle}>No accounts connected</h3>
-                <p style={styles.emptyDesc}>Add your first social media account to start automating</p>
-                <button onClick={() => setShowAdd(true)} style={styles.emptyButton}>
-                  Add Account
-                </button>
-              </div>
-            ) : (
-              <div style={styles.accountsList}>
-                {accounts.map(account => (
-                  <div key={account._id} style={styles.accountCard}>
-                    <div style={styles.accountIcon}>
-                      {account.platform === 'facebook' ? '📘' : 
-                       account.platform === 'instagram' ? '📸' : 
-                       account.platform === 'twitter' ? '🐦' : '🌐'}
-                    </div>
-                    <div style={styles.accountInfo}>
-                      <h3 style={styles.accountEmail}>{account.email}</h3>
-                      <p style={styles.accountPlatform}>{account.platform}</p>
-                    </div>
-                    <span style={{
-                      ...styles.statusBadge,
-                      backgroundColor: account.status === 'active' ? '#DCFCE7' : '#FEE2E2',
-                      color: account.status === 'active' ? '#166534' : '#991B1B',
-                    }}>
-                      {account.status || 'active'}
-                    </span>
-                    <button 
-                      onClick={() => deleteAccount(account._id)}
-                      style={styles.deleteButton}
-                    >
-                      Delete
-                    </button>
+        ) : (
+          <div className="space-y-4">
+            {accounts.map(account => (
+              <div
+                key={account._id}
+                className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                    {getPlatformIcon(account.platform)}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Add Account Modal */}
-          {showAdd && (
-            <div style={styles.modalOverlay} onClick={() => setShowAdd(false)}>
-              <div style={styles.modal} onClick={e => e.stopPropagation()}>
-                <div style={styles.modalHeader}>
-                  <h2 style={styles.modalTitle}>Add Social Account</h2>
-                  <button onClick={() => setShowAdd(false)} style={styles.closeButton}>×</button>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{account.email}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">{account.platform}</p>
+                  </div>
                 </div>
-                <form onSubmit={handleAdd} style={styles.modalContent}>
-                  <div style={styles.formGroup}>
-                    <label style={styles.label}>Platform</label>
-                    <select
-                      value={formData.platform}
-                      onChange={(e) => setFormData({...formData, platform: e.target.value})}
-                      style={styles.select}
-                    >
-                      <option value="facebook">Facebook</option>
-                      <option value="instagram">Instagram</option>
-                      <option value="twitter">Twitter/X</option>
-                    </select>
-                  </div>
-                  <div style={styles.formGroup}>
-                    <label style={styles.label}>Email / Username</label>
-                    <input
-                      type="text"
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      placeholder="your@email.com"
-                      style={styles.input}
-                      required
-                    />
-                  </div>
-                  <div style={styles.formGroup}>
-                    <label style={styles.label}>Password</label>
-                    <input
-                      type="password"
-                      value={formData.password}
-                      onChange={(e) => setFormData({...formData, password: e.target.value})}
-                      placeholder="••••••••"
-                      style={styles.input}
-                      required
-                    />
-                  </div>
-                  <p style={styles.securityNote}>
-                    🔒 Your credentials are encrypted with AES-256 encryption
-                  </p>
-                  <div style={styles.modalActions}>
-                    <button type="button" onClick={() => setShowAdd(false)} style={styles.cancelButton}>
-                      Cancel
-                    </button>
-                    <button type="submit" disabled={adding} style={styles.submitButton}>
-                      {adding ? 'Adding...' : 'Add Account'}
-                    </button>
-                  </div>
-                </form>
+                
+                <div className="flex items-center gap-3">
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    account.status === 'active' 
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                      : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                  }`}>
+                    {account.status || 'active'}
+                  </span>
+                  <button
+                    onClick={() => deleteAccount(account._id)}
+                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            ))}
+          </div>
+        )}
+
+        {/* Security Notice */}
+        <div className="mt-8 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 flex items-start gap-3">
+          <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
+          <div>
+            <h4 className="font-medium text-blue-900 dark:text-blue-300">Your credentials are secure</h4>
+            <p className="text-sm text-blue-700 dark:text-blue-400">
+              All passwords are encrypted with AES-256 encryption and stored securely on our servers.
+            </p>
+          </div>
         </div>
+
+        {/* Add Account Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-md">
+              <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add Social Account</h2>
+              </div>
+              
+              <form onSubmit={addAccount} className="p-6">
+                {/* Platform */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Platform
+                  </label>
+                  <select
+                    value={formData.platform}
+                    onChange={(e) => setFormData({...formData, platform: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    <option value="facebook">Facebook</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="twitter">Twitter / X</option>
+                  </select>
+                </div>
+
+                {/* Email */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Email / Username
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    placeholder="your@email.com"
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    required
+                  />
+                </div>
+
+                {/* Password */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    placeholder="••••••••"
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    required
+                  />
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={adding}
+                    className="flex-1 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                    {adding ? 'Adding...' : 'Add Account'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
-    </>
+    </AppLayout>
   );
 }
-
-const styles = {
-  page: {
-    minHeight: '100vh',
-    backgroundColor: '#F0F2F5',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-  },
-  container: {
-    maxWidth: '900px',
-    margin: '0 auto',
-    padding: '24px 16px',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '24px',
-    flexWrap: 'wrap',
-    gap: '16px',
-  },
-  backLink: {
-    display: 'inline-block',
-    color: '#8B5CF6',
-    textDecoration: 'none',
-    fontSize: '14px',
-    marginBottom: '8px',
-  },
-  title: {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: '#1C1E21',
-    margin: '0 0 8px 0',
-  },
-  subtitle: {
-    fontSize: '15px',
-    color: '#65676B',
-    margin: 0,
-  },
-  addButton: {
-    padding: '12px 24px',
-    backgroundColor: '#8B5CF6',
-    color: '#FFFFFF',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '15px',
-    fontWeight: '600',
-    cursor: 'pointer',
-  },
-  section: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: '8px',
-    padding: '20px',
-    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-  },
-  loading: {
-    textAlign: 'center',
-    padding: '40px',
-    color: '#65676B',
-  },
-  emptyState: {
-    textAlign: 'center',
-    padding: '60px 20px',
-  },
-  emptyIcon: {
-    fontSize: '48px',
-    display: 'block',
-    marginBottom: '16px',
-  },
-  emptyTitle: {
-    fontSize: '17px',
-    fontWeight: '600',
-    color: '#1C1E21',
-    margin: '0 0 8px 0',
-  },
-  emptyDesc: {
-    fontSize: '14px',
-    color: '#65676B',
-    margin: '0 0 20px 0',
-  },
-  emptyButton: {
-    padding: '10px 24px',
-    backgroundColor: '#8B5CF6',
-    color: '#FFFFFF',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-  },
-  accountsList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-  },
-  accountCard: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    padding: '16px',
-    backgroundColor: '#F7F8FA',
-    borderRadius: '8px',
-    border: '1px solid #E4E6EB',
-  },
-  accountIcon: {
-    fontSize: '28px',
-  },
-  accountInfo: {
-    flex: 1,
-  },
-  accountEmail: {
-    fontSize: '15px',
-    fontWeight: '600',
-    color: '#1C1E21',
-    margin: '0 0 4px 0',
-  },
-  accountPlatform: {
-    fontSize: '13px',
-    color: '#65676B',
-    margin: 0,
-    textTransform: 'capitalize',
-  },
-  statusBadge: {
-    padding: '6px 12px',
-    borderRadius: '4px',
-    fontSize: '12px',
-    fontWeight: '600',
-    textTransform: 'capitalize',
-  },
-  deleteButton: {
-    padding: '8px 16px',
-    backgroundColor: '#FEE2E2',
-    color: '#DC2626',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '13px',
-    fontWeight: '500',
-    cursor: 'pointer',
-  },
-  modalOverlay: {
-    position: 'fixed',
-    inset: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '24px',
-    zIndex: 1000,
-  },
-  modal: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: '8px',
-    width: '100%',
-    maxWidth: '450px',
-  },
-  modalHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '20px',
-    borderBottom: '1px solid #E4E6EB',
-  },
-  modalTitle: {
-    fontSize: '18px',
-    fontWeight: '600',
-    color: '#1C1E21',
-    margin: 0,
-  },
-  closeButton: {
-    background: 'none',
-    border: 'none',
-    fontSize: '24px',
-    color: '#65676B',
-    cursor: 'pointer',
-  },
-  modalContent: {
-    padding: '20px',
-  },
-  formGroup: {
-    marginBottom: '16px',
-  },
-  label: {
-    display: 'block',
-    fontSize: '14px',
-    fontWeight: '600',
-    color: '#1C1E21',
-    marginBottom: '8px',
-  },
-  input: {
-    width: '100%',
-    padding: '12px 16px',
-    border: '1px solid #CED0D4',
-    borderRadius: '6px',
-    fontSize: '14px',
-    color: '#1C1E21',
-    backgroundColor: '#FFFFFF',
-    boxSizing: 'border-box',
-  },
-  select: {
-    width: '100%',
-    padding: '12px 16px',
-    border: '1px solid #CED0D4',
-    borderRadius: '6px',
-    fontSize: '14px',
-    color: '#1C1E21',
-    backgroundColor: '#FFFFFF',
-    boxSizing: 'border-box',
-  },
-  securityNote: {
-    fontSize: '13px',
-    color: '#65676B',
-    margin: '0 0 20px 0',
-    padding: '12px',
-    backgroundColor: '#F7F8FA',
-    borderRadius: '6px',
-  },
-  modalActions: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    gap: '12px',
-  },
-  cancelButton: {
-    padding: '10px 20px',
-    backgroundColor: '#E4E6EB',
-    color: '#1C1E21',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-  },
-  submitButton: {
-    padding: '10px 24px',
-    backgroundColor: '#8B5CF6',
-    color: '#FFFFFF',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-  },
-};

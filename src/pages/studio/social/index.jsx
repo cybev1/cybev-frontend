@@ -1,958 +1,343 @@
-/**
- * Social Tools - Facebook Automation
- * CYBEV Studio v2.0
- * 
- * Facebook-style clean white design with CYBEV purple accents
- */
+// ============================================
+// FILE: src/pages/studio/social/index.jsx
+// Social Tools Dashboard - Facebook Automation
+// VERSION: 1.0.0 - NEW FEATURE
+// ============================================
 
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import AppLayout from '@/components/Layout/AppLayout';
+import {
+  Users, MessageCircle, Heart, Search, BarChart3,
+  Plus, Play, Pause, Loader2, Settings, Download,
+  UserPlus, Send, ThumbsUp, Eye
+} from 'lucide-react';
 
-export default function SocialTools() {
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
+
+export default function SocialToolsDashboard() {
   const [activeTab, setActiveTab] = useState('scraping');
   const [accounts, setAccounts] = useState([]);
-  const [selectedAccount, setSelectedAccount] = useState(null);
-  const [audience, setAudience] = useState([]);
+  const [selectedAccount, setSelectedAccount] = useState('');
   const [jobs, setJobs] = useState([]);
-  const [stats, setStats] = useState({ friendsSent: 0, messagesSent: 0, postsLiked: 0, totalAudience: 0 });
-  const [loading, setLoading] = useState(false);
-
-  // Scraping form state
-  const [scrapeForm, setScrapeForm] = useState({
-    type: 'search',
-    query: '',
-    profileUrl: '',
-    maxResults: 50,
-  });
-
-  // Engagement form state
-  const [engageForm, setEngageForm] = useState({
-    type: 'auto_like',
-    targetUrl: '',
-    comment: '',
-  });
-
-  // Message form state
-  const [messageForm, setMessageForm] = useState({
-    profileUrl: '',
-    message: '',
-  });
-
-  useEffect(() => {
-    fetchAccounts();
-    fetchStats();
-  }, []);
-
-  useEffect(() => {
-    if (selectedAccount) {
-      fetchAudience();
-      fetchJobs();
-    }
-  }, [selectedAccount]);
-
-  const fetchAccounts = async () => {
-    try {
-      const res = await fetch('/api/social-tools/accounts');
-      const data = await res.json();
-      setAccounts(data.accounts || []);
-      if (data.accounts?.length > 0) {
-        setSelectedAccount(data.accounts[0]._id);
-      }
-    } catch (error) {
-      console.error('Failed to fetch accounts:', error);
-    }
-  };
-
-  const fetchStats = async () => {
-    try {
-      const res = await fetch('/api/social-tools/analytics');
-      const data = await res.json();
-      setStats(data.stats || {});
-    } catch (error) {
-      console.error('Failed to fetch stats:', error);
-    }
-  };
-
-  const fetchAudience = async () => {
-    try {
-      const res = await fetch(`/api/social-tools/audience?limit=100`);
-      const data = await res.json();
-      setAudience(data.audience || []);
-    } catch (error) {
-      console.error('Failed to fetch audience:', error);
-    }
-  };
-
-  const fetchJobs = async () => {
-    try {
-      const res = await fetch(`/api/social-tools/jobs?limit=20`);
-      const data = await res.json();
-      setJobs(data.jobs || []);
-    } catch (error) {
-      console.error('Failed to fetch jobs:', error);
-    }
-  };
-
-  const handleScrape = async (e) => {
-    e.preventDefault();
-    if (!selectedAccount) return alert('Please select an account first');
-    
-    setLoading(true);
-    try {
-      const endpoint = scrapeForm.type === 'search' 
-        ? '/api/social-tools/scrape/search'
-        : `/api/social-tools/scrape/${scrapeForm.type}`;
-      
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accountId: selectedAccount,
-          query: scrapeForm.query,
-          profileUrl: scrapeForm.profileUrl,
-          maxResults: scrapeForm.maxResults,
-        })
-      });
-      
-      const data = await res.json();
-      alert(`Job created! ID: ${data.jobId}`);
-      fetchJobs();
-    } catch (error) {
-      alert('Failed to create scrape job');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEngage = async (e) => {
-    e.preventDefault();
-    if (!selectedAccount) return alert('Please select an account first');
-    
-    setLoading(true);
-    try {
-      const endpoints = {
-        auto_like: '/api/social-tools/engage/like',
-        auto_comment: '/api/social-tools/engage/comment',
-        auto_follow: '/api/social-tools/engage/follow',
-        friend_request: '/api/social-tools/engage/friend-request',
-      };
-      
-      const res = await fetch(endpoints[engageForm.type], {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accountId: selectedAccount,
-          postUrl: engageForm.targetUrl,
-          profileUrl: engageForm.targetUrl,
-          comment: engageForm.comment,
-        })
-      });
-      
-      const data = await res.json();
-      alert(`Job created! ID: ${data.jobId}`);
-      fetchJobs();
-    } catch (error) {
-      alert('Failed to create engagement job');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleMessage = async (e) => {
-    e.preventDefault();
-    if (!selectedAccount) return alert('Please select an account first');
-    
-    setLoading(true);
-    try {
-      const res = await fetch('/api/social-tools/message/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accountId: selectedAccount,
-          profileUrl: messageForm.profileUrl,
-          message: messageForm.message,
-        })
-      });
-      
-      const data = await res.json();
-      alert(`Message job created! ID: ${data.jobId}`);
-      fetchJobs();
-    } catch (error) {
-      alert('Failed to send message');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const exportAudienceCSV = async () => {
-    try {
-      const res = await fetch('/api/social-tools/audience/export');
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'audience.csv';
-      a.click();
-    } catch (error) {
-      alert('Failed to export');
-    }
-  };
+  const [stats, setStats] = useState({ friendRequests: 0, messagesSent: 0, postsLiked: 0, audience: 0 });
+  const [loading, setLoading] = useState(true);
 
   const tabs = [
-    { id: 'scraping', label: 'Data Scraping', icon: '🔍' },
-    { id: 'engagement', label: 'Auto Engagement', icon: '❤️' },
-    { id: 'messaging', label: 'Messaging', icon: '💬' },
-    { id: 'groups', label: 'Groups', icon: '👥' },
-    { id: 'audience', label: 'Audience Data', icon: '📊' },
-    { id: 'analytics', label: 'Analytics', icon: '📈' },
+    { id: 'scraping', label: 'Data Scraping', icon: Search },
+    { id: 'engagement', label: 'Auto Engagement', icon: Heart },
+    { id: 'messaging', label: 'Messaging', icon: MessageCircle },
+    { id: 'groups', label: 'Groups', icon: Users },
+    { id: 'audience', label: 'Audience Data', icon: BarChart3 },
   ];
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const getAuth = () => {
+    const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+    return { headers: { Authorization: `Bearer ${token}` } };
+  };
+
+  const fetchData = async () => {
+    try {
+      const [accountsRes, jobsRes, statsRes] = await Promise.all([
+        fetch(`${API_URL}/api/social-tools/accounts`, getAuth()),
+        fetch(`${API_URL}/api/social-tools/jobs`, getAuth()),
+        fetch(`${API_URL}/api/social-tools/stats`, getAuth()),
+      ]);
+
+      const accountsData = await accountsRes.json();
+      const jobsData = await jobsRes.json();
+      const statsData = await statsRes.json();
+
+      if (accountsData.accounts) setAccounts(accountsData.accounts);
+      if (jobsData.jobs) setJobs(jobsData.jobs);
+      if (statsData.stats) setStats(statsData.stats);
+      
+      if (accountsData.accounts?.length > 0) {
+        setSelectedAccount(accountsData.accounts[0]._id);
+      }
+    } catch (err) {
+      console.error('Failed to fetch data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startJob = async (type, config) => {
+    try {
+      const res = await fetch(`${API_URL}/api/social-tools/jobs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuth().headers },
+        body: JSON.stringify({ accountId: selectedAccount, type, config })
+      });
+      const data = await res.json();
+      if (data.job) {
+        setJobs([data.job, ...jobs]);
+        alert('Job started! Check the jobs list for status.');
+      }
+    } catch (err) {
+      alert('Failed to start job');
+    }
+  };
+
   return (
-    <>
+    <AppLayout>
       <Head>
         <title>Social Tools - CYBEV Studio</title>
       </Head>
 
-      <div style={styles.page}>
-        <div style={styles.container}>
-          {/* Header */}
-          <div style={styles.header}>
-            <div style={styles.headerLeft}>
-              <Link href="/studio" style={styles.backLink}>← Back to Studio</Link>
-              <h1 style={styles.title}>Social Tools</h1>
-              <p style={styles.subtitle}>Automate your Facebook engagement</p>
-            </div>
-            
-            {/* Account Selector */}
-            <div style={styles.accountSelector}>
-              <label style={styles.selectorLabel}>Active Account:</label>
-              <select
-                value={selectedAccount || ''}
-                onChange={(e) => setSelectedAccount(e.target.value)}
-                style={styles.select}
-              >
-                <option value="">Select account...</option>
-                {accounts.map(acc => (
-                  <option key={acc._id} value={acc._id}>{acc.email}</option>
-                ))}
-              </select>
-              <Link href="/studio/social/accounts" style={styles.manageLink}>
-                Manage Accounts
-              </Link>
-            </div>
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <Link href="/studio" className="text-purple-600 hover:underline text-sm mb-2 inline-block">
+              ← Back to Studio
+            </Link>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Social Tools</h1>
+            <p className="text-gray-600 dark:text-gray-400">Automate your social media presence</p>
           </div>
+          
+          <Link href="/studio/social/accounts">
+            <button className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Manage Accounts
+            </button>
+          </Link>
+        </div>
 
-          {/* Stats Cards */}
-          <div style={styles.statsGrid}>
-            <div style={styles.statCard}>
-              <span style={styles.statIcon}>👥</span>
-              <div style={styles.statInfo}>
-                <span style={styles.statValue}>{stats.friendsSent || 0}</span>
-                <span style={styles.statLabel}>Friend Requests</span>
-              </div>
-            </div>
-            <div style={styles.statCard}>
-              <span style={styles.statIcon}>💬</span>
-              <div style={styles.statInfo}>
-                <span style={styles.statValue}>{stats.messagesSent || 0}</span>
-                <span style={styles.statLabel}>Messages Sent</span>
-              </div>
-            </div>
-            <div style={styles.statCard}>
-              <span style={styles.statIcon}>❤️</span>
-              <div style={styles.statInfo}>
-                <span style={styles.statValue}>{stats.postsLiked || 0}</span>
-                <span style={styles.statLabel}>Posts Liked</span>
-              </div>
-            </div>
-            <div style={styles.statCard}>
-              <span style={styles.statIcon}>📊</span>
-              <div style={styles.statInfo}>
-                <span style={styles.statValue}>{audience.length}</span>
-                <span style={styles.statLabel}>Total Audience</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <div style={styles.tabsCard}>
-            <div style={styles.tabs}>
-              {tabs.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  style={{
-                    ...styles.tab,
-                    ...(activeTab === tab.id ? styles.activeTab : {})
-                  }}
-                >
-                  <span style={styles.tabIcon}>{tab.icon}</span>
-                  {tab.label}
-                </button>
+        {/* Account Selector */}
+        {accounts.length > 0 && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
+            <label className="text-sm text-gray-600 dark:text-gray-400 mb-2 block">Active Account</label>
+            <select
+              value={selectedAccount}
+              onChange={(e) => setSelectedAccount(e.target.value)}
+              className="w-full md:w-auto px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              {accounts.map(acc => (
+                <option key={acc._id} value={acc._id}>
+                  {acc.platform} - {acc.email}
+                </option>
               ))}
-            </div>
+            </select>
           </div>
+        )}
 
-          {/* Tab Content */}
-          <div style={styles.content}>
-            {/* Data Scraping Tab */}
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-3 mb-2">
+              <UserPlus className="w-5 h-5 text-blue-500" />
+              <span className="text-gray-600 dark:text-gray-400 text-sm">Friend Requests</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.friendRequests}</p>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-3 mb-2">
+              <Send className="w-5 h-5 text-green-500" />
+              <span className="text-gray-600 dark:text-gray-400 text-sm">Messages Sent</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.messagesSent}</p>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-3 mb-2">
+              <ThumbsUp className="w-5 h-5 text-pink-500" />
+              <span className="text-gray-600 dark:text-gray-400 text-sm">Posts Liked</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.postsLiked}</p>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-3 mb-2">
+              <Eye className="w-5 h-5 text-purple-500" />
+              <span className="text-gray-600 dark:text-gray-400 text-sm">Total Audience</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.audience}</p>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex overflow-x-auto gap-2 mb-6 pb-2">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium whitespace-nowrap transition ${
+                activeTab === tab.id
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+          </div>
+        ) : accounts.length === 0 ? (
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-purple-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No accounts connected</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">Add a social media account to start automating</p>
+            <Link href="/studio/social/accounts">
+              <button className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700">
+                Add Account
+              </button>
+            </Link>
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            {/* Tab Content */}
             {activeTab === 'scraping' && (
-              <div style={styles.contentCard}>
-                <h2 style={styles.cardTitle}>Scrape Data</h2>
-                <p style={styles.cardDesc}>Find and collect profiles from Facebook</p>
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Data Scraping</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">Extract data from groups, pages, and profiles</p>
                 
-                <form onSubmit={handleScrape} style={styles.form}>
-                  <div style={styles.formGroup}>
-                    <label style={styles.label}>Scrape Type</label>
-                    <select
-                      value={scrapeForm.type}
-                      onChange={(e) => setScrapeForm({...scrapeForm, type: e.target.value})}
-                      style={styles.formSelect}
-                    >
-                      <option value="search">Search People</option>
-                      <option value="followers">Scrape Followers</option>
-                      <option value="friends">Scrape Friends</option>
-                      <option value="suggestions">Friend Suggestions</option>
-                      <option value="group_members">Group Members</option>
-                    </select>
-                  </div>
-
-                  {scrapeForm.type === 'search' && (
-                    <div style={styles.formGroup}>
-                      <label style={styles.label}>Search Query</label>
-                      <input
-                        type="text"
-                        value={scrapeForm.query}
-                        onChange={(e) => setScrapeForm({...scrapeForm, query: e.target.value})}
-                        placeholder="e.g., Photographers in New York"
-                        style={styles.input}
-                      />
-                    </div>
-                  )}
-
-                  {['followers', 'friends', 'group_members'].includes(scrapeForm.type) && (
-                    <div style={styles.formGroup}>
-                      <label style={styles.label}>Profile/Group URL</label>
-                      <input
-                        type="url"
-                        value={scrapeForm.profileUrl}
-                        onChange={(e) => setScrapeForm({...scrapeForm, profileUrl: e.target.value})}
-                        placeholder="https://facebook.com/..."
-                        style={styles.input}
-                      />
-                    </div>
-                  )}
-
-                  <div style={styles.formGroup}>
-                    <label style={styles.label}>Max Results</label>
-                    <input
-                      type="number"
-                      value={scrapeForm.maxResults}
-                      onChange={(e) => setScrapeForm({...scrapeForm, maxResults: parseInt(e.target.value)})}
-                      min="10"
-                      max="500"
-                      style={styles.input}
-                    />
-                  </div>
-
-                  <button type="submit" disabled={loading} style={styles.primaryButton}>
-                    {loading ? 'Starting...' : 'Start Scraping'}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <button
+                    onClick={() => startJob('scrape_group_members', {})}
+                    className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg text-left hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <h4 className="font-medium text-gray-900 dark:text-white">Scrape Group Members</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Extract member data from Facebook groups</p>
                   </button>
-                </form>
-              </div>
-            )}
-
-            {/* Auto Engagement Tab */}
-            {activeTab === 'engagement' && (
-              <div style={styles.contentCard}>
-                <h2 style={styles.cardTitle}>Auto Engagement</h2>
-                <p style={styles.cardDesc}>Automatically like, comment, and follow</p>
-                
-                <form onSubmit={handleEngage} style={styles.form}>
-                  <div style={styles.formGroup}>
-                    <label style={styles.label}>Action Type</label>
-                    <select
-                      value={engageForm.type}
-                      onChange={(e) => setEngageForm({...engageForm, type: e.target.value})}
-                      style={styles.formSelect}
-                    >
-                      <option value="auto_like">Like Post</option>
-                      <option value="auto_comment">Comment on Post</option>
-                      <option value="auto_follow">Follow Profile</option>
-                      <option value="friend_request">Send Friend Request</option>
-                    </select>
-                  </div>
-
-                  <div style={styles.formGroup}>
-                    <label style={styles.label}>
-                      {engageForm.type === 'auto_like' || engageForm.type === 'auto_comment' 
-                        ? 'Post URL' : 'Profile URL'}
-                    </label>
-                    <input
-                      type="url"
-                      value={engageForm.targetUrl}
-                      onChange={(e) => setEngageForm({...engageForm, targetUrl: e.target.value})}
-                      placeholder="https://facebook.com/..."
-                      style={styles.input}
-                    />
-                  </div>
-
-                  {engageForm.type === 'auto_comment' && (
-                    <div style={styles.formGroup}>
-                      <label style={styles.label}>Comment</label>
-                      <textarea
-                        value={engageForm.comment}
-                        onChange={(e) => setEngageForm({...engageForm, comment: e.target.value})}
-                        placeholder="Great post! 🙌"
-                        style={styles.textarea}
-                        rows={3}
-                      />
-                    </div>
-                  )}
-
-                  <button type="submit" disabled={loading} style={styles.primaryButton}>
-                    {loading ? 'Processing...' : 'Execute Action'}
+                  <button
+                    onClick={() => startJob('scrape_page_followers', {})}
+                    className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg text-left hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <h4 className="font-medium text-gray-900 dark:text-white">Scrape Page Followers</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Get followers from public pages</p>
                   </button>
-                </form>
-              </div>
-            )}
-
-            {/* Messaging Tab */}
-            {activeTab === 'messaging' && (
-              <div style={styles.contentCard}>
-                <h2 style={styles.cardTitle}>Send Message</h2>
-                <p style={styles.cardDesc}>Send direct messages to profiles</p>
-                
-                <form onSubmit={handleMessage} style={styles.form}>
-                  <div style={styles.formGroup}>
-                    <label style={styles.label}>Profile URL</label>
-                    <input
-                      type="url"
-                      value={messageForm.profileUrl}
-                      onChange={(e) => setMessageForm({...messageForm, profileUrl: e.target.value})}
-                      placeholder="https://facebook.com/username"
-                      style={styles.input}
-                    />
-                  </div>
-
-                  <div style={styles.formGroup}>
-                    <label style={styles.label}>Message</label>
-                    <textarea
-                      value={messageForm.message}
-                      onChange={(e) => setMessageForm({...messageForm, message: e.target.value})}
-                      placeholder="Hi! I'd love to connect..."
-                      style={styles.textarea}
-                      rows={4}
-                    />
-                  </div>
-
-                  <button type="submit" disabled={loading} style={styles.primaryButton}>
-                    {loading ? 'Sending...' : 'Send Message'}
-                  </button>
-                </form>
-              </div>
-            )}
-
-            {/* Groups Tab */}
-            {activeTab === 'groups' && (
-              <div style={styles.contentCard}>
-                <h2 style={styles.cardTitle}>Group Actions</h2>
-                <p style={styles.cardDesc}>Join groups and post content</p>
-                
-                <div style={styles.comingSoon}>
-                  <span style={styles.comingSoonIcon}>🚧</span>
-                  <h3 style={styles.comingSoonTitle}>Coming Soon</h3>
-                  <p style={styles.comingSoonDesc}>Group automation features are being developed</p>
                 </div>
               </div>
             )}
 
-            {/* Audience Data Tab */}
+            {activeTab === 'engagement' && (
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Auto Engagement</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">Automatically like, comment, and interact with posts</p>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <button
+                    onClick={() => startJob('auto_like', {})}
+                    className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg text-left hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <h4 className="font-medium text-gray-900 dark:text-white">Auto Like Posts</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Automatically like posts in your feed</p>
+                  </button>
+                  <button
+                    onClick={() => startJob('send_friend_requests', {})}
+                    className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg text-left hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <h4 className="font-medium text-gray-900 dark:text-white">Send Friend Requests</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Grow your network automatically</p>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'messaging' && (
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Automated Messaging</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">Send bulk messages to your audience</p>
+                
+                <div className="space-y-4">
+                  <textarea
+                    placeholder="Enter your message template..."
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+                    rows={4}
+                  />
+                  <button
+                    onClick={() => alert('Configure message template first')}
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700"
+                  >
+                    Start Campaign
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'groups' && (
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Group Management</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">Post to multiple groups automatically</p>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <button
+                    onClick={() => startJob('post_to_groups', {})}
+                    className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg text-left hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <h4 className="font-medium text-gray-900 dark:text-white">Post to Groups</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Schedule posts across multiple groups</p>
+                  </button>
+                  <button
+                    onClick={() => startJob('join_groups', {})}
+                    className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg text-left hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <h4 className="font-medium text-gray-900 dark:text-white">Auto Join Groups</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Join relevant groups automatically</p>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {activeTab === 'audience' && (
-              <div style={styles.contentCard}>
-                <div style={styles.cardHeader}>
-                  <div>
-                    <h2 style={styles.cardTitle}>Audience Data</h2>
-                    <p style={styles.cardDesc}>{audience.length} profiles collected</p>
-                  </div>
-                  <button onClick={exportAudienceCSV} style={styles.exportButton}>
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Audience Data</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">View and export your collected audience data</p>
+                
+                <div className="flex justify-end mb-4">
+                  <button className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 flex items-center gap-2">
+                    <Download className="w-4 h-4" />
                     Export CSV
                   </button>
                 </div>
                 
-                <div style={styles.tableContainer}>
-                  <table style={styles.table}>
-                    <thead>
-                      <tr>
-                        <th style={styles.th}>Name</th>
-                        <th style={styles.th}>Location</th>
-                        <th style={styles.th}>Source</th>
-                        <th style={styles.th}>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {audience.slice(0, 20).map((person, i) => (
-                        <tr key={i} style={styles.tr}>
-                          <td style={styles.td}>
-                            <span style={styles.profileName}>{person.name || 'Unknown'}</span>
-                          </td>
-                          <td style={styles.td}>{person.location || '-'}</td>
-                          <td style={styles.td}>
-                            <span style={styles.sourceBadge}>{person.source || 'manual'}</span>
-                          </td>
-                          <td style={styles.td}>
-                            <a href={person.profileUrl} target="_blank" rel="noopener noreferrer" style={styles.viewLink}>
-                              View
-                            </a>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {audience.length === 0 && (
-                    <div style={styles.emptyTable}>
-                      No audience data yet. Start scraping to collect profiles.
-                    </div>
-                  )}
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                  No audience data yet. Run a scraping job to collect data.
                 </div>
               </div>
             )}
 
-            {/* Analytics Tab */}
-            {activeTab === 'analytics' && (
-              <div style={styles.contentCard}>
-                <h2 style={styles.cardTitle}>Analytics</h2>
-                <p style={styles.cardDesc}>Track your engagement performance</p>
-                
-                <div style={styles.analyticsGrid}>
-                  <div style={styles.analyticCard}>
-                    <h4 style={styles.analyticLabel}>Total Actions</h4>
-                    <span style={styles.analyticValue}>
-                      {(stats.postsLiked || 0) + (stats.commentsPosted || 0) + (stats.friendsSent || 0)}
-                    </span>
-                  </div>
-                  <div style={styles.analyticCard}>
-                    <h4 style={styles.analyticLabel}>Profiles Scraped</h4>
-                    <span style={styles.analyticValue}>{stats.profilesScraped || 0}</span>
-                  </div>
-                </div>
-
-                <h3 style={styles.subTitle}>Recent Jobs</h3>
-                <div style={styles.jobsList}>
-                  {jobs.slice(0, 10).map((job, i) => (
-                    <div key={i} style={styles.jobItem}>
-                      <div style={styles.jobInfo}>
-                        <span style={styles.jobType}>{job.type}</span>
-                        <span style={styles.jobDate}>
+            {/* Recent Jobs */}
+            {jobs.length > 0 && (
+              <div className="border-t border-gray-100 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Jobs</h3>
+                <div className="space-y-3">
+                  {jobs.slice(0, 5).map(job => (
+                    <div key={job._id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{job.type}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           {new Date(job.createdAt).toLocaleString()}
-                        </span>
+                        </p>
                       </div>
-                      <span style={{
-                        ...styles.jobStatus,
-                        backgroundColor: job.status === 'completed' ? '#DCFCE7' : 
-                                        job.status === 'failed' ? '#FEE2E2' :
-                                        job.status === 'processing' ? '#DBEAFE' : '#F3F4F6',
-                        color: job.status === 'completed' ? '#166534' :
-                               job.status === 'failed' ? '#991B1B' :
-                               job.status === 'processing' ? '#1E40AF' : '#374151',
-                      }}>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        job.status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                        job.status === 'failed' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                        job.status === 'running' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                        'bg-gray-100 text-gray-700 dark:bg-gray-600 dark:text-gray-300'
+                      }`}>
                         {job.status}
                       </span>
                     </div>
                   ))}
-                  {jobs.length === 0 && (
-                    <p style={styles.noJobs}>No jobs yet</p>
-                  )}
                 </div>
               </div>
             )}
           </div>
-        </div>
+        )}
       </div>
-    </>
+    </AppLayout>
   );
 }
-
-// Facebook-style clean white design
-const styles = {
-  page: {
-    minHeight: '100vh',
-    backgroundColor: '#F0F2F5',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-  },
-  container: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '24px 16px',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '24px',
-    flexWrap: 'wrap',
-    gap: '16px',
-  },
-  headerLeft: {},
-  backLink: {
-    display: 'inline-block',
-    color: '#8B5CF6',
-    textDecoration: 'none',
-    fontSize: '14px',
-    marginBottom: '8px',
-  },
-  title: {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: '#1C1E21',
-    margin: '0 0 8px 0',
-  },
-  subtitle: {
-    fontSize: '15px',
-    color: '#65676B',
-    margin: 0,
-  },
-  accountSelector: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    flexWrap: 'wrap',
-  },
-  selectorLabel: {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#65676B',
-  },
-  select: {
-    padding: '10px 16px',
-    border: '1px solid #CED0D4',
-    borderRadius: '6px',
-    fontSize: '14px',
-    color: '#1C1E21',
-    backgroundColor: '#FFFFFF',
-    minWidth: '200px',
-  },
-  manageLink: {
-    color: '#8B5CF6',
-    fontSize: '14px',
-    textDecoration: 'none',
-  },
-  
-  // Stats
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '12px',
-    marginBottom: '24px',
-  },
-  statCard: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    backgroundColor: '#FFFFFF',
-    padding: '20px',
-    borderRadius: '8px',
-    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-  },
-  statIcon: {
-    fontSize: '28px',
-    width: '48px',
-    height: '48px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F0F2F5',
-    borderRadius: '50%',
-  },
-  statInfo: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  statValue: {
-    fontSize: '24px',
-    fontWeight: '700',
-    color: '#1C1E21',
-  },
-  statLabel: {
-    fontSize: '13px',
-    color: '#65676B',
-  },
-
-  // Tabs
-  tabsCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: '8px 8px 0 0',
-    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-    marginBottom: '-1px',
-    overflowX: 'auto',
-  },
-  tabs: {
-    display: 'flex',
-    gap: '0',
-    padding: '0 8px',
-    borderBottom: '1px solid #E4E6EB',
-  },
-  tab: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '16px 16px',
-    background: 'none',
-    border: 'none',
-    borderBottom: '3px solid transparent',
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#65676B',
-    cursor: 'pointer',
-    whiteSpace: 'nowrap',
-    marginBottom: '-1px',
-  },
-  activeTab: {
-    color: '#8B5CF6',
-    borderBottomColor: '#8B5CF6',
-  },
-  tabIcon: {
-    fontSize: '16px',
-  },
-
-  // Content
-  content: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: '0 0 8px 8px',
-    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-    minHeight: '400px',
-  },
-  contentCard: {
-    padding: '24px',
-  },
-  cardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '20px',
-  },
-  cardTitle: {
-    fontSize: '18px',
-    fontWeight: '600',
-    color: '#1C1E21',
-    margin: '0 0 8px 0',
-  },
-  cardDesc: {
-    fontSize: '14px',
-    color: '#65676B',
-    margin: 0,
-  },
-
-  // Forms
-  form: {
-    maxWidth: '500px',
-  },
-  formGroup: {
-    marginBottom: '20px',
-  },
-  label: {
-    display: 'block',
-    fontSize: '14px',
-    fontWeight: '600',
-    color: '#1C1E21',
-    marginBottom: '8px',
-  },
-  input: {
-    width: '100%',
-    padding: '12px 16px',
-    border: '1px solid #CED0D4',
-    borderRadius: '6px',
-    fontSize: '15px',
-    color: '#1C1E21',
-    backgroundColor: '#FFFFFF',
-    outline: 'none',
-    boxSizing: 'border-box',
-  },
-  formSelect: {
-    width: '100%',
-    padding: '12px 16px',
-    border: '1px solid #CED0D4',
-    borderRadius: '6px',
-    fontSize: '15px',
-    color: '#1C1E21',
-    backgroundColor: '#FFFFFF',
-    boxSizing: 'border-box',
-  },
-  textarea: {
-    width: '100%',
-    padding: '12px 16px',
-    border: '1px solid #CED0D4',
-    borderRadius: '6px',
-    fontSize: '15px',
-    color: '#1C1E21',
-    backgroundColor: '#FFFFFF',
-    outline: 'none',
-    resize: 'vertical',
-    fontFamily: 'inherit',
-    boxSizing: 'border-box',
-  },
-  primaryButton: {
-    padding: '12px 24px',
-    backgroundColor: '#8B5CF6',
-    color: '#FFFFFF',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '15px',
-    fontWeight: '600',
-    cursor: 'pointer',
-  },
-  exportButton: {
-    padding: '10px 20px',
-    backgroundColor: '#E4E6EB',
-    color: '#1C1E21',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-  },
-
-  // Table
-  tableContainer: {
-    overflowX: 'auto',
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-  },
-  th: {
-    textAlign: 'left',
-    padding: '12px 16px',
-    fontSize: '13px',
-    fontWeight: '600',
-    color: '#65676B',
-    borderBottom: '1px solid #E4E6EB',
-    backgroundColor: '#F7F8FA',
-  },
-  tr: {
-    borderBottom: '1px solid #F0F2F5',
-  },
-  td: {
-    padding: '14px 16px',
-    fontSize: '14px',
-    color: '#1C1E21',
-  },
-  profileName: {
-    fontWeight: '500',
-    color: '#1C1E21',
-  },
-  sourceBadge: {
-    display: 'inline-block',
-    padding: '4px 10px',
-    backgroundColor: '#F0F2F5',
-    color: '#65676B',
-    borderRadius: '4px',
-    fontSize: '12px',
-    fontWeight: '500',
-  },
-  viewLink: {
-    color: '#8B5CF6',
-    textDecoration: 'none',
-    fontWeight: '500',
-  },
-  emptyTable: {
-    padding: '40px 24px',
-    textAlign: 'center',
-    color: '#65676B',
-  },
-
-  // Coming Soon
-  comingSoon: {
-    textAlign: 'center',
-    padding: '60px 24px',
-  },
-  comingSoonIcon: {
-    fontSize: '48px',
-    display: 'block',
-    marginBottom: '16px',
-  },
-  comingSoonTitle: {
-    fontSize: '18px',
-    fontWeight: '600',
-    color: '#1C1E21',
-    margin: '0 0 8px 0',
-  },
-  comingSoonDesc: {
-    fontSize: '14px',
-    color: '#65676B',
-    margin: 0,
-  },
-
-  // Analytics
-  analyticsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '16px',
-    marginBottom: '32px',
-  },
-  analyticCard: {
-    backgroundColor: '#F7F8FA',
-    padding: '24px',
-    borderRadius: '8px',
-    border: '1px solid #E4E6EB',
-  },
-  analyticLabel: {
-    fontSize: '14px',
-    color: '#65676B',
-    margin: '0 0 8px 0',
-    fontWeight: '500',
-  },
-  analyticValue: {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: '#1C1E21',
-  },
-  subTitle: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: '#1C1E21',
-    margin: '0 0 16px 0',
-  },
-  jobsList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-  },
-  jobItem: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '14px 16px',
-    backgroundColor: '#F7F8FA',
-    borderRadius: '8px',
-    border: '1px solid #E4E6EB',
-  },
-  jobInfo: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-  },
-  jobType: {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#1C1E21',
-  },
-  jobDate: {
-    fontSize: '12px',
-    color: '#65676B',
-  },
-  jobStatus: {
-    padding: '4px 12px',
-    borderRadius: '4px',
-    fontSize: '12px',
-    fontWeight: '600',
-    textTransform: 'capitalize',
-  },
-  noJobs: {
-    textAlign: 'center',
-    color: '#65676B',
-    padding: '24px',
-    margin: 0,
-  },
-};
