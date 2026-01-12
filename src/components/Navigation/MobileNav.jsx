@@ -1,7 +1,12 @@
 // ============================================
 // FILE: src/components/Navigation/MobileNav.jsx
-// PURPOSE: Mobile bottom navigation bar
-// VERSION: 2.0 - Enhanced with Forms, Church, Studio
+// PATH: cybev-frontend/src/components/Navigation/MobileNav.jsx
+// PURPOSE: Mobile Bottom Navigation - Clean White Design
+// VERSION: 7.0.0 - Facebook-style clean white design
+// PREVIOUS: 6.8.x - Dark blur mobile nav
+// ROLLBACK: Restore previous MobileNav.jsx
+// GITHUB: https://github.com/cybev1/cybev-frontend
+// UPDATED: 2026-01-12
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -24,9 +29,14 @@ import {
   Mic,
   Calendar,
   Users,
-  MoreHorizontal
+  MoreHorizontal,
+  Globe,
+  Play
 } from 'lucide-react';
 
+// ==========================================
+// MAIN NAVIGATION ITEMS
+// ==========================================
 const NAV_ITEMS = [
   {
     label: 'Feed',
@@ -61,19 +71,22 @@ const NAV_ITEMS = [
   }
 ];
 
+// ==========================================
+// MOBILE NAV COMPONENT
+// ==========================================
 export default function MobileNav() {
   const router = useRouter();
   const currentPath = router.pathname;
   const [showCreateMenu, setShowCreateMenu] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Fetch unread notifications count
+  // Fetch unread notifications
   useEffect(() => {
     const fetchUnread = async () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
-        const API = process.env.NEXT_PUBLIC_API_URL || '';
+        const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
         const res = await fetch(`${API}/api/notifications/unread-count`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -89,7 +102,7 @@ export default function MobileNav() {
   }, []);
 
   const isActive = (item) => {
-    return item.matchPaths.some(path => 
+    return item.matchPaths.some(path =>
       currentPath === path || currentPath.startsWith(path + '/')
     );
   };
@@ -101,38 +114,49 @@ export default function MobileNav() {
 
   return (
     <>
+      {/* ==========================================
+          MOBILE BOTTOM NAVIGATION BAR
+          ========================================== */}
       <nav className="mobile-nav md:hidden">
         <div className="flex justify-around items-center">
           {NAV_ITEMS.map((item) => {
             const active = isActive(item);
             const Icon = item.icon;
 
+            // Create Button - Floating Gradient
             if (item.isAction) {
               return (
-                <button 
-                  key={item.href} 
+                <button
+                  key={item.href}
                   onClick={handleCreateClick}
-                  className="flex flex-col items-center justify-center p-2 -mt-6"
+                  className="flex flex-col items-center justify-center p-1 -mt-6"
                 >
-                  <div className="w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/30 active:scale-95 transition-transform">
+                  <div className="w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-lg border-4 border-white active:scale-95 transition-transform"
+                    style={{ boxShadow: '0 4px 15px rgba(124, 58, 237, 0.35)' }}
+                  >
                     <Icon className="w-6 h-6 text-white" />
                   </div>
                 </button>
               );
             }
 
+            // Regular Nav Item
             return (
               <Link key={item.href} href={item.href}>
-                <div className={`mobile-nav-item ${active ? 'active' : ''}`}>
+                <div className={`flex flex-col items-center justify-center py-2 px-4 rounded-lg transition-all ${
+                  active ? 'text-purple-600' : 'text-gray-500'
+                }`}>
                   <div className="relative">
-                    <Icon className={`icon ${active ? 'text-purple-400' : 'text-gray-400'}`} />
+                    <Icon className={`w-6 h-6 ${active ? 'text-purple-600' : 'text-gray-500'}`} />
                     {item.label === 'Alerts' && unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                      <span className="absolute -top-1 -right-2 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
                         {unreadCount > 9 ? '9+' : unreadCount}
                       </span>
                     )}
                   </div>
-                  <span className={`label ${active ? 'text-purple-400' : 'text-gray-500'}`}>
+                  <span className={`text-[10px] mt-1 font-semibold ${
+                    active ? 'text-purple-600' : 'text-gray-500'
+                  }`}>
                     {item.label}
                   </span>
                 </div>
@@ -150,66 +174,76 @@ export default function MobileNav() {
   );
 }
 
-// Create Menu Modal Component
+// ==========================================
+// CREATE MENU MODAL - Clean White Design
+// ==========================================
 function CreateMenuModal({ onClose }) {
   const router = useRouter();
 
   const createOptions = [
     {
       label: 'Post',
-      description: 'Share a thought or update',
+      description: 'Share a thought',
       icon: Pencil,
       href: '/post/create',
-      color: '#7c3aed'
+      color: '#7c3aed',
+      bgColor: '#f3e8ff'
     },
     {
       label: 'Blog',
-      description: 'Write a long-form article',
+      description: 'Write an article',
       icon: FileText,
-      href: '/blog/create',
-      color: '#3b82f6'
+      href: '/studio/ai-blog',
+      color: '#3b82f6',
+      bgColor: '#dbeafe'
     },
     {
       label: 'Video',
-      description: 'Upload or record a video',
+      description: 'Upload video',
       icon: Video,
       href: '/vlog/create',
-      color: '#ef4444'
+      color: '#ef4444',
+      bgColor: '#fee2e2'
     },
     {
       label: 'Story',
-      description: 'Share a moment (24hr)',
+      description: '24hr moment',
       icon: Image,
       href: '/story/create',
-      color: '#f59e0b'
+      color: '#f59e0b',
+      bgColor: '#fef3c7'
+    },
+    {
+      label: 'Website',
+      description: 'Build with AI',
+      icon: Globe,
+      href: '/studio/sites/new',
+      color: '#ec4899',
+      bgColor: '#fce7f3'
     },
     {
       label: 'Form',
-      description: 'Create a survey or form',
+      description: 'Create survey',
       icon: FileText,
       href: '/studio/forms/builder',
-      color: '#10b981'
+      color: '#10b981',
+      bgColor: '#d1fae5'
     },
     {
       label: 'Event',
-      description: 'Create an event',
+      description: 'Plan event',
       icon: Calendar,
       href: '/events/create',
-      color: '#ec4899'
+      color: '#8b5cf6',
+      bgColor: '#ede9fe'
     },
     {
       label: 'Go Live',
-      description: 'Start a live stream',
-      icon: Mic,
+      description: 'Start stream',
+      icon: Play,
       href: '/live/start',
-      color: '#8b5cf6'
-    },
-    {
-      label: 'Group',
-      description: 'Create a community',
-      icon: Users,
-      href: '/groups/create',
-      color: '#06b6d4'
+      color: '#ef4444',
+      bgColor: '#fee2e2'
     }
   ];
 
@@ -221,65 +255,117 @@ function CreateMenuModal({ onClose }) {
   return (
     <div className="fixed inset-0 z-50 md:hidden">
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      <div
+        className="absolute inset-0 bg-black/50"
         onClick={onClose}
+        style={{ animation: 'fadeIn 0.2s ease-out' }}
       />
 
-      {/* Menu */}
-      <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-3xl p-6 pb-8 animate-slide-up">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Create</h3>
-          <button 
+      {/* Menu Panel */}
+      <div
+        className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl overflow-hidden"
+        style={{
+          paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))',
+          animation: 'slideUp 0.3s ease-out'
+        }}
+      >
+        {/* Handle Bar */}
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-10 h-1 bg-gray-300 rounded-full" />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pb-4">
+          <h3 className="text-lg font-bold text-gray-900">Create</h3>
+          <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition"
+            className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-gray-600" />
           </button>
         </div>
 
-        <div className="grid grid-cols-4 gap-4">
+        {/* Grid of Options */}
+        <div className="grid grid-cols-4 gap-3 px-4 pb-4">
           {createOptions.map((option) => (
             <button
               key={option.href}
               onClick={() => handleNavigate(option.href)}
-              className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition active:scale-95"
+              className="flex flex-col items-center gap-2 p-3 rounded-2xl hover:bg-gray-50 active:scale-95 transition-all"
             >
-              <div 
+              <div
                 className="w-12 h-12 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: `${option.color}15` }}
+                style={{ backgroundColor: option.bgColor }}
               >
                 <option.icon className="w-6 h-6" style={{ color: option.color }} />
               </div>
-              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+              <span className="text-xs font-semibold text-gray-900 text-center">
                 {option.label}
               </span>
             </button>
           ))}
         </div>
-
-        {/* Handle bar indicator */}
-        <div className="absolute top-3 left-1/2 transform -translate-x-1/2 w-10 h-1 bg-gray-300 dark:bg-gray-700 rounded-full" />
       </div>
 
       <style jsx>{`
-        @keyframes slide-up {
-          from {
-            transform: translateY(100%);
-          }
-          to {
-            transform: translateY(0);
-          }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
-        .animate-slide-up {
-          animation: slide-up 0.3s ease-out;
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
         }
       `}</style>
     </div>
   );
 }
 
-// Alternative expanded nav with Studio & Church
+// ==========================================
+// CHURCH MOBILE NAV VARIANT
+// ==========================================
+export function MobileNavChurch({ orgId }) {
+  const router = useRouter();
+  const currentPath = router.pathname;
+
+  const navItems = [
+    { label: 'Home', href: `/church/org/${orgId}`, icon: Home },
+    { label: 'Cells', href: `/church/cells/dashboard?orgId=${orgId}`, icon: Users },
+    { label: 'Reports', href: `/church/cells/reports?orgId=${orgId}`, icon: FileText },
+    { label: 'Events', href: `/church/org/${orgId}/events`, icon: Calendar },
+    { label: 'More', href: '#', icon: MoreHorizontal, isMore: true }
+  ];
+
+  return (
+    <nav className="mobile-nav md:hidden">
+      <div className="flex justify-around items-center">
+        {navItems.map((item) => {
+          const active = currentPath.includes(item.href.split('?')[0]);
+          const Icon = item.icon;
+
+          return (
+            <Link key={item.label} href={item.href}>
+              <div className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg ${
+                active ? 'text-purple-600' : 'text-gray-500'
+              }`}>
+                <Icon className={`w-6 h-6 ${active ? 'text-purple-600' : 'text-gray-500'}`} />
+                <span className={`text-[10px] mt-1 font-semibold ${
+                  active ? 'text-purple-600' : 'text-gray-500'
+                }`}>
+                  {item.label}
+                </span>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+// ==========================================
+// EXPANDED NAV WITH STUDIO & CHURCH
+// ==========================================
 export function MobileNavExpanded() {
   const router = useRouter();
   const currentPath = router.pathname;
@@ -304,8 +390,8 @@ export function MobileNavExpanded() {
             if (item.isAction) {
               return (
                 <Link key={item.href} href={item.href}>
-                  <div className="flex flex-col items-center justify-center p-2 -mt-6">
-                    <div className="w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/30 active:scale-95 transition-transform">
+                  <div className="flex flex-col items-center justify-center p-1 -mt-6">
+                    <div className="w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-lg border-4 border-white active:scale-95 transition-transform">
                       <Icon className="w-6 h-6 text-white" />
                     </div>
                   </div>
@@ -315,13 +401,13 @@ export function MobileNavExpanded() {
 
             if (item.isMore) {
               return (
-                <button 
+                <button
                   key="more"
                   onClick={() => setShowMoreMenu(true)}
-                  className="mobile-nav-item"
+                  className="flex flex-col items-center justify-center py-2 px-3"
                 >
-                  <Icon className="w-6 h-6 text-gray-400" />
-                  <span className="text-[10px] mt-1 font-medium text-gray-500">
+                  <Icon className="w-6 h-6 text-gray-500" />
+                  <span className="text-[10px] mt-1 font-semibold text-gray-500">
                     {item.label}
                   </span>
                 </button>
@@ -330,9 +416,13 @@ export function MobileNavExpanded() {
 
             return (
               <Link key={item.href} href={item.href}>
-                <div className={`mobile-nav-item ${active ? 'active' : ''}`}>
-                  <Icon className={`w-6 h-6 ${active ? 'text-purple-400' : 'text-gray-400'}`} />
-                  <span className={`text-[10px] mt-1 font-medium ${active ? 'text-purple-400' : 'text-gray-500'}`}>
+                <div className={`flex flex-col items-center justify-center py-2 px-3 ${
+                  active ? 'text-purple-600' : 'text-gray-500'
+                }`}>
+                  <Icon className={`w-6 h-6 ${active ? 'text-purple-600' : 'text-gray-500'}`} />
+                  <span className={`text-[10px] mt-1 font-semibold ${
+                    active ? 'text-purple-600' : 'text-gray-500'
+                  }`}>
                     {item.label}
                   </span>
                 </div>
@@ -350,18 +440,20 @@ export function MobileNavExpanded() {
   );
 }
 
-// More Menu Modal
+// ==========================================
+// MORE MENU MODAL
+// ==========================================
 function MoreMenuModal({ onClose }) {
   const router = useRouter();
 
   const menuItems = [
-    { label: 'Profile', icon: User, href: '/profile', color: '#7c3aed' },
-    { label: 'Notifications', icon: Bell, href: '/notifications', color: '#ef4444' },
-    { label: 'Church', icon: Church, href: '/church', color: '#f59e0b' },
-    { label: 'Forms', icon: FileText, href: '/studio/forms', color: '#10b981' },
-    { label: 'Events', icon: Calendar, href: '/events', color: '#ec4899' },
-    { label: 'Groups', icon: Users, href: '/groups', color: '#3b82f6' },
-    { label: 'Search', icon: Search, href: '/search', color: '#6b7280' },
+    { label: 'Profile', icon: User, href: '/profile', color: '#7c3aed', bgColor: '#f3e8ff' },
+    { label: 'Notifications', icon: Bell, href: '/notifications', color: '#ef4444', bgColor: '#fee2e2' },
+    { label: 'Church', icon: Church, href: '/church', color: '#f59e0b', bgColor: '#fef3c7' },
+    { label: 'Forms', icon: FileText, href: '/studio/forms', color: '#10b981', bgColor: '#d1fae5' },
+    { label: 'Events', icon: Calendar, href: '/events', color: '#ec4899', bgColor: '#fce7f3' },
+    { label: 'Groups', icon: Users, href: '/groups', color: '#3b82f6', bgColor: '#dbeafe' },
+    { label: 'Search', icon: Search, href: '/search', color: '#6b7280', bgColor: '#f3f4f6' },
   ];
 
   const handleNavigate = (href) => {
@@ -371,38 +463,43 @@ function MoreMenuModal({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 md:hidden">
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      <div
+        className="absolute inset-0 bg-black/50"
         onClick={onClose}
       />
 
-      <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-3xl p-6 pb-8">
-        <div className="absolute top-3 left-1/2 transform -translate-x-1/2 w-10 h-1 bg-gray-300 dark:bg-gray-700 rounded-full" />
-        
-        <div className="flex items-center justify-between mb-6 mt-2">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">More</h3>
-          <button 
+      <div
+        className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl"
+        style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
+      >
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-10 h-1 bg-gray-300 rounded-full" />
+        </div>
+
+        <div className="flex items-center justify-between px-5 pb-4">
+          <h3 className="text-lg font-bold text-gray-900">More</h3>
+          <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+            className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-gray-600" />
           </button>
         </div>
 
-        <div className="space-y-2">
+        <div className="px-4 pb-4 space-y-1">
           {menuItems.map((item) => (
             <button
               key={item.href}
               onClick={() => handleNavigate(item.href)}
-              className="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+              className="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 active:scale-[0.98] transition-all"
             >
-              <div 
+              <div
                 className="w-10 h-10 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: `${item.color}15` }}
+                style={{ backgroundColor: item.bgColor }}
               >
                 <item.icon className="w-5 h-5" style={{ color: item.color }} />
               </div>
-              <span className="font-medium text-gray-900 dark:text-white">
+              <span className="font-semibold text-gray-900">
                 {item.label}
               </span>
             </button>
@@ -410,41 +507,5 @@ function MoreMenuModal({ onClose }) {
         </div>
       </div>
     </div>
-  );
-}
-
-// Church-focused mobile nav variant
-export function MobileNavChurch({ orgId }) {
-  const router = useRouter();
-  const currentPath = router.pathname;
-
-  const navItems = [
-    { label: 'Home', href: `/church/org/${orgId}`, icon: Home },
-    { label: 'Cells', href: `/church/cells/dashboard?orgId=${orgId}`, icon: Users },
-    { label: 'Reports', href: `/church/cells/reports?orgId=${orgId}`, icon: FileText },
-    { label: 'Events', href: `/church/org/${orgId}/events`, icon: Calendar },
-    { label: 'More', href: '#', icon: MoreHorizontal, isMore: true }
-  ];
-
-  return (
-    <nav className="mobile-nav md:hidden">
-      <div className="flex justify-around items-center">
-        {navItems.map((item) => {
-          const active = currentPath.includes(item.href.split('?')[0]);
-          const Icon = item.icon;
-
-          return (
-            <Link key={item.label} href={item.href}>
-              <div className={`mobile-nav-item ${active ? 'active' : ''}`}>
-                <Icon className={`w-6 h-6 ${active ? 'text-purple-400' : 'text-gray-400'}`} />
-                <span className={`text-[10px] mt-1 font-medium ${active ? 'text-purple-400' : 'text-gray-500'}`}>
-                  {item.label}
-                </span>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
   );
 }
