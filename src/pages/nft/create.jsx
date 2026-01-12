@@ -1,294 +1,129 @@
 // ============================================
 // FILE: src/pages/nft/create.jsx
-// PATH: cybev-frontend/src/pages/nft/create.jsx
-// PURPOSE: Create and mint new NFTs
+// CYBEV NFT Create - CLEAN WHITE DESIGN
+// VERSION: 7.1.0 - Solid white, black text, readable
 // ============================================
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useDropzone } from 'react-dropzone';
 import AppLayout from '@/components/Layout/AppLayout';
-import {
-  Upload,
-  Image as ImageIcon,
-  Music,
-  Video,
-  X,
-  Plus,
-  Sparkles,
-  Tag,
-  DollarSign,
-  Lock,
-  Globe,
-  ChevronLeft,
-  Check,
-  Loader2,
-  Info,
-  Percent,
-  Clock,
-  Layers,
-  ExternalLink
-} from 'lucide-react';
+import { toast } from 'react-toastify';
 import api from '@/lib/api';
+import {
+  Upload, ArrowLeft, ArrowRight, Loader2, Check, Image as ImageIcon,
+  FileText, Tag, DollarSign, Settings, Eye, Sparkles, X, AlertCircle
+} from 'lucide-react';
 
-// Attribute input component
-function AttributeInput({ attribute, onChange, onRemove }) {
-  return (
-    <div className="flex gap-2 items-center">
-      <input
-        type="text"
-        placeholder="Property"
-        value={attribute.trait_type}
-        onChange={(e) => onChange({ ...attribute, trait_type: e.target.value })}
-        className="flex-1 bg-gray-700 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:border-purple-500 focus:outline-none"
-      />
-      <input
-        type="text"
-        placeholder="Value"
-        value={attribute.value}
-        onChange={(e) => onChange({ ...attribute, value: e.target.value })}
-        className="flex-1 bg-gray-700 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:border-purple-500 focus:outline-none"
-      />
-      <button
-        onClick={onRemove}
-        className="p-2 text-gray-500 hover:text-red-400 transition-colors"
-      >
-        <X className="w-4 h-4" />
-      </button>
-    </div>
-  );
-}
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
-export default function CreateNFT() {
+const CATEGORIES = [
+  'Art', 'Music', 'Video', 'Photography', 'Collectibles',
+  'Gaming', 'Sports', 'Memes', 'Domain Names', 'Virtual Worlds'
+];
+
+export default function CreateNFTPage() {
   const router = useRouter();
-  const fileInputRef = useRef(null);
-  const [user, setUser] = useState(null);
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [step, setStep] = useState(1); // 1: Upload, 2: Details, 3: Pricing, 4: Review
-  
-  // Form state
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    image: null,
-    imagePreview: null,
-    category: 'art',
-    attributes: [],
-    collection: '',
-    royaltyPercentage: 10,
-    isListed: false,
-    listingPrice: '',
-    listingType: 'fixed',
-    auctionDuration: 24, // hours
-    hasUnlockable: false,
+    category: '',
+    price: '',
+    royalty: 10,
+    properties: [],
     unlockableContent: '',
-    externalUrl: ''
+    isExplicit: false
   });
 
-  const [collections, setCollections] = useState([]);
-  const [errors, setErrors] = useState({});
-
-  const CATEGORIES = [
-    { id: 'art', label: 'Art', icon: ImageIcon },
-    { id: 'music', label: 'Music', icon: Music },
-    { id: 'video', label: 'Video', icon: Video },
-    { id: 'photography', label: 'Photography', icon: ImageIcon },
-    { id: 'gaming', label: 'Gaming', icon: Sparkles },
-    { id: 'collectible', label: 'Collectible', icon: Layers }
-  ];
-
-  useEffect(() => {
-    const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-    if (!token) {
-      router.push('/auth/login');
-      return;
+  const onDrop = useCallback((acceptedFiles) => {
+    const file = acceptedFiles[0];
+    if (file) {
+      setUploadedFile(file);
+      const reader = new FileReader();
+      reader.onload = () => setPreview(reader.result);
+      reader.readAsDataURL(file);
     }
+  }, []);
 
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      try {
-        setUser(JSON.parse(userData));
-      } catch (e) {}
-    }
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
+      'video/*': ['.mp4', '.webm'],
+      'audio/*': ['.mp3', '.wav']
+    },
+    maxSize: 100 * 1024 * 1024, // 100MB
+    multiple: false
+  });
 
-    fetchCollections();
-  }, [router]);
-
-  const fetchCollections = async () => {
-    try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      const response = await api.get('/api/nft/collections/all', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (response.data.ok) {
-        setCollections(response.data.collections.filter(c => c.creator._id === user?._id));
-      }
-    } catch (error) {
-      console.log('No collections found');
-    }
+  const removeFile = () => {
+    setUploadedFile(null);
+    setPreview(null);
   };
 
-  const handleFileSelect = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'audio/mpeg', 'audio/wav'];
-    if (!validTypes.includes(file.type)) {
-      setErrors({ ...errors, file: 'Invalid file type. Supported: JPG, PNG, GIF, WEBP, MP4, MP3, WAV' });
+  const handleMint = async () => {
+    if (!uploadedFile) {
+      toast.error('Please upload a file');
+      return;
+    }
+    if (!formData.name.trim()) {
+      toast.error('Please enter a name');
       return;
     }
 
-    // Validate file size (max 100MB)
-    if (file.size > 100 * 1024 * 1024) {
-      setErrors({ ...errors, file: 'File too large. Maximum size is 100MB' });
-      return;
-    }
-
-    setUploading(true);
-    setErrors({ ...errors, file: null });
-
+    setLoading(true);
     try {
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setFormData(prev => ({
-          ...prev,
-          imagePreview: e.target.result
-        }));
-      };
-      reader.readAsDataURL(file);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Please login to mint NFT');
+        router.push('/auth/login');
+        return;
+      }
 
-      // Upload to server/cloudinary
-      const uploadData = new FormData();
-      uploadData.append('file', file);
+      // Upload file first
+      const fileFormData = new FormData();
+      fileFormData.append('file', uploadedFile);
 
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      const response = await api.post('/api/upload', uploadData, {
+      const uploadRes = await api.post('/api/upload', fileFormData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
 
-      if (response.data.ok || response.data.url) {
-        setFormData(prev => ({
-          ...prev,
-          image: response.data.url || response.data.secure_url
-        }));
+      if (!uploadRes.data.url) {
+        throw new Error('File upload failed');
       }
-    } catch (error) {
-      console.error('Upload failed:', error);
-      // For demo, use the preview as image
-      setFormData(prev => ({
-        ...prev,
-        image: prev.imagePreview
-      }));
-    } finally {
-      setUploading(false);
-    }
-  };
 
-  const addAttribute = () => {
-    setFormData(prev => ({
-      ...prev,
-      attributes: [...prev.attributes, { trait_type: '', value: '' }]
-    }));
-  };
-
-  const updateAttribute = (index, attr) => {
-    setFormData(prev => ({
-      ...prev,
-      attributes: prev.attributes.map((a, i) => i === index ? attr : a)
-    }));
-  };
-
-  const removeAttribute = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      attributes: prev.attributes.filter((_, i) => i !== index)
-    }));
-  };
-
-  const validateStep = (stepNum) => {
-    const newErrors = {};
-
-    if (stepNum >= 1) {
-      if (!formData.image && !formData.imagePreview) {
-        newErrors.file = 'Please upload a file';
-      }
-    }
-
-    if (stepNum >= 2) {
-      if (!formData.name.trim()) {
-        newErrors.name = 'Name is required';
-      }
-    }
-
-    if (stepNum >= 3 && formData.isListed) {
-      if (!formData.listingPrice || parseFloat(formData.listingPrice) <= 0) {
-        newErrors.price = 'Please enter a valid price';
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const nextStep = () => {
-    if (validateStep(step)) {
-      setStep(step + 1);
-    }
-  };
-
-  const prevStep = () => {
-    setStep(step - 1);
-  };
-
-  const handleSubmit = async () => {
-    if (!validateStep(3)) return;
-
-    setLoading(true);
-
-    try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      
-      const nftData = {
+      // Create NFT
+      const nftRes = await api.post('/api/nfts', {
         name: formData.name,
         description: formData.description,
-        image: formData.image || formData.imagePreview,
         category: formData.category,
-        attributes: formData.attributes.filter(a => a.trait_type && a.value),
-        collection: formData.collection || null,
-        royaltyPercentage: formData.royaltyPercentage,
-        isListed: formData.isListed,
-        listingPrice: formData.isListed ? parseFloat(formData.listingPrice) : 0,
-        listingType: formData.listingType,
-        auctionEndTime: formData.listingType === 'auction' 
-          ? new Date(Date.now() + formData.auctionDuration * 60 * 60 * 1000)
-          : null,
-        hasUnlockable: formData.hasUnlockable,
+        price: parseFloat(formData.price) || 0,
+        royalty: formData.royalty,
+        image: uploadRes.data.url,
+        properties: formData.properties,
         unlockableContent: formData.unlockableContent,
-        externalUrl: formData.externalUrl
-      };
-
-      const response = await api.post('/api/nft', nftData, {
+        isExplicit: formData.isExplicit
+      }, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      if (response.data.ok) {
-        // In production, trigger blockchain minting here
-        // await mintOnBlockchain(response.data.nft);
-        
-        alert('NFT created successfully!');
-        router.push(`/nft/${response.data.nft._id}`);
+      if (nftRes.data.ok || nftRes.data.success || nftRes.data.nft) {
+        toast.success('NFT created successfully!');
+        router.push(`/nft/${nftRes.data.nft?._id || nftRes.data._id}`);
       }
-    } catch (error) {
-      console.error('Create NFT error:', error);
-      alert('Failed to create NFT. Please try again.');
+    } catch (err) {
+      console.error('Mint error:', err);
+      toast.error(err.response?.data?.message || 'Failed to create NFT');
     } finally {
       setLoading(false);
     }
@@ -297,518 +132,320 @@ export default function CreateNFT() {
   return (
     <AppLayout>
       <Head>
-        <title>Create NFT - CYBEV</title>
+        <title>Create NFT | CYBEV</title>
       </Head>
 
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      {/* SOLID WHITE/GRAY BACKGROUND - NO GRADIENTS */}
+      <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <button
-            onClick={() => router.back()}
-            className="p-2 hover:bg-white rounded-lg transition-colors"
-          >
-            <ChevronLeft className="w-6 h-6 text-gray-500" />
-          </button>
-          <div>
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-3xl mx-auto px-4 py-6">
+            <Link href="/nft">
+              <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 font-medium">
+                <ArrowLeft className="w-5 h-5" />
+                Back to NFT Gallery
+              </button>
+            </Link>
             <h1 className="text-2xl font-bold text-gray-900">Create NFT</h1>
-            <p className="text-gray-500">Mint your unique digital asset on Polygon</p>
+            <p className="text-gray-600">Mint your unique digital asset on Polygon</p>
           </div>
         </div>
 
-        {/* Progress Steps */}
-        <div className="flex items-center justify-between mb-8">
-          {[1, 2, 3, 4].map((s) => (
-            <div key={s} className="flex items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors ${
-                step >= s ? 'bg-purple-500 text-white' : 'bg-gray-700 text-gray-500'
-              }`}>
-                {step > s ? <Check className="w-5 h-5" /> : s}
-              </div>
-              {s < 4 && (
-                <div className={`w-16 md:w-24 h-1 mx-2 ${step > s ? 'bg-purple-500' : 'bg-gray-700'}`} />
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Step Labels */}
-        <div className="flex justify-between text-sm text-gray-500 mb-8">
-          <span className={step === 1 ? 'text-purple-600' : ''}>Upload</span>
-          <span className={step === 2 ? 'text-purple-600' : ''}>Details</span>
-          <span className={step === 3 ? 'text-purple-600' : ''}>Pricing</span>
-          <span className={step === 4 ? 'text-purple-600' : ''}>Review</span>
-        </div>
-
-        {/* Step 1: Upload */}
-        {step === 1 && (
-          <div className="space-y-6">
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-colors ${
-                formData.imagePreview 
-                  ? 'border-purple-500 bg-purple-500/10' 
-                  : 'border-gray-300 hover:border-purple-500 hover:bg-purple-500/5'
-              } ${errors.file ? 'border-red-500' : ''}`}
-            >
-              {uploading ? (
-                <div className="flex flex-col items-center">
-                  <Loader2 className="w-16 h-16 text-purple-600 animate-spin mb-4" />
-                  <p className="text-gray-600">Uploading...</p>
+        {/* Steps Progress */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-3xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              {[
+                { num: 1, label: 'Upload' },
+                { num: 2, label: 'Details' },
+                { num: 3, label: 'Pricing' },
+                { num: 4, label: 'Review' }
+              ].map((s, i) => (
+                <div key={s.num} className="flex items-center">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                    step >= s.num ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-500'
+                  }`}>
+                    {step > s.num ? <Check className="w-4 h-4" /> : s.num}
+                  </div>
+                  <span className={`ml-2 text-sm font-medium hidden sm:block ${step >= s.num ? 'text-gray-900' : 'text-gray-400'}`}>
+                    {s.label}
+                  </span>
+                  {i < 3 && <div className={`w-8 sm:w-16 h-0.5 mx-2 sm:mx-4 ${step > s.num ? 'bg-purple-600' : 'bg-gray-200'}`} />}
                 </div>
-              ) : formData.imagePreview ? (
-                <div className="relative">
-                  <img
-                    src={formData.imagePreview}
-                    alt="Preview"
-                    className="max-h-64 mx-auto rounded-xl"
-                  />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setFormData({ ...formData, image: null, imagePreview: null });
-                    }}
-                    className="absolute top-2 right-2 p-2 bg-gray-900/50 rounded-full hover:bg-gray-900/70"
-                  >
-                    <X className="w-4 h-4 text-gray-900" />
-                  </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="max-w-3xl mx-auto px-4 py-8">
+          {/* Step 1: Upload */}
+          {step === 1 && (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Upload your file</h2>
+              <p className="text-gray-600 mb-6">Supported: JPG, PNG, GIF, WEBP, MP4, MP3, WAV. Max 100MB.</p>
+
+              {!uploadedFile ? (
+                <div
+                  {...getRootProps()}
+                  className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all ${
+                    isDragActive ? 'border-purple-500 bg-purple-50' : 'border-gray-300 hover:border-purple-400 hover:bg-gray-50'
+                  }`}
+                >
+                  <input {...getInputProps()} />
+                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-lg font-semibold text-gray-900 mb-2">Upload your file</p>
+                  <p className="text-gray-500">Drag and drop or click to browse</p>
+                  <p className="text-sm text-gray-400 mt-2">JPG, PNG, GIF, WEBP, MP4, MP3, WAV. Max 100MB.</p>
                 </div>
               ) : (
-                <>
-                  <Upload className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-                  <p className="text-gray-900 text-lg mb-2">Upload your file</p>
-                  <p className="text-gray-500 text-sm">
-                    Drag and drop or click to browse
-                  </p>
-                  <p className="text-gray-500 text-xs mt-2">
-                    JPG, PNG, GIF, WEBP, MP4, MP3, WAV. Max 100MB.
-                  </p>
-                </>
+                <div className="relative">
+                  {/* Preview */}
+                  <div className="aspect-square max-w-md mx-auto bg-gray-100 rounded-2xl overflow-hidden">
+                    {uploadedFile.type.startsWith('image/') ? (
+                      <img src={preview} alt="Preview" className="w-full h-full object-contain" />
+                    ) : uploadedFile.type.startsWith('video/') ? (
+                      <video src={preview} controls className="w-full h-full object-contain" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="text-center">
+                          <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-600">{uploadedFile.name}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {/* Remove Button */}
+                  <button
+                    onClick={removeFile}
+                    className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                  {/* File Info */}
+                  <div className="mt-4 p-4 bg-gray-50 rounded-xl">
+                    <p className="font-semibold text-gray-900">{uploadedFile.name}</p>
+                    <p className="text-sm text-gray-500">{(uploadedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
+                </div>
               )}
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*,video/mp4,audio/*"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-            </div>
-
-            {errors.file && (
-              <p className="text-red-400 text-sm">{errors.file}</p>
-            )}
-
-            <button
-              onClick={nextStep}
-              disabled={!formData.imagePreview}
-              className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-            >
-              Continue
-            </button>
-          </div>
-        )}
-
-        {/* Step 2: Details */}
-        {step === 2 && (
-          <div className="space-y-6">
-            {/* Preview Thumbnail */}
-            {formData.imagePreview && (
-              <div className="w-24 h-24 rounded-xl overflow-hidden">
-                <img src={formData.imagePreview} alt="Preview" className="w-full h-full object-cover" />
-              </div>
-            )}
-
-            {/* Name */}
-            <div>
-              <label className="block text-gray-900 font-medium mb-2">Name *</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g., Cosmic Dream #001"
-                className={`w-full bg-white border rounded-xl px-4 py-3 text-gray-900 focus:border-purple-500 focus:outline-none ${
-                  errors.name ? 'border-red-500' : 'border-gray-200'
-                }`}
-              />
-              {errors.name && <p className="text-red-400 text-sm mt-1">{errors.name}</p>}
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-gray-900 font-medium mb-2">Description</label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Tell the story behind your creation..."
-                rows={4}
-                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:border-purple-500 focus:outline-none resize-none"
-              />
-            </div>
-
-            {/* Category */}
-            <div>
-              <label className="block text-gray-900 font-medium mb-2">Category</label>
-              <div className="grid grid-cols-3 gap-3">
-                {CATEGORIES.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setFormData({ ...formData, category: cat.id })}
-                    className={`p-3 rounded-xl border transition-colors flex flex-col items-center gap-2 ${
-                      formData.category === cat.id
-                        ? 'border-purple-500 bg-purple-500/20 text-white'
-                        : 'border-gray-200 text-gray-500 hover:border-gray-300'
-                    }`}
-                  >
-                    <cat.icon className="w-5 h-5" />
-                    <span className="text-sm">{cat.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Attributes */}
-            <div>
-              <label className="block text-gray-900 font-medium mb-2">
-                Properties
-                <span className="text-gray-500 text-sm font-normal ml-2">(Optional)</span>
-              </label>
-              <div className="space-y-2">
-                {formData.attributes.map((attr, index) => (
-                  <AttributeInput
-                    key={index}
-                    attribute={attr}
-                    onChange={(updated) => updateAttribute(index, updated)}
-                    onRemove={() => removeAttribute(index)}
-                  />
-                ))}
+              {/* Next Button */}
+              <div className="mt-8 flex justify-end">
                 <button
-                  onClick={addAttribute}
-                  className="flex items-center gap-2 text-purple-600 hover:text-purple-600 transition-colors"
+                  onClick={() => setStep(2)}
+                  disabled={!uploadedFile}
+                  className="px-8 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
                 >
-                  <Plus className="w-4 h-4" />
-                  Add Property
+                  Continue
+                  <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
             </div>
+          )}
 
-            {/* External Link */}
-            <div>
-              <label className="block text-gray-900 font-medium mb-2">
-                External Link
-                <span className="text-gray-500 text-sm font-normal ml-2">(Optional)</span>
-              </label>
-              <input
-                type="url"
-                value={formData.externalUrl}
-                onChange={(e) => setFormData({ ...formData, externalUrl: e.target.value })}
-                placeholder="https://yourwebsite.com/item"
-                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:border-purple-500 focus:outline-none"
-              />
-            </div>
+          {/* Step 2: Details */}
+          {step === 2 && (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-2">NFT Details</h2>
+              <p className="text-gray-600 mb-6">Add information about your NFT</p>
 
-            {/* Navigation */}
-            <div className="flex gap-4">
-              <button
-                onClick={prevStep}
-                className="flex-1 py-4 bg-gray-100 text-gray-900 rounded-xl font-medium hover:bg-gray-600 transition-colors"
-              >
-                Back
-              </button>
-              <button
-                onClick={nextStep}
-                className="flex-1 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-xl font-medium hover:opacity-90 transition-opacity"
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Step 3: Pricing */}
-        {step === 3 && (
-          <div className="space-y-6">
-            {/* List for Sale */}
-            <div className="bg-white/50 rounded-xl p-4 border border-gray-200">
-              <label className="flex items-center justify-between cursor-pointer">
+              <div className="space-y-5">
+                {/* Name */}
                 <div>
-                  <p className="text-gray-900 font-medium">List for Sale</p>
-                  <p className="text-gray-500 text-sm">Put this NFT up for sale immediately</p>
-                </div>
-                <div
-                  onClick={() => setFormData({ ...formData, isListed: !formData.isListed })}
-                  className={`w-14 h-7 rounded-full transition-colors cursor-pointer ${
-                    formData.isListed ? 'bg-purple-500' : 'bg-gray-600'
-                  }`}
-                >
-                  <div className={`w-6 h-6 rounded-full bg-white mt-0.5 transition-transform ${
-                    formData.isListed ? 'translate-x-7' : 'translate-x-0.5'
-                  }`} />
-                </div>
-              </label>
-            </div>
-
-            {formData.isListed && (
-              <>
-                {/* Listing Type */}
-                <div>
-                  <label className="block text-gray-900 font-medium mb-2">Sale Type</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => setFormData({ ...formData, listingType: 'fixed' })}
-                      className={`p-4 rounded-xl border transition-colors ${
-                        formData.listingType === 'fixed'
-                          ? 'border-purple-500 bg-purple-500/20'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <DollarSign className={`w-6 h-6 mx-auto mb-2 ${
-                        formData.listingType === 'fixed' ? 'text-purple-600' : 'text-gray-500'
-                      }`} />
-                      <p className="text-gray-900 font-medium">Fixed Price</p>
-                      <p className="text-gray-500 text-xs">Sell at a set price</p>
-                    </button>
-                    <button
-                      onClick={() => setFormData({ ...formData, listingType: 'auction' })}
-                      className={`p-4 rounded-xl border transition-colors ${
-                        formData.listingType === 'auction'
-                          ? 'border-purple-500 bg-purple-500/20'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <Clock className={`w-6 h-6 mx-auto mb-2 ${
-                        formData.listingType === 'auction' ? 'text-purple-600' : 'text-gray-500'
-                      }`} />
-                      <p className="text-gray-900 font-medium">Timed Auction</p>
-                      <p className="text-gray-500 text-xs">Auction to highest bidder</p>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Price */}
-                <div>
-                  <label className="block text-gray-900 font-medium mb-2">
-                    {formData.listingType === 'fixed' ? 'Price' : 'Starting Price'}
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Name <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={formData.listingPrice}
-                      onChange={(e) => setFormData({ ...formData, listingPrice: e.target.value })}
-                      placeholder="0"
-                      className={`w-full bg-white border rounded-xl px-4 py-3 pr-20 text-gray-900 focus:border-purple-500 focus:outline-none ${
-                        errors.price ? 'border-red-500' : 'border-gray-200'
-                      }`}
-                    />
-                    <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500">
-                      CYBEV
-                    </span>
-                  </div>
-                  {errors.price && <p className="text-red-400 text-sm mt-1">{errors.price}</p>}
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white transition-all"
+                    placeholder="e.g., Cosmic Dreams #001"
+                  />
                 </div>
 
-                {/* Auction Duration */}
-                {formData.listingType === 'auction' && (
-                  <div>
-                    <label className="block text-gray-900 font-medium mb-2">Auction Duration</label>
-                    <select
-                      value={formData.auctionDuration}
-                      onChange={(e) => setFormData({ ...formData, auctionDuration: parseInt(e.target.value) })}
-                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:border-purple-500 focus:outline-none"
-                    >
-                      <option value={6}>6 hours</option>
-                      <option value={12}>12 hours</option>
-                      <option value={24}>24 hours</option>
-                      <option value={48}>2 days</option>
-                      <option value={72}>3 days</option>
-                      <option value={168}>7 days</option>
-                    </select>
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* Royalties */}
-            <div>
-              <label className="block text-gray-900 font-medium mb-2 flex items-center gap-2">
-                <Percent className="w-4 h-4 text-purple-600" />
-                Creator Royalties
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  min="0"
-                  max="50"
-                  value={formData.royaltyPercentage}
-                  onChange={(e) => setFormData({ ...formData, royaltyPercentage: Math.min(50, parseInt(e.target.value) || 0) })}
-                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 pr-12 text-gray-900 focus:border-purple-500 focus:outline-none"
-                />
-                <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
-              </div>
-              <p className="text-gray-500 text-sm mt-1">
-                You'll receive {formData.royaltyPercentage}% on secondary sales (max 50%)
-              </p>
-            </div>
-
-            {/* Unlockable Content */}
-            <div className="bg-white/50 rounded-xl p-4 border border-gray-200">
-              <label className="flex items-center justify-between cursor-pointer mb-4">
-                <div className="flex items-center gap-3">
-                  <Lock className="w-5 h-5 text-purple-600" />
-                  <div>
-                    <p className="text-gray-900 font-medium">Unlockable Content</p>
-                    <p className="text-gray-500 text-sm">Include content only visible to the owner</p>
-                  </div>
-                </div>
-                <div
-                  onClick={() => setFormData({ ...formData, hasUnlockable: !formData.hasUnlockable })}
-                  className={`w-14 h-7 rounded-full transition-colors cursor-pointer ${
-                    formData.hasUnlockable ? 'bg-purple-500' : 'bg-gray-600'
-                  }`}
-                >
-                  <div className={`w-6 h-6 rounded-full bg-white mt-0.5 transition-transform ${
-                    formData.hasUnlockable ? 'translate-x-7' : 'translate-x-0.5'
-                  }`} />
-                </div>
-              </label>
-
-              {formData.hasUnlockable && (
-                <textarea
-                  value={formData.unlockableContent}
-                  onChange={(e) => setFormData({ ...formData, unlockableContent: e.target.value })}
-                  placeholder="Enter exclusive content, links, access codes, etc."
-                  rows={3}
-                  className="w-full bg-gray-700 border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-purple-500 focus:outline-none resize-none"
-                />
-              )}
-            </div>
-
-            {/* Navigation */}
-            <div className="flex gap-4">
-              <button
-                onClick={prevStep}
-                className="flex-1 py-4 bg-gray-100 text-gray-900 rounded-xl font-medium hover:bg-gray-600 transition-colors"
-              >
-                Back
-              </button>
-              <button
-                onClick={nextStep}
-                className="flex-1 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-xl font-medium hover:opacity-90 transition-opacity"
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Step 4: Review */}
-        {step === 4 && (
-          <div className="space-y-6">
-            <div className="bg-white/50 rounded-2xl p-6 border border-gray-200">
-              <div className="flex gap-6">
-                {/* Preview */}
-                <div className="w-40 h-40 rounded-xl overflow-hidden flex-shrink-0">
-                  {formData.imagePreview && (
-                    <img src={formData.imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                  )}
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Description</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    rows={4}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white transition-all resize-none"
+                    placeholder="Tell the story behind your creation..."
+                  />
                 </div>
 
-                {/* Details */}
-                <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">{formData.name || 'Untitled'}</h2>
-                  <p className="text-gray-500 mb-4">{formData.description || 'No description'}</p>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-gray-500 text-sm">Category</p>
-                      <p className="text-gray-900 capitalize">{formData.category}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500 text-sm">Royalties</p>
-                      <p className="text-gray-900">{formData.royaltyPercentage}%</p>
-                    </div>
-                    {formData.isListed && (
-                      <>
-                        <div>
-                          <p className="text-gray-500 text-sm">Sale Type</p>
-                          <p className="text-gray-900 capitalize">{formData.listingType}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500 text-sm">Price</p>
-                          <p className="text-gray-900 font-bold">{formData.listingPrice} CYBEV</p>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Attributes */}
-              {formData.attributes.filter(a => a.trait_type && a.value).length > 0 && (
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <p className="text-gray-500 text-sm mb-3">Properties</p>
+                {/* Category */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Category</label>
                   <div className="flex flex-wrap gap-2">
-                    {formData.attributes.filter(a => a.trait_type && a.value).map((attr, i) => (
-                      <div key={i} className="bg-purple-500/20 rounded-lg px-3 py-2">
-                        <p className="text-purple-600 text-xs">{attr.trait_type}</p>
-                        <p className="text-gray-900 font-medium">{attr.value}</p>
-                      </div>
+                    {CATEGORIES.map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => setFormData({ ...formData, category: cat })}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                          formData.category === cat
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {cat}
+                      </button>
                     ))}
                   </div>
                 </div>
-              )}
+              </div>
 
-              {/* Unlockable */}
-              {formData.hasUnlockable && (
-                <div className="mt-6 pt-6 border-t border-gray-200 flex items-center gap-2 text-purple-600">
-                  <Lock className="w-4 h-4" />
-                  <span>Includes unlockable content</span>
-                </div>
-              )}
+              {/* Navigation */}
+              <div className="mt-8 flex justify-between">
+                <button
+                  onClick={() => setStep(1)}
+                  className="px-6 py-3 text-gray-700 font-semibold hover:bg-gray-100 rounded-xl flex items-center gap-2 transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  Back
+                </button>
+                <button
+                  onClick={() => setStep(3)}
+                  disabled={!formData.name.trim()}
+                  className="px-8 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
+                >
+                  Continue
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
             </div>
+          )}
 
-            {/* Fees Notice */}
-            <div className="bg-white/50 rounded-xl p-4 border border-gray-200">
-              <div className="flex items-start gap-3">
-                <Info className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-gray-500">
-                  <p className="mb-2">By minting this NFT, you agree to:</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li>Pay network gas fees (Polygon MATIC)</li>
-                    <li>CYBEV platform fee: 2.5% on sales</li>
-                    <li>Confirm you own the rights to this content</li>
-                  </ul>
+          {/* Step 3: Pricing */}
+          {step === 3 && (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Set your price</h2>
+              <p className="text-gray-600 mb-6">Choose how you want to sell your NFT</p>
+
+              <div className="space-y-5">
+                {/* Price */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Price (MATIC)</label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="number"
+                      value={formData.price}
+                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white transition-all"
+                      placeholder="0.00"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">Leave empty to list without a price</p>
+                </div>
+
+                {/* Royalty */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Creator Royalty: {formData.royalty}%
+                  </label>
+                  <input
+                    type="range"
+                    value={formData.royalty}
+                    onChange={(e) => setFormData({ ...formData, royalty: parseInt(e.target.value) })}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                    min="0"
+                    max="25"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>0%</span>
+                    <span>25%</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">
+                    You'll earn {formData.royalty}% on all future sales
+                  </p>
+                </div>
+              </div>
+
+              {/* Navigation */}
+              <div className="mt-8 flex justify-between">
+                <button
+                  onClick={() => setStep(2)}
+                  className="px-6 py-3 text-gray-700 font-semibold hover:bg-gray-100 rounded-xl flex items-center gap-2 transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  Back
+                </button>
+                <button
+                  onClick={() => setStep(4)}
+                  className="px-8 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 flex items-center gap-2 transition-colors"
+                >
+                  Continue
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Review */}
+          {step === 4 && (
+            <div className="space-y-6">
+              {/* Preview */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="aspect-square max-w-sm mx-auto p-4">
+                  {preview && uploadedFile?.type.startsWith('image/') && (
+                    <img src={preview} alt="Preview" className="w-full h-full object-contain rounded-xl" />
+                  )}
+                </div>
+                <div className="p-6 border-t border-gray-200">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{formData.name}</h3>
+                  {formData.description && (
+                    <p className="text-gray-600 mb-4">{formData.description}</p>
+                  )}
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    {formData.category && (
+                      <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full">{formData.category}</span>
+                    )}
+                    {formData.price && (
+                      <span className="font-semibold text-gray-900">{formData.price} MATIC</span>
+                    )}
+                    <span className="text-gray-500">{formData.royalty}% royalty</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <button
+                    onClick={() => setStep(3)}
+                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                    Back
+                  </button>
+                  <button
+                    onClick={handleMint}
+                    disabled={loading}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg transition-all"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Minting...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-5 h-5" />
+                        Mint NFT
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             </div>
-
-            {/* Navigation */}
-            <div className="flex gap-4">
-              <button
-                onClick={prevStep}
-                className="flex-1 py-4 bg-gray-100 text-gray-900 rounded-xl font-medium hover:bg-gray-600 transition-colors"
-              >
-                Back
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="flex-1 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5" />
-                    Create NFT
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </AppLayout>
   );
