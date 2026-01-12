@@ -1,14 +1,17 @@
 /* ============================================
    FILE: src/styles/pwa.css
    PATH: cybev-frontend/src/styles/pwa.css
-   PURPOSE: PWA-specific styles and mobile optimizations
+   PURPOSE: PWA & Mobile Navigation - Clean Design
+   VERSION: 7.0.0 - Clean white mobile design
+   PREVIOUS: 6.8.x - Dark blur mobile nav
+   ROLLBACK: Restore previous pwa.css
+   GITHUB: https://github.com/cybev1/cybev-frontend
+   UPDATED: 2026-01-12
    ============================================ */
 
 /* ==========================================
    PWA SAFE AREA INSETS
-   For devices with notches (iPhone X+, etc.)
    ========================================== */
-
 :root {
   --sat: env(safe-area-inset-top);
   --sar: env(safe-area-inset-right);
@@ -16,52 +19,240 @@
   --sal: env(safe-area-inset-left);
 }
 
-/* Apply safe area padding to app layout */
-.app-layout {
-  padding-top: var(--sat);
-  padding-right: var(--sar);
-  padding-bottom: var(--sab);
-  padding-left: var(--sal);
-}
-
-/* Bottom navigation should respect safe area */
-.bottom-nav {
-  padding-bottom: calc(0.5rem + var(--sab));
+/* ==========================================
+   STANDALONE MODE (Installed PWA)
+   ========================================== */
+@media all and (display-mode: standalone) {
+  .browser-only { display: none !important; }
+  .pwa-only { display: block !important; }
+  .app-header { padding-top: calc(0.5rem + var(--sat)); }
+  .full-height { height: 100vh; height: 100dvh; }
 }
 
 /* ==========================================
-   STANDALONE MODE STYLES
-   When running as installed PWA
+   MOBILE BOTTOM NAVIGATION - Clean White
    ========================================== */
+.mobile-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-top: 1px solid #e4e6eb;
+  padding: 0.5rem 0;
+  padding-bottom: calc(0.5rem + var(--sab));
+  z-index: 50;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
 
-@media all and (display-mode: standalone) {
-  /* Hide browser-specific elements */
-  .browser-only {
-    display: none !important;
-  }
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.75rem;
+  color: #65676b;
+  transition: all 0.2s ease;
+  border-radius: 0.75rem;
+  min-width: 4rem;
+}
 
-  /* Show PWA-specific elements */
-  .pwa-only {
-    display: block !important;
-  }
+.mobile-nav-item:active {
+  background: #f0f2f5;
+  transform: scale(0.95);
+}
 
-  /* Adjust header for standalone */
-  .app-header {
-    padding-top: calc(0.5rem + var(--sat));
-  }
+.mobile-nav-item.active {
+  color: #7c3aed;
+}
 
-  /* Full height without browser chrome */
-  .full-height {
-    height: 100vh;
-    height: 100dvh; /* Dynamic viewport height */
-  }
+.mobile-nav-item .icon {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 2px;
+  transition: transform 0.2s ease;
+}
+
+.mobile-nav-item.active .icon {
+  transform: scale(1.1);
+}
+
+.mobile-nav-item .label {
+  font-size: 10px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Create Button - Floating Gradient */
+.mobile-nav-create {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  margin-top: -1.5rem;
+}
+
+.mobile-nav-create-btn {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.35);
+  transition: all 0.2s ease;
+  border: 4px solid white;
+}
+
+.mobile-nav-create-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 10px rgba(124, 58, 237, 0.3);
+}
+
+.mobile-nav-create-btn svg {
+  width: 24px;
+  height: 24px;
+  color: white;
+}
+
+/* Hide desktop nav on mobile */
+@media (max-width: 768px) {
+  .desktop-nav { display: none; }
+  .mobile-nav { display: flex; justify-content: space-around; }
+  .main-content { padding-bottom: calc(80px + var(--sab)); }
+}
+
+@media (min-width: 769px) {
+  .mobile-nav { display: none; }
+}
+
+/* ==========================================
+   TOP NAVIGATION BAR - Clean White
+   ========================================== */
+.top-nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: #ffffff;
+  border-bottom: 1px solid #e4e6eb;
+  padding: 0 1rem;
+  padding-top: var(--sat);
+}
+
+.top-nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ==========================================
+   CREATE MENU MODAL - Clean Style
+   ========================================== */
+.create-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.create-modal {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-radius: 1.5rem 1.5rem 0 0;
+  padding: 1.5rem;
+  padding-bottom: calc(1.5rem + var(--sab));
+  z-index: 101;
+  animation: slideUp 0.3s ease-out;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.create-modal-handle {
+  width: 40px;
+  height: 4px;
+  background: #e4e6eb;
+  border-radius: 2px;
+  margin: 0 auto 1.5rem;
+}
+
+.create-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.create-modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #050505;
+}
+
+.create-modal-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f0f2f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #65676b;
+  transition: all 0.2s;
+}
+
+.create-modal-close:hover {
+  background: #e4e6eb;
+}
+
+.create-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.create-modal-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  transition: all 0.2s;
+}
+
+.create-modal-item:active {
+  background: #f0f2f5;
+  transform: scale(0.97);
+}
+
+.create-modal-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.create-modal-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #050505;
+  text-align: center;
 }
 
 /* ==========================================
    TOUCH OPTIMIZATIONS
    ========================================== */
-
-/* Prevent text selection on interactive elements */
 .no-select {
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -69,27 +260,23 @@
   user-select: none;
 }
 
-/* Improve tap targets */
 .tap-target {
   min-width: 44px;
   min-height: 44px;
 }
 
-/* Remove tap highlight on mobile */
 * {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Smooth scrolling */
 .smooth-scroll {
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
 }
 
 /* ==========================================
-   PULL TO REFRESH STYLES
+   PULL TO REFRESH
    ========================================== */
-
 .pull-to-refresh {
   overscroll-behavior-y: contain;
 }
@@ -109,163 +296,52 @@
 }
 
 /* ==========================================
-   LOADING SKELETON ANIMATIONS
+   SKELETON LOADING
    ========================================== */
-
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.05) 25%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0.05) 75%
-  );
+  background: linear-gradient(90deg, #f0f2f5 25%, #e4e6eb 50%, #f0f2f5 75%);
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s infinite;
+  border-radius: 0.5rem;
 }
 
 @keyframes skeleton-loading {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* ==========================================
-   PWA ANIMATIONS
+   ANIMATIONS
    ========================================== */
-
-@keyframes slide-up {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-@keyframes slide-down {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
-@keyframes scale-in {
-  from {
-    transform: scale(0.9);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out;
-}
-
-.animate-slide-down {
-  animation: slide-down 0.3s ease-out;
-}
-
-.animate-fade-in {
-  animation: fade-in 0.2s ease-out;
-}
-
-.animate-scale-in {
-  animation: scale-in 0.2s ease-out;
-}
-
-/* ==========================================
-   MOBILE NAVIGATION
-   ========================================== */
-
-.mobile-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(15, 10, 26, 0.95);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(139, 92, 246, 0.2);
-  padding: 0.5rem 0;
-  padding-bottom: calc(0.5rem + var(--sab));
-  z-index: 40;
-}
-
-.mobile-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  color: #9ca3af;
-  transition: color 0.2s;
-}
-
-.mobile-nav-item.active {
-  color: #8b5cf6;
-}
-
-.mobile-nav-item .icon {
-  width: 24px;
-  height: 24px;
-  margin-bottom: 2px;
-}
-
-.mobile-nav-item .label {
-  font-size: 10px;
-  font-weight: 500;
-}
-
-/* Hide desktop nav on mobile when bottom nav is shown */
-@media (max-width: 768px) {
-  .desktop-nav {
-    display: none;
-  }
-  
-  .mobile-nav {
-    display: flex;
-    justify-content: space-around;
-  }
-  
-  /* Add padding for bottom nav */
-  .main-content {
-    padding-bottom: calc(70px + var(--sab));
-  }
-}
-
-@media (min-width: 769px) {
-  .mobile-nav {
-    display: none;
-  }
-}
+.animate-fade-in { animation: fadeIn 0.2s ease-out; }
+.animate-slide-up { animation: slideUp 0.3s ease-out; }
+.animate-slide-down { animation: slideDown 0.3s ease-out; }
+.animate-scale-in { animation: scaleIn 0.2s ease-out; }
 
 /* ==========================================
    SWIPE GESTURES
    ========================================== */
-
-.swipeable {
-  touch-action: pan-y;
-}
+.swipeable { touch-action: pan-y; }
 
 .swipe-container {
   overflow-x: auto;
@@ -281,7 +357,6 @@
 /* ==========================================
    IMAGE OPTIMIZATIONS
    ========================================== */
-
 .lazy-image {
   opacity: 0;
   transition: opacity 0.3s;
@@ -291,7 +366,6 @@
   opacity: 1;
 }
 
-/* Progressive image loading */
 .progressive-image {
   position: relative;
   overflow: hidden;
@@ -319,18 +393,17 @@
 /* ==========================================
    OFFLINE INDICATOR
    ========================================== */
-
 .offline-bar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  background: #eab308;
-  color: #713f12;
+  background: #f7931e;
+  color: white;
   text-align: center;
   padding: 0.5rem;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   z-index: 9999;
   transform: translateY(-100%);
   transition: transform 0.3s;
@@ -341,15 +414,12 @@
 }
 
 .online-bar {
-  background: #22c55e;
-  color: white;
+  background: #42b72a;
 }
 
 /* ==========================================
    KEYBOARD HANDLING
    ========================================== */
-
-/* When keyboard is open */
 .keyboard-open .mobile-nav {
   display: none;
 }
@@ -363,9 +433,8 @@
 }
 
 /* ==========================================
-   HAPTIC FEEDBACK INDICATORS
+   HAPTIC FEEDBACK
    ========================================== */
-
 .haptic-tap {
   transition: transform 0.1s;
 }
@@ -377,48 +446,38 @@
 /* ==========================================
    RESPONSIVE TYPOGRAPHY
    ========================================== */
-
 @media (max-width: 640px) {
-  html {
-    font-size: 15px;
-  }
-  
-  h1 {
-    font-size: 1.75rem;
-  }
-  
-  h2 {
-    font-size: 1.5rem;
-  }
-  
-  h3 {
-    font-size: 1.25rem;
-  }
+  html { font-size: 15px; }
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
 }
 
 /* ==========================================
-   DARK MODE OPTIMIZATIONS
+   NOTIFICATION DOT
    ========================================== */
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-  }
-  
-  /* Reduce image brightness in dark mode */
-  img {
-    filter: brightness(0.95);
-  }
+.notification-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 18px;
+  height: 18px;
+  background: #f02849;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
 }
 
 /* ==========================================
    REDUCED MOTION
    ========================================== */
-
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -429,13 +488,33 @@
 /* ==========================================
    HIGH CONTRAST MODE
    ========================================== */
-
 @media (prefers-contrast: high) {
-  .text-gray-400 {
-    color: #d1d5db;
-  }
-  
-  .border-purple-500\/20 {
-    border-color: rgba(139, 92, 246, 0.4);
-  }
+  .mobile-nav { border-top: 2px solid #000; }
+  .mobile-nav-item.active { color: #000; font-weight: 700; }
 }
+
+/* ==========================================
+   DARK MODE (Optional - disabled by default)
+   ========================================== */
+/* Uncomment to enable dark mode support
+.dark .mobile-nav {
+  background: #1a1a1a;
+  border-top-color: #333;
+}
+
+.dark .mobile-nav-item {
+  color: #999;
+}
+
+.dark .mobile-nav-item.active {
+  color: #a78bfa;
+}
+
+.dark .create-modal {
+  background: #1a1a1a;
+}
+
+.dark .create-modal-title {
+  color: #fff;
+}
+*/
