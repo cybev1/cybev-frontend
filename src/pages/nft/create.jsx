@@ -1,14 +1,13 @@
 // ============================================
 // FILE: src/pages/nft/create.jsx
 // CYBEV NFT Create - CLEAN WHITE DESIGN
-// VERSION: 7.1.0 - Solid white, black text, readable
+// VERSION: 7.1.1 - No external dependencies
 // ============================================
 
-import { useState, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { useDropzone } from 'react-dropzone';
 import AppLayout from '@/components/Layout/AppLayout';
 import { toast } from 'react-toastify';
 import api from '@/lib/api';
@@ -26,10 +25,12 @@ const CATEGORIES = [
 
 export default function CreateNFTPage() {
   const router = useRouter();
+  const fileInputRef = useRef(null);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -42,30 +43,58 @@ export default function CreateNFTPage() {
     isExplicit: false
   });
 
-  const onDrop = useCallback((acceptedFiles) => {
-    const file = acceptedFiles[0];
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
     if (file) {
-      setUploadedFile(file);
-      const reader = new FileReader();
-      reader.onload = () => setPreview(reader.result);
-      reader.readAsDataURL(file);
+      processFile(file);
     }
-  }, []);
+  };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
-      'video/*': ['.mp4', '.webm'],
-      'audio/*': ['.mp3', '.wav']
-    },
-    maxSize: 100 * 1024 * 1024, // 100MB
-    multiple: false
-  });
+  const processFile = (file) => {
+    // Validate file size (100MB max)
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error('File too large. Max 100MB.');
+      return;
+    }
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'audio/mpeg', 'audio/wav'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Invalid file type. Supported: JPG, PNG, GIF, WEBP, MP4, MP3, WAV');
+      return;
+    }
+
+    setUploadedFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setPreview(reader.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processFile(file);
+    }
+  };
 
   const removeFile = () => {
     setUploadedFile(null);
     setPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleMint = async () => {
@@ -187,12 +216,21 @@ export default function CreateNFTPage() {
 
               {!uploadedFile ? (
                 <div
-                  {...getRootProps()}
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
                   className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all ${
-                    isDragActive ? 'border-purple-500 bg-purple-50' : 'border-gray-300 hover:border-purple-400 hover:bg-gray-50'
+                    isDragging ? 'border-purple-500 bg-purple-50' : 'border-gray-300 hover:border-purple-400 hover:bg-gray-50'
                   }`}
                 >
-                  <input {...getInputProps()} />
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,video/*,audio/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
                   <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-lg font-semibold text-gray-900 mb-2">Upload your file</p>
                   <p className="text-gray-500">Drag and drop or click to browse</p>
