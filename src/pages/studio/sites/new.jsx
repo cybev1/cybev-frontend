@@ -1,579 +1,470 @@
 // ============================================
 // FILE: src/pages/studio/sites/new.jsx
-// AI Website Builder - Enhanced with Image Generation
-// VERSION: 2.0
+// CYBEV AI Website Generator - CLEAN WHITE DESIGN
+// VERSION: 7.1.0 - Solid white, black text, readable
 // ============================================
 
-import { useState, useEffect, useCallback } from 'react';
-import Head from 'next/head';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
 import Link from 'next/link';
+import AppLayout from '@/components/Layout/AppLayout';
+import { toast } from 'react-toastify';
+import api from '@/lib/api';
 import {
-  ArrowLeft, ArrowRight, Check, Loader2, Sparkles, Globe, Eye,
-  Briefcase, ShoppingBag, Users, BookOpen, Camera, Music, Rocket, Zap,
-  AlertCircle, CheckCircle, Palette, Type, Wand2, Image as ImageIcon
+  Globe, ArrowLeft, ArrowRight, Loader2, Check, Wand2, Sparkles,
+  Layout, Palette, Type, Image as ImageIcon, Settings, Eye, Rocket,
+  RefreshCw, ChevronDown, AlertCircle
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
-// Templates with preview images
 const TEMPLATES = [
-  { id: 'business', name: 'Business', icon: Briefcase, color: 'from-blue-500 to-indigo-600', desc: 'Professional company website' },
-  { id: 'portfolio', name: 'Portfolio', icon: Camera, color: 'from-purple-500 to-pink-500', desc: 'Showcase your work' },
-  { id: 'blog', name: 'Blog', icon: BookOpen, color: 'from-green-500 to-emerald-500', desc: 'Share your stories' },
-  { id: 'shop', name: 'E-Commerce', icon: ShoppingBag, color: 'from-orange-500 to-red-500', desc: 'Sell products online' },
-  { id: 'startup', name: 'Startup', icon: Rocket, color: 'from-violet-500 to-purple-600', desc: 'Launch your idea' },
-  { id: 'saas', name: 'SaaS', icon: Zap, color: 'from-cyan-500 to-blue-500', desc: 'Software product' },
-  { id: 'music', name: 'Music', icon: Music, color: 'from-pink-500 to-rose-500', desc: 'Artist & bands' },
-  { id: 'community', name: 'Community', icon: Users, color: 'from-teal-500 to-green-500', desc: 'Build your tribe' }
+  { id: 'portfolio', name: 'Portfolio', desc: 'Showcase your work', icon: '🎨' },
+  { id: 'business', name: 'Business', desc: 'Professional company site', icon: '💼' },
+  { id: 'blog', name: 'Blog', desc: 'Personal blog site', icon: '📝' },
+  { id: 'church', name: 'Church', desc: 'Ministry website', icon: '⛪' },
+  { id: 'store', name: 'Store', desc: 'E-commerce ready', icon: '🛒' },
+  { id: 'landing', name: 'Landing Page', desc: 'Single page site', icon: '🚀' },
 ];
 
-const COLOR_THEMES = [
+const COLOR_SCHEMES = [
   { id: 'purple', name: 'Purple', primary: '#7c3aed', secondary: '#ec4899' },
-  { id: 'blue', name: 'Blue', primary: '#2563eb', secondary: '#06b6d4' },
-  { id: 'green', name: 'Green', primary: '#059669', secondary: '#10b981' },
-  { id: 'red', name: 'Red', primary: '#dc2626', secondary: '#f97316' },
-  { id: 'orange', name: 'Orange', primary: '#ea580c', secondary: '#facc15' },
-  { id: 'pink', name: 'Pink', primary: '#db2777', secondary: '#f472b6' },
-  { id: 'teal', name: 'Teal', primary: '#0d9488', secondary: '#22d3d8' },
-  { id: 'indigo', name: 'Indigo', primary: '#4f46e5', secondary: '#818cf8' }
+  { id: 'blue', name: 'Blue', primary: '#3b82f6', secondary: '#06b6d4' },
+  { id: 'green', name: 'Green', primary: '#10b981', secondary: '#84cc16' },
+  { id: 'orange', name: 'Orange', primary: '#f97316', secondary: '#eab308' },
+  { id: 'red', name: 'Red', primary: '#ef4444', secondary: '#f97316' },
+  { id: 'dark', name: 'Dark', primary: '#1f2937', secondary: '#4b5563' },
 ];
 
-const FONT_PAIRS = [
-  { id: 'modern', name: 'Modern', heading: 'Inter', body: 'Inter' },
-  { id: 'classic', name: 'Classic', heading: 'Playfair Display', body: 'Lora' },
-  { id: 'minimal', name: 'Minimal', heading: 'DM Sans', body: 'DM Sans' },
-  { id: 'bold', name: 'Bold', heading: 'Poppins', body: 'Open Sans' },
-  { id: 'elegant', name: 'Elegant', heading: 'Cormorant Garamond', body: 'Proza Libre' },
-  { id: 'tech', name: 'Tech', heading: 'Space Grotesk', body: 'IBM Plex Sans' }
-];
-
-export default function NewSite() {
+export default function CreateSitePage() {
   const router = useRouter();
-  const { template: urlTemplate } = router.query;
-  
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [createdSite, setCreatedSite] = useState(null);
-  
-  // Form data
-  const [name, setName] = useState('');
-  const [subdomain, setSubdomain] = useState('');
-  const [description, setDescription] = useState('');
-  const [template, setTemplate] = useState(urlTemplate || '');
-  const [colorTheme, setColorTheme] = useState('purple');
-  const [fontPair, setFontPair] = useState('modern');
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [useAI, setUseAI] = useState(false);
-  const [aiPreview, setAiPreview] = useState(null);
-  
-  // Subdomain check
-  const [subdomainAvailable, setSubdomainAvailable] = useState(null);
-  const [checkingSubdomain, setCheckingSubdomain] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [aiDescription, setAiDescription] = useState('');
 
-  const getAuth = () => {
-    const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-    return { headers: { Authorization: `Bearer ${token}` } };
+  const [formData, setFormData] = useState({
+    name: '',
+    subdomain: '',
+    description: '',
+    template: 'portfolio',
+    colorScheme: 'purple',
+    useAI: false
+  });
+
+  const [errors, setErrors] = useState({});
+
+  const validateSubdomain = (value) => {
+    const cleaned = value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+    setFormData({ ...formData, subdomain: cleaned });
+    return cleaned;
   };
 
-  useEffect(() => {
-    if (urlTemplate) setTemplate(urlTemplate);
-  }, [urlTemplate]);
-
-  // Auto-generate subdomain from name
-  useEffect(() => {
-    if (name && !subdomain) {
-      const auto = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30);
-      setSubdomain(auto);
-    }
-  }, [name]);
-
-  // Check subdomain availability
-  const checkSubdomain = useCallback(async (sub) => {
-    if (!sub || sub.length < 3) {
-      setSubdomainAvailable(null);
+  const handleAIGenerate = async () => {
+    if (!aiDescription.trim()) {
+      toast.error('Please describe your website');
       return;
     }
-    
-    setCheckingSubdomain(true);
-    try {
-      const res = await fetch(`${API_URL}/api/sites/domain/check?subdomain=${sub}`);
-      const data = await res.json();
-      setSubdomainAvailable(data.available !== false);
-    } catch (err) {
-      setSubdomainAvailable(true);
-    }
-    setCheckingSubdomain(false);
-  }, []);
 
-  useEffect(() => {
-    const timer = setTimeout(() => checkSubdomain(subdomain), 500);
-    return () => clearTimeout(timer);
-  }, [subdomain, checkSubdomain]);
-
-  // Generate AI site content
-  const generateAISite = async () => {
-    if (!aiPrompt.trim()) return;
-    
-    setAiLoading(true);
-    setError('');
-    
+    setGenerating(true);
     try {
-      const res = await fetch(`${API_URL}/api/ai/generate-site`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...getAuth().headers },
-        body: JSON.stringify({ prompt: aiPrompt, template })
+      const token = localStorage.getItem('token');
+      const res = await api.post('/api/sites/generate-ai', {
+        description: aiDescription
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 120000
       });
-      
-      const data = await res.json();
-      
-      if (data.ok && data.suggestion) {
-        setName(data.suggestion.name);
-        setSubdomain(data.suggestion.subdomain);
-        setDescription(data.suggestion.description);
-        setTemplate(data.suggestion.template);
-        setColorTheme(data.suggestion.colorTheme || 'purple');
-        setAiPreview(data.suggestion);
-        setUseAI(true);
-      } else {
-        throw new Error(data.error || 'AI generation failed');
+
+      if (res.data.ok || res.data.suggestion) {
+        const suggestion = res.data.suggestion || res.data;
+        setFormData({
+          ...formData,
+          name: suggestion.name || formData.name,
+          description: suggestion.description || aiDescription,
+          template: suggestion.template || 'portfolio',
+          useAI: true
+        });
+        toast.success('AI generated your website details!');
+        setStep(2);
       }
     } catch (err) {
-      setError(err.message);
+      toast.error('AI generation failed. Please fill manually.');
+    } finally {
+      setGenerating(false);
     }
-    
-    setAiLoading(false);
   };
 
-  // Create site
-  const createSite = async () => {
-    if (!name || !subdomain || !template) {
-      setError('Please fill in all required fields');
+  const handleCreate = async () => {
+    // Validation
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = 'Site name is required';
+    if (!formData.subdomain.trim()) newErrors.subdomain = 'Subdomain is required';
+    if (formData.subdomain.length < 3) newErrors.subdomain = 'Subdomain must be at least 3 characters';
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
-    
-    if (subdomainAvailable === false) {
-      setError('Subdomain is not available');
-      return;
-    }
-    
+
     setLoading(true);
-    setError('');
-    
     try {
-      const colors = COLOR_THEMES.find(c => c.id === colorTheme) || COLOR_THEMES[0];
-      const fonts = FONT_PAIRS.find(f => f.id === fontPair) || FONT_PAIRS[0];
-      
-      // Use AI endpoint if AI was used
-      const endpoint = useAI ? '/api/ai/create-site' : '/api/sites';
-      
-      const res = await fetch(`${API_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...getAuth().headers },
-        body: JSON.stringify({
-          name,
-          subdomain,
-          description,
-          template,
-          prompt: aiPrompt,
-          theme: {
-            colorTheme,
-            fontPair,
-            colors: { primary: colors.primary, secondary: colors.secondary },
-            fonts: { heading: fonts.heading, body: fonts.body }
-          }
-        })
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Please login to create websites');
+        router.push('/auth/login');
+        return;
+      }
+
+      const res = await api.post('/api/sites', {
+        name: formData.name,
+        subdomain: formData.subdomain,
+        description: formData.description,
+        template: formData.template,
+        colorScheme: formData.colorScheme,
+        status: 'draft'
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-      
-      const data = await res.json();
-      
-      if (data.ok && data.site) {
-        setCreatedSite(data.site);
-        setStep(5); // Success
+
+      if (res.data.ok || res.data.success || res.data.site) {
+        toast.success('Website created!');
+        router.push(`/studio/sites/${res.data.site?._id || res.data._id}/edit`);
       } else {
-        throw new Error(data.error || 'Failed to create site');
+        toast.error(res.data.message || 'Failed to create website');
       }
     } catch (err) {
-      setError(err.message);
-    }
-    
-    setLoading(false);
-  };
-
-  const canProceed = () => {
-    switch (step) {
-      case 1: return name.length >= 2 && subdomain.length >= 3 && subdomainAvailable !== false;
-      case 2: return !!template;
-      case 3: return true;
-      case 4: return true;
-      default: return false;
+      const errorMsg = err.response?.data?.message || 'Failed to create website';
+      toast.error(errorMsg);
+      if (errorMsg.includes('subdomain')) {
+        setErrors({ subdomain: 'This subdomain is already taken' });
+      }
+    } finally {
+      setLoading(false);
     }
   };
-
-  // Progress indicator
-  const steps = ['Site Info', 'Template', 'Theme', 'Review'];
 
   return (
-    <>
+    <AppLayout>
       <Head>
-        <title>Create Website - CYBEV</title>
+        <title>Create Website | CYBEV</title>
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-900">
-        {/* Header */}
-        <div className="border-b border-gray-200">
-          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      {/* SOLID WHITE BACKGROUND - NO GRADIENTS */}
+      <div className="min-h-screen bg-white">
+        {/* Header Section */}
+        <div className="bg-gray-50 border-b border-gray-200">
+          <div className="max-w-3xl mx-auto px-4 py-8">
+            {/* Back Button */}
             <Link href="/studio">
-              <button className="flex items-center gap-2 text-white/70 hover:text-gray-900">
+              <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 font-medium">
                 <ArrowLeft className="w-5 h-5" />
                 Back to Studio
               </button>
             </Link>
-            <span className="text-white/50">Step {step} of 4</span>
+
+            {/* Title - BLACK TEXT */}
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Globe className="w-8 h-8 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Website</h1>
+              <p className="text-gray-600">Build a stunning website in minutes with AI</p>
+            </div>
           </div>
         </div>
 
-        {/* Progress */}
-        {step < 5 && (
-          <div className="max-w-4xl mx-auto px-4 py-6">
-            <div className="flex items-center justify-between mb-8">
-              {steps.map((label, idx) => (
-                <div key={idx} className="flex items-center">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                    idx + 1 < step ? 'bg-green-500 text-white' :
-                    idx + 1 === step ? 'bg-purple-500 text-gray-900 ring-4 ring-purple-500/30' :
-                    'bg-white/10 text-white/50'
+        {/* Steps Progress */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-3xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-center gap-4">
+              {[1, 2, 3].map((s) => (
+                <div key={s} className="flex items-center">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
+                    step >= s 
+                      ? 'bg-purple-600 text-white' 
+                      : 'bg-gray-200 text-gray-500'
                   }`}>
-                    {idx + 1 < step ? <Check className="w-5 h-5" /> : idx + 1}
+                    {step > s ? <Check className="w-5 h-5" /> : s}
                   </div>
-                  <span className={`ml-2 hidden sm:block ${idx + 1 === step ? 'text-white' : 'text-white/50'}`}>
-                    {label}
+                  <span className={`ml-2 font-medium hidden sm:block ${step >= s ? 'text-gray-900' : 'text-gray-400'}`}>
+                    {s === 1 ? 'Details' : s === 2 ? 'Design' : 'Review'}
                   </span>
-                  {idx < steps.length - 1 && (
-                    <div className={`w-16 sm:w-24 h-1 mx-4 rounded ${idx + 1 < step ? 'bg-green-500' : 'bg-white/10'}`} />
-                  )}
+                  {s < 3 && <div className={`w-8 sm:w-16 h-1 mx-2 sm:mx-4 rounded ${step > s ? 'bg-purple-600' : 'bg-gray-200'}`} />}
                 </div>
               ))}
             </div>
           </div>
-        )}
+        </div>
 
-        {/* Content */}
-        <div className="max-w-4xl mx-auto px-4 pb-12">
-          {/* Step 1: Site Info + AI */}
+        {/* Main Content */}
+        <div className="max-w-3xl mx-auto px-4 py-8">
+          {/* Step 1: Details */}
           {step === 1 && (
-            <div className="space-y-8">
-              {/* AI Generation */}
-              <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl p-6 border border-gray-200">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center">
-                    <Wand2 className="w-5 h-5 text-gray-900" />
+            <div className="space-y-6">
+              {/* AI Generator Card */}
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-200 p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Wand2 className="w-6 h-6 text-white" />
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">AI Website Generator</h3>
-                    <p className="text-white/60 text-sm">Describe your website and let AI create it</p>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-900 mb-1">AI Website Generator</h3>
+                    <p className="text-gray-600 text-sm mb-4">Describe your website and let AI create it</p>
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        value={aiDescription}
+                        onChange={(e) => setAiDescription(e.target.value)}
+                        className="flex-1 px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="e.g., A modern portfolio for a photographer named John"
+                      />
+                      <button
+                        onClick={handleAIGenerate}
+                        disabled={generating || !aiDescription.trim()}
+                        className="px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
+                      >
+                        {generating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                        Generate
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    value={aiPrompt}
-                    onChange={(e) => setAiPrompt(e.target.value)}
-                    placeholder="e.g., A modern portfolio for a photographer named John"
-                    className="flex-1 px-4 py-3 bg-white/10 border border-gray-200 rounded-xl text-gray-900 placeholder-white/40 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                  <button
-                    onClick={generateAISite}
-                    disabled={aiLoading || !aiPrompt.trim()}
-                    className="px-6 py-3 bg-purple-500 text-gray-900 rounded-xl font-semibold hover:bg-purple-600 disabled:opacity-50 flex items-center gap-2"
-                  >
-                    {aiLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                    Generate
-                  </button>
-                </div>
-                {aiPreview?.heroImage && (
-                  <div className="mt-4 rounded-xl overflow-hidden">
-                    <img src={aiPreview.heroImage} alt="Preview" className="w-full h-40 object-cover" />
-                    <p className="text-center text-white/60 text-sm mt-2">AI-generated preview image</p>
-                  </div>
-                )}
               </div>
 
-              <div className="text-center text-white/40">— or enter details manually —</div>
+              {/* Manual Form */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Or fill in manually</h2>
 
-              {/* Manual Input */}
-              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-gray-200 space-y-6">
-                <div>
-                  <label className="block text-gray-900 font-medium mb-2">Site Name *</label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="My Awesome Website"
-                    className="w-full px-4 py-3 bg-white/10 border border-gray-200 rounded-xl text-gray-900 placeholder-white/40 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-gray-900 font-medium mb-2">Subdomain *</label>
-                  <div className="flex items-center bg-white/10 border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-purple-500">
+                <div className="space-y-5">
+                  {/* Site Name */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                      Site Name <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="text"
-                      value={subdomain}
-                      onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                      placeholder="mysite"
-                      className="flex-1 px-4 py-3 bg-transparent text-gray-900 placeholder-white/40 focus:outline-none"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className={`w-full px-4 py-3 bg-gray-50 border rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white transition-all ${
+                        errors.name ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="My Awesome Website"
                     />
-                    <span className="px-4 py-3 bg-white/5 text-white/60">.cybev.io</span>
+                    {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                   </div>
-                  <div className="mt-2 flex items-center gap-2">
-                    {checkingSubdomain && <Loader2 className="w-4 h-4 text-white/50 animate-spin" />}
-                    {!checkingSubdomain && subdomainAvailable === true && subdomain.length >= 3 && (
-                      <span className="text-green-400 text-sm flex items-center gap-1">
-                        <CheckCircle className="w-4 h-4" /> Available
-                      </span>
-                    )}
-                    {!checkingSubdomain && subdomainAvailable === false && (
-                      <span className="text-red-400 text-sm flex items-center gap-1">
-                        <AlertCircle className="w-4 h-4" /> Already taken
-                      </span>
-                    )}
-                  </div>
-                </div>
 
-                <div>
-                  <label className="block text-gray-900 font-medium mb-2">Description</label>
-                  <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Tell visitors what your site is about..."
-                    rows={3}
-                    className="w-full px-4 py-3 bg-white/10 border border-gray-200 rounded-xl text-gray-900 placeholder-white/40 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 2: Template */}
-          {step === 2 && (
-            <div className="space-y-6">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Choose a Template</h2>
-                <p className="text-white/60">Select the style that best fits your needs</p>
-              </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {TEMPLATES.map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => setTemplate(t.id)}
-                    className={`relative p-6 rounded-2xl border-2 transition-all ${
-                      template === t.id
-                        ? 'border-purple-500 bg-purple-500/20'
-                        : 'border-gray-200 bg-white/5 hover:border-white/30'
-                    }`}
-                  >
-                    {template === t.id && (
-                      <div className="absolute top-3 right-3 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
-                        <Check className="w-4 h-4 text-gray-900" />
+                  {/* Subdomain */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                      Subdomain <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex">
+                      <input
+                        type="text"
+                        value={formData.subdomain}
+                        onChange={(e) => validateSubdomain(e.target.value)}
+                        className={`flex-1 px-4 py-3 bg-gray-50 border rounded-l-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white transition-all ${
+                          errors.subdomain ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        placeholder="mysite"
+                      />
+                      <div className="px-4 py-3 bg-gray-100 border border-l-0 border-gray-300 rounded-r-xl text-gray-500 font-medium">
+                        .cybev.io
                       </div>
-                    )}
-                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${t.color} flex items-center justify-center mb-4 mx-auto`}>
-                      <t.icon className="w-7 h-7 text-gray-900" />
                     </div>
-                    <h3 className="text-gray-900 font-semibold mb-1">{t.name}</h3>
-                    <p className="text-white/50 text-sm">{t.desc}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+                    {errors.subdomain && <p className="text-red-500 text-sm mt-1">{errors.subdomain}</p>}
+                    {formData.subdomain && !errors.subdomain && (
+                      <p className="text-green-600 text-sm mt-1 flex items-center gap-1">
+                        <Check className="w-4 h-4" />
+                        Your site will be at: {formData.subdomain}.cybev.io
+                      </p>
+                    )}
+                  </div>
 
-          {/* Step 3: Theme */}
-          {step === 3 && (
-            <div className="space-y-8">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Customize Theme</h2>
-                <p className="text-white/60">Pick colors and fonts for your site</p>
-              </div>
-
-              {/* Colors */}
-              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-gray-200">
-                <div className="flex items-center gap-2 mb-4">
-                  <Palette className="w-5 h-5 text-purple-600" />
-                  <h3 className="text-gray-900 font-semibold">Color Theme</h3>
-                </div>
-                <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
-                  {COLOR_THEMES.map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => setColorTheme(c.id)}
-                      className={`relative aspect-square rounded-xl overflow-hidden border-2 transition ${
-                        colorTheme === c.id ? 'border-white scale-110' : 'border-transparent'
-                      }`}
-                      style={{ background: `linear-gradient(135deg, ${c.primary}, ${c.secondary})` }}
-                    >
-                      {colorTheme === c.id && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gray-900/20">
-                          <Check className="w-6 h-6 text-gray-900" />
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Fonts */}
-              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-gray-200">
-                <div className="flex items-center gap-2 mb-4">
-                  <Type className="w-5 h-5 text-purple-600" />
-                  <h3 className="text-gray-900 font-semibold">Font Style</h3>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {FONT_PAIRS.map((f) => (
-                    <button
-                      key={f.id}
-                      onClick={() => setFontPair(f.id)}
-                      className={`p-4 rounded-xl border-2 transition text-left ${
-                        fontPair === f.id
-                          ? 'border-purple-500 bg-purple-500/20'
-                          : 'border-gray-200 bg-white/5 hover:border-white/30'
-                      }`}
-                    >
-                      <p className="text-gray-900 font-semibold mb-1" style={{ fontFamily: f.heading }}>{f.name}</p>
-                      <p className="text-white/50 text-sm" style={{ fontFamily: f.body }}>{f.heading} + {f.body}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 4: Review */}
-          {step === 4 && (
-            <div className="space-y-6">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Review & Create</h2>
-                <p className="text-white/60">Make sure everything looks good</p>
-              </div>
-
-              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-gray-200 space-y-4">
-                <div className="flex justify-between py-3 border-b border-gray-200">
-                  <span className="text-white/60">Site Name</span>
-                  <span className="text-gray-900 font-medium">{name}</span>
-                </div>
-                <div className="flex justify-between py-3 border-b border-gray-200">
-                  <span className="text-white/60">URL</span>
-                  <span className="text-purple-600 font-medium">{subdomain}.cybev.io</span>
-                </div>
-                <div className="flex justify-between py-3 border-b border-gray-200">
-                  <span className="text-white/60">Template</span>
-                  <span className="text-gray-900 font-medium capitalize">{template}</span>
-                </div>
-                <div className="flex justify-between py-3 border-b border-gray-200">
-                  <span className="text-white/60">Color Theme</span>
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-6 h-6 rounded-full"
-                      style={{ background: COLOR_THEMES.find(c => c.id === colorTheme)?.primary }}
+                  {/* Description */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">Description</label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      rows={3}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white transition-all resize-none"
+                      placeholder="Describe what your site is about..."
                     />
-                    <span className="text-gray-900 font-medium capitalize">{colorTheme}</span>
                   </div>
                 </div>
-                <div className="flex justify-between py-3">
-                  <span className="text-white/60">Font Style</span>
-                  <span className="text-gray-900 font-medium capitalize">{fontPair}</span>
-                </div>
-              </div>
 
-              {aiPreview?.heroImage && (
-                <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-4 border border-gray-200">
-                  <p className="text-white/60 text-sm mb-3 flex items-center gap-2">
-                    <ImageIcon className="w-4 h-4" /> AI-generated preview
-                  </p>
-                  <img src={aiPreview.heroImage} alt="Preview" className="w-full h-48 object-cover rounded-xl" />
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Step 5: Success */}
-          {step === 5 && createdSite && (
-            <div className="text-center py-12">
-              <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Check className="w-10 h-10 text-gray-900" />
-              </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Website Created!</h2>
-              <p className="text-white/60 mb-8">Your website is ready to customize</p>
-              
-              <div className="bg-white/10 rounded-xl p-4 mb-8 max-w-md mx-auto">
-                <p className="text-white/60 text-sm mb-1">Your site URL</p>
-                <p className="text-purple-600 font-mono text-lg">cybev.io/s/{createdSite.subdomain}</p>
-              </div>
-
-              <div className="flex justify-center gap-4">
-                <Link href={`/studio/sites/${createdSite._id}/edit`}>
-                  <button className="px-8 py-3 bg-purple-500 text-gray-900 rounded-xl font-semibold hover:bg-purple-600 flex items-center gap-2">
-                    Customize Website
+                {/* Next Button */}
+                <div className="mt-8 flex justify-end">
+                  <button
+                    onClick={() => setStep(2)}
+                    disabled={!formData.name.trim() || !formData.subdomain.trim()}
+                    className="px-8 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg transition-all"
+                  >
+                    Continue
                     <ArrowRight className="w-5 h-5" />
                   </button>
-                </Link>
-                <Link href={`/s/${createdSite.subdomain}`}>
-                  <button className="px-8 py-3 bg-white/10 text-gray-900 rounded-xl font-semibold hover:bg-white/20 flex items-center gap-2">
-                    <Eye className="w-5 h-5" />
-                    Preview
-                  </button>
-                </Link>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Error */}
-          {error && (
-            <div className="mt-6 p-4 bg-red-500/20 border border-red-500/50 rounded-xl flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-red-400" />
-              <p className="text-red-300">{error}</p>
+          {/* Step 2: Design */}
+          {step === 2 && (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Choose your design</h2>
+              <p className="text-gray-600 mb-6">Select a template and color scheme</p>
+
+              <div className="space-y-6">
+                {/* Template Selection */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-3">Template</label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {TEMPLATES.map((template) => (
+                      <button
+                        key={template.id}
+                        onClick={() => setFormData({ ...formData, template: template.id })}
+                        className={`p-4 rounded-xl border-2 text-center transition-all ${
+                          formData.template === template.id
+                            ? 'border-purple-600 bg-purple-50'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                      >
+                        <span className="text-3xl block mb-2">{template.icon}</span>
+                        <p className={`font-semibold ${formData.template === template.id ? 'text-purple-600' : 'text-gray-900'}`}>
+                          {template.name}
+                        </p>
+                        <p className="text-xs text-gray-500">{template.desc}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Color Scheme */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-3">Color Scheme</label>
+                  <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+                    {COLOR_SCHEMES.map((scheme) => (
+                      <button
+                        key={scheme.id}
+                        onClick={() => setFormData({ ...formData, colorScheme: scheme.id })}
+                        className={`p-3 rounded-xl border-2 text-center transition-all ${
+                          formData.colorScheme === scheme.id
+                            ? 'border-purple-600 bg-purple-50'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                      >
+                        <div
+                          className="w-10 h-10 rounded-lg mx-auto mb-2"
+                          style={{ background: `linear-gradient(135deg, ${scheme.primary} 0%, ${scheme.secondary} 100%)` }}
+                        />
+                        <p className={`text-sm font-medium ${formData.colorScheme === scheme.id ? 'text-purple-600' : 'text-gray-700'}`}>
+                          {scheme.name}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation */}
+              <div className="mt-8 flex justify-between">
+                <button
+                  onClick={() => setStep(1)}
+                  className="px-6 py-3 text-gray-700 font-semibold hover:bg-gray-100 rounded-xl flex items-center gap-2 transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  Back
+                </button>
+                <button
+                  onClick={() => setStep(3)}
+                  className="px-8 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 flex items-center gap-2 shadow-lg transition-all"
+                >
+                  Continue
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           )}
 
-          {/* Navigation */}
-          {step < 5 && (
-            <div className="flex justify-between mt-8">
-              <button
-                onClick={() => setStep(s => Math.max(1, s - 1))}
-                disabled={step === 1}
-                className="px-6 py-3 bg-white/10 text-gray-900 rounded-xl font-semibold hover:bg-white/20 disabled:opacity-30 flex items-center gap-2"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                Back
-              </button>
-              
-              {step < 4 ? (
-                <button
-                  onClick={() => setStep(s => s + 1)}
-                  disabled={!canProceed()}
-                  className="px-6 py-3 bg-purple-500 text-gray-900 rounded-xl font-semibold hover:bg-purple-600 disabled:opacity-30 flex items-center gap-2"
-                >
-                  Next
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              ) : (
-                <button
-                  onClick={createSite}
-                  disabled={loading || !canProceed()}
-                  className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 rounded-xl font-semibold hover:opacity-90 disabled:opacity-30 flex items-center gap-2"
-                >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                  Create Website
-                </button>
-              )}
+          {/* Step 3: Review */}
+          {step === 3 && (
+            <div className="space-y-6">
+              {/* Summary Card */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Review your website</h2>
+
+                <div className="space-y-4">
+                  <div className="flex justify-between py-3 border-b border-gray-100">
+                    <span className="text-gray-600">Site Name</span>
+                    <span className="font-semibold text-gray-900">{formData.name}</span>
+                  </div>
+                  <div className="flex justify-between py-3 border-b border-gray-100">
+                    <span className="text-gray-600">URL</span>
+                    <span className="font-semibold text-purple-600">{formData.subdomain}.cybev.io</span>
+                  </div>
+                  <div className="flex justify-between py-3 border-b border-gray-100">
+                    <span className="text-gray-600">Template</span>
+                    <span className="font-semibold text-gray-900">
+                      {TEMPLATES.find(t => t.id === formData.template)?.name}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-3 border-b border-gray-100">
+                    <span className="text-gray-600">Color Scheme</span>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-6 h-6 rounded"
+                        style={{ background: COLOR_SCHEMES.find(c => c.id === formData.colorScheme)?.primary }}
+                      />
+                      <span className="font-semibold text-gray-900">
+                        {COLOR_SCHEMES.find(c => c.id === formData.colorScheme)?.name}
+                      </span>
+                    </div>
+                  </div>
+                  {formData.description && (
+                    <div className="py-3">
+                      <span className="text-gray-600 block mb-2">Description</span>
+                      <p className="text-gray-900">{formData.description}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <button
+                    onClick={() => setStep(2)}
+                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                    Back
+                  </button>
+                  <button
+                    onClick={handleCreate}
+                    disabled={loading}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg transition-all"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <Rocket className="w-5 h-5" />
+                        Create Website
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
       </div>
-    </>
+    </AppLayout>
   );
 }
