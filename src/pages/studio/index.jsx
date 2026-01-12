@@ -1,10 +1,10 @@
 // ============================================
 // FILE: src/pages/studio/index.jsx
 // PATH: cybev-frontend/src/pages/studio/index.jsx
-// PURPOSE: Studio Dashboard - Shows user's sites & content
-// VERSION: 6.8.2 - Added Meet, Social Tools, Campaigns quick actions
-// PREVIOUS: 6.5.0 - Added Publish/Unpublish buttons
-// ROLLBACK: If issues, revert to VERSION 6.5.0
+// PURPOSE: Studio Dashboard - Clean White Design
+// VERSION: 7.0.0 - Facebook-style clean with floating cards
+// PREVIOUS: 6.8.x - Dark gradient design
+// ROLLBACK: Restore previous studio/index.jsx
 // GITHUB: https://github.com/cybev1/cybev-frontend
 // UPDATED: 2026-01-12
 // ============================================
@@ -19,13 +19,14 @@ import {
   PenTool, Video, Image as ImageIcon, BarChart3, Sparkles,
   Layout, FileText, Calendar, Clock, MoreHorizontal, Edit3,
   Copy, Check, AlertCircle, Rocket, Zap, Users, Upload, EyeOff,
-  // NEW v6.8.2 icons
-  Share2, Send, MessageCircle
+  Share2, Send, MessageCircle, Church, ChevronRight, TrendingUp
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
-// Quick action cards - UPDATED v6.8.2 with Meet, Social, Campaigns
+// ==========================================
+// QUICK ACTIONS DATA
+// ==========================================
 const QUICK_ACTIONS = [
   {
     id: 'website',
@@ -33,16 +34,9 @@ const QUICK_ACTIONS = [
     description: 'Build a stunning website with AI',
     icon: Globe,
     href: '/studio/sites/new',
-    color: 'from-purple-500 to-pink-500',
+    color: '#7c3aed',
+    bgColor: '#f3e8ff',
     badge: 'Popular'
-  },
-  {
-    id: 'church',
-    title: 'Church Management',
-    description: 'Manage your church & ministry',
-    icon: Users,
-    href: '/church',
-    color: 'from-indigo-500 to-purple-600'
   },
   {
     id: 'blog',
@@ -50,34 +44,44 @@ const QUICK_ACTIONS = [
     description: 'Generate blog posts instantly',
     icon: PenTool,
     href: '/studio/ai-blog',
-    color: 'from-blue-500 to-cyan-500'
+    color: '#3b82f6',
+    bgColor: '#dbeafe'
+  },
+  {
+    id: 'church',
+    title: 'Church Management',
+    description: 'Manage your ministry',
+    icon: Church,
+    href: '/church',
+    color: '#f59e0b',
+    bgColor: '#fef3c7'
   },
   {
     id: 'vlog',
     title: 'Create Vlog',
-    description: 'Upload and share video content',
+    description: 'Upload video content',
     icon: Video,
     href: '/vlog/create',
-    color: 'from-red-500 to-orange-500'
+    color: '#ef4444',
+    bgColor: '#fee2e2'
   },
   {
     id: 'nft',
     title: 'Mint NFT',
-    description: 'Turn your content into NFTs',
+    description: 'Turn content into NFTs',
     icon: Sparkles,
     href: '/nft/create',
-    color: 'from-amber-500 to-yellow-500'
+    color: '#ec4899',
+    bgColor: '#fce7f3'
   },
-  // ==========================================
-  // NEW v6.8.2 - Studio Features
-  // ==========================================
   {
     id: 'meet',
     title: 'Meet',
     description: 'Video conferencing',
     icon: Video,
     href: '/meet',
-    color: 'from-green-500 to-teal-500',
+    color: '#10b981',
+    bgColor: '#d1fae5',
     badge: 'New'
   },
   {
@@ -86,7 +90,8 @@ const QUICK_ACTIONS = [
     description: 'Automate social media',
     icon: Share2,
     href: '/studio/social',
-    color: 'from-pink-500 to-rose-500',
+    color: '#8b5cf6',
+    bgColor: '#ede9fe',
     badge: 'New'
   },
   {
@@ -95,11 +100,59 @@ const QUICK_ACTIONS = [
     description: 'Email & SMS marketing',
     icon: Send,
     href: '/studio/campaigns',
-    color: 'from-orange-500 to-amber-500',
+    color: '#f97316',
+    bgColor: '#ffedd5',
     badge: 'New'
   }
 ];
 
+// ==========================================
+// QUICK ACTION CARD - Floating Style
+// ==========================================
+function QuickActionCard({ action }) {
+  return (
+    <Link href={action.href}>
+      <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer group">
+        {/* Icon & Badge Row */}
+        <div className="flex items-start justify-between mb-4">
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110"
+            style={{ backgroundColor: action.bgColor }}
+          >
+            <action.icon className="w-6 h-6" style={{ color: action.color }} />
+          </div>
+          {action.badge && (
+            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+              action.badge === 'New' 
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                : 'bg-purple-100 text-purple-700'
+            }`}>
+              {action.badge}
+            </span>
+          )}
+        </div>
+
+        {/* Title & Description */}
+        <h3 className="font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors">
+          {action.title}
+        </h3>
+        <p className="text-sm text-gray-500 line-clamp-2">
+          {action.description}
+        </p>
+
+        {/* Arrow indicator */}
+        <div className="flex items-center gap-1 mt-3 text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="text-sm font-medium">Get started</span>
+          <ChevronRight className="w-4 h-4" />
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+// ==========================================
+// SITE CARD COMPONENT
+// ==========================================
 function SiteCard({ site, onDelete, onPublish }) {
   const [showMenu, setShowMenu] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -116,7 +169,7 @@ function SiteCard({ site, onDelete, onPublish }) {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this website? This action cannot be undone.')) return;
+    if (!confirm('Are you sure you want to delete this website?')) return;
     setDeleting(true);
     setShowMenu(false);
     await onDelete(site._id);
@@ -130,417 +183,418 @@ function SiteCard({ site, onDelete, onPublish }) {
     setPublishing(false);
   };
 
-  const getStatusColor = () => {
-    switch (site.status) {
-      case 'published': return 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400';
-      case 'draft': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-400';
-      default: return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400';
-    }
-  };
-
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden group hover:shadow-md transition">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group hover:shadow-lg transition-all duration-200">
       {/* Preview Image */}
-      <div className="relative aspect-video bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30">
+      <div className="relative aspect-video bg-gradient-to-br from-purple-50 to-pink-50">
         {site.thumbnail ? (
           <img src={site.thumbnail} alt={site.name} className="w-full h-full object-cover" />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <Globe className="w-12 h-12 text-purple-300 dark:text-purple-600" />
+            <Globe className="w-12 h-12 text-purple-200" />
           </div>
         )}
-        
-        {/* Hover Actions */}
-        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-3">
+
+        {/* Status Badge */}
+        <div className="absolute top-3 left-3">
+          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+            isPublished 
+              ? 'bg-green-100 text-green-700'
+              : 'bg-yellow-100 text-yellow-700'
+          }`}>
+            {isPublished ? 'Published' : 'Draft'}
+          </span>
+        </div>
+
+        {/* Actions Menu */}
+        <div className="absolute top-3 right-3">
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="w-8 h-8 bg-white/90 backdrop-blur rounded-full flex items-center justify-center hover:bg-white shadow-sm transition-colors"
+          >
+            <MoreHorizontal className="w-4 h-4 text-gray-600" />
+          </button>
+
+          {showMenu && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+              <div className="absolute right-0 top-10 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-20 animate-scale-in">
+                <a
+                  href={siteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-gray-700"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span className="text-sm font-medium">Visit Site</span>
+                </a>
+                <Link href={`/studio/sites/${site._id}/edit`}>
+                  <div className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-gray-700">
+                    <Edit3 className="w-4 h-4" />
+                    <span className="text-sm font-medium">Edit</span>
+                  </div>
+                </Link>
+                <button
+                  onClick={copyUrl}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-gray-700"
+                >
+                  {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                  <span className="text-sm font-medium">{copied ? 'Copied!' : 'Copy URL'}</span>
+                </button>
+                <button
+                  onClick={handlePublish}
+                  disabled={publishing}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-gray-700"
+                >
+                  {isPublished ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  <span className="text-sm font-medium">
+                    {publishing ? 'Saving...' : isPublished ? 'Unpublish' : 'Publish'}
+                  </span>
+                </button>
+                <div className="h-px bg-gray-100 my-1" />
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 text-red-600"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span className="text-sm font-medium">{deleting ? 'Deleting...' : 'Delete'}</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Hover Overlay */}
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+          <a
+            href={siteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 bg-white rounded-lg font-semibold text-gray-900 text-sm hover:bg-gray-100 transition-colors flex items-center gap-2"
+          >
+            <Eye className="w-4 h-4" />
+            Preview
+          </a>
           <Link href={`/studio/sites/${site._id}/edit`}>
-            <button className="px-4 py-2 bg-white text-gray-900 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-100">
+            <button className="px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold text-sm hover:bg-purple-700 transition-colors flex items-center gap-2">
               <Edit3 className="w-4 h-4" />
               Edit
             </button>
           </Link>
-          {isPublished ? (
-            <a href={siteUrl} target="_blank" rel="noopener noreferrer">
-              <button className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium flex items-center gap-2 hover:bg-purple-700">
-                <Eye className="w-4 h-4" />
-                View
-              </button>
-            </a>
-          ) : (
-            <button 
-              onClick={handlePublish}
-              disabled={publishing}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium flex items-center gap-2 hover:bg-green-700 disabled:opacity-50"
-            >
-              {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
-              Publish
-            </button>
-          )}
         </div>
-
-        {/* Status Badge */}
-        <div className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor()}`}>
-          {site.status === 'published' ? 'Published' : 'Draft'}
-        </div>
-
-        {/* Loading overlay */}
-        {(deleting || publishing) && (
-          <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
-          </div>
-        )}
       </div>
 
-      {/* Info */}
+      {/* Site Info */}
       <div className="p-4">
-        <div className="flex items-start justify-between mb-2">
-          <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white">{site.name}</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{site.subdomain}.cybev.io</p>
-          </div>
-          
-          <div className="relative">
-            <button 
-              onClick={() => setShowMenu(!showMenu)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-            >
-              <MoreHorizontal className="w-5 h-5 text-gray-500" />
-            </button>
-            
-            {showMenu && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                <div className="absolute right-0 top-10 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 z-20 py-1">
-                  {/* Edit */}
-                  <Link href={`/studio/sites/${site._id}/edit`}>
-                    <button className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">
-                      <Edit3 className="w-4 h-4" />
-                      Edit Site
-                    </button>
-                  </Link>
-                  
-                  {/* Open Site (only if published) */}
-                  {isPublished && (
-                    <a href={siteUrl} target="_blank" rel="noopener noreferrer">
-                      <button className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">
-                        <ExternalLink className="w-4 h-4" />
-                        Open Site
-                      </button>
-                    </a>
-                  )}
-                  
-                  {/* Copy URL */}
-                  <button 
-                    onClick={copyUrl}
-                    className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                  >
-                    {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                    {copied ? 'Copied!' : 'Copy URL'}
-                  </button>
-                  
-                  {/* Settings */}
-                  <Link href={`/studio/sites/${site._id}/settings`}>
-                    <button className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">
-                      <Settings className="w-4 h-4" />
-                      Settings
-                    </button>
-                  </Link>
-                  
-                  <hr className="my-1 border-gray-100 dark:border-gray-700" />
-                  
-                  {/* Publish/Unpublish - FROM v6.5.0 */}
-                  <button 
-                    onClick={handlePublish}
-                    disabled={publishing}
-                    className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                  >
-                    {isPublished ? (
-                      <>
-                        <EyeOff className="w-4 h-4" />
-                        Unpublish
-                      </>
-                    ) : (
-                      <>
-                        <Rocket className="w-4 h-4" />
-                        Publish
-                      </>
-                    )}
-                  </button>
-                  
-                  {/* Delete */}
-                  <button 
-                    onClick={handleDelete}
-                    disabled={deleting}
-                    className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Delete
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-        
+        <h3 className="font-bold text-gray-900 mb-1 line-clamp-1">{site.name}</h3>
+        <p className="text-sm text-gray-500 mb-3 line-clamp-1">{siteUrl}</p>
+
         {/* Stats */}
-        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-          <span className="flex items-center gap-1">
+        <div className="flex items-center gap-4 text-sm text-gray-500">
+          <div className="flex items-center gap-1">
             <Eye className="w-4 h-4" />
-            {site.views || 0}
-          </span>
-          <span className="flex items-center gap-1">
+            <span>{site.views || 0}</span>
+          </div>
+          <div className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
-            {new Date(site.updatedAt || site.createdAt).toLocaleDateString()}
-          </span>
+            <span>{new Date(site.updatedAt).toLocaleDateString()}</span>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-export default function StudioDashboard() {
+// ==========================================
+// STATS CARD - Floating Style
+// ==========================================
+function StatsCard({ icon: Icon, label, value, trend, color }) {
+  return (
+    <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+      <div className="flex items-center justify-between mb-3">
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center"
+          style={{ backgroundColor: `${color}15` }}
+        >
+          <Icon className="w-5 h-5" style={{ color }} />
+        </div>
+        {trend && (
+          <div className={`flex items-center gap-1 text-sm font-medium ${
+            trend > 0 ? 'text-green-600' : 'text-red-600'
+          }`}>
+            <TrendingUp className={`w-4 h-4 ${trend < 0 ? 'rotate-180' : ''}`} />
+            <span>{Math.abs(trend)}%</span>
+          </div>
+        )}
+      </div>
+      <p className="text-2xl font-bold text-gray-900 mb-1">{value}</p>
+      <p className="text-sm text-gray-500">{label}</p>
+    </div>
+  );
+}
+
+// ==========================================
+// MAIN STUDIO PAGE
+// ==========================================
+export default function StudioPage() {
   const router = useRouter();
   const [sites, setSites] = useState([]);
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('sites');
+  const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  const getAuth = () => {
-    const token = typeof window !== 'undefined' ? 
-      (localStorage.getItem('token') || localStorage.getItem('cybev_token')) : null;
-    return {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    };
-  };
-
   const fetchData = async () => {
     try {
-      const [sitesRes, blogsRes] = await Promise.all([
-        fetch(`${API_URL}/api/sites/my`, getAuth()),
-        fetch(`${API_URL}/api/blogs/my`, getAuth())
-      ]);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/auth/login');
+        return;
+      }
 
-      if (sitesRes.ok) {
-        const sitesData = await sitesRes.json();
-        setSites(sitesData.sites || []);
-      }
-      
-      if (blogsRes.ok) {
-        const blogsData = await blogsRes.json();
-        setBlogs(blogsData.blogs || []);
-      }
-    } catch (err) {
-      console.error('Fetch error:', err);
+      // Fetch sites
+      const sitesRes = await fetch(`${API_URL}/api/sites/my`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const sitesData = await sitesRes.json();
+      if (sitesData.ok) setSites(sitesData.sites || []);
+
+      // Fetch blogs
+      const blogsRes = await fetch(`${API_URL}/api/blogs/my`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const blogsData = await blogsRes.json();
+      if (blogsData.ok) setBlogs(blogsData.blogs || []);
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const deleteSite = async (siteId) => {
+  const handleDeleteSite = async (siteId) => {
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch(`${API_URL}/api/sites/${siteId}`, {
         method: 'DELETE',
-        ...getAuth()
+        headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
         setSites(sites.filter(s => s._id !== siteId));
       }
-    } catch (err) {
-      console.error('Delete site error:', err);
+    } catch (error) {
+      console.error('Error deleting site:', error);
     }
   };
 
-  // FROM v6.5.0 - Publish/Unpublish functionality
-  const publishSite = async (siteId, publish) => {
+  const handlePublishSite = async (siteId, publish) => {
     try {
-      const res = await fetch(`${API_URL}/api/sites/${siteId}/publish`, {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/sites/${siteId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          ...getAuth().headers
+          Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ publish })
+        body: JSON.stringify({ status: publish ? 'published' : 'draft' })
       });
-      
       if (res.ok) {
-        // Update local state
-        setSites(sites.map(s => 
-          s._id === siteId 
-            ? { ...s, status: publish ? 'published' : 'draft' }
-            : s
+        setSites(sites.map(s =>
+          s._id === siteId ? { ...s, status: publish ? 'published' : 'draft' } : s
         ));
       }
-    } catch (err) {
-      console.error('Publish site error:', err);
+    } catch (error) {
+      console.error('Error updating site:', error);
     }
   };
 
   return (
     <AppLayout>
       <Head>
-        <title>Studio - CYBEV</title>
+        <title>Studio | CYBEV</title>
       </Head>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Creator Studio
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Build websites, write content, and manage your creations
-          </p>
-        </div>
-
-        {/* Quick Actions - v6.8.2: Now shows 8 items (added Meet, Social, Campaigns) */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {QUICK_ACTIONS.map((action) => (
-            <Link key={action.id} href={action.href}>
-              <div className="relative bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition cursor-pointer group">
-                {action.badge && (
-                  <span className="absolute top-3 right-3 px-2 py-0.5 bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 text-xs font-medium rounded-full">
-                    {action.badge}
-                  </span>
-                )}
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center mb-4 group-hover:scale-110 transition`}>
-                  <action.icon className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{action.title}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{action.description}</p>
+      <div className="min-h-screen bg-gray-100">
+        {/* ==========================================
+            HERO SECTION - Floating Header
+            ========================================== */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-6xl mx-auto px-4 py-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                  Creator Studio
+                </h1>
+                <p className="text-gray-500">
+                  Build websites, write blogs, and grow your audience
+                </p>
               </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* Tabs */}
-        <div className="flex items-center gap-4 border-b border-gray-200 dark:border-gray-700 mb-6">
-          <button
-            onClick={() => setActiveTab('sites')}
-            className={`pb-4 px-2 font-medium transition ${
-              activeTab === 'sites'
-                ? 'text-purple-600 border-b-2 border-purple-600'
-                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <Globe className="w-5 h-5" />
-              Websites
-              {sites.length > 0 && (
-                <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs">
-                  {sites.length}
-                </span>
-              )}
-            </div>
-          </button>
-          <button
-            onClick={() => setActiveTab('blogs')}
-            className={`pb-4 px-2 font-medium transition ${
-              activeTab === 'blogs'
-                ? 'text-purple-600 border-b-2 border-purple-600'
-                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              Blog Posts
-              {blogs.length > 0 && (
-                <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs">
-                  {blogs.length}
-                </span>
-              )}
-            </div>
-          </button>
-        </div>
-
-        {/* Content */}
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
-          </div>
-        ) : activeTab === 'sites' ? (
-          sites.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center shadow-sm border border-gray-100 dark:border-gray-700">
-              <div className="w-20 h-20 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Globe className="w-10 h-10 text-purple-500" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                No websites yet
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                Create your first website with our AI-powered builder. Choose from templates or let AI design for you.
-              </p>
               <Link href="/studio/sites/new">
-                <button className="px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 flex items-center gap-2 mx-auto">
+                <button className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
+                  style={{ boxShadow: '0 4px 20px rgba(124, 58, 237, 0.3)' }}
+                >
                   <Plus className="w-5 h-5" />
-                  Create Your First Website
+                  Create Website
                 </button>
               </Link>
             </div>
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Your Websites
-                </h2>
+          </div>
+        </div>
+
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          {/* ==========================================
+              STATS ROW - Floating Cards
+              ========================================== */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <StatsCard
+              icon={Globe}
+              label="Total Websites"
+              value={sites.length}
+              color="#7c3aed"
+            />
+            <StatsCard
+              icon={FileText}
+              label="Blog Posts"
+              value={blogs.length}
+              color="#3b82f6"
+            />
+            <StatsCard
+              icon={Eye}
+              label="Total Views"
+              value={sites.reduce((acc, s) => acc + (s.views || 0), 0)}
+              trend={12}
+              color="#10b981"
+            />
+            <StatsCard
+              icon={Users}
+              label="Followers"
+              value="0"
+              color="#f59e0b"
+            />
+          </div>
+
+          {/* ==========================================
+              QUICK ACTIONS - Floating Cards
+              ========================================== */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900">Quick Actions</h2>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {QUICK_ACTIONS.map((action) => (
+                <QuickActionCard key={action.id} action={action} />
+              ))}
+            </div>
+          </div>
+
+          {/* ==========================================
+              MY WEBSITES SECTION
+              ========================================== */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900">My Websites</h2>
+              <Link href="/studio/sites/new">
+                <button className="text-purple-600 text-sm font-semibold hover:underline flex items-center gap-1">
+                  <Plus className="w-4 h-4" />
+                  New Website
+                </button>
+              </Link>
+            </div>
+
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="bg-white rounded-2xl overflow-hidden animate-pulse">
+                    <div className="aspect-video bg-gray-200" />
+                    <div className="p-4">
+                      <div className="h-5 bg-gray-200 rounded mb-2 w-3/4" />
+                      <div className="h-4 bg-gray-200 rounded w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : sites.length === 0 ? (
+              <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Globe className="w-8 h-8 text-purple-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">No websites yet</h3>
+                <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                  Create your first website with our AI-powered builder. It's fast, easy, and beautiful.
+                </p>
                 <Link href="/studio/sites/new">
-                  <button className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 flex items-center gap-2">
-                    <Plus className="w-4 h-4" />
-                    New Website
+                  <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all">
+                    Create Your First Website
                   </button>
                 </Link>
               </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {sites.map((site) => (
-                  <SiteCard 
-                    key={site._id} 
-                    site={site} 
-                    onDelete={deleteSite}
-                    onPublish={publishSite}
+                  <SiteCard
+                    key={site._id}
+                    site={site}
+                    onDelete={handleDeleteSite}
+                    onPublish={handlePublishSite}
                   />
                 ))}
               </div>
-            </>
-          )
-        ) : (
-          blogs.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center shadow-sm border border-gray-100 dark:border-gray-700">
-              <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                <PenTool className="w-10 h-10 text-blue-500" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                No blog posts yet
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                Start writing with AI assistance or create from scratch.
-              </p>
+            )}
+          </div>
+
+          {/* ==========================================
+              MY BLOGS SECTION
+              ========================================== */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900">Recent Blogs</h2>
               <Link href="/studio/ai-blog">
-                <button className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 flex items-center gap-2 mx-auto">
-                  <Sparkles className="w-5 h-5" />
-                  Write with AI
+                <button className="text-purple-600 text-sm font-semibold hover:underline flex items-center gap-1">
+                  <Plus className="w-4 h-4" />
+                  Write Blog
                 </button>
               </Link>
             </div>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {blogs.map((blog) => (
-                <div key={blog._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{blog.title}</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4">{blog.excerpt || blog.content?.slice(0, 100)}</p>
-                  <Link href={`/blog/${blog._id}`}>
-                    <button className="text-purple-600 text-sm font-medium hover:underline">
-                      View Post →
-                    </button>
-                  </Link>
+
+            {blogs.length === 0 ? (
+              <div className="bg-white rounded-2xl p-8 text-center border border-gray-100">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <PenTool className="w-6 h-6 text-blue-600" />
                 </div>
-              ))}
-            </div>
-          )
-        )}
+                <h3 className="font-bold text-gray-900 mb-1">No blogs yet</h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  Start writing with our AI-powered blog generator
+                </p>
+                <Link href="/studio/ai-blog">
+                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors">
+                    Write Your First Blog
+                  </button>
+                </Link>
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-100">
+                {blogs.slice(0, 5).map((blog) => (
+                  <Link key={blog._id} href={`/blog/${blog._id}`}>
+                    <div className="p-4 hover:bg-gray-50 transition-colors flex items-center gap-4 cursor-pointer">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 truncate">{blog.title}</h3>
+                        <p className="text-sm text-gray-500">
+                          {new Date(blog.createdAt).toLocaleDateString()} • {blog.views || 0} views
+                        </p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </AppLayout>
   );
