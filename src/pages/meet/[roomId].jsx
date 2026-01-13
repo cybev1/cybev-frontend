@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/meet/[roomId].jsx
 // Meeting Room - Jitsi Video Conference
-// VERSION: 1.1.0 - FIXED: Camera/Mic permissions
+// VERSION: 1.2.0 - FIXED: Camera/Mic permissions
 // ============================================
 
 import { useState, useEffect, useRef } from 'react';
@@ -45,10 +45,8 @@ export default function MeetingRoom() {
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
           if (node.tagName === 'IFRAME') {
-            // Add permissions immediately when iframe is created
-            node.setAttribute('allow', 'camera *; microphone *; fullscreen *; display-capture *; autoplay *; clipboard-write *');
-            node.setAttribute('allowfullscreen', 'true');
-            node.setAttribute('allowtransparency', 'true');
+            // CORRECT syntax for iframe allow attribute (semicolon-separated, no asterisks)
+            node.setAttribute('allow', 'camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; encrypted-media');
             console.log('✅ Added camera/microphone permissions to Jitsi iframe');
           }
         });
@@ -89,8 +87,9 @@ export default function MeetingRoom() {
     // Also add permissions after a short delay as backup
     setTimeout(() => {
       const iframe = jitsiContainer.current?.querySelector('iframe');
-      if (iframe && !iframe.getAttribute('allow')?.includes('camera')) {
-        iframe.setAttribute('allow', 'camera *; microphone *; fullscreen *; display-capture *; autoplay *; clipboard-write *');
+      if (iframe) {
+        // CORRECT syntax for iframe allow attribute
+        iframe.setAttribute('allow', 'camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; encrypted-media');
         console.log('✅ Added permissions via setTimeout backup');
       }
       observer.disconnect();
