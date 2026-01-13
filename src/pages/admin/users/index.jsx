@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/admin/users/index.jsx
 // Admin Users Management Page - Full CRUD
-// VERSION: 2.0 - Complete Functionality
+// VERSION: 2.1 - Email Verification Status & Reminders
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -12,7 +12,7 @@ import {
   Users, Search, ChevronLeft, ChevronRight, MoreVertical,
   Ban, CheckCircle, Shield, Eye, RefreshCw,
   UserCheck, UserX, Crown, Download, X,
-  Mail, Coins, Calendar, Clock
+  Mail, Coins, Calendar, Clock, AlertTriangle, Send, XCircle
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -25,6 +25,14 @@ const ROLES = [
   { value: 'creator', label: 'Creator', color: 'bg-blue-100 text-blue-700' },
   { value: 'moderator', label: 'Moderator', color: 'bg-orange-100 text-orange-700' },
   { value: 'admin', label: 'Admin', color: 'bg-purple-100 text-purple-700' }
+];
+
+const STATUS_FILTERS = [
+  { value: '', label: 'All Users' },
+  { value: 'active', label: 'Active' },
+  { value: 'verified', label: 'Email Verified' },
+  { value: 'unverified', label: 'Email Unverified' },
+  { value: 'banned', label: 'Banned' }
 ];
 
 // User Detail Modal
@@ -52,11 +60,16 @@ function UserModal({ user, onClose, onAction }) {
                 {user.isVerified && <CheckCircle className="w-5 h-5 text-blue-500" />}
               </h4>
               <p className="text-gray-500">@{user.username}</p>
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
                 <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${ROLES.find(r => r.value === user.role)?.color || 'bg-gray-100 text-gray-700'}`}>
                   {user.role || 'user'}
                 </span>
                 {user.isBanned && <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-700">Banned</span>}
+                {user.isEmailVerified ? (
+                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">Email Verified</span>
+                ) : (
+                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">Email Unverified</span>
+                )}
               </div>
             </div>
           </div>
@@ -71,16 +84,25 @@ function UserModal({ user, onClose, onAction }) {
             <Link href={`/profile/${user.username}`} className="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50">
               <Eye className="w-4 h-4" /> View Profile
             </Link>
-            {!user.isVerified && (
-              <button onClick={() => { onAction('verify', user._id); onClose(); }} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200">
-                <CheckCircle className="w-4 h-4" /> Verify
+            
+            {!user.isEmailVerified && (
+              <button onClick={() => { onAction('sendReminder', user._id); }} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-yellow-100 text-yellow-700 rounded-xl hover:bg-yellow-200">
+                <Send className="w-4 h-4" /> Send Reminder
               </button>
             )}
+            
+            {!user.isVerified && (
+              <button onClick={() => { onAction('verify', user._id); onClose(); }} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200">
+                <CheckCircle className="w-4 h-4" /> Verify Badge
+              </button>
+            )}
+            
             {user.role !== 'admin' && (
               <button onClick={() => { onAction('makeAdmin', user._id); onClose(); }} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-100 text-purple-700 rounded-xl hover:bg-purple-200">
                 <Crown className="w-4 h-4" /> Make Admin
               </button>
             )}
+            
             {user.isBanned ? (
               <button onClick={() => { onAction('unban', user._id); onClose(); }} className="col-span-2 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-100 text-green-700 rounded-xl hover:bg-green-200">
                 <UserCheck className="w-4 h-4" /> Unban User
@@ -103,15 +125,17 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ total: 0, pages: 1 });
   const [selectedUser, setSelectedUser] = useState(null);
   const [showActions, setShowActions] = useState(null);
+  const [summary, setSummary] = useState({ totalUnverified: 0, totalBanned: 0, totalVerified: 0 });
 
   useEffect(() => { checkAdmin(); }, []);
-  useEffect(() => { if (!loading) fetchUsers(); }, [page, roleFilter, sortBy, sortOrder]);
+  useEffect(() => { if (!loading) fetchUsers(); }, [page, roleFilter, statusFilter, sortBy, sortOrder]);
   useEffect(() => {
     const timer = setTimeout(() => { if (!loading) { setPage(1); fetchUsers(); } }, 500);
     return () => clearTimeout(timer);
@@ -136,13 +160,14 @@ export default function AdminUsers() {
       const token = localStorage.getItem('token');
       const params = new URLSearchParams({
         page: page.toString(), limit: '20', sort: sortBy, order: sortOrder,
-        ...(search && { search }), ...(roleFilter && { role: roleFilter })
+        ...(search && { search }), ...(roleFilter && { role: roleFilter }), ...(statusFilter && { status: statusFilter })
       });
       const response = await axios.get(`${API_URL}/api/admin-analytics/users/list?${params}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUsers(response.data.users || []);
       setPagination(response.data.pagination || { total: 0, pages: 1 });
+      if (response.data.summary) setSummary(response.data.summary);
     } catch (error) {
       console.error('Fetch users error:', error);
       if (error.response?.status === 403) { toast.error('Admin access required'); router.push('/feed'); }
@@ -181,16 +206,33 @@ export default function AdminUsers() {
           await axios.post(`${API_URL}/api/admin-analytics/users/${userId}/role`, { role: 'user' }, { headers });
           toast.success('Role removed');
           break;
+        case 'sendReminder':
+          await axios.post(`${API_URL}/api/admin-analytics/users/${userId}/send-verification-reminder`, {}, { headers });
+          toast.success('Verification reminder sent!');
+          break;
       }
       setShowActions(null);
       fetchUsers();
     } catch (error) { toast.error(error.response?.data?.error || 'Action failed'); }
   };
 
+  const sendBulkReminders = async () => {
+    if (!confirm(`Send verification reminders to ${summary.totalUnverified} unverified users?`)) return;
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_URL}/api/admin-analytics/users/send-bulk-verification-reminders`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success(`Sent ${res.data.sent} reminders!`);
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to send reminders');
+    }
+  };
+
   const exportUsers = () => {
     const csvContent = [
-      ['Name', 'Username', 'Email', 'Role', 'Status', 'Joined'],
-      ...users.map(u => [u.name || '', u.username, u.email, u.role || 'user', u.isBanned ? 'Banned' : 'Active', new Date(u.createdAt).toLocaleDateString()])
+      ['Name', 'Username', 'Email', 'Role', 'Status', 'Email Verified', 'Joined'],
+      ...users.map(u => [u.name || '', u.username, u.email, u.role || 'user', u.isBanned ? 'Banned' : 'Active', u.isEmailVerified ? 'Yes' : 'No', new Date(u.createdAt).toLocaleDateString()])
     ].map(row => row.join(',')).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -226,6 +268,43 @@ export default function AdminUsers() {
           </div>
         </div>
 
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white rounded-xl p-4 border border-gray-200">
+            <p className="text-gray-500 text-sm">Total Users</p>
+            <p className="text-2xl font-bold text-gray-900">{pagination.total}</p>
+          </div>
+          <div className="bg-white rounded-xl p-4 border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-500 text-sm">Email Verified</p>
+                <p className="text-2xl font-bold text-green-600">{summary.totalVerified}</p>
+              </div>
+              <CheckCircle className="w-8 h-8 text-green-200" />
+            </div>
+          </div>
+          <div className="bg-white rounded-xl p-4 border border-yellow-200 bg-yellow-50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-yellow-700 text-sm">Unverified</p>
+                <p className="text-2xl font-bold text-yellow-600">{summary.totalUnverified}</p>
+              </div>
+              <button onClick={sendBulkReminders} className="p-2 bg-yellow-200 rounded-lg hover:bg-yellow-300" title="Send bulk reminders">
+                <Send className="w-5 h-5 text-yellow-700" />
+              </button>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl p-4 border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-500 text-sm">Banned</p>
+                <p className="text-2xl font-bold text-red-600">{summary.totalBanned}</p>
+              </div>
+              <Ban className="w-8 h-8 text-red-200" />
+            </div>
+          </div>
+        </div>
+
         {/* Filters */}
         <div className="bg-white rounded-2xl p-4 mb-6 border border-gray-200">
           <div className="flex flex-col md:flex-row gap-4">
@@ -240,6 +319,10 @@ export default function AdminUsers() {
               className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500">
               <option value="">All Roles</option>
               {ROLES.map(role => <option key={role.value} value={role.value}>{role.label}</option>)}
+            </select>
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500">
+              {STATUS_FILTERS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
             <select value={`${sortBy}-${sortOrder}`} onChange={(e) => { const [s, o] = e.target.value.split('-'); setSortBy(s); setSortOrder(o); }}
               className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500">
@@ -269,8 +352,8 @@ export default function AdminUsers() {
                     <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Email</th>
                     <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Role</th>
                     <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Email Verified</th>
                     <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Joined</th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Balance</th>
                     <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase">Actions</th>
                   </tr>
                 </thead>
@@ -303,24 +386,36 @@ export default function AdminUsers() {
                           <span className="flex items-center gap-1 text-sm text-green-600"><UserCheck className="w-4 h-4" /> Active</span>
                         )}
                       </td>
+                      <td className="px-6 py-4">
+                        {user.isEmailVerified ? (
+                          <span className="flex items-center gap-1 text-sm text-green-600"><CheckCircle className="w-4 h-4" /> Verified</span>
+                        ) : (
+                          <span className="flex items-center gap-1 text-sm text-yellow-600"><XCircle className="w-4 h-4" /> Pending</span>
+                        )}
+                      </td>
                       <td className="px-6 py-4 text-sm text-gray-600">{new Date(user.createdAt).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 text-sm text-purple-600 font-medium">{user.tokenBalance?.toLocaleString() || 0}</td>
                       <td className="px-6 py-4 text-right relative" onClick={(e) => e.stopPropagation()}>
                         <button onClick={() => setShowActions(showActions === user._id ? null : user._id)}
                           className="p-2 hover:bg-gray-100 rounded-lg">
                           <MoreVertical className="w-5 h-5 text-gray-500" />
                         </button>
                         {showActions === user._id && (
-                          <div className="absolute right-6 top-full mt-1 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+                          <div className="absolute right-6 top-full mt-1 w-52 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
                             <Link href={`/profile/${user.username}`}>
                               <button className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2">
                                 <Eye className="w-4 h-4" /> View Profile
                               </button>
                             </Link>
+                            {!user.isEmailVerified && (
+                              <button onClick={() => handleAction('sendReminder', user._id)}
+                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-yellow-600">
+                                <Send className="w-4 h-4" /> Send Verification Email
+                              </button>
+                            )}
                             {!user.isVerified && (
                               <button onClick={() => handleAction('verify', user._id)}
                                 className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-blue-600">
-                                <CheckCircle className="w-4 h-4" /> Verify User
+                                <CheckCircle className="w-4 h-4" /> Verify Badge
                               </button>
                             )}
                             {user.role !== 'admin' && (
