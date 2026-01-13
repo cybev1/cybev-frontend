@@ -1,7 +1,7 @@
 // ============================================
 // FILE: next.config.js
 // Optimized Next.js Configuration
-// UPDATED: v1.1.0 - Fixed Meet camera/mic permissions
+// UPDATED: v1.2.0 - Fixed Meet camera/mic permissions
 // ============================================
 
 /** @type {import('next').NextConfig} */
@@ -69,16 +69,8 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384]
   },
   
-  // Experimental features
+  // Experimental features - removed unsupported options for Next.js 13.4
   experimental: {
-    // Optimize package imports
-    optimizePackageImports: [
-      'lucide-react',
-      '@heroicons/react',
-      'date-fns',
-      'lodash'
-    ],
-    // Scroll restoration
     scrollRestoration: true
   },
   
@@ -95,6 +87,7 @@ const nextConfig = {
     return [
       // ============================================
       // MEET PAGES - Allow Jitsi iframe camera/mic
+      // MUST have permissive policy for video conferencing
       // ============================================
       {
         source: '/meet/:path*',
@@ -104,9 +97,22 @@ const nextConfig = {
             value: 'camera=*, microphone=*, fullscreen=*, display-capture=*, autoplay=*'
           },
           {
-            key: 'X-Frame-Options',
-            value: 'ALLOWALL'
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin'
           }
+          // NOTE: NO X-Frame-Options here - Jitsi needs to embed
         ]
       },
       // ============================================
@@ -140,10 +146,11 @@ const nextConfig = {
         ]
       },
       // ============================================
-      // ALL OTHER PAGES - Security headers
+      // ALL OTHER PAGES (except /meet) - Security headers
+      // Using regex to EXCLUDE meet pages
       // ============================================
       {
-        source: '/:path*',
+        source: '/((?!meet).*)',
         headers: [
           {
             key: 'X-DNS-Prefetch-Control',
