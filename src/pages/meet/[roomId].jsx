@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/meet/[roomId].jsx
 // Meeting Room - Jitsi Video Conference
-// VERSION: 1.0.0 - NEW FEATURE
+// VERSION: 1.1.0 - FIXED: Camera/Mic permissions
 // ============================================
 
 import { useState, useEffect, useRef } from 'react';
@@ -40,6 +40,23 @@ export default function MeetingRoom() {
 
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     
+    // FIX: Set up MutationObserver BEFORE creating API to catch iframe immediately
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.tagName === 'IFRAME') {
+            // Add permissions immediately when iframe is created
+            node.setAttribute('allow', 'camera *; microphone *; fullscreen *; display-capture *; autoplay *; clipboard-write *');
+            node.setAttribute('allowfullscreen', 'true');
+            node.setAttribute('allowtransparency', 'true');
+            console.log('✅ Added camera/microphone permissions to Jitsi iframe');
+          }
+        });
+      });
+    });
+    
+    observer.observe(jitsiContainer.current, { childList: true, subtree: true });
+    
     const api = new window.JitsiMeetExternalAPI('meet.jit.si', {
       roomName: `cybev-${roomId}`,
       parentNode: jitsiContainer.current,
@@ -68,6 +85,16 @@ export default function MeetingRoom() {
         email: user.email || '',
       }
     });
+
+    // Also add permissions after a short delay as backup
+    setTimeout(() => {
+      const iframe = jitsiContainer.current?.querySelector('iframe');
+      if (iframe && !iframe.getAttribute('allow')?.includes('camera')) {
+        iframe.setAttribute('allow', 'camera *; microphone *; fullscreen *; display-capture *; autoplay *; clipboard-write *');
+        console.log('✅ Added permissions via setTimeout backup');
+      }
+      observer.disconnect();
+    }, 500);
 
     api.addEventListener('videoConferenceJoined', () => {
       setLoading(false);
@@ -123,15 +150,15 @@ export default function MeetingRoom() {
             
             <button
               onClick={copyLink}
-              className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-900 rounded-lg text-sm hover:bg-gray-600"
+              className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200"
             >
-              {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+              {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
               {copied ? 'Copied!' : 'Copy Link'}
             </button>
             
             <button
               onClick={leaveMeeting}
-              className="flex items-center gap-2 px-3 py-1.5 bg-red-600 text-gray-900 rounded-lg text-sm hover:bg-red-700"
+              className="flex items-center gap-2 px-3 py-1.5 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
             >
               <PhoneOff className="w-4 h-4" />
               Leave
