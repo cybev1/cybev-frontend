@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 const MENU_ITEMS = [
-  { id: 'profile', label: 'Edit Profile', icon: User, description: 'Update your name, bio, and avatar' },
+  { id: 'profile', label: 'Edit Profile', icon: User, description: 'Update your name, bio, and avatar', href: '/settings/profile' },
   { id: 'notifications', label: 'Notifications', icon: Bell, description: 'Configure notification preferences', href: '/settings/notifications' },
   { id: 'privacy', label: 'Privacy & Security', icon: Shield, description: 'Manage your privacy settings' },
   { id: 'domains', label: 'Custom Domains', icon: Globe, description: 'Manage your custom domains', href: '/settings/domains' },
