@@ -1,6 +1,7 @@
 // ============================================
 // FILE: next.config.js
 // Optimized Next.js Configuration
+// UPDATED: v1.1.0 - Fixed Meet camera/mic permissions
 // ============================================
 
 /** @type {import('next').NextConfig} */
@@ -92,6 +93,25 @@ const nextConfig = {
   // Headers for caching and security
   async headers() {
     return [
+      // ============================================
+      // MEET PAGES - Allow Jitsi iframe camera/mic
+      // ============================================
+      {
+        source: '/meet/:path*',
+        headers: [
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=*, microphone=*, fullscreen=*, display-capture=*, autoplay=*'
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'ALLOWALL'
+          }
+        ]
+      },
+      // ============================================
+      // STATIC ASSETS - Long cache
+      // ============================================
       {
         source: '/:all*(svg|jpg|jpeg|png|gif|ico|webp|avif)',
         headers: [
@@ -119,6 +139,9 @@ const nextConfig = {
           }
         ]
       },
+      // ============================================
+      // ALL OTHER PAGES - Security headers
+      // ============================================
       {
         source: '/:path*',
         headers: [
