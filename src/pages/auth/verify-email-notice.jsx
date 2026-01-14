@@ -9,7 +9,8 @@ import {
   CheckCircle,
   AlertCircle,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Inbox
 } from 'lucide-react';
 
 export default function VerifyEmailNotice() {
@@ -108,7 +109,7 @@ export default function VerifyEmailNotice() {
             className="inline-block mb-4"
           >
             <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-2xl">
-              <Mail className="w-10 h-10 text-gray-900" />
+              <Mail className="w-10 h-10 text-white" />
             </div>
           </motion.div>
           <h1 className="text-4xl font-black mb-2 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
@@ -139,16 +140,34 @@ export default function VerifyEmailNotice() {
             <p className="text-lg font-bold text-purple-600 mb-4 break-all">
               {user.email}
             </p>
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 mb-4">
+            
+            {/* Enhanced Spam Notice */}
+            <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 mb-4">
               <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="text-left text-sm text-blue-800">
-                  <p className="font-semibold mb-1">Can't find the email?</p>
-                  <ul className="list-disc list-inside space-y-1 text-blue-700">
-                    <li>Check your spam/junk folder</li>
-                    <li>Wait a few minutes for delivery</li>
-                    <li>Make sure {user.email} is correct</li>
+                <Inbox className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div className="text-left text-sm text-amber-900">
+                  <p className="font-bold text-base mb-2">📬 Can't find the email?</p>
+                  <ul className="list-none space-y-2 text-amber-800">
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-600 font-bold">1.</span>
+                      <span><strong>Check your SPAM/Junk folder</strong> - emails often end up there</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-600 font-bold">2.</span>
+                      <span>Search for emails from <strong>info@cybev.io</strong></span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-600 font-bold">3.</span>
+                      <span>Wait 2-3 minutes - delivery can take time</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-600 font-bold">4.</span>
+                      <span>Make sure <strong>{user.email}</strong> is correct</span>
+                    </li>
                   </ul>
+                  <p className="mt-3 text-amber-700 font-semibold bg-amber-100 rounded-lg p-2 text-center">
+                    💡 If found in spam, mark it as "Not Spam" to receive future emails!
+                  </p>
                 </div>
               </div>
             </div>
@@ -162,7 +181,7 @@ export default function VerifyEmailNotice() {
               whileTap={{ scale: 0.98 }}
               onClick={handleResend}
               disabled={resending || resentCount >= 3}
-              className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {resending ? (
                 <>

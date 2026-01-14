@@ -9,7 +9,8 @@ import {
   AlertCircle,
   Loader2,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Inbox
 } from 'lucide-react';
 
 export default function VerifyEmail() {
@@ -64,7 +65,7 @@ export default function VerifyEmail() {
       const response = await authAPI.resendVerification(email);
 
       if (response.data.success) {
-        toast.success('✅ Verification email sent! Check your inbox.');
+        toast.success('✅ Verification email sent! Check your inbox and spam folder.');
       }
     } catch (err) {
       console.error('❌ Resend error:', err);
@@ -74,18 +75,37 @@ export default function VerifyEmail() {
     }
   };
 
-  // NO TOKEN - Show error
+  // NO TOKEN - Show instructions with spam notice
   if (!token) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <AlertCircle className="w-16 h-16 text-yellow-600 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-800 mb-2">No Verification Token</h1>
-          <p className="text-gray-600 mb-6">Please check your email for the verification link.</p>
+          <p className="text-gray-600 mb-4">Please check your email for the verification link.</p>
+          
+          {/* Enhanced Spam Notice */}
+          <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 mb-6 text-left">
+            <div className="flex items-start gap-3">
+              <Inbox className="w-6 h-6 text-amber-600 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-amber-900 mb-2">📬 Can't find the email?</p>
+                <ul className="text-sm text-amber-800 space-y-1">
+                  <li>• <strong>Check your SPAM/Junk folder</strong></li>
+                  <li>• Search for emails from <strong>info@cybev.io</strong></li>
+                  <li>• Wait 2-3 minutes for delivery</li>
+                </ul>
+                <p className="mt-2 text-xs text-amber-700 bg-amber-100 rounded p-1.5 text-center">
+                  💡 If found in spam, mark as "Not Spam"
+                </p>
+              </div>
+            </div>
+          </div>
+          
           <button
             onClick={handleResend}
             disabled={resending}
-            className="px-6 py-3 bg-purple-600 text-gray-900 font-bold rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-50"
+            className="px-6 py-3 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-50"
           >
             {resending ? 'Sending...' : 'Resend Verification Email'}
           </button>
@@ -109,7 +129,7 @@ export default function VerifyEmail() {
             className="inline-block mb-4"
           >
             <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-2xl">
-              <Sparkles className="w-8 h-8 text-gray-900" />
+              <Sparkles className="w-8 h-8 text-white" />
             </div>
           </motion.div>
           <h1 className="text-4xl font-black mb-2 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
@@ -151,7 +171,7 @@ export default function VerifyEmail() {
               </p>
               <button
                 onClick={() => router.push('/auth/login')}
-                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-gray-900 font-bold rounded-xl hover:shadow-lg transition-all flex items-center gap-2 mx-auto"
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-xl hover:shadow-lg transition-all flex items-center gap-2 mx-auto"
               >
                 Go to Login
                 <ArrowRight className="w-5 h-5" />
@@ -164,11 +184,19 @@ export default function VerifyEmail() {
                 <AlertCircle className="w-8 h-8 text-red-600" />
               </div>
               <h3 className="text-xl font-bold text-gray-800 mb-2">Verification Failed</h3>
-              <p className="text-gray-600 mb-6">{error}</p>
+              <p className="text-gray-600 mb-4">{error}</p>
+              
+              {/* Spam notice on error */}
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 text-left text-sm">
+                <p className="text-amber-800">
+                  <strong>💡 Tip:</strong> Check your spam folder for a new verification email, or request one below.
+                </p>
+              </div>
+              
               <div className="space-y-3">
                 <button
                   onClick={verifyEmail}
-                  className="w-full px-6 py-3 bg-purple-600 text-gray-900 font-bold rounded-xl hover:bg-purple-700 transition-colors"
+                  className="w-full px-6 py-3 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition-colors"
                 >
                   Try Again
                 </button>
