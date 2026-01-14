@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/admin/users/index.jsx
 // Admin Users Management Page - Full CRUD
-// VERSION: 2.1 - Email Verification Status & Reminders
+// VERSION: 2.2 - Added Delete User Feature
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -12,7 +12,7 @@ import {
   Users, Search, ChevronLeft, ChevronRight, MoreVertical,
   Ban, CheckCircle, Shield, Eye, RefreshCw,
   UserCheck, UserX, Crown, Download, X,
-  Mail, Coins, Calendar, Clock, AlertTriangle, Send, XCircle
+  Mail, Coins, Calendar, Clock, AlertTriangle, Send, XCircle, Trash2
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -209,6 +209,12 @@ export default function AdminUsers() {
         case 'sendReminder':
           await axios.post(`${API_URL}/api/admin-analytics/users/${userId}/send-verification-reminder`, {}, { headers });
           toast.success('Verification reminder sent!');
+          break;
+        case 'delete':
+          const deleteContent = confirm('Also delete all content created by this user?\n(blogs, posts, comments, vlogs)\n\nClick OK to delete content too,\nClick Cancel to keep content.');
+          if (!confirm('⚠️ CONFIRM DELETE\n\nAre you sure you want to permanently delete this user?\n\nThis action cannot be undone!')) return;
+          await axios.delete(`${API_URL}/api/admin-analytics/users/${userId}?deleteContent=${deleteContent}`, { headers });
+          toast.success('User deleted successfully');
           break;
       }
       setShowActions(null);
@@ -447,6 +453,16 @@ export default function AdminUsers() {
                                 className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 text-red-600">
                                 <Ban className="w-4 h-4" /> Ban User
                               </button>
+                            )}
+                            {/* Delete User - only for non-admins */}
+                            {user.role !== 'admin' && !user.isAdmin && (
+                              <>
+                                <div className="border-t border-gray-200 my-1" />
+                                <button onClick={() => handleAction('delete', user._id)}
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-red-50 flex items-center gap-2 text-red-600 font-medium">
+                                  <Trash2 className="w-4 h-4" /> Delete User
+                                </button>
+                              </>
                             )}
                           </div>
                         )}
