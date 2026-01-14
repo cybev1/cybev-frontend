@@ -1,6 +1,7 @@
 // ============================================
 // FILE: src/pages/onboarding.jsx
-// CYBEV Onboarding - Clean White Design v7.0
+// CYBEV Onboarding - Clean White Design v7.1
+// UPDATED: Redirect to Studio instead of Feed
 // ============================================
 
 import { useState } from 'react';
@@ -30,8 +31,9 @@ export default function OnboardingPage() {
     try {
       const token = localStorage.getItem('token');
       await api.put('/api/users/update-profile', { ...data, hasCompletedOnboarding: true }, { headers: { Authorization: `Bearer ${token}` } });
-      toast.success('Welcome to CYBEV!');
-      router.push('/feed');
+      toast.success('Welcome to CYBEV! 🎉');
+      // Redirect to Studio - the creation hub
+      router.push('/studio');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to save');
     } finally {
@@ -93,13 +95,13 @@ export default function OnboardingPage() {
               <div className="bg-white rounded-2xl shadow-xl p-8 animate-fade-in">
                 <div className="text-center mb-8">
                   <h1 className="text-2xl font-bold text-gray-900 mb-2">What interests you?</h1>
-                  <p className="text-gray-500">Select at least one to personalize your feed</p>
+                  <p className="text-gray-500">Select at least one to personalize your experience</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   {INTERESTS.map(interest => (
                     <button key={interest.id} onClick={() => toggleInterest(interest.id)}
-                      className={`p-4 rounded-xl border-2 transition-all ${
+                      className={`p-4 rounded-xl border-2 transition-all relative ${
                         data.interests.includes(interest.id) ? 'border-purple-600 bg-purple-50' : 'border-gray-200 hover:border-gray-300'
                       }`}>
                       <interest.icon className="w-6 h-6 mx-auto mb-2" style={{ color: interest.color }} />
