@@ -1,9 +1,9 @@
 // ============================================
 // FILE: src/components/Layout/AppLayout.jsx
-// CYBEV Design System v7.0.0
+// CYBEV Design System v7.1.0
 // PURPOSE: Clean white navigation, Facebook-style layout
-// VERSION: 7.0.0 - Clean bright design for mobile apps
-// UPDATED: 2026-01-12
+// VERSION: 7.1.0 - Studio = Home (default landing page)
+// UPDATED: 2026-01-14
 // ============================================
 
 import { useRouter } from 'next/router';
@@ -124,17 +124,17 @@ export default function AppLayout({ children }) {
   const isAdmin = user?.role === 'admin' || user?.isAdmin === true;
   const profileLink = user?.username ? `/profile/${user.username}` : '/profile';
 
-  // Navigation items
+  // Navigation items - Studio is now HOME
   const navItems = [
-    { path: '/feed', icon: Home, label: 'Home' },
+    { path: '/studio', icon: Home, label: 'Home' },
+    { path: '/feed', icon: Sparkles, label: 'Feed' },
     { path: '/groups', icon: Users, label: 'Groups' },
     { path: '/tv', icon: Tv, label: 'TV' },
-    { path: '/studio', icon: Sparkles, label: 'Studio' },
   ];
 
   const isActive = (path) => {
-    if (path === '/feed') {
-      return router.pathname === '/feed' || router.pathname === '/';
+    if (path === '/studio') {
+      return router.pathname === '/studio' || router.pathname === '/' || router.pathname.startsWith('/studio/');
     }
     return router.pathname === path || router.pathname.startsWith(path + '/');
   };
@@ -148,7 +148,7 @@ export default function AppLayout({ children }) {
         <div className="w-full max-w-screen-xl mx-auto flex items-center justify-between">
           {/* Left: Logo */}
           <div className="flex items-center gap-2">
-            <Link href="/feed">
+            <Link href="/studio">
               <div className="cursor-pointer">
                 <CybevLogo size={40} showText={true} />
               </div>
