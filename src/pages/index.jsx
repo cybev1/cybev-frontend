@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/index.jsx
 // CYBEV Landing Page - Social Blogging Platform
-// VERSION: 5.0 - Rebranded for Social Blogging
+// VERSION: 5.1 - Logged-in users redirect to Studio
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -41,11 +41,11 @@ export default function LandingPage() {
 
   useEffect(() => {
     setIsVisible(true);
-    // Check if user is already logged in
+    // Check if user is already logged in - redirect to Studio (Home)
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
     if (token && user) {
-      router.push('/feed');
+      router.push('/studio');
     }
   }, []);
 
