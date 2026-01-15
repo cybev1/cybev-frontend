@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/studio/index.jsx
 // CYBEV Studio Dashboard - CLEAN WHITE DESIGN
-// VERSION: 7.1.0 - Solid white, black text
+// VERSION: 7.2.0 - Added Feed as first card (Studio = Home)
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -12,12 +12,13 @@ import AppLayout from '@/components/Layout/AppLayout';
 import {
   Globe, Plus, Eye, Trash2, MoreHorizontal, Edit3, ExternalLink,
   PenTool, Video, Sparkles, FileText, Calendar, Users, Share2, Send,
-  Church, ChevronRight, TrendingUp, Loader2, Clock, EyeOff, Copy, Check
+  Church, ChevronRight, TrendingUp, Loader2, Clock, EyeOff, Copy, Check, Rss
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
 const QUICK_ACTIONS = [
+  { id: 'feed', title: 'Feed', desc: 'Explore content', icon: Rss, href: '/feed', color: '#059669', bg: '#d1fae5', badge: 'Home' },
   { id: 'website', title: 'Create Website', desc: 'Build with AI', icon: Globe, href: '/studio/sites/new', color: '#7c3aed', bg: '#f3e8ff', badge: 'Popular' },
   { id: 'blog', title: 'Write with AI', desc: 'Generate blogs', icon: PenTool, href: '/studio/ai-blog', color: '#3b82f6', bg: '#dbeafe' },
   { id: 'church', title: 'Church Management', desc: 'Manage ministry', icon: Church, href: '/church', color: '#f59e0b', bg: '#fef3c7' },
