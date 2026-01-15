@@ -1,9 +1,9 @@
 // ============================================
 // FILE: src/components/Navigation/MobileNav.jsx
-// CYBEV Design System v7.0.0
+// CYBEV Design System v7.1.0
 // PURPOSE: Clean white mobile bottom navigation
-// VERSION: 7.0.0 - App Store/Play Store ready
-// UPDATED: 2026-01-12
+// VERSION: 7.1.0 - Studio = Home
+// UPDATED: 2026-01-14
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -31,20 +31,20 @@ import {
 } from 'lucide-react';
 
 // ==========================================
-// NAVIGATION ITEMS
+// NAVIGATION ITEMS - Studio is HOME
 // ==========================================
 const NAV_ITEMS = [
   {
     label: 'Home',
-    href: '/feed',
+    href: '/studio',
     icon: Home,
-    matchPaths: ['/feed', '/']
+    matchPaths: ['/studio', '/']
   },
   {
-    label: 'Search',
-    href: '/search',
-    icon: Search,
-    matchPaths: ['/search']
+    label: 'Feed',
+    href: '/feed',
+    icon: Sparkles,
+    matchPaths: ['/feed']
   },
   {
     label: 'Create',
@@ -310,7 +310,7 @@ export function MobileNavExpanded() {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   const navItems = [
-    { label: 'Home', href: '/feed', icon: Home },
+    { label: 'Home', href: '/studio', icon: Home },
     { label: 'TV', href: '/tv', icon: Tv },
     { label: 'Create', href: '/post/create', icon: PlusSquare, isAction: true },
     { label: 'Chat', href: '/messages', icon: MessageCircle },
@@ -318,7 +318,7 @@ export function MobileNavExpanded() {
   ];
 
   const isActive = (href) => {
-    if (href === '/feed') return currentPath === '/feed' || currentPath === '/';
+    if (href === '/studio') return currentPath === '/studio' || currentPath === '/' || currentPath.startsWith('/studio/');
     return currentPath === href || currentPath.startsWith(href + '/');
   };
 
