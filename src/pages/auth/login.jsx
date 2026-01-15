@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/auth/login.jsx
 // CYBEV Login Page - Clean White Design
-// VERSION: 7.0.0 - Facebook-style clean design
+// VERSION: 7.1.0 - Redirect to Studio (Home)
 // ============================================
 
 import { useState } from 'react';
@@ -51,7 +51,7 @@ export default function Login() {
         localStorage.setItem('cybev_token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
         toast.success('Welcome back!');
-        router.push(response.data.user.hasCompletedOnboarding ? '/feed' : '/onboarding');
+        router.push(response.data.user.hasCompletedOnboarding ? '/studio' : '/onboarding');
       } else {
         setError(response.data.message || 'Login failed');
       }
