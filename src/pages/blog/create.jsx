@@ -1,24 +1,24 @@
 // ============================================
 // FILE: src/pages/blog/create.jsx
-// PURPOSE: Manual Blog/Article Creation with Image Uploads
-// VERSION: 2.0.0 - Fixed image uploads
+// PURPOSE: Manual Blog/Article Creation
+// VERSION: 2.1.0 - Fixed: White background, black text, image preview
+// STYLE: Facebook-style clean white design
 // ============================================
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import {
   ArrowLeft,
   Save,
   Eye,
-  Image as ImageIcon,
   Sparkles,
   Loader2,
   X,
   Upload,
-  Plus,
   Wand2,
-  RefreshCw
+  RefreshCw,
+  Image as ImageIcon
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -41,7 +41,6 @@ export default function CreateBlog() {
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
   const [category, setCategory] = useState('technology');
-  const [status, setStatus] = useState('draft');
   
   // Loading states
   const [loading, setLoading] = useState(false);
@@ -61,7 +60,7 @@ export default function CreateBlog() {
   // ==========================================
   // FEATURED IMAGE UPLOAD
   // ==========================================
-  const handleFeaturedImageSelect = (e) => {
+  const handleFeaturedImageSelect = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -75,24 +74,27 @@ export default function CreateBlog() {
       return;
     }
 
-    setFeaturedImage(file);
-
-    // Show preview immediately
+    // Show preview immediately using FileReader
     const reader = new FileReader();
     reader.onload = (e) => {
       setFeaturedImagePreview(e.target.result);
     };
     reader.readAsDataURL(file);
+    
+    setFeaturedImage(file);
+    
+    // Auto-upload the image
+    await uploadFeaturedImage(file);
   };
 
-  const uploadFeaturedImage = async () => {
-    if (!featuredImage) return null;
+  const uploadFeaturedImage = async (file) => {
+    if (!file) return null;
     
     setUploadingFeatured(true);
     try {
       const token = localStorage.getItem('token');
       const formData = new FormData();
-      formData.append('file', featuredImage);
+      formData.append('file', file);
 
       const response = await fetch(`${API_URL}/upload/image`, {
         method: 'POST',
@@ -106,6 +108,8 @@ export default function CreateBlog() {
       
       if (data.success && data.url) {
         setFeaturedImageUrl(data.url);
+        // Update preview with uploaded URL
+        setFeaturedImagePreview(data.url);
         console.log('✅ Featured image uploaded:', data.url);
         return data.url;
       } else {
@@ -142,7 +146,6 @@ export default function CreateBlog() {
     try {
       const token = localStorage.getItem('token');
       
-      // Create a more specific prompt based on the article content
       const imagePrompt = `Professional blog featured image for article titled "${title}". 
 Topic: ${description || title}. 
 Category: ${category}. 
@@ -158,7 +161,7 @@ DO NOT include any text or words in the image.`;
         body: JSON.stringify({
           prompt: imagePrompt,
           style: 'professional',
-          size: '1792x1024', // Wide format for blog headers
+          size: '1792x1024',
           quality: 'hd'
         })
       });
@@ -168,7 +171,7 @@ DO NOT include any text or words in the image.`;
       if (data.success && data.url) {
         setFeaturedImageUrl(data.url);
         setFeaturedImagePreview(data.url);
-        setFeaturedImage(null); // Clear file since we have URL
+        setFeaturedImage(null);
         console.log('✅ AI image generated:', data.url);
       } else {
         throw new Error(data.error || 'Image generation failed');
@@ -204,13 +207,6 @@ DO NOT include any text or words in the image.`;
         const formData = new FormData();
         formData.append('file', file);
 
-        // Show loading state
-        const quill = quillRef.current?.getEditor();
-        if (quill) {
-          const range = quill.getSelection(true);
-          quill.insertText(range.index, 'Uploading image...', { italic: true, color: '#888' });
-        }
-
         const response = await fetch(`${API_URL}/upload/image`, {
           method: 'POST',
           headers: {
@@ -222,15 +218,8 @@ DO NOT include any text or words in the image.`;
         const data = await response.json();
 
         if (data.success && data.url) {
+          const quill = quillRef.current?.getEditor();
           if (quill) {
-            // Remove loading text
-            const currentContent = quill.getText();
-            const loadingIndex = currentContent.indexOf('Uploading image...');
-            if (loadingIndex !== -1) {
-              quill.deleteText(loadingIndex, 18);
-            }
-            
-            // Insert image
             const range = quill.getSelection(true);
             quill.insertEmbed(range.index, 'image', data.url);
             quill.setSelection(range.index + 1);
@@ -242,16 +231,6 @@ DO NOT include any text or words in the image.`;
       } catch (error) {
         console.error('❌ In-text image upload error:', error);
         alert('Failed to upload image: ' + error.message);
-        
-        // Remove loading text on error
-        const quill = quillRef.current?.getEditor();
-        if (quill) {
-          const currentContent = quill.getText();
-          const loadingIndex = currentContent.indexOf('Uploading image...');
-          if (loadingIndex !== -1) {
-            quill.deleteText(loadingIndex, 18);
-          }
-        }
       }
     };
   }, []);
@@ -295,7 +274,7 @@ DO NOT include any text or words in the image.`;
   // ==========================================
   // SAVE BLOG
   // ==========================================
-  const handleSave = async (publishStatus = status) => {
+  const handleSave = async (publishStatus = 'draft') => {
     if (!title.trim()) {
       alert('Please enter a title');
       return;
@@ -315,25 +294,22 @@ DO NOT include any text or words in the image.`;
 
     try {
       const token = localStorage.getItem('token');
-
-      // Upload featured image if selected but not yet uploaded
-      let finalImageUrl = featuredImageUrl;
-      if (featuredImage && !featuredImageUrl) {
-        finalImageUrl = await uploadFeaturedImage();
-      }
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
 
       const blogData = {
         siteId: siteId || null,
-        authorName: JSON.parse(localStorage.getItem("user"))?.name || "User",
-        title,
+        authorName: user?.name || user?.username || "User",
+        title: title.trim(),
         content,
-        excerpt: description,
-        featuredImage: finalImageUrl || '',
+        excerpt: description.trim(),
+        featuredImage: featuredImageUrl || featuredImagePreview || '',
         tags,
         category: category.toLowerCase(),
         status: publishStatus,
         readTime: Math.ceil(content.replace(/<[^>]*>/g, '').split(' ').length / 200)
       };
+
+      console.log('📝 Saving blog:', blogData.title);
 
       const response = await fetch(`${API_URL}/blogs`, {
         method: 'POST',
@@ -346,16 +322,16 @@ DO NOT include any text or words in the image.`;
 
       const data = await response.json();
 
-      if (data.success || data.blog) {
-        alert(`✅ Blog ${publishStatus === 'published' ? 'published' : 'saved as draft'}!`);
+      if (data.success || data.blog || data.ok) {
+        alert(`✅ Article ${publishStatus === 'published' ? 'published' : 'saved as draft'}!`);
         router.push('/blog');
       } else {
-        throw new Error(data.error || 'Failed to save blog');
+        throw new Error(data.error || 'Failed to save article');
       }
 
     } catch (error) {
       console.error('❌ Save error:', error);
-      alert('Failed to save blog: ' + error.message);
+      alert('Failed to save article: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -367,42 +343,83 @@ DO NOT include any text or words in the image.`;
         <title>Create Article - CYBEV</title>
       </Head>
       
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        {/* Header */}
-        <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-          <div className="max-w-5xl mx-auto px-6 py-4">
-            <div className="flex items-center justify-between">
+      {/* FACEBOOK-STYLE WHITE BACKGROUND */}
+      <div style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
+        {/* Header - White */}
+        <div style={{ 
+          backgroundColor: '#ffffff', 
+          borderBottom: '1px solid #dddfe2',
+          position: 'sticky',
+          top: 0,
+          zIndex: 40
+        }}>
+          <div style={{ maxWidth: '800px', margin: '0 auto', padding: '12px 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <button
                 onClick={() => router.back()}
-                className="flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  color: '#65676b',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '15px',
+                  fontWeight: 500
+                }}
               >
-                <ArrowLeft className="w-5 h-5" />
-                <span className="font-semibold">Back</span>
+                <ArrowLeft style={{ width: 20, height: 20 }} />
+                Back
               </button>
 
-              <div className="flex items-center gap-3">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <button
                   onClick={() => handleSave('draft')}
                   disabled={loading}
-                  className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center gap-2"
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#e4e6eb',
+                    color: '#050505',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontWeight: 600,
+                    fontSize: '15px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
                 >
-                  <Save className="w-4 h-4" />
+                  <Save style={{ width: 16, height: 16 }} />
                   Save Draft
                 </button>
                 
                 <button
                   onClick={() => handleSave('published')}
                   disabled={loading}
-                  className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all flex items-center gap-2"
+                  style={{
+                    padding: '8px 20px',
+                    background: 'linear-gradient(to right, #7c3aed, #db2777)',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontWeight: 600,
+                    fontSize: '15px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 style={{ width: 16, height: 16, animation: 'spin 1s linear infinite' }} />
                       Publishing...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4" />
+                      <Sparkles style={{ width: 16, height: 16 }} />
                       Publish
                     </>
                   )}
@@ -412,123 +429,176 @@ DO NOT include any text or words in the image.`;
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="max-w-5xl mx-auto px-6 py-8">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm">
-            {/* Title */}
+        {/* Main Content - White Card */}
+        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px' }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '8px',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+            padding: '24px'
+          }}>
+            
+            {/* Title - BLACK TEXT on WHITE */}
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Article Title..."
-              className="w-full text-4xl font-bold mb-6 bg-transparent border-none focus:outline-none focus:ring-0 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+              style={{
+                width: '100%',
+                fontSize: '28px',
+                fontWeight: 700,
+                color: '#050505',
+                backgroundColor: 'transparent',
+                border: 'none',
+                outline: 'none',
+                marginBottom: '16px'
+              }}
               maxLength={200}
             />
 
             {/* Description/Excerpt */}
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ 
+                display: 'block', 
+                fontSize: '14px', 
+                fontWeight: 600, 
+                color: '#050505',
+                marginBottom: '8px'
+              }}>
                 Description (Excerpt) *
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Write a brief description of your article..."
-                className="w-full p-4 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  backgroundColor: '#f0f2f5',
+                  border: '1px solid #dddfe2',
+                  borderRadius: '6px',
+                  color: '#050505',
+                  fontSize: '15px',
+                  resize: 'none',
+                  outline: 'none'
+                }}
                 rows={3}
                 maxLength={300}
               />
-              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1 text-right">
+              <div style={{ fontSize: '12px', color: '#65676b', textAlign: 'right', marginTop: '4px' }}>
                 {description.length}/300 characters
               </div>
             </div>
 
             {/* Featured Image Upload */}
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ 
+                display: 'block', 
+                fontSize: '14px', 
+                fontWeight: 600, 
+                color: '#050505',
+                marginBottom: '8px'
+              }}>
                 Featured Image
               </label>
               
               {!featuredImagePreview ? (
-                <div className="flex gap-4">
+                <div style={{ display: 'flex', gap: '12px' }}>
                   {/* Upload Option */}
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex-1 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center cursor-pointer hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all"
+                    style={{
+                      flex: 1,
+                      border: '2px dashed #dddfe2',
+                      borderRadius: '8px',
+                      padding: '24px',
+                      textAlign: 'center',
+                      cursor: 'pointer'
+                    }}
                   >
-                    <Upload className="w-10 h-10 text-purple-600 mx-auto mb-3" />
-                    <p className="text-gray-700 dark:text-gray-200 font-semibold mb-1">
-                      Upload Image
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      PNG, JPG up to 10MB
-                    </p>
+                    <Upload style={{ width: 32, height: 32, color: '#65676b', margin: '0 auto 8px' }} />
+                    <p style={{ color: '#050505', fontWeight: 500, fontSize: '14px', margin: 0 }}>Upload Image</p>
+                    <p style={{ color: '#65676b', fontSize: '12px', margin: '4px 0 0' }}>PNG, JPG up to 10MB</p>
                   </div>
                   
                   {/* AI Generate Option */}
                   <div
-                    onClick={generateAIImage}
-                    className={`flex-1 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center cursor-pointer hover:border-pink-500 hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-all ${generatingImage ? 'opacity-50 pointer-events-none' : ''}`}
+                    onClick={!generatingImage ? generateAIImage : undefined}
+                    style={{
+                      flex: 1,
+                      border: '2px dashed #dddfe2',
+                      borderRadius: '8px',
+                      padding: '24px',
+                      textAlign: 'center',
+                      cursor: generatingImage ? 'not-allowed' : 'pointer',
+                      opacity: generatingImage ? 0.5 : 1
+                    }}
                   >
                     {generatingImage ? (
                       <>
-                        <Loader2 className="w-10 h-10 text-pink-600 mx-auto mb-3 animate-spin" />
-                        <p className="text-gray-700 dark:text-gray-200 font-semibold mb-1">
-                          Generating...
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Creating AI image
-                        </p>
+                        <Loader2 style={{ width: 32, height: 32, color: '#db2777', margin: '0 auto 8px', animation: 'spin 1s linear infinite' }} />
+                        <p style={{ color: '#050505', fontWeight: 500, fontSize: '14px', margin: 0 }}>Generating...</p>
                       </>
                     ) : (
                       <>
-                        <Wand2 className="w-10 h-10 text-pink-600 mx-auto mb-3" />
-                        <p className="text-gray-700 dark:text-gray-200 font-semibold mb-1">
-                          Generate with AI
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Create image from title
-                        </p>
+                        <Wand2 style={{ width: 32, height: 32, color: '#db2777', margin: '0 auto 8px' }} />
+                        <p style={{ color: '#050505', fontWeight: 500, fontSize: '14px', margin: 0 }}>Generate with AI</p>
+                        <p style={{ color: '#65676b', fontSize: '12px', margin: '4px 0 0' }}>From your title</p>
                       </>
                     )}
                   </div>
                 </div>
               ) : (
-                <div className="relative group">
+                <div style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', border: '1px solid #dddfe2' }}>
                   <img
                     src={featuredImagePreview}
                     alt="Featured"
-                    className="w-full h-64 object-cover rounded-xl"
+                    style={{ width: '100%', height: '200px', objectFit: 'cover', display: 'block' }}
                   />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center gap-4">
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="p-3 bg-white text-gray-700 rounded-full hover:bg-gray-100 transition-colors"
-                      title="Replace image"
-                    >
-                      <RefreshCw className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={removeFeaturedImage}
-                      className="p-3 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-                      title="Remove image"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
                   {uploadingFeatured && (
-                    <div className="absolute inset-0 bg-black/70 rounded-xl flex items-center justify-center">
-                      <div className="text-white text-center">
-                        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
-                        <p>Uploading...</p>
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      backgroundColor: 'rgba(0,0,0,0.5)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <div style={{ color: '#fff', textAlign: 'center' }}>
+                        <Loader2 style={{ width: 32, height: 32, animation: 'spin 1s linear infinite', margin: '0 auto 8px' }} />
+                        <p style={{ margin: 0, fontSize: '14px' }}>Uploading...</p>
                       </div>
                     </div>
                   )}
-                  {featuredImage && (
-                    <div className="absolute bottom-3 left-3 bg-black/70 text-white px-3 py-1 rounded-lg text-sm">
-                      {featuredImage?.name}
-                    </div>
-                  )}
+                  <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 8 }}>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      style={{
+                        padding: '8px',
+                        backgroundColor: 'rgba(255,255,255,0.9)',
+                        border: 'none',
+                        borderRadius: '50%',
+                        cursor: 'pointer'
+                      }}
+                      title="Replace image"
+                    >
+                      <RefreshCw style={{ width: 16, height: 16, color: '#050505' }} />
+                    </button>
+                    <button
+                      onClick={removeFeaturedImage}
+                      style={{
+                        padding: '8px',
+                        backgroundColor: '#e4405f',
+                        border: 'none',
+                        borderRadius: '50%',
+                        cursor: 'pointer'
+                      }}
+                      title="Remove image"
+                    >
+                      <X style={{ width: 16, height: 16, color: '#fff' }} />
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -537,22 +607,37 @@ DO NOT include any text or words in the image.`;
                 type="file"
                 accept="image/*"
                 onChange={handleFeaturedImageSelect}
-                className="hidden"
+                style={{ display: 'none' }}
               />
             </div>
 
             {/* Category */}
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ 
+                display: 'block', 
+                fontSize: '14px', 
+                fontWeight: 600, 
+                color: '#050505',
+                marginBottom: '8px'
+              }}>
                 Category
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  backgroundColor: '#f0f2f5',
+                  border: '1px solid #dddfe2',
+                  borderRadius: '6px',
+                  color: '#050505',
+                  fontSize: '15px',
+                  outline: 'none'
+                }}
               >
                 {categories.map(cat => (
-                  <option key={cat} value={cat.toLowerCase()} className="bg-white dark:bg-gray-700">
+                  <option key={cat} value={cat.toLowerCase()}>
                     {cat}
                   </option>
                 ))}
@@ -560,49 +645,82 @@ DO NOT include any text or words in the image.`;
             </div>
 
             {/* Tags */}
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ 
+                display: 'block', 
+                fontSize: '14px', 
+                fontWeight: 600, 
+                color: '#050505',
+                marginBottom: '8px'
+              }}>
                 Tags
               </label>
-              <div className="flex flex-wrap gap-2 mb-3">
-                {tags.map(tag => (
-                  <span
-                    key={tag}
-                    className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm font-semibold flex items-center gap-2"
-                  >
-                    #{tag}
-                    <button
-                      onClick={() => removeTag(tag)}
-                      className="hover:text-red-500 dark:hover:text-red-400"
+              {tags.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+                  {tags.map(tag => (
+                    <span
+                      key={tag}
+                      style={{
+                        padding: '4px 12px',
+                        backgroundColor: '#e4e6eb',
+                        color: '#050505',
+                        borderRadius: '16px',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
                     >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
+                      #{tag}
+                      <button
+                        onClick={() => removeTag(tag)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}
+                      >
+                        <X style={{ width: 14, height: 14, color: '#65676b' }} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
               <input
                 type="text"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyPress={handleAddTag}
                 placeholder="Type a tag and press Enter..."
-                className="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  backgroundColor: '#f0f2f5',
+                  border: '1px solid #dddfe2',
+                  borderRadius: '6px',
+                  color: '#050505',
+                  fontSize: '15px',
+                  outline: 'none'
+                }}
                 maxLength={30}
               />
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p style={{ fontSize: '12px', color: '#65676b', marginTop: '4px' }}>
                 Press Enter to add tags (max 10)
               </p>
             </div>
 
             {/* Rich Text Editor */}
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ 
+                display: 'block', 
+                fontSize: '14px', 
+                fontWeight: 600, 
+                color: '#050505',
+                marginBottom: '8px'
+              }}>
                 Content *
               </label>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+              <p style={{ fontSize: '12px', color: '#65676b', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 💡 Tip: Click the image icon in the toolbar to insert images into your article
               </p>
-              <div className="bg-white dark:bg-gray-700 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600">
+              <div style={{ border: '1px solid #dddfe2', borderRadius: '6px', overflow: 'hidden' }}>
                 <ReactQuill
                   ref={quillRef}
                   value={content}
@@ -617,21 +735,62 @@ DO NOT include any text or words in the image.`;
             {/* Preview Button */}
             <button
               onClick={() => {
-                // Open preview in new tab
-                const previewContent = {
-                  title,
-                  description,
-                  content,
-                  featuredImage: featuredImagePreview || featuredImageUrl,
-                  category,
-                  tags
-                };
-                localStorage.setItem('blog-preview', JSON.stringify(previewContent));
-                window.open('/blog/preview/draft', '_blank');
+                if (!title || !content) {
+                  alert('Please add a title and content first');
+                  return;
+                }
+                const previewWindow = window.open('', '_blank');
+                previewWindow.document.write(`
+                  <!DOCTYPE html>
+                  <html>
+                  <head>
+                    <title>Preview: ${title}</title>
+                    <meta name="viewport" content="width=device-width, initial-scale=1">
+                    <style>
+                      * { margin: 0; padding: 0; box-sizing: border-box; }
+                      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; padding: 20px; }
+                      .container { max-width: 680px; margin: 0 auto; background: #fff; border-radius: 8px; padding: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+                      h1 { font-size: 28px; color: #050505; margin-bottom: 12px; font-weight: 700; }
+                      .meta { color: #65676b; font-size: 13px; margin-bottom: 20px; }
+                      .featured-img { width: 100%; border-radius: 8px; margin-bottom: 20px; }
+                      .content { color: #050505; line-height: 1.7; font-size: 16px; }
+                      .content h2 { font-size: 22px; margin: 20px 0 12px; }
+                      .content p { margin-bottom: 16px; }
+                      .content img { max-width: 100%; height: auto; border-radius: 8px; margin: 16px 0; }
+                      .tags { margin-top: 20px; display: flex; gap: 8px; flex-wrap: wrap; }
+                      .tag { background: #e4e6eb; color: #050505; padding: 4px 12px; border-radius: 16px; font-size: 13px; }
+                    </style>
+                  </head>
+                  <body>
+                    <div class="container">
+                      <h1>${title}</h1>
+                      <div class="meta">${category} • ${Math.ceil(content.replace(/<[^>]*>/g, '').split(' ').length / 200)} min read</div>
+                      ${featuredImagePreview ? `<img src="${featuredImagePreview}" class="featured-img" alt="">` : ''}
+                      <div class="content">${content}</div>
+                      ${tags.length > 0 ? `<div class="tags">${tags.map(t => `<span class="tag">#${t}</span>`).join('')}</div>` : ''}
+                    </div>
+                  </body>
+                  </html>
+                `);
+                previewWindow.document.close();
               }}
-              className="w-full py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+              style={{
+                width: '100%',
+                padding: '12px',
+                backgroundColor: '#e4e6eb',
+                color: '#050505',
+                border: 'none',
+                borderRadius: '6px',
+                fontWeight: 600,
+                fontSize: '15px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
             >
-              <Eye className="w-5 h-5" />
+              <Eye style={{ width: 20, height: 20 }} />
               Preview Article
             </button>
           </div>
@@ -639,54 +798,36 @@ DO NOT include any text or words in the image.`;
       </div>
 
       <style jsx global>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        /* Quill Editor Styles */
         .ql-toolbar {
-          border-top-left-radius: 0.75rem;
-          border-top-right-radius: 0.75rem;
-          border-color: #e5e7eb !important;
-          background: #f9fafb;
-        }
-        .dark .ql-toolbar {
-          background: #374151;
-          border-color: #4b5563 !important;
-        }
-        .dark .ql-toolbar .ql-stroke {
-          stroke: #d1d5db;
-        }
-        .dark .ql-toolbar .ql-fill {
-          fill: #d1d5db;
-        }
-        .dark .ql-toolbar .ql-picker {
-          color: #d1d5db;
+          border: none !important;
+          border-bottom: 1px solid #dddfe2 !important;
+          background: #f0f2f5;
         }
         .ql-container {
-          border-bottom-left-radius: 0.75rem;
-          border-bottom-right-radius: 0.75rem;
-          border-color: #e5e7eb !important;
+          border: none !important;
           font-size: 16px;
-          min-height: 400px;
-        }
-        .dark .ql-container {
-          border-color: #4b5563 !important;
+          min-height: 300px;
         }
         .ql-editor {
-          min-height: 400px;
-          color: #111827;
-        }
-        .dark .ql-editor {
-          color: #f3f4f6;
+          min-height: 300px;
+          color: #050505;
+          padding: 16px;
+          background: #fff;
         }
         .ql-editor.ql-blank::before {
-          color: #9ca3af;
+          color: #65676b;
           font-style: normal;
-        }
-        .dark .ql-editor.ql-blank::before {
-          color: #6b7280;
         }
         .ql-editor img {
           max-width: 100%;
           height: auto;
-          border-radius: 0.5rem;
-          margin: 1rem 0;
+          border-radius: 8px;
+          margin: 12px 0;
         }
       `}</style>
     </>
