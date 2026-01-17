@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/studio/index.jsx
 // CYBEV Studio Dashboard - CLEAN WHITE DESIGN
-// VERSION: 7.2.0 - Added Feed as first card (Studio = Home)
+// VERSION: 7.3.0 - Added Manual Blog Creation Option
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -12,7 +12,8 @@ import AppLayout from '@/components/Layout/AppLayout';
 import {
   Globe, Plus, Eye, Trash2, MoreHorizontal, Edit3, ExternalLink,
   PenTool, Video, Sparkles, FileText, Calendar, Users, Share2, Send,
-  Church, ChevronRight, TrendingUp, Loader2, Clock, EyeOff, Copy, Check, Rss
+  Church, ChevronRight, TrendingUp, Loader2, Clock, EyeOff, Copy, Check, Rss,
+  Wand2, Edit, Image as ImageIcon
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
@@ -20,7 +21,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 const QUICK_ACTIONS = [
   { id: 'feed', title: 'Feed', desc: 'Explore content', icon: Rss, href: '/feed', color: '#059669', bg: '#d1fae5', badge: 'Home' },
   { id: 'website', title: 'Create Website', desc: 'Build with AI', icon: Globe, href: '/studio/sites/new', color: '#7c3aed', bg: '#f3e8ff', badge: 'Popular' },
-  { id: 'blog', title: 'Write with AI', desc: 'Generate blogs', icon: PenTool, href: '/studio/ai-blog', color: '#3b82f6', bg: '#dbeafe' },
+  { id: 'manual-blog', title: 'Write Article', desc: 'Manual writing', icon: Edit, href: '/blog/create', color: '#2563eb', bg: '#dbeafe' },
+  { id: 'ai-blog', title: 'AI Article', desc: 'Generate with AI', icon: Wand2, href: '/studio/ai-blog', color: '#8b5cf6', bg: '#ede9fe', badge: 'AI' },
   { id: 'church', title: 'Church Management', desc: 'Manage ministry', icon: Church, href: '/church', color: '#f59e0b', bg: '#fef3c7' },
   { id: 'vlog', title: 'Create Vlog', desc: 'Upload video', icon: Video, href: '/vlog/create', color: '#ef4444', bg: '#fee2e2' },
   { id: 'nft', title: 'Mint NFT', desc: 'Create NFTs', icon: Sparkles, href: '/nft/create', color: '#ec4899', bg: '#fce7f3' },
@@ -39,7 +41,9 @@ function QuickActionCard({ action }) {
           </div>
           {action.badge && (
             <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-              action.badge === 'New' ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-700'
+              action.badge === 'New' ? 'bg-purple-600 text-white' : 
+              action.badge === 'AI' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' :
+              'bg-purple-100 text-purple-700'
             }`}>{action.badge}</span>
           )}
         </div>
@@ -142,20 +146,73 @@ function StatsCard({ icon: Icon, label, value, trend, color }) {
   );
 }
 
+// Blog Creation Options Modal/Section
+function BlogCreationOptions({ onClose }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Link href="/blog/create">
+        <div className="bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-blue-500 hover:shadow-lg transition-all cursor-pointer group">
+          <div className="w-14 h-14 rounded-xl bg-blue-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <Edit className="w-7 h-7 text-blue-600" />
+          </div>
+          <h3 className="font-bold text-gray-900 text-lg mb-2">Write Manually</h3>
+          <p className="text-gray-500 text-sm mb-4">
+            Full control over your content. Write your own articles with rich text editor, 
+            upload images, and publish on your terms.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">Rich Editor</span>
+            <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">Image Upload</span>
+            <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">Full Control</span>
+          </div>
+        </div>
+      </Link>
+      
+      <Link href="/studio/ai-blog">
+        <div className="bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-purple-500 hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden">
+          <div className="absolute top-3 right-3">
+            <span className="px-2 py-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold rounded-full">
+              AI Powered
+            </span>
+          </div>
+          <div className="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <Wand2 className="w-7 h-7 text-purple-600" />
+          </div>
+          <h3 className="font-bold text-gray-900 text-lg mb-2">Generate with AI</h3>
+          <p className="text-gray-500 text-sm mb-4">
+            Let AI write your article. Just provide a topic and preferences, 
+            and get a complete blog post with images and SEO.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <span className="px-2 py-1 bg-purple-50 text-purple-700 text-xs rounded-full">Auto Generate</span>
+            <span className="px-2 py-1 bg-purple-50 text-purple-700 text-xs rounded-full">SEO Optimized</span>
+            <span className="px-2 py-1 bg-purple-50 text-purple-700 text-xs rounded-full">AI Images</span>
+          </div>
+        </div>
+      </Link>
+    </div>
+  );
+}
+
 export default function StudioPage() {
   const router = useRouter();
   const [sites, setSites] = useState([]);
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showBlogOptions, setShowBlogOptions] = useState(false);
 
   useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
-      if (!token) { router.push('/auth/login'); return; }
+      if (!token) {
+        router.push('/auth/login');
+        return;
+      }
+      
       const headers = { Authorization: `Bearer ${token}` };
-
+      
       const [sitesRes, blogsRes] = await Promise.all([
         fetch(`${API_URL}/api/sites/my`, { headers }).then(r => r.json()).catch(() => ({ sites: [] })),
         fetch(`${API_URL}/api/blogs/my`, { headers }).then(r => r.json()).catch(() => ({ blogs: [] }))
@@ -202,11 +259,18 @@ export default function StudioPage() {
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Creator Studio</h1>
                 <p className="text-gray-600">Build websites, write blogs, and grow your audience</p>
               </div>
-              <Link href="/studio/sites/new">
-                <button className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold shadow-lg hover:bg-purple-700 transition-colors">
-                  <Plus className="w-5 h-5" />Create Website
-                </button>
-              </Link>
+              <div className="flex gap-3">
+                <Link href="/blog/create">
+                  <button className="inline-flex items-center gap-2 px-5 py-3 bg-blue-600 text-white rounded-xl font-semibold shadow-lg hover:bg-blue-700 transition-colors">
+                    <Edit className="w-5 h-5" />Write Article
+                  </button>
+                </Link>
+                <Link href="/studio/sites/new">
+                  <button className="inline-flex items-center gap-2 px-5 py-3 bg-purple-600 text-white rounded-xl font-semibold shadow-lg hover:bg-purple-700 transition-colors">
+                    <Plus className="w-5 h-5" />Create Website
+                  </button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -223,9 +287,17 @@ export default function StudioPage() {
           {/* Quick Actions */}
           <div className="mb-8">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {QUICK_ACTIONS.map(action => <QuickActionCard key={action.id} action={action} />)}
             </div>
+          </div>
+
+          {/* Blog Creation Options */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900">Create New Article</h2>
+            </div>
+            <BlogCreationOptions />
           </div>
 
           {/* My Websites */}
@@ -269,10 +341,16 @@ export default function StudioPage() {
           {/* Recent Blogs */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900">Recent Blogs</h2>
-              <Link href="/studio/ai-blog" className="text-purple-600 text-sm font-semibold hover:underline flex items-center gap-1">
-                <Plus className="w-4 h-4" />Write Blog
-              </Link>
+              <h2 className="text-lg font-bold text-gray-900">Recent Articles</h2>
+              <div className="flex gap-2">
+                <Link href="/blog/create" className="text-blue-600 text-sm font-semibold hover:underline flex items-center gap-1">
+                  <Edit className="w-4 h-4" />Write
+                </Link>
+                <span className="text-gray-300">|</span>
+                <Link href="/studio/ai-blog" className="text-purple-600 text-sm font-semibold hover:underline flex items-center gap-1">
+                  <Wand2 className="w-4 h-4" />AI Generate
+                </Link>
+              </div>
             </div>
 
             {blogs.length === 0 ? (
@@ -280,27 +358,53 @@ export default function StudioPage() {
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <PenTool className="w-6 h-6 text-blue-600" />
                 </div>
-                <h3 className="font-bold text-gray-900 mb-1">No blogs yet</h3>
-                <p className="text-sm text-gray-500 mb-4">Start writing with our AI-powered blog generator</p>
-                <Link href="/studio/ai-blog">
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors">
-                    Write Your First Blog
-                  </button>
-                </Link>
+                <h3 className="font-bold text-gray-900 mb-1">No articles yet</h3>
+                <p className="text-sm text-gray-500 mb-4">Write your own article or generate one with AI</p>
+                <div className="flex gap-3 justify-center">
+                  <Link href="/blog/create">
+                    <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors">
+                      Write Manually
+                    </button>
+                  </Link>
+                  <Link href="/studio/ai-blog">
+                    <button className="px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold text-sm hover:bg-purple-700 transition-colors">
+                      Generate with AI
+                    </button>
+                  </Link>
+                </div>
               </div>
             ) : (
               <div className="bg-white rounded-2xl border border-gray-200 divide-y divide-gray-100">
                 {blogs.slice(0, 5).map(blog => (
                   <Link key={blog._id} href={`/blog/${blog._id}`}>
                     <div className="p-4 hover:bg-gray-50 transition-colors flex items-center gap-4 cursor-pointer">
+                      {blog.featuredImage && (
+                        <img 
+                          src={blog.featuredImage} 
+                          alt="" 
+                          className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                        />
+                      )}
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-gray-900 truncate">{blog.title}</h3>
-                        <p className="text-sm text-gray-500">{new Date(blog.createdAt).toLocaleDateString()} • {blog.views || 0} views</p>
+                        <p className="text-sm text-gray-500">
+                          {new Date(blog.createdAt).toLocaleDateString()} • {blog.views || 0} views
+                          {blog.status === 'draft' && (
+                            <span className="ml-2 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">Draft</span>
+                          )}
+                        </p>
                       </div>
                       <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
                     </div>
                   </Link>
                 ))}
+                {blogs.length > 5 && (
+                  <Link href="/blog">
+                    <div className="p-4 hover:bg-gray-50 transition-colors text-center text-purple-600 font-semibold cursor-pointer">
+                      View All Articles ({blogs.length})
+                    </div>
+                  </Link>
+                )}
               </div>
             )}
           </div>
