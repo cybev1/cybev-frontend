@@ -1,11 +1,11 @@
 // ============================================
 // FILE: src/pages/blog/create.jsx
 // PURPOSE: Manual Blog/Article Creation
-// VERSION: 2.2.0 - Fixed: API endpoints, white design
+// VERSION: 2.3.0 - Fixed: Quill image handler
 // STYLE: Facebook-style clean white design
 // ============================================
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import {
@@ -22,7 +22,18 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+// Import Quill without SSR
+const ReactQuill = dynamic(
+  async () => {
+    const { default: RQ } = await import('react-quill');
+    // Return a component that forwards the ref properly
+    return function QuillWrapper({ forwardedRef, ...props }) {
+      return <RQ ref={forwardedRef} {...props} />;
+    };
+  },
+  { ssr: false }
+);
+
 import 'react-quill/dist/quill.snow.css';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
@@ -96,7 +107,6 @@ export default function CreateBlog() {
       const formData = new FormData();
       formData.append('file', file);
 
-      // FIXED: Correct endpoint with /api prefix
       const response = await fetch(`${API_URL}/api/upload/image`, {
         method: 'POST',
         headers: {
@@ -152,7 +162,6 @@ Category: ${category}.
 Style: Modern, clean, professional photography or illustration suitable for a blog header.
 DO NOT include any text or words in the image.`;
 
-      // FIXED: Correct endpoint with /api prefix
       const response = await fetch(`${API_URL}/api/ai/generate-image`, {
         method: 'POST',
         headers: {
@@ -186,9 +195,35 @@ DO NOT include any text or words in the image.`;
   };
 
   // ==========================================
-  // IN-TEXT IMAGE UPLOAD (Quill)
+  // IN-TEXT IMAGE UPLOAD (Quill) - FIXED
   // ==========================================
-  const imageHandler = useCallback(() => {
+  const insertImageToEditor = (url) => {
+    // Get the Quill instance - handle different ref patterns
+    let quill = null;
+    
+    if (quillRef.current) {
+      // Try different ways to get the editor
+      if (typeof quillRef.current.getEditor === 'function') {
+        quill = quillRef.current.getEditor();
+      } else if (quillRef.current.editor) {
+        quill = quillRef.current.editor;
+      } else if (quillRef.current.getQuill) {
+        quill = quillRef.current.getQuill();
+      }
+    }
+
+    if (quill) {
+      const range = quill.getSelection(true);
+      const index = range ? range.index : quill.getLength();
+      quill.insertEmbed(index, 'image', url);
+      quill.setSelection(index + 1);
+    } else {
+      // Fallback: append to content as HTML
+      setContent(prev => prev + `<p><img src="${url}" alt="uploaded image" style="max-width:100%;"/></p>`);
+    }
+  };
+
+  const handleInTextImageUpload = async () => {
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
     input.setAttribute('accept', 'image/*');
@@ -208,7 +243,6 @@ DO NOT include any text or words in the image.`;
         const formData = new FormData();
         formData.append('file', file);
 
-        // FIXED: Correct endpoint with /api prefix
         const response = await fetch(`${API_URL}/api/upload/image`, {
           method: 'POST',
           headers: {
@@ -220,12 +254,7 @@ DO NOT include any text or words in the image.`;
         const data = await response.json();
 
         if (data.success && data.url) {
-          const quill = quillRef.current?.getEditor();
-          if (quill) {
-            const range = quill.getSelection(true);
-            quill.insertEmbed(range.index, 'image', data.url);
-            quill.setSelection(range.index + 1);
-          }
+          insertImageToEditor(data.url);
           console.log('✅ In-text image uploaded:', data.url);
         } else {
           throw new Error(data.error || 'Upload failed');
@@ -235,10 +264,10 @@ DO NOT include any text or words in the image.`;
         alert('Failed to upload image: ' + error.message);
       }
     };
-  }, []);
+  };
 
-  // Quill modules with custom image handler
-  const quillModules = {
+  // Quill modules - using useMemo to prevent re-renders
+  const quillModules = useMemo(() => ({
     toolbar: {
       container: [
         [{ header: [1, 2, 3, false] }],
@@ -251,10 +280,13 @@ DO NOT include any text or words in the image.`;
         ['clean']
       ],
       handlers: {
-        image: imageHandler
+        image: function() {
+          // This handler will be overridden after mount
+          handleInTextImageUpload();
+        }
       }
     }
-  };
+  }), []);
 
   // ==========================================
   // TAGS
@@ -313,7 +345,6 @@ DO NOT include any text or words in the image.`;
 
       console.log('📝 Saving blog:', blogData.title);
 
-      // FIXED: Correct endpoint with /api prefix
       const response = await fetch(`${API_URL}/api/blogs`, {
         method: 'POST',
         headers: {
@@ -725,7 +756,7 @@ DO NOT include any text or words in the image.`;
               </p>
               <div style={{ border: '1px solid #dddfe2', borderRadius: '6px', overflow: 'hidden' }}>
                 <ReactQuill
-                  ref={quillRef}
+                  forwardedRef={quillRef}
                   value={content}
                   onChange={setContent}
                   placeholder="Write your article content here..."
@@ -734,6 +765,30 @@ DO NOT include any text or words in the image.`;
                 />
               </div>
             </div>
+
+            {/* Manual Image Insert Button (Fallback) */}
+            <button
+              onClick={handleInTextImageUpload}
+              style={{
+                width: '100%',
+                padding: '12px',
+                backgroundColor: '#f0f2f5',
+                color: '#050505',
+                border: '1px solid #dddfe2',
+                borderRadius: '6px',
+                fontWeight: 500,
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                marginBottom: '12px'
+              }}
+            >
+              <ImageIcon style={{ width: 18, height: 18 }} />
+              Insert Image into Article
+            </button>
 
             {/* Preview Button */}
             <button
