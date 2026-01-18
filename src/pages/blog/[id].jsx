@@ -1,8 +1,8 @@
 // ============================================
 // FILE: src/pages/blog/[id].jsx
 // Blog Detail Page with SSR for Social Sharing
-// FIXED: Server-side rendering for OG meta tags
-// FIXED: Replaced BookmarkCheck with Bookmark (fill style)
+// FIXED: Now properly renders HTML content from Quill editor
+// FIXED: Detects HTML vs Markdown and handles both
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -16,34 +16,91 @@ import {
 import { toast } from 'react-toastify';
 
 // ==========================================
-// MARKDOWN UTILITIES
+// CONTENT UTILITIES - HTML & MARKDOWN
 // ==========================================
+
+// Check if content is already HTML (from Quill editor)
+function isHtmlContent(content) {
+  if (!content) return false;
+  // Check for common HTML tags that Quill produces
+  return /<(p|div|h[1-6]|ul|ol|li|img|blockquote|strong|em|a|br)\b[^>]*>/i.test(content);
+}
+
+// Process HTML content - just sanitize and add styling classes
+function processHtmlContent(html) {
+  if (!html) return '';
+  
+  // Add styling classes to HTML elements
+  let processed = html
+    // Headings
+    .replace(/<h1([^>]*)>/gi, '<h1 class="text-3xl font-bold text-gray-900 mt-8 mb-6"$1>')
+    .replace(/<h2([^>]*)>/gi, '<h2 class="text-2xl font-bold text-gray-900 mt-10 mb-4"$1>')
+    .replace(/<h3([^>]*)>/gi, '<h3 class="text-xl font-semibold text-gray-900 mt-8 mb-4"$1>')
+    .replace(/<h4([^>]*)>/gi, '<h4 class="text-lg font-semibold text-gray-800 mt-6 mb-3"$1>')
+    // Paragraphs
+    .replace(/<p([^>]*)>/gi, '<p class="text-gray-700 leading-relaxed mb-4"$1>')
+    // Images
+    .replace(/<img([^>]*)>/gi, '<img class="w-full rounded-lg shadow-md my-6"$1>')
+    // Lists
+    .replace(/<ul([^>]*)>/gi, '<ul class="my-4 list-disc pl-6"$1>')
+    .replace(/<ol([^>]*)>/gi, '<ol class="my-4 list-decimal pl-6"$1>')
+    .replace(/<li([^>]*)>/gi, '<li class="text-gray-700 mb-2"$1>')
+    // Blockquotes
+    .replace(/<blockquote([^>]*)>/gi, '<blockquote class="border-l-4 border-purple-500 pl-4 py-2 my-4 bg-purple-50 rounded-r-lg italic text-gray-700"$1>')
+    // Links
+    .replace(/<a([^>]*)>/gi, '<a class="text-purple-600 hover:underline"$1>')
+    // Code
+    .replace(/<pre([^>]*)>/gi, '<pre class="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto my-4 text-sm"$1>')
+    .replace(/<code([^>]*)>/gi, '<code class="bg-gray-100 text-pink-600 px-2 py-0.5 rounded text-sm"$1>');
+  
+  return processed;
+}
+
+// Convert Markdown to HTML (for old markdown content)
 function markdownToHtml(markdown) {
   if (!markdown) return '';
   let html = markdown;
   
+  // Escape HTML entities for markdown content
   html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  
+  // Images
   html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, 
     '<figure class="my-6"><img src="$2" alt="$1" class="w-full rounded-lg shadow-md" loading="lazy" /><figcaption class="text-center text-gray-500 text-sm mt-2 italic">$1</figcaption></figure>');
+  
+  // Links
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, 
     '<a href="$2" class="text-purple-600 hover:underline" target="_blank" rel="noopener noreferrer">$1</a>');
+  
+  // Headings
   html = html.replace(/^#### (.+)$/gm, '<h4 class="text-lg font-semibold text-gray-800 mt-6 mb-3">$1</h4>');
   html = html.replace(/^### (.+)$/gm, '<h3 class="text-xl font-semibold text-gray-900 mt-8 mb-4">$1</h3>');
   html = html.replace(/^## (.+)$/gm, '<h2 class="text-2xl font-bold text-gray-900 mt-10 mb-4">$1</h2>');
   html = html.replace(/^# (.+)$/gm, '<h1 class="text-3xl font-bold text-gray-900 mt-8 mb-6">$1</h1>');
+  
+  // Bold & Italic
   html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold">$1</strong>');
   html = html.replace(/__([^_]+)__/g, '<strong class="font-bold">$1</strong>');
   html = html.replace(/\*([^*]+)\*/g, '<em class="italic">$1</em>');
   html = html.replace(/_([^_]+)_/g, '<em class="italic">$1</em>');
+  
+  // Blockquotes
   html = html.replace(/^&gt; (.+)$/gm, '<blockquote class="border-l-4 border-purple-500 pl-4 py-2 my-4 bg-purple-50 rounded-r-lg italic text-gray-700">$1</blockquote>');
+  
+  // Lists
   html = html.replace(/^[\-\*] (.+)$/gm, '<li class="ml-6 list-disc text-gray-700 mb-2">$1</li>');
   html = html.replace(/^\d+\. (.+)$/gm, '<li class="ml-6 list-decimal text-gray-700 mb-2">$1</li>');
   html = html.replace(/(<li class="ml-6 list-disc[^>]*>.*?<\/li>\n?)+/g, '<ul class="my-4">$&</ul>');
   html = html.replace(/(<li class="ml-6 list-decimal[^>]*>.*?<\/li>\n?)+/g, '<ol class="my-4">$&</ol>');
-  html = html.replace(/```([^`]+)```/g, '<pre class="bg-gray-50 text-green-400 p-4 rounded-lg overflow-x-auto my-4 text-sm"><code>$1</code></pre>');
+  
+  // Code
+  html = html.replace(/```([^`]+)```/g, '<pre class="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto my-4 text-sm"><code>$1</code></pre>');
   html = html.replace(/`([^`]+)`/g, '<code class="bg-gray-100 text-pink-600 px-2 py-0.5 rounded text-sm">$1</code>');
+  
+  // Horizontal rules
   html = html.replace(/^(\-{3,}|\*{3,})$/gm, '<hr class="my-8 border-gray-300" />');
   
+  // Paragraphs
   html = html.split('\n\n').map(para => {
     para = para.trim();
     if (para.startsWith('<h') || para.startsWith('<ul') || para.startsWith('<ol') || 
@@ -55,11 +112,28 @@ function markdownToHtml(markdown) {
   
   html = html.replace(/([^>])\n([^<])/g, '$1<br/>$2');
   html = html.replace(/<p[^>]*>\s*<em[^>]*>Photo:.*?<\/em>\s*<\/p>/gi, '');
+  
   return html;
+}
+
+// MAIN FUNCTION: Process content - auto-detects HTML vs Markdown
+function processContent(content) {
+  if (!content) return '';
+  
+  // If content is already HTML (from Quill/rich editor), just process it
+  if (isHtmlContent(content)) {
+    return processHtmlContent(content);
+  }
+  
+  // Otherwise, convert markdown to HTML
+  return markdownToHtml(content);
 }
 
 function stripMarkdown(text) {
   if (!text) return '';
+  // First strip HTML tags if present
+  text = text.replace(/<[^>]+>/g, ' ');
+  // Then strip markdown
   return text.replace(/!\[([^\]]*)\]\([^)]+\)/g, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
     .replace(/^#{1,6}\s+/gm, '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1')
     .replace(/__([^_]+)__/g, '$1').replace(/_([^_]+)_/g, '$1').replace(/^>\s+/gm, '')
@@ -79,7 +153,6 @@ const REACTIONS = [
 
 // ==========================================
 // SERVER-SIDE RENDERING for OG Meta Tags
-// This is CRITICAL for Facebook/Twitter/LinkedIn previews
 // ==========================================
 export async function getServerSideProps(context) {
   const { id } = context.params;
@@ -92,33 +165,36 @@ export async function getServerSideProps(context) {
     const data = await response.json();
     const blog = data.blog || data.data || data;
     
-    // Extract featured image - PRIORITY ORDER (article image FIRST)
+    // Extract featured image
     let ogImage = null;
     
-    // 1. Check featuredImage object/string
     if (blog.featuredImage) {
       ogImage = typeof blog.featuredImage === 'string' ? blog.featuredImage : blog.featuredImage.url;
     }
     
-    // 2. Check images array
     if (!ogImage && blog.images?.length > 0) {
       const firstImg = blog.images[0];
       ogImage = typeof firstImg === 'string' ? firstImg : firstImg.url;
     }
     
-    // 3. Check media array
     if (!ogImage && blog.media?.length > 0) {
       const firstMedia = blog.media[0];
       ogImage = typeof firstMedia === 'string' ? firstMedia : firstMedia.url;
     }
     
-    // 4. Extract from markdown content
+    // Extract image from HTML content
     if (!ogImage && blog.content) {
-      const imgMatch = blog.content.match(/!\[([^\]]*)\]\(([^)]+)\)/);
-      if (imgMatch) ogImage = imgMatch[2];
+      // Check for HTML img tags first
+      const htmlImgMatch = blog.content.match(/<img[^>]+src=["']([^"']+)["']/i);
+      if (htmlImgMatch) {
+        ogImage = htmlImgMatch[1];
+      } else {
+        // Check for markdown images
+        const mdImgMatch = blog.content.match(/!\[([^\]]*)\]\(([^)]+)\)/);
+        if (mdImgMatch) ogImage = mdImgMatch[2];
+      }
     }
     
-    // 5. LAST RESORT - default OG image
     if (!ogImage) ogImage = 'https://cybev.io/og-default.png';
     
     const author = blog.author || {};
@@ -143,314 +219,291 @@ export async function getServerSideProps(context) {
           isAIGenerated: blog.isAIGenerated || false
         },
         ogData: {
-          title: blog.title || 'CYBEV Blog',
-          description: description,
+          title: blog.seo?.metaTitle || blog.title || 'CYBEV Article',
+          description,
           image: ogImage,
-          url: `https://cybev.io/blog/${id}`,
-          author: authorName
+          url: `https://cybev.io/blog/${id}`
         }
       }
     };
   } catch (error) {
-    console.error('SSR Error:', error);
+    console.error('getServerSideProps error:', error);
     return { notFound: true };
   }
 }
 
-// ==========================================
-// BLOG PAGE COMPONENT
-// ==========================================
-export default function BlogDetailPage({ blog, ogData }) {
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
+}
+
+export default function BlogPage({ blog, ogData }) {
   const router = useRouter();
-  const id = blog?._id;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
   
   const [user, setUser] = useState(null);
-  const [showComments, setShowComments] = useState(true);
-  const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState('');
-  const [submittingComment, setSubmittingComment] = useState(false);
-  const [bookmarked, setBookmarked] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
   const [activeReaction, setActiveReaction] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [showComments, setShowComments] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
   const [viewCount, setViewCount] = useState(blog?.views || 0);
   const [shareCount, setShareCount] = useState(blog?.shares?.total || 0);
-  const [api, setApi] = useState(null);
   const [showTimelineShare, setShowTimelineShare] = useState(false);
   const [timelineComment, setTimelineComment] = useState('');
   const [sharingToTimeline, setSharingToTimeline] = useState(false);
-  
+
   useEffect(() => {
-    import('@/lib/api').then(module => setApi(module.default)).catch(() => {});
-    const userData = localStorage.getItem('user');
-    if (userData) setUser(JSON.parse(userData));
-    trackView();
-    fetchCommentsInitial();
-  }, []);
-  
-  const fetchCommentsInitial = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io'}/api/comments/blog/${id}`);
-      const data = await response.json();
-      setComments(data.comments || []);
-    } catch {}
-  };
-  
-  const trackView = async () => {
-    try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io'}/api/blogs/${id}/view`, {
-        method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      });
-    } catch {}
-  };
-  
-  const handleShareToTimeline = async () => {
-    if (!user) { toast.info('Please login to share to your timeline'); return; }
-    setSharingToTimeline(true);
-    try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io'}/api/share/timeline`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}` 
-        },
-        body: JSON.stringify({ blogId: id, comment: timelineComment })
-      });
-      const data = await response.json();
-      if (data.success) {
-        toast.success('🎉 Shared to your timeline!');
-        setShowTimelineShare(false);
-        setTimelineComment('');
-        setShareCount(prev => prev + 1);
-      } else {
-        toast.error(data.error || 'Failed to share');
-      }
-    } catch (error) {
-      toast.error('Failed to share to timeline');
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {}
     }
-    setSharingToTimeline(false);
-  };
-  
-  useEffect(() => {
-    if (id && api) { fetchComments(); checkBookmark(); }
-  }, [id, api]);
-  
+    fetchComments();
+    checkBookmark();
+    checkUserReaction();
+  }, [blog._id]);
+
   const fetchComments = async () => {
-    if (!api) return;
     try {
-      const response = await api.get(`/api/comments/blog/${id}`);
-      setComments(response.data.comments || []);
+      const res = await fetch(`${API_URL}/api/comments?targetType=blog&targetId=${blog._id}`);
+      const data = await res.json();
+      setComments(data.comments || data.data || []);
     } catch {}
   };
-  
+
   const checkBookmark = async () => {
-    if (!api) return;
-    const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
+    const token = localStorage.getItem('token');
     if (!token) return;
     try {
-      const response = await api.get(`/api/bookmarks/check/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-      setBookmarked(response.data.bookmarked);
+      const res = await fetch(`${API_URL}/api/bookmarks/check?contentType=blog&contentId=${blog._id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      setIsBookmarked(data.isBookmarked);
     } catch {}
   };
-  
-  const handleReaction = async (type) => {
-    if (!user) { toast.info('Please login to react'); return; }
-    if (!api) {
-      // Fallback to fetch if api not loaded
-      try {
-        const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io'}/api/blogs/${id}/react`, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}` 
-          },
-          body: JSON.stringify({ type })
-        });
-        const data = await response.json();
-        if (data.success) {
-          setActiveReaction(activeReaction === type ? null : type);
-          toast.success(activeReaction === type ? 'Reaction removed' : `Reacted with ${type}!`);
+
+  const checkUserReaction = async () => {
+    const token = localStorage.getItem('token');
+    if (!token || !blog.reactions) return;
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) return;
+    try {
+      const userData = JSON.parse(storedUser);
+      for (const [type, users] of Object.entries(blog.reactions)) {
+        if (users && Array.isArray(users) && users.some(u => (typeof u === 'string' ? u : u._id) === userData._id)) {
+          setActiveReaction(type);
+          break;
         }
-      } catch (error) { 
-        console.error('Reaction error:', error);
-        toast.error('Failed to react'); 
       }
+    } catch {}
+  };
+
+  const handleBookmark = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Please login to bookmark');
       return;
     }
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      const response = await api.post(`/api/blogs/${id}/react`, { type }, { headers: { Authorization: `Bearer ${token}` } });
-      if (response.data?.success) {
-        setActiveReaction(activeReaction === type ? null : type);
-        toast.success(activeReaction === type ? 'Reaction removed' : `Reacted with ${type}!`);
-      }
-    } catch (error) { 
-      console.error('Reaction error:', error);
-      toast.error('Failed to react'); 
+      const res = await fetch(`${API_URL}/api/bookmarks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ contentType: 'blog', contentId: blog._id })
+      });
+      const data = await res.json();
+      setIsBookmarked(data.bookmarked);
+      toast.success(data.bookmarked ? 'Bookmarked!' : 'Removed from bookmarks');
+    } catch {
+      toast.error('Failed to bookmark');
     }
   };
-  
-  const handleBookmark = async () => {
-    if (!user) { toast.info('Please login to bookmark'); return; }
-    if (!api) return;
+
+  const handleReaction = async (reactionType) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Please login to react');
+      return;
+    }
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      if (bookmarked) {
-        await api.delete(`/api/bookmarks/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-        setBookmarked(false);
-        toast.success('Removed from bookmarks');
-      } else {
-        await api.post('/api/bookmarks', { postId: id, postType: 'blog' }, { headers: { Authorization: `Bearer ${token}` } });
-        setBookmarked(true);
-        toast.success('Added to bookmarks');
-      }
-    } catch { toast.error('Bookmark failed'); }
+      await fetch(`${API_URL}/api/blogs/${blog._id}/react`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ reactionType })
+      });
+      setActiveReaction(activeReaction === reactionType ? null : reactionType);
+      setShowReactions(false);
+    } catch {
+      toast.error('Failed to react');
+    }
   };
-  
+
   const handleShare = async (platform) => {
-    const { url, title, description, image } = ogData;
+    const url = `${window.location.origin}/blog/${blog._id}`;
+    const title = blog.title;
+    
     const shareUrls = {
       twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
-      whatsapp: `https://wa.me/?text=${encodeURIComponent(title + '\n\n' + url)}`,
-      telegram: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
-      reddit: `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`,
-      email: `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent('Check out this article:\n\n' + title + '\n\n' + url)}`
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+      linkedin: `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`,
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`
     };
-    
+
     if (platform === 'copy') {
-      await navigator.clipboard.writeText(url);
+      navigator.clipboard.writeText(url);
       toast.success('Link copied!');
-    } else if (platform === 'native' && navigator.share) {
-      try { await navigator.share({ title, text: description, url }); } catch {}
+    } else if (platform === 'timeline') {
+      setShowTimelineShare(true);
     } else if (shareUrls[platform]) {
       window.open(shareUrls[platform], '_blank', 'width=600,height=400');
     }
-    setShowShareMenu(false);
-    
+
     // Track share
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io'}/api/blogs/${id}/share`, {
+      await fetch(`${API_URL}/api/blogs/${blog._id}/share`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ platform })
       });
       setShareCount(prev => prev + 1);
     } catch {}
+
+    setShowShareMenu(false);
   };
-  
+
+  const handleShareToTimeline = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Please login to share');
+      return;
+    }
+    
+    setSharingToTimeline(true);
+    try {
+      const res = await fetch(`${API_URL}/api/posts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          content: timelineComment || `Check out this article: "${blog.title}"`,
+          sharedContent: {
+            type: 'blog',
+            id: blog._id,
+            title: blog.title,
+            excerpt: blog.excerpt || stripMarkdown(blog.content).slice(0, 150),
+            image: ogData.image,
+            url: `/blog/${blog._id}`
+          }
+        })
+      });
+      
+      if (res.ok) {
+        toast.success('Shared to your timeline!');
+        setShowTimelineShare(false);
+        setTimelineComment('');
+        setShareCount(prev => prev + 1);
+      } else {
+        throw new Error('Share failed');
+      }
+    } catch (error) {
+      toast.error('Failed to share');
+    } finally {
+      setSharingToTimeline(false);
+    }
+  };
+
   const submitComment = async () => {
-    if (!newComment.trim() || !user) {
-      if (!user) toast.info('Please login to comment');
+    if (!newComment.trim()) return;
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Please login to comment');
       return;
     }
     setSubmittingComment(true);
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io'}/api/comments`, {
+      const res = await fetch(`${API_URL}/api/comments`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}` 
-        },
-        body: JSON.stringify({ 
-          blogId: id, 
-          content: newComment.trim(),
-          authorName: user.name 
-        })
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ targetType: 'blog', targetId: blog._id, content: newComment })
       });
-      const data = await response.json();
-      if (data.comment || data.success) {
-        const newCommentObj = data.comment || {
-          _id: Date.now(),
-          content: newComment.trim(),
-          user: { name: user.name, profilePicture: user.profilePicture },
-          createdAt: new Date().toISOString()
-        };
-        setComments([newCommentObj, ...comments]);
+      if (res.ok) {
         setNewComment('');
-        toast.success('Comment added!');
-      } else {
-        toast.error(data.error || 'Failed to add comment');
+        fetchComments();
+        toast.success('Comment posted!');
       }
-    } catch (error) { 
-      console.error('Comment error:', error);
-      toast.error('Failed to add comment'); 
+    } catch {
+      toast.error('Failed to post comment');
+    } finally {
+      setSubmittingComment(false);
     }
-    setSubmittingComment(false);
   };
-  
-  const totalReactions = blog?.reactions ? Object.values(blog.reactions).reduce((sum, arr) => sum + (arr?.length || 0), 0) : 0;
-  const formatDate = (date) => date ? new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+
+  if (router.isFallback) {
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-purple-600" /></div>;
+  }
+
   const authorAvatar = blog.author?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(blog.author?.name || 'U')}&background=7c3aed&color=fff`;
-  
-  if (!blog) return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-      <h1 className="text-2xl font-bold text-gray-800 mb-4">Blog not found</h1>
-      <Link href="/feed"><button className="px-4 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700">Back to Feed</button></Link>
-    </div>
-  );
-  
+  const totalReactions = Object.values(blog.reactions || {}).reduce((sum, users) => sum + (users?.length || 0), 0);
+
   return (
     <>
-      {/* SSR HEAD - Facebook/Twitter crawlers see this */}
       <Head>
         <title>{ogData.title} | CYBEV</title>
         <meta name="description" content={ogData.description} />
-        
-        {/* Open Graph - CRITICAL for Facebook */}
         <meta property="og:type" content="article" />
-        <meta property="og:url" content={ogData.url} />
         <meta property="og:title" content={ogData.title} />
         <meta property="og:description" content={ogData.description} />
         <meta property="og:image" content={ogData.image} />
-        <meta property="og:image:secure_url" content={ogData.image} />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content={ogData.title} />
+        <meta property="og:url" content={ogData.url} />
         <meta property="og:site_name" content="CYBEV" />
-        <meta property="article:author" content={ogData.author} />
-        
-        {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={ogData.title} />
         <meta name="twitter:description" content={ogData.description} />
         <meta name="twitter:image" content={ogData.image} />
+        <link rel="canonical" href={ogData.url} />
       </Head>
       
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <header className="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
+          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
             <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
-              <ArrowLeft className="w-5 h-5" /><span className="hidden sm:inline">Back</span>
+              <ArrowLeft className="w-5 h-5" /> Back
             </button>
-            <Link href="/feed"><h1 className="text-xl font-bold text-purple-600 cursor-pointer">CYBEV</h1></Link>
+            
+            <Link href="/" className="text-xl font-bold text-purple-600">CYBEV</Link>
+            
             <div className="flex items-center gap-2">
-              <button onClick={handleBookmark} className={`p-2 rounded-full hover:bg-gray-100 ${bookmarked ? 'text-purple-600' : 'text-gray-600'}`}>
-                <Bookmark className={`w-5 h-5 ${bookmarked ? 'fill-current' : ''}`} />
+              <button onClick={handleBookmark} className={`p-2 rounded-full hover:bg-gray-100 ${isBookmarked ? 'text-purple-600' : 'text-gray-600'}`}>
+                <Bookmark className={`w-5 h-5 ${isBookmarked ? 'fill-current' : ''}`} />
               </button>
+              
               <div className="relative">
                 <button onClick={() => setShowShareMenu(!showShareMenu)} className="p-2 rounded-full hover:bg-gray-100 text-gray-600">
                   <Share2 className="w-5 h-5" />
                 </button>
+                
                 {showShareMenu && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
-                    <div className="px-3 py-1 text-xs text-gray-500 font-medium uppercase">Share</div>
-                    
-                    {/* Share to My Timeline - FIRST option */}
-                    <button onClick={() => { setShowShareMenu(false); setShowTimelineShare(true); }} 
-                      className="w-full px-4 py-2.5 text-left hover:bg-purple-50 flex items-center gap-3 text-purple-700 font-medium border-b border-gray-100">
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+                    <button onClick={() => handleShare('timeline')} className="w-full px-4 py-2 text-left hover:bg-purple-50 flex items-center gap-3 text-purple-600 font-medium">
                       <span className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center text-sm">📋</span> 
                       Share to My Timeline
                     </button>
-                    
                     <button onClick={() => handleShare('copy')} className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 text-gray-700">
                       <Copy className="w-5 h-5 text-gray-500" /> Copy link
                     </button>
@@ -508,8 +561,11 @@ export default function BlogDetailPage({ blog, ogData }) {
             </div>
           </div>
           
-          {/* Blog Content */}
-          <article className="prose prose-lg max-w-none blog-content" dangerouslySetInnerHTML={{ __html: markdownToHtml(blog.content) }} />
+          {/* Blog Content - FIXED: Now properly renders HTML */}
+          <article 
+            className="prose prose-lg max-w-none blog-content" 
+            dangerouslySetInnerHTML={{ __html: processContent(blog.content) }} 
+          />
           
           {/* Tags */}
           {blog.tags?.length > 0 && (
@@ -570,13 +626,13 @@ export default function BlogDetailPage({ blog, ogData }) {
                   <img src={user.profilePicture || user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=7c3aed&color=fff`} alt="" className="w-10 h-10 rounded-full object-cover" />
                   <div className="flex-1">
                     <textarea value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Write a comment..." className="w-full px-4 py-2 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500" rows={2} />
-                    <button onClick={submitComment} disabled={!newComment.trim() || submittingComment} className="mt-2 px-4 py-2 bg-purple-600 text-gray-900 rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2">
+                    <button onClick={submitComment} disabled={!newComment.trim() || submittingComment} className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2">
                       {submittingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}Post
                     </button>
                   </div>
                 </div>
               ) : (
-                <p className="text-center text-gray-500 mb-4"><Link href="/login" className="text-purple-600 hover:underline">Login</Link> to comment</p>
+                <p className="text-center text-gray-500 mb-4"><Link href="/auth/login" className="text-purple-600 hover:underline">Login</Link> to comment</p>
               )}
               <div className="space-y-4">
                 {comments.length === 0 ? (
@@ -599,7 +655,7 @@ export default function BlogDetailPage({ blog, ogData }) {
       
       {/* Share to Timeline Modal */}
       {showTimelineShare && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50" onClick={() => setShowTimelineShare(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowTimelineShare(false)}>
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl" onClick={e => e.stopPropagation()}>
             <div className="border-b border-gray-200 px-4 py-3 flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">Share to Your Timeline</h2>
@@ -629,7 +685,7 @@ export default function BlogDetailPage({ blog, ogData }) {
             </div>
             <div className="p-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
               <button onClick={handleShareToTimeline} disabled={sharingToTimeline}
-                className="w-full py-3 bg-purple-600 text-gray-900 font-semibold rounded-xl hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2">
+                className="w-full py-3 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2">
                 {sharingToTimeline ? (
                   <><Loader2 className="w-5 h-5 animate-spin" /> Sharing...</>
                 ) : (
@@ -642,16 +698,18 @@ export default function BlogDetailPage({ blog, ogData }) {
       )}
       
       <style jsx global>{`
-        .blog-content h1,.blog-content h2{font-size:1.5rem;font-weight:700;color:#111827;margin:2rem 0 1rem}
-        .blog-content h3{font-size:1.25rem;font-weight:600;color:#1f2937;margin:1.5rem 0 .75rem}
-        .blog-content p{color:#374151;line-height:1.75;margin-bottom:1rem}
-        .blog-content img{width:100%;border-radius:.75rem;margin:1.5rem 0}
-        .blog-content figure{margin:1.5rem 0}
-        .blog-content figcaption{text-align:center;color:#6b7280;font-size:.875rem;margin-top:.5rem;font-style:italic}
-        .blog-content ul,.blog-content ol{margin:1rem 0;padding-left:1.5rem}
-        .blog-content li{color:#374151;margin-bottom:.5rem}
-        .blog-content blockquote{border-left:4px solid #7c3aed;padding:1rem;margin:1.5rem 0;background:#f3f4f6;border-radius:0 .5rem .5rem 0}
-        .blog-content a{color:#7c3aed;text-decoration:underline}
+        .blog-content h1, .blog-content h2 { font-size: 1.5rem; font-weight: 700; color: #111827; margin: 2rem 0 1rem; }
+        .blog-content h3 { font-size: 1.25rem; font-weight: 600; color: #1f2937; margin: 1.5rem 0 0.75rem; }
+        .blog-content p { color: #374151; line-height: 1.75; margin-bottom: 1rem; }
+        .blog-content img { width: 100%; border-radius: 0.75rem; margin: 1.5rem 0; }
+        .blog-content figure { margin: 1.5rem 0; }
+        .blog-content figcaption { text-align: center; color: #6b7280; font-size: 0.875rem; margin-top: 0.5rem; font-style: italic; }
+        .blog-content ul, .blog-content ol { margin: 1rem 0; padding-left: 1.5rem; }
+        .blog-content li { color: #374151; margin-bottom: 0.5rem; }
+        .blog-content blockquote { border-left: 4px solid #7c3aed; padding: 1rem; margin: 1.5rem 0; background: #f3f4f6; border-radius: 0 0.5rem 0.5rem 0; }
+        .blog-content a { color: #7c3aed; text-decoration: underline; }
+        .blog-content strong { font-weight: 700; }
+        .blog-content em { font-style: italic; }
       `}</style>
     </>
   );
