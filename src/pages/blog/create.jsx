@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/blog/create.jsx
 // PURPOSE: Manual Blog/Article Creation
-// VERSION: 2.1.0 - Fixed: White background, black text, image preview
+// VERSION: 2.2.0 - Fixed: API endpoints, white design
 // STYLE: Facebook-style clean white design
 // ============================================
 
@@ -96,7 +96,8 @@ export default function CreateBlog() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch(`${API_URL}/upload/image`, {
+      // FIXED: Correct endpoint with /api prefix
+      const response = await fetch(`${API_URL}/api/upload/image`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -108,7 +109,6 @@ export default function CreateBlog() {
       
       if (data.success && data.url) {
         setFeaturedImageUrl(data.url);
-        // Update preview with uploaded URL
         setFeaturedImagePreview(data.url);
         console.log('✅ Featured image uploaded:', data.url);
         return data.url;
@@ -152,7 +152,8 @@ Category: ${category}.
 Style: Modern, clean, professional photography or illustration suitable for a blog header.
 DO NOT include any text or words in the image.`;
 
-      const response = await fetch(`${API_URL}/ai/generate-image`, {
+      // FIXED: Correct endpoint with /api prefix
+      const response = await fetch(`${API_URL}/api/ai/generate-image`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -207,7 +208,8 @@ DO NOT include any text or words in the image.`;
         const formData = new FormData();
         formData.append('file', file);
 
-        const response = await fetch(`${API_URL}/upload/image`, {
+        // FIXED: Correct endpoint with /api prefix
+        const response = await fetch(`${API_URL}/api/upload/image`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -302,7 +304,7 @@ DO NOT include any text or words in the image.`;
         title: title.trim(),
         content,
         excerpt: description.trim(),
-        featuredImage: featuredImageUrl || featuredImagePreview || '',
+        featuredImage: featuredImageUrl || '',
         tags,
         category: category.toLowerCase(),
         status: publishStatus,
@@ -311,7 +313,8 @@ DO NOT include any text or words in the image.`;
 
       console.log('📝 Saving blog:', blogData.title);
 
-      const response = await fetch(`${API_URL}/blogs`, {
+      // FIXED: Correct endpoint with /api prefix
+      const response = await fetch(`${API_URL}/api/blogs`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
