@@ -30,25 +30,30 @@ function isHtmlContent(content) {
 function processHtmlContent(html) {
   if (!html) return '';
   
+  let processed = html;
+  
+  // Remove any wrapping anchor tags that might be around the entire content
+  processed = processed.replace(/^<a[^>]*>([\s\S]*)<\/a>$/gi, '$1');
+  
   // Add styling classes to HTML elements
-  let processed = html
+  processed = processed
     // Headings
     .replace(/<h1([^>]*)>/gi, '<h1 class="text-3xl font-bold text-gray-900 mt-8 mb-6"$1>')
     .replace(/<h2([^>]*)>/gi, '<h2 class="text-2xl font-bold text-gray-900 mt-10 mb-4"$1>')
     .replace(/<h3([^>]*)>/gi, '<h3 class="text-xl font-semibold text-gray-900 mt-8 mb-4"$1>')
     .replace(/<h4([^>]*)>/gi, '<h4 class="text-lg font-semibold text-gray-800 mt-6 mb-3"$1>')
-    // Paragraphs
-    .replace(/<p([^>]*)>/gi, '<p class="text-gray-700 leading-relaxed mb-4"$1>')
+    // Paragraphs - ensure no underline
+    .replace(/<p([^>]*)>/gi, '<p class="text-gray-700 leading-relaxed mb-4" style="text-decoration:none"$1>')
     // Images
     .replace(/<img([^>]*)>/gi, '<img class="w-full rounded-lg shadow-md my-6"$1>')
     // Lists
     .replace(/<ul([^>]*)>/gi, '<ul class="my-4 list-disc pl-6"$1>')
     .replace(/<ol([^>]*)>/gi, '<ol class="my-4 list-decimal pl-6"$1>')
-    .replace(/<li([^>]*)>/gi, '<li class="text-gray-700 mb-2"$1>')
+    .replace(/<li([^>]*)>/gi, '<li class="text-gray-700 mb-2" style="text-decoration:none"$1>')
     // Blockquotes
     .replace(/<blockquote([^>]*)>/gi, '<blockquote class="border-l-4 border-purple-500 pl-4 py-2 my-4 bg-purple-50 rounded-r-lg italic text-gray-700"$1>')
-    // Links
-    .replace(/<a([^>]*)>/gi, '<a class="text-purple-600 hover:underline"$1>')
+    // Links - only actual links should be styled as links (no underline by default)
+    .replace(/<a([^>]*)>/gi, '<a class="text-purple-600 hover:underline" style="text-decoration:none"$1>')
     // Code
     .replace(/<pre([^>]*)>/gi, '<pre class="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto my-4 text-sm"$1>')
     .replace(/<code([^>]*)>/gi, '<code class="bg-gray-100 text-pink-600 px-2 py-0.5 rounded text-sm"$1>');
@@ -698,18 +703,21 @@ export default function BlogPage({ blog, ogData }) {
       )}
       
       <style jsx global>{`
-        .blog-content h1, .blog-content h2 { font-size: 1.5rem; font-weight: 700; color: #111827; margin: 2rem 0 1rem; }
-        .blog-content h3 { font-size: 1.25rem; font-weight: 600; color: #1f2937; margin: 1.5rem 0 0.75rem; }
-        .blog-content p { color: #374151; line-height: 1.75; margin-bottom: 1rem; }
+        .blog-content h1, .blog-content h2 { font-size: 1.5rem; font-weight: 700; color: #111827; margin: 2rem 0 1rem; text-decoration: none; }
+        .blog-content h3 { font-size: 1.25rem; font-weight: 600; color: #1f2937; margin: 1.5rem 0 0.75rem; text-decoration: none; }
+        .blog-content p { color: #374151; line-height: 1.75; margin-bottom: 1rem; text-decoration: none; }
         .blog-content img { width: 100%; border-radius: 0.75rem; margin: 1.5rem 0; }
         .blog-content figure { margin: 1.5rem 0; }
-        .blog-content figcaption { text-align: center; color: #6b7280; font-size: 0.875rem; margin-top: 0.5rem; font-style: italic; }
-        .blog-content ul, .blog-content ol { margin: 1rem 0; padding-left: 1.5rem; }
-        .blog-content li { color: #374151; margin-bottom: 0.5rem; }
-        .blog-content blockquote { border-left: 4px solid #7c3aed; padding: 1rem; margin: 1.5rem 0; background: #f3f4f6; border-radius: 0 0.5rem 0.5rem 0; }
-        .blog-content a { color: #7c3aed; text-decoration: underline; }
-        .blog-content strong { font-weight: 700; }
-        .blog-content em { font-style: italic; }
+        .blog-content figcaption { text-align: center; color: #6b7280; font-size: 0.875rem; margin-top: 0.5rem; font-style: italic; text-decoration: none; }
+        .blog-content ul, .blog-content ol { margin: 1rem 0; padding-left: 1.5rem; text-decoration: none; }
+        .blog-content li { color: #374151; margin-bottom: 0.5rem; text-decoration: none; }
+        .blog-content blockquote { border-left: 4px solid #7c3aed; padding: 1rem; margin: 1.5rem 0; background: #f3f4f6; border-radius: 0 0.5rem 0.5rem 0; text-decoration: none; }
+        .blog-content a { color: #7c3aed; text-decoration: none; }
+        .blog-content a:hover { text-decoration: underline; }
+        .blog-content strong { font-weight: 700; text-decoration: none; }
+        .blog-content em { font-style: italic; text-decoration: none; }
+        .blog-content * { text-decoration: none; }
+        .blog-content a:only-child { text-decoration: none; }
       `}</style>
     </>
   );
