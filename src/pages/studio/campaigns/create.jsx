@@ -98,15 +98,19 @@ export default function CreateCampaign() {
 
   const fetchInitialData = async () => {
     try {
-      const [contactsRes, addressRes] = await Promise.all([
-        fetch(`${API_URL}/api/email/contacts/stats`, getAuth()).catch(() => ({ json: () => ({}) })),
-        fetch(`${API_URL}/api/email/addresses`, getAuth()).catch(() => ({ json: () => ({ addresses: [] }) })),
+      // Use campaigns-enhanced endpoints for all data
+      const [statsRes, addressRes, tagsRes] = await Promise.all([
+        fetch(`${API_URL}/api/campaigns-enhanced/contacts/stats`, getAuth()).catch(() => ({ json: () => ({ stats: {} }) })),
+        fetch(`${API_URL}/api/campaigns-enhanced/addresses`, getAuth()).catch(() => ({ json: () => ({ addresses: [] }) })),
+        fetch(`${API_URL}/api/campaigns-enhanced/tags`, getAuth()).catch(() => ({ json: () => ({ tags: [] }) })),
       ]);
       
-      const contactsData = await contactsRes.json();
+      const statsData = await statsRes.json();
       const addressData = await addressRes.json();
+      const tagsData = await tagsRes.json();
       
-      if (contactsData.stats) setContacts(contactsData.stats);
+      if (statsData.stats) setContacts(statsData.stats);
+      if (tagsData.tags) setTags(tagsData.tags);
       if (addressData.addresses) {
         setSenderAddresses(addressData.addresses);
         if (addressData.addresses.length > 0) {
