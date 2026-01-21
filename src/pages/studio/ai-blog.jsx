@@ -16,7 +16,28 @@ import {
   CheckCircle, AlertCircle, Coins, TrendingUp
 } from 'lucide-react';
 import axios from 'axios';
-import toast from 'react-hot-toast';
+// Simple toast replacement (uses browser alert as fallback)
+const toast = {
+  success: (msg) => {
+    if (typeof window !== 'undefined') {
+      // Try to use existing toast if available, otherwise alert
+      if (window.toast?.success) {
+        window.toast.success(msg);
+      } else {
+        alert(msg);
+      }
+    }
+  },
+  error: (msg) => {
+    if (typeof window !== 'undefined') {
+      if (window.toast?.error) {
+        window.toast.error(msg);
+      } else {
+        alert(msg);
+      }
+    }
+  }
+};
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
