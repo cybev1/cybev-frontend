@@ -1,185 +1,52 @@
-// ============================================
-// FILE: pages/church/foundation/index.jsx
-// Foundation School - Modules & Progress
-// VERSION: 1.0.0
-// ============================================
+/**
+ * ============================================
+ * FILE: index.jsx
+ * PATH: cybev-frontend-main/src/pages/church/foundation/index.jsx
+ * VERSION: 2.0.0 - Mobile-First March 2025
+ * STATUS: REPLACE existing file
+ * ============================================
+ */
 
 import { useState, useEffect } from 'react';
-import Head from 'next/head';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
-import {
-  BookOpen, GraduationCap, ChevronRight, Play, CheckCircle,
-  Lock, Clock, Award, Target, Loader2, ArrowLeft,
-  BookMarked, FileText, Video, HelpCircle, Star
+import Head from 'next/head';
+import { 
+  BookOpen, 
+  GraduationCap, 
+  Trophy, 
+  ChevronRight, 
+  Play, 
+  CheckCircle, 
+  Lock, 
+  Clock, 
+  Users,
+  Star,
+  Flame,
+  Droplets,
+  Book,
+  MessageCircle,
+  Scroll,
+  Heart,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
+// Icon mapping for dynamic icons
+const iconMap = {
+  Sparkles, Flame, Droplets, Book, MessageCircle, Scroll, Heart,
+  BookOpen, GraduationCap, Trophy, Star
+};
 
-function ModuleCard({ module, progress, isUnlocked, onClick }) {
-  const isCompleted = progress?.passed;
-  const isInProgress = progress && !progress.passed;
-  
-  return (
-    <div 
-      onClick={isUnlocked ? onClick : undefined}
-      className={`bg-white dark:bg-white rounded-2xl p-6 border transition-all ${
-        isUnlocked 
-          ? 'border-gray-100 dark:border-gray-200 hover:shadow-lg hover:border-purple-200 dark:hover:border-purple-800 cursor-pointer' 
-          : 'border-gray-100 dark:border-gray-200 opacity-60 cursor-not-allowed'
-      }`}
-    >
-      <div className="flex items-start gap-4">
-        <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${
-          isCompleted 
-            ? 'bg-green-100 dark:bg-green-900/30' 
-            : isInProgress
-              ? 'bg-yellow-100 dark:bg-yellow-900/30'
-              : isUnlocked
-                ? 'bg-purple-100 dark:bg-purple-900/30'
-                : 'bg-gray-100 dark:bg-gray-700'
-        }`}>
-          {isCompleted ? (
-            <CheckCircle className="w-7 h-7 text-green-500" />
-          ) : isUnlocked ? (
-            <span className="text-2xl font-bold text-purple-600 dark:text-purple-600">
-              {module.moduleNumber}
-            </span>
-          ) : (
-            <Lock className="w-6 h-6 text-gray-500" />
-          )}
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-900">
-              Module {module.moduleNumber}: {module.title}
-            </h3>
-            {isCompleted && (
-              <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full">
-                Completed
-              </span>
-            )}
-            {isInProgress && (
-              <span className="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-full">
-                In Progress
-              </span>
-            )}
-          </div>
-          
-          <p className="text-sm text-gray-500 dark:text-gray-500 mb-3 line-clamp-2">
-            {module.description}
-          </p>
-
-          <div className="flex items-center gap-4 text-sm text-gray-500">
-            <span className="flex items-center gap-1">
-              <FileText className="w-4 h-4" />
-              {module.content?.lessons?.length || 3} Lessons
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
-              {module.duration || 7} days
-            </span>
-            <span className="flex items-center gap-1">
-              <HelpCircle className="w-4 h-4" />
-              Quiz
-            </span>
-          </div>
-
-          {progress?.quizScore > 0 && (
-            <div className="mt-3 flex items-center gap-2">
-              <div className="flex-1 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full rounded-full ${progress.passed ? 'bg-green-500' : 'bg-yellow-500'}`}
-                  style={{ width: `${progress.quizScore}%` }}
-                />
-              </div>
-              <span className={`text-sm font-medium ${progress.passed ? 'text-green-500' : 'text-yellow-500'}`}>
-                {progress.quizScore}%
-              </span>
-            </div>
-          )}
-        </div>
-
-        {isUnlocked && (
-          <ChevronRight className="w-5 h-5 text-gray-600 flex-shrink-0" />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function ProgressOverview({ enrollment, totalModules }) {
-  const completedModules = enrollment?.moduleProgress?.filter(p => p.passed).length || 0;
-  const progressPercent = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
-
-  return (
-    <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-6 text-gray-900">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="font-semibold text-lg">Your Progress</h3>
-          <p className="text-purple-200 text-sm">
-            {enrollment?.status === 'completed' 
-              ? 'All modules completed!' 
-              : enrollment?.status === 'graduated'
-                ? 'Congratulations, Graduate!'
-                : `${completedModules} of ${totalModules} modules completed`
-            }
-          </p>
-        </div>
-        <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
-          {enrollment?.status === 'graduated' ? (
-            <Award className="w-8 h-8" />
-          ) : (
-            <span className="text-2xl font-bold">{progressPercent}%</span>
-          )}
-        </div>
-      </div>
-
-      <div className="h-3 bg-white/20 rounded-full overflow-hidden mb-4">
-        <div 
-          className="h-full bg-white rounded-full transition-all duration-500"
-          style={{ width: `${progressPercent}%` }}
-        />
-      </div>
-
-      <div className="grid grid-cols-3 gap-4 text-center">
-        <div>
-          <p className="text-2xl font-bold">{completedModules}</p>
-          <p className="text-purple-200 text-xs">Completed</p>
-        </div>
-        <div>
-          <p className="text-2xl font-bold">{totalModules - completedModules}</p>
-          <p className="text-purple-200 text-xs">Remaining</p>
-        </div>
-        <div>
-          <p className="text-2xl font-bold">{enrollment?.currentModule || 1}</p>
-          <p className="text-purple-200 text-xs">Current</p>
-        </div>
-      </div>
-
-      {enrollment?.status === 'completed' && (
-        <button className="w-full mt-4 py-3 bg-white text-purple-700 rounded-xl font-semibold hover:bg-purple-50 flex items-center justify-center gap-2">
-          <GraduationCap className="w-5 h-5" />
-          Request Graduation
-        </button>
-      )}
-    </div>
-  );
-}
-
-export default function FoundationSchool() {
+export default function FoundationSchoolPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
   const [modules, setModules] = useState([]);
-  const [enrollment, setEnrollment] = useState(null);
+  const [progress, setProgress] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [enrolled, setEnrolled] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
-  const [myOrgs, setMyOrgs] = useState([]);
-
-  const getAuth = () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    return { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } };
-  };
+  
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
   useEffect(() => {
     fetchData();
@@ -194,28 +61,36 @@ export default function FoundationSchool() {
         setModules(modulesData.modules || []);
       }
 
-      // Fetch enrollment progress
-      const progressRes = await fetch(`${API_URL}/api/church/foundation/progress`, getAuth());
-      const progressData = await progressRes.json();
-      if (progressData.ok) {
-        setEnrollment(progressData.enrollment);
+      // Fetch progress (if logged in)
+      const token = localStorage.getItem('token');
+      if (token) {
+        const progressRes = await fetch(`${API_URL}/api/church/foundation/progress`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const progressData = await progressRes.json();
+        if (progressData.ok) {
+          setProgress(progressData.progress);
+          setEnrolled(progressData.enrolled);
+        }
       }
 
-      // Fetch orgs for enrollment
-      const orgsRes = await fetch(`${API_URL}/api/church/org/my`, getAuth());
-      const orgsData = await orgsRes.json();
-      if (orgsData.ok) {
-        setMyOrgs(orgsData.orgs?.filter(o => o.type === 'church' || o.type === 'zone') || []);
+      // Fetch stats
+      const statsRes = await fetch(`${API_URL}/api/church/foundation/stats`);
+      const statsData = await statsRes.json();
+      if (statsData.ok) {
+        setStats(statsData.stats);
       }
-    } catch (err) {
-      console.error('Fetch data error:', err);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleEnroll = async () => {
-    if (myOrgs.length === 0) {
-      alert('You need to be part of a church to enroll');
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/login?redirect=/church/foundation');
       return;
     }
 
@@ -223,175 +98,299 @@ export default function FoundationSchool() {
     try {
       const res = await fetch(`${API_URL}/api/church/foundation/enroll`, {
         method: 'POST',
-        ...getAuth(),
-        body: JSON.stringify({ churchId: myOrgs[0]._id })
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({})
       });
       const data = await res.json();
       if (data.ok) {
-        setEnrollment(data.enrollment);
-      } else {
-        alert(data.error || 'Failed to enroll');
+        setEnrolled(true);
+        fetchData();
       }
-    } catch (err) {
-      console.error('Enroll error:', err);
+    } catch (error) {
+      console.error('Enrollment error:', error);
+    } finally {
+      setEnrolling(false);
     }
-    setEnrolling(false);
   };
 
-  const getModuleProgress = (moduleNumber) => {
-    return enrollment?.moduleProgress?.find(p => p.moduleNumber === moduleNumber);
+  const getIcon = (iconName) => {
+    const IconComponent = iconMap[iconName] || BookOpen;
+    return IconComponent;
   };
 
   const isModuleUnlocked = (moduleNumber) => {
-    if (!enrollment) return moduleNumber === 1;
-    const currentModule = enrollment.currentModule || 1;
-    return moduleNumber <= currentModule;
+    if (!enrolled) return moduleNumber === 1;
+    if (!progress) return moduleNumber === 1;
+    return moduleNumber <= (progress.currentModule || 1);
+  };
+
+  const isModuleCompleted = (moduleNumber) => {
+    if (!progress) return false;
+    return progress.completedModules?.includes(moduleNumber);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Loading Foundation School...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
+    <>
       <Head>
-        <title>Foundation School - CYBEV Church</title>
+        <title>Foundation School | CYBEV</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
 
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-gray-900">
-        <div className="max-w-5xl mx-auto px-4 py-8">
-          <Link href="/church" className="inline-flex items-center gap-2 text-purple-200 hover:text-gray-900 mb-4">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Church Dashboard
-          </Link>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <BookOpen className="w-8 h-8" />
-            Foundation School
-          </h1>
-          <p className="text-purple-100 mt-1">
-            A discipleship program for new believers
-          </p>
-        </div>
-      </div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
+        {/* Header - Mobile Optimized */}
+        <div className="bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-800 text-white">
+          <div className="px-4 pt-12 pb-8" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 3rem)' }}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center">
+                <GraduationCap className="w-8 h-8" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">Foundation School</h1>
+                <p className="text-purple-200 text-sm">March 2025 Edition</p>
+              </div>
+            </div>
+            
+            <p className="text-purple-100 text-sm mb-6">
+              Build a solid foundation in Christ through 7 comprehensive classes
+            </p>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            {/* Not Enrolled State */}
-            {!enrollment && (
-              <div className="bg-white dark:bg-white rounded-2xl p-8 text-center mb-8 border border-gray-100 dark:border-gray-200">
-                <div className="w-20 h-20 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <GraduationCap className="w-10 h-10 text-purple-600 dark:text-purple-600" />
+            {/* Stats Cards - Horizontal Scroll */}
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+              <div className="bg-white/10 backdrop-blur rounded-xl p-3 min-w-[100px] text-center flex-shrink-0">
+                <p className="text-2xl font-bold">{modules.length}</p>
+                <p className="text-xs text-purple-200">Classes</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur rounded-xl p-3 min-w-[100px] text-center flex-shrink-0">
+                <p className="text-2xl font-bold">{modules.reduce((a, m) => a + (m.totalLessons || m.lessons?.length || 0), 0)}</p>
+                <p className="text-xs text-purple-200">Lessons</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur rounded-xl p-3 min-w-[100px] text-center flex-shrink-0">
+                <p className="text-2xl font-bold">{stats?.activeStudents || 0}</p>
+                <p className="text-xs text-purple-200">Students</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur rounded-xl p-3 min-w-[100px] text-center flex-shrink-0">
+                <p className="text-2xl font-bold">{stats?.graduatedStudents || 0}</p>
+                <p className="text-xs text-purple-200">Graduates</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Progress Section (if enrolled) */}
+        {enrolled && progress && (
+          <div className="px-4 -mt-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-yellow-500" />
+                  <span className="font-semibold text-gray-900 dark:text-white">Your Progress</span>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-900 mb-2">
-                  Welcome to Foundation School
-                </h2>
-                <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                  This 6-module course will help you build a strong foundation in your Christian faith.
-                  Each module includes lessons, scriptures, and a quiz.
-                </p>
-                <button
-                  onClick={handleEnroll}
-                  disabled={enrolling}
-                  className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-gray-900 rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 flex items-center gap-2 mx-auto"
-                >
-                  {enrolling ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Enrolling...
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-5 h-5" />
-                      Enroll Now - It's Free!
-                    </>
-                  )}
-                </button>
+                <span className="text-sm text-purple-600 dark:text-purple-400 font-medium">
+                  {progress.progressPercent || 0}%
+                </span>
               </div>
-            )}
-
-            {/* Modules List */}
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-900 mb-4">
-                Course Modules
-              </h2>
               
-              {modules.map((module) => (
-                <ModuleCard
-                  key={module._id}
-                  module={module}
-                  progress={getModuleProgress(module.moduleNumber)}
-                  isUnlocked={isModuleUnlocked(module.moduleNumber)}
-                  onClick={() => router.push(`/church/foundation/module/${module.moduleNumber}`)}
+              {/* Progress Bar */}
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-3">
+                <div 
+                  className="bg-gradient-to-r from-purple-500 to-indigo-500 h-3 rounded-full transition-all duration-500"
+                  style={{ width: `${progress.progressPercent || 0}%` }}
                 />
-              ))}
+              </div>
+              
+              <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                <span>{progress.completedModules?.length || 0} of {progress.totalModules} classes completed</span>
+                <span>Avg Score: {progress.avgScore || 0}%</span>
+              </div>
             </div>
           </div>
+        )}
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Progress Card (if enrolled) */}
-            {enrollment && (
-              <ProgressOverview enrollment={enrollment} totalModules={modules.length} />
-            )}
-
-            {/* What You'll Learn */}
-            <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-4 flex items-center gap-2">
-                <Target className="w-5 h-5 text-purple-500" />
-                What You'll Learn
-              </h3>
-              <ul className="space-y-3">
-                {[
-                  'Understanding salvation & new birth',
-                  'The power of God\'s Word',
-                  'How to pray effectively',
-                  'The Holy Spirit in your life',
-                  'The importance of church fellowship',
-                  'Living the Christian life daily'
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-500">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Certificate Info */}
-            <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-2xl p-6 border border-amber-200 dark:border-amber-800">
-              <div className="flex items-center gap-3 mb-3">
-                <Award className="w-8 h-8 text-amber-500" />
-                <h3 className="font-semibold text-gray-900 dark:text-gray-900">
-                  Earn a Certificate
-                </h3>
+        {/* Enrollment CTA (if not enrolled) */}
+        {!enrolled && (
+          <div className="px-4 -mt-4 mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center">
+                  <Star className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Ready to Begin?</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Enroll now and track your progress</p>
+                </div>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-500">
-                Complete all 6 modules and pass the quizzes to receive your official Foundation School certificate!
-              </p>
+              
+              <button
+                onClick={handleEnroll}
+                disabled={enrolling}
+                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition disabled:opacity-50"
+              >
+                {enrolling ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Enrolling...
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-5 h-5" />
+                    Enroll in Foundation School
+                  </>
+                )}
+              </button>
             </div>
+          </div>
+        )}
 
-            {/* Memory Verse Preview */}
-            {modules[0] && (
-              <div className="bg-white dark:bg-white rounded-2xl p-6 border border-gray-100 dark:border-gray-200">
-                <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-3 flex items-center gap-2">
-                  <BookMarked className="w-5 h-5 text-purple-500" />
-                  Featured Memory Verse
-                </h3>
-                <blockquote className="text-sm text-gray-600 dark:text-gray-500 italic border-l-4 border-purple-500 pl-4">
-                  "{modules[0].content?.memoryVerse || 'Therefore if any man be in Christ, he is a new creature: old things are passed away; behold, all things are become new. - 2 Corinthians 5:17'}"
-                </blockquote>
-              </div>
-            )}
+        {/* Module List */}
+        <div className="px-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-purple-600" />
+            Curriculum
+          </h2>
+          
+          <div className="space-y-3">
+            {modules.map((module) => {
+              const unlocked = isModuleUnlocked(module.moduleNumber);
+              const completed = isModuleCompleted(module.moduleNumber);
+              const IconComponent = getIcon(module.icon);
+              
+              return (
+                <button
+                  key={module._id || module.moduleNumber}
+                  onClick={() => unlocked && router.push(`/church/foundation/module/${module.moduleNumber}`)}
+                  disabled={!unlocked}
+                  className={`w-full text-left bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm transition-all ${
+                    unlocked 
+                      ? 'hover:shadow-md active:scale-[0.99]' 
+                      : 'opacity-60'
+                  }`}
+                >
+                  <div className="flex items-start gap-4">
+                    {/* Module Icon */}
+                    <div 
+                      className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                        completed 
+                          ? 'bg-green-100 dark:bg-green-900/30' 
+                          : unlocked
+                            ? 'bg-purple-100 dark:bg-purple-900/30'
+                            : 'bg-gray-100 dark:bg-gray-700'
+                      }`}
+                      style={{ backgroundColor: unlocked && !completed ? `${module.color}20` : undefined }}
+                    >
+                      {completed ? (
+                        <CheckCircle className="w-7 h-7 text-green-600 dark:text-green-400" />
+                      ) : unlocked ? (
+                        <IconComponent 
+                          className="w-7 h-7" 
+                          style={{ color: module.color || '#8B5CF6' }} 
+                        />
+                      ) : (
+                        <Lock className="w-6 h-6 text-gray-400" />
+                      )}
+                    </div>
+                    
+                    {/* Module Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
+                          Class {module.moduleNumber}
+                        </span>
+                        {completed && (
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+                            Completed
+                          </span>
+                        )}
+                      </div>
+                      
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1 truncate">
+                        {module.title}
+                      </h3>
+                      
+                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">
+                        {module.subtitle || module.description}
+                      </p>
+                      
+                      <div className="flex items-center gap-3 text-xs text-gray-400">
+                        <span className="flex items-center gap-1">
+                          <BookOpen className="w-3.5 h-3.5" />
+                          {module.totalLessons || module.lessons?.length || 0} lessons
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          {module.duration || '2 hours'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Arrow */}
+                    {unlocked && (
+                      <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 mt-4" />
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
+
+        {/* Certificate Section (if completed) */}
+        {progress?.status === 'completed' && (
+          <div className="px-4 mt-6">
+            <div className="bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-500 rounded-2xl p-6 text-white">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center">
+                  <Trophy className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">Congratulations!</h3>
+                  <p className="text-yellow-100 text-sm">You've completed Foundation School</p>
+                </div>
+              </div>
+              
+              <button
+                onClick={() => router.push('/church/foundation/certificate')}
+                className="w-full bg-white text-yellow-600 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-yellow-50 transition"
+              >
+                <GraduationCap className="w-5 h-5" />
+                View Your Certificate
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Bottom padding for mobile nav */}
+        <div className="h-20" />
       </div>
-    </div>
+
+      <style jsx global>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
+    </>
   );
 }
