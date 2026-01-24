@@ -2,8 +2,8 @@
  * ============================================
  * FILE: index.jsx
  * PATH: cybev-frontend-main/src/pages/church/foundation/index.jsx
- * VERSION: 2.0.0 - Mobile-First March 2025
- * STATUS: REPLACE existing file
+ * VERSION: 2.1.0 - Added Quick Actions
+ * UPDATED: 2026-01-24
  * ============================================
  */
 
@@ -28,7 +28,8 @@ import {
   Scroll,
   Heart,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Award
 } from 'lucide-react';
 
 // Icon mapping for dynamic icons
@@ -216,7 +217,41 @@ export default function FoundationSchoolPage() {
                 <span>{progress.completedModules?.length || 0} of {progress.totalModules} classes completed</span>
                 <span>Avg Score: {progress.avgScore || 0}%</span>
               </div>
+              
+              {/* Quick Actions */}
+              <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                <button
+                  onClick={() => router.push('/church/foundation/certificate')}
+                  className="flex-1 flex items-center justify-center gap-2 py-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg text-sm font-medium hover:bg-green-100 dark:hover:bg-green-900/30"
+                >
+                  <GraduationCap className="w-4 h-4" />
+                  Certificate
+                </button>
+                <button
+                  onClick={() => router.push('/church/foundation/leaderboard')}
+                  className="flex-1 flex items-center justify-center gap-2 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 rounded-lg text-sm font-medium hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
+                >
+                  <Trophy className="w-4 h-4" />
+                  Leaderboard
+                </button>
+              </div>
             </div>
+          </div>
+        )}
+
+        {/* Admin Quick Access */}
+        {enrolled && (
+          <div className="px-4 mb-4">
+            <button
+              onClick={() => router.push('/church/foundation/admin')}
+              className="w-full flex items-center justify-between py-3 px-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition"
+            >
+              <span className="flex items-center gap-2 font-medium">
+                <Users className="w-5 h-5" />
+                Admin Dashboard
+              </span>
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
         )}
 
