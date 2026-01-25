@@ -24,10 +24,9 @@ import {
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://cybev.io';
 
-// Default worship image for social sharing preview
-const DEFAULT_OG_IMAGE = 'https://cybev.io/images/worship-og-image.jpg';
-// Fallback worship images (use your own hosted images)
-const WORSHIP_BG_IMAGE = 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=1920&q=80';
+// Worship images for social sharing and background
+const DEFAULT_OG_IMAGE = '/images/worship-og-image.jpg';  // 1200x630 - JESUS text with hands raised
+const WORSHIP_BG_IMAGE = '/images/worship-bg.jpg';        // 1920x1080 - Crowd worshipping
 
 // Simplified title options
 const TITLES = [
@@ -168,9 +167,9 @@ export default function JoinOrganizationPage() {
   const OrgIcon = config.icon;
   
   // Generate OG image URL - use org's cover image or default worship image
-  const ogImage = org?.coverImage || org?.ogImage || DEFAULT_OG_IMAGE;
+  const ogImage = org?.coverImage || org?.ogImage || `${SITE_URL}${DEFAULT_OG_IMAGE}`;
   const ogTitle = org ? `Join ${org.name}` : 'Join Our Community';
-  const ogDescription = org?.motto || org?.description || 'Register to join our church community and grow in faith together.';
+  const ogDescription = org?.motto || org?.description || 'Register to join our church community and grow in faith together. Experience worship, fellowship, and spiritual growth.';
   const pageUrl = `${SITE_URL}/join/${slug}`;
 
   // Loading
