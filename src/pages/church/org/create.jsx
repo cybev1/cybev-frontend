@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/church/org/create.jsx
 // PURPOSE: Create New Organization Page
-// VERSION: 2.1 - Shows ALL orgs as potential parents
+// VERSION: 3.0 - Cascading hierarchical parent selection
 // DEPLOY TO: cybev-frontend-main/src/pages/church/org/create.jsx
 // ============================================
 
@@ -10,7 +10,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import {
-  ArrowLeft, Save, Loader2, AlertCircle, CheckCircle, Plus, X
+  ArrowLeft, Save, Loader2, AlertCircle, CheckCircle, Plus, X, ChevronRight
 } from 'lucide-react';
 import AppLayout from '@/components/Layout/AppLayout';
 
@@ -47,7 +47,15 @@ export default function CreateOrganizationPage() {
     contact: { email: '', phone: '', address: '' }
   });
 
+  // All organizations from API
   const [allOrgs, setAllOrgs] = useState([]);
+  
+  // Cascading selections
+  const [selectedZone, setSelectedZone] = useState('');
+  const [selectedChurch, setSelectedChurch] = useState('');
+  const [selectedFellowship, setSelectedFellowship] = useState('');
+  const [selectedCell, setSelectedCell] = useState('');
+  
   const [loading, setLoading] = useState(false);
   const [loadingOrgs, setLoadingOrgs] = useState(true);
   const [error, setError] = useState('');
@@ -55,6 +63,7 @@ export default function CreateOrganizationPage() {
   
   // Quick create parent modal
   const [showCreateParent, setShowCreateParent] = useState(false);
+  const [createParentType, setCreateParentType] = useState('');
   const [newParentName, setNewParentName] = useState('');
   const [creatingParent, setCreatingParent] = useState(false);
 
@@ -69,13 +78,37 @@ export default function CreateOrganizationPage() {
     if (queryType) setFormData(prev => ({ ...prev, type: queryType }));
   }, [parentId, queryType]);
 
+  // Update parentId based on cascading selection
+  useEffect(() => {
+    const typeInfo = ORG_TYPES.find(t => t.value === formData.type);
+    if (!typeInfo) return;
+    
+    let newParentId = '';
+    
+    switch (formData.type) {
+      case 'church':
+        newParentId = selectedZone;
+        break;
+      case 'fellowship':
+        newParentId = selectedChurch || selectedZone;
+        break;
+      case 'cell':
+        newParentId = selectedFellowship || selectedChurch || selectedZone;
+        break;
+      case 'biblestudy':
+        newParentId = selectedCell || selectedFellowship || selectedChurch || selectedZone;
+        break;
+      default:
+        newParentId = '';
+    }
+    
+    setFormData(prev => ({ ...prev, parentId: newParentId }));
+  }, [formData.type, selectedZone, selectedChurch, selectedFellowship, selectedCell]);
+
   const fetchOrganizations = async () => {
     setLoadingOrgs(true);
     try {
       const token = localStorage.getItem('token');
-      
-      // Fetch ALL available organizations (not just user's own)
-      // So users can create under existing orgs from other users
       const res = await fetch(`${API}/api/church/organizations/available-parents`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -83,11 +116,10 @@ export default function CreateOrganizationPage() {
       
       if (data.ok) {
         setAllOrgs(data.organizations || []);
-        console.log('Loaded ALL available parent organizations:', data.organizations?.length || 0);
       }
     } catch (err) {
       console.error('Error fetching organizations:', err);
-      // Fallback: try the /my endpoint
+      // Fallback
       try {
         const token = localStorage.getItem('token');
         const res = await fetch(`${API}/api/church/organizations/my`, {
@@ -98,7 +130,7 @@ export default function CreateOrganizationPage() {
           setAllOrgs(data.organizations || data.orgs || []);
         }
       } catch (e) {
-        console.error('Fallback also failed:', e);
+        console.error('Fallback failed:', e);
       }
     } finally {
       setLoadingOrgs(false);
@@ -119,6 +151,11 @@ export default function CreateOrganizationPage() {
   };
 
   const handleTypeChange = (newType) => {
+    // Reset all selections when type changes
+    setSelectedZone('');
+    setSelectedChurch('');
+    setSelectedFellowship('');
+    setSelectedCell('');
     setFormData(prev => ({ ...prev, type: newType, parentId: '' }));
   };
 
@@ -156,41 +193,17 @@ export default function CreateOrganizationPage() {
     }
   };
 
-  // Get the recommended parent type for current org type
-  const getRecommendedParentType = () => {
-    const typeInfo = ORG_TYPES.find(t => t.value === formData.type);
-    return typeInfo?.parentType || null;
-  };
-
-  // Get valid parent organizations (orgs with level < current type level)
-  const getValidParentOrgs = () => {
-    const currentTypeInfo = ORG_TYPES.find(t => t.value === formData.type);
-    if (!currentTypeInfo) return [];
-    return allOrgs.filter(org => {
-      const orgTypeInfo = ORG_TYPES.find(t => t.value === org.type);
-      return orgTypeInfo && orgTypeInfo.level < currentTypeInfo.level;
-    });
-  };
-
-  // Group parent orgs by type for better display
-  const getGroupedParentOrgs = () => {
-    const validOrgs = getValidParentOrgs();
-    const grouped = {};
-    ORG_TYPES.forEach(type => {
-      const orgsOfType = validOrgs.filter(org => org.type === type.value);
-      if (orgsOfType.length > 0) {
-        grouped[type.value] = { label: type.label, icon: type.icon, orgs: orgsOfType };
-      }
-    });
-    return grouped;
-  };
-
   // Quick create a parent organization
   const handleCreateParent = async () => {
-    if (!newParentName.trim()) return;
+    if (!newParentName.trim() || !createParentType) return;
     
     setCreatingParent(true);
-    const parentType = getRecommendedParentType();
+    
+    // Determine the parent for the new org being created
+    let parentForNew = '';
+    if (createParentType === 'church') parentForNew = selectedZone;
+    if (createParentType === 'fellowship') parentForNew = selectedChurch;
+    if (createParentType === 'cell') parentForNew = selectedFellowship;
     
     try {
       const token = localStorage.getItem('token');
@@ -202,7 +215,8 @@ export default function CreateOrganizationPage() {
         },
         body: JSON.stringify({
           name: newParentName,
-          type: parentType,
+          type: createParentType,
+          parentId: parentForNew,
           colorTheme: 'purple'
         })
       });
@@ -212,11 +226,20 @@ export default function CreateOrganizationPage() {
       if (data.ok) {
         const newOrg = data.organization || data.org;
         setAllOrgs(prev => [...prev, newOrg]);
-        setFormData(prev => ({ ...prev, parentId: newOrg._id }));
+        
+        // Auto-select the newly created org
+        switch (createParentType) {
+          case 'zone': setSelectedZone(newOrg._id); break;
+          case 'church': setSelectedChurch(newOrg._id); break;
+          case 'fellowship': setSelectedFellowship(newOrg._id); break;
+          case 'cell': setSelectedCell(newOrg._id); break;
+        }
+        
         setShowCreateParent(false);
         setNewParentName('');
+        setCreateParentType('');
       } else {
-        setError(data.error || 'Failed to create parent');
+        setError(data.error || 'Failed to create');
       }
     } catch (err) {
       setError('Network error');
@@ -225,11 +248,72 @@ export default function CreateOrganizationPage() {
     }
   };
 
+  const openCreateParentModal = (type) => {
+    setCreateParentType(type);
+    setNewParentName('');
+    setShowCreateParent(true);
+  };
+
+  // Get organizations by type
+  const getOrgsByType = (type) => allOrgs.filter(o => o.type === type);
+  
+  // Helper to compare IDs (handles ObjectId vs string)
+  const matchesId = (field, targetId) => {
+    if (!field || !targetId) return false;
+    const fieldStr = typeof field === 'object' ? field._id?.toString() || field.toString() : field.toString();
+    return fieldStr === targetId.toString();
+  };
+  
+  // Get filtered organizations based on parent selection
+  const getZones = () => getOrgsByType('zone');
+  
+  const getChurches = () => {
+    const churches = getOrgsByType('church');
+    if (selectedZone) {
+      return churches.filter(c => 
+        matchesId(c.parent, selectedZone) || 
+        matchesId(c.zone, selectedZone)
+      );
+    }
+    return churches;
+  };
+  
+  const getFellowships = () => {
+    const fellowships = getOrgsByType('fellowship');
+    if (selectedChurch) {
+      return fellowships.filter(f => 
+        matchesId(f.parent, selectedChurch) || 
+        matchesId(f.church, selectedChurch)
+      );
+    }
+    if (selectedZone) {
+      return fellowships.filter(f => matchesId(f.zone, selectedZone));
+    }
+    return fellowships;
+  };
+  
+  const getCells = () => {
+    const cells = getOrgsByType('cell');
+    if (selectedFellowship) {
+      return cells.filter(c => matchesId(c.parent, selectedFellowship));
+    }
+    if (selectedChurch) {
+      return cells.filter(c => matchesId(c.church, selectedChurch));
+    }
+    return cells;
+  };
+
   const selectedType = ORG_TYPES.find(t => t.value === formData.type);
-  const recommendedParentType = getRecommendedParentType();
-  const validParentOrgs = getValidParentOrgs();
-  const groupedParentOrgs = getGroupedParentOrgs();
-  const hasValidParents = validParentOrgs.length > 0;
+  const zones = getZones();
+  const churches = getChurches();
+  const fellowships = getFellowships();
+  const cells = getCells();
+
+  // Determine which selectors to show based on org type being created
+  const showZoneSelector = ['church', 'fellowship', 'cell', 'biblestudy'].includes(formData.type);
+  const showChurchSelector = ['fellowship', 'cell', 'biblestudy'].includes(formData.type);
+  const showFellowshipSelector = ['cell', 'biblestudy'].includes(formData.type);
+  const showCellSelector = ['biblestudy'].includes(formData.type);
 
   return (
     <AppLayout>
@@ -341,70 +425,181 @@ export default function CreateOrganizationPage() {
             </div>
           </div>
 
-          {/* Parent Organization - Only show if not Zone */}
+          {/* Hierarchical Parent Organization Selection */}
           {formData.type !== 'zone' && (
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Parent Organization</h2>
-                  <p className="text-sm text-gray-500">
-                    {recommendedParentType 
-                      ? `Select a ${ORG_TYPES.find(t => t.value === recommendedParentType)?.label || 'parent'} for this ${selectedType?.label}`
-                      : `Select which organization this ${selectedType?.label} belongs to`
-                    }
-                  </p>
-                </div>
-                {recommendedParentType && (
-                  <button
-                    type="button"
-                    onClick={() => setShowCreateParent(true)}
-                    className="flex items-center gap-2 px-3 py-2 text-sm bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition"
-                  >
-                    <Plus className="w-4 h-4" />
-                    New {ORG_TYPES.find(t => t.value === recommendedParentType)?.label}
-                  </button>
-                )}
-              </div>
-
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Parent Organization</h2>
+              <p className="text-sm text-gray-500 mb-4">
+                Select the hierarchy for your {selectedType?.label}
+              </p>
+              
               {loadingOrgs ? (
                 <div className="flex items-center gap-2 text-gray-500 py-4">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Loading organizations...
                 </div>
-              ) : !hasValidParents ? (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <p className="text-yellow-800 text-sm">
-                    You don't have any {recommendedParentType ? ORG_TYPES.find(t => t.value === recommendedParentType)?.label + 's' : 'organizations'} yet.
-                  </p>
-                  {recommendedParentType && (
-                    <button
-                      type="button"
-                      onClick={() => setShowCreateParent(true)}
-                      className="mt-2 flex items-center gap-2 text-sm text-purple-600 hover:text-purple-700"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Create a {ORG_TYPES.find(t => t.value === recommendedParentType)?.label} first
-                    </button>
+              ) : (
+                <div className="space-y-4">
+                  {/* Hierarchy Indicator */}
+                  <div className="flex items-center gap-2 text-xs text-gray-400 mb-4">
+                    {showZoneSelector && <span className={selectedZone ? 'text-purple-600 font-medium' : ''}>Zone</span>}
+                    {showChurchSelector && <><ChevronRight className="w-3 h-3" /><span className={selectedChurch ? 'text-purple-600 font-medium' : ''}>Church</span></>}
+                    {showFellowshipSelector && <><ChevronRight className="w-3 h-3" /><span className={selectedFellowship ? 'text-purple-600 font-medium' : ''}>Fellowship</span></>}
+                    {showCellSelector && <><ChevronRight className="w-3 h-3" /><span className={selectedCell ? 'text-purple-600 font-medium' : ''}>Cell</span></>}
+                    <ChevronRight className="w-3 h-3" />
+                    <span className="text-purple-600 font-medium">{selectedType?.label}</span>
+                  </div>
+
+                  {/* Zone Selector */}
+                  {showZoneSelector && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          🌍 Zone {formData.type === 'church' ? '(Parent)' : ''}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => openCreateParentModal('zone')}
+                          className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                        >
+                          <Plus className="w-3 h-3" /> New Zone
+                        </button>
+                      </div>
+                      <select
+                        value={selectedZone}
+                        onChange={(e) => {
+                          setSelectedZone(e.target.value);
+                          setSelectedChurch('');
+                          setSelectedFellowship('');
+                          setSelectedCell('');
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      >
+                        <option value="">-- Select Zone (Optional) --</option>
+                        {zones.map(org => (
+                          <option key={org._id} value={org._id}>
+                            {org.name} {org.leader?.name ? `(Led by ${org.leader.name})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Church Selector */}
+                  {showChurchSelector && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          ⛪ Church {formData.type === 'fellowship' ? '(Parent)' : ''}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => openCreateParentModal('church')}
+                          className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                        >
+                          <Plus className="w-3 h-3" /> New Church
+                        </button>
+                      </div>
+                      <select
+                        value={selectedChurch}
+                        onChange={(e) => {
+                          setSelectedChurch(e.target.value);
+                          setSelectedFellowship('');
+                          setSelectedCell('');
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      >
+                        <option value="">-- Select Church {selectedZone ? 'in this Zone' : '(Optional)'} --</option>
+                        {churches.map(org => (
+                          <option key={org._id} value={org._id}>
+                            {org.name} {org.leader?.name ? `(Led by ${org.leader.name})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                      {selectedZone && churches.length === 0 && (
+                        <p className="text-sm text-yellow-600 mt-1">No churches in this zone yet</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Fellowship Selector */}
+                  {showFellowshipSelector && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          🤝 Fellowship {formData.type === 'cell' ? '(Parent)' : ''}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => openCreateParentModal('fellowship')}
+                          className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                        >
+                          <Plus className="w-3 h-3" /> New Fellowship
+                        </button>
+                      </div>
+                      <select
+                        value={selectedFellowship}
+                        onChange={(e) => {
+                          setSelectedFellowship(e.target.value);
+                          setSelectedCell('');
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      >
+                        <option value="">-- Select Fellowship {selectedChurch ? 'in this Church' : '(Optional)'} --</option>
+                        {fellowships.map(org => (
+                          <option key={org._id} value={org._id}>
+                            {org.name} {org.leader?.name ? `(Led by ${org.leader.name})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                      {selectedChurch && fellowships.length === 0 && (
+                        <p className="text-sm text-yellow-600 mt-1">No fellowships in this church yet</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Cell Selector */}
+                  {showCellSelector && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          🏠 Cell (Parent)
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => openCreateParentModal('cell')}
+                          className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                        >
+                          <Plus className="w-3 h-3" /> New Cell
+                        </button>
+                      </div>
+                      <select
+                        value={selectedCell}
+                        onChange={(e) => setSelectedCell(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      >
+                        <option value="">-- Select Cell {selectedFellowship ? 'in this Fellowship' : '(Optional)'} --</option>
+                        {cells.map(org => (
+                          <option key={org._id} value={org._id}>
+                            {org.name} {org.leader?.name ? `(Led by ${org.leader.name})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                      {selectedFellowship && cells.length === 0 && (
+                        <p className="text-sm text-yellow-600 mt-1">No cells in this fellowship yet</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Selected Parent Summary */}
+                  {formData.parentId && (
+                    <div className="mt-4 p-3 bg-purple-50 rounded-lg">
+                      <p className="text-sm text-purple-700">
+                        <strong>Parent:</strong> {allOrgs.find(o => o._id === formData.parentId)?.name || 'Selected'}
+                      </p>
+                    </div>
                   )}
                 </div>
-              ) : (
-                <select
-                  name="parentId"
-                  value={formData.parentId}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                >
-                  <option value="">-- Select Parent Organization --</option>
-                  {Object.entries(groupedParentOrgs).map(([type, group]) => (
-                    <optgroup key={type} label={`${group.icon} ${group.label}s`}>
-                      {group.orgs.map((org) => (
-                        <option key={org._id} value={org._id}>
-                          {org.name} {org.leader?.name ? `(Led by ${org.leader.name})` : ''}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </select>
               )}
             </div>
           )}
@@ -481,12 +676,12 @@ export default function CreateOrganizationPage() {
       </div>
 
       {/* Quick Create Parent Modal */}
-      {showCreateParent && recommendedParentType && (
+      {showCreateParent && createParentType && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">
-                Create New {ORG_TYPES.find(t => t.value === recommendedParentType)?.label}
+                Create New {ORG_TYPES.find(t => t.value === createParentType)?.label}
               </h3>
               <button onClick={() => setShowCreateParent(false)} className="p-1 hover:bg-gray-100 rounded">
                 <X className="w-5 h-5" />
@@ -494,26 +689,28 @@ export default function CreateOrganizationPage() {
             </div>
             
             <p className="text-sm text-gray-500 mb-4">
-              Quickly create a {ORG_TYPES.find(t => t.value === recommendedParentType)?.label.toLowerCase()} to be the parent of your {selectedType?.label.toLowerCase()}.
+              Quickly create a {ORG_TYPES.find(t => t.value === createParentType)?.label.toLowerCase()}.
             </p>
 
             <input
               type="text"
               value={newParentName}
               onChange={(e) => setNewParentName(e.target.value)}
-              placeholder={`${ORG_TYPES.find(t => t.value === recommendedParentType)?.label} name...`}
+              placeholder={`${ORG_TYPES.find(t => t.value === createParentType)?.label} name...`}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-4"
               autoFocus
             />
 
             <div className="flex gap-3">
               <button
+                type="button"
                 onClick={() => setShowCreateParent(false)}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleCreateParent}
                 disabled={!newParentName.trim() || creatingParent}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
