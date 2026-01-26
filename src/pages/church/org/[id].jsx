@@ -2,7 +2,7 @@
  * ============================================
  * FILE: [id].jsx
  * PATH: cybev-frontend-main/src/pages/church/org/[id].jsx
- * VERSION: 4.0.0 - Complete Member Management + Registration Links
+ * VERSION: 4.1.0 - Added Edit button + leaderName display
  * UPDATED: 2026-01-24
  * FEATURES:
  *   - Full Add/Edit/Delete member with all fields
@@ -253,6 +253,10 @@ export default function OrganizationDetailPage() {
                 <ArrowLeft className="w-5 h-5" /> Back
               </button>
               <div className="flex items-center gap-2">
+                {/* Edit Button */}
+                <Link href={`/church/org/${id}/edit`} className="flex items-center gap-2 px-3 py-2 bg-white/20 rounded-lg hover:bg-white/30">
+                  <Edit className="w-4 h-4" /> Edit
+                </Link>
                 <button onClick={() => setShowShareModal(true)} className="flex items-center gap-2 px-3 py-2 bg-white/20 rounded-lg hover:bg-white/30">
                   <Share2 className="w-4 h-4" /> Share
                 </button>
@@ -366,13 +370,22 @@ export default function OrganizationDetailPage() {
                   <h3 className="font-semibold mb-4">Leader</h3>
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold">
-                      {org.leader?.name?.[0] || 'L'}
+                      {(org.leaderName || org.leader?.name)?.[0] || 'L'}
                     </div>
                     <div>
-                      <p className="font-medium">{org.leader?.name || 'Unknown'}</p>
-                      <p className="text-sm text-gray-500">Leader</p>
+                      <p className="font-medium">
+                        {org.leaderName 
+                          ? `${org.leaderTitle || ''} ${org.leaderName}`.trim()
+                          : org.leader?.name || 'Unknown'}
+                      </p>
+                      <p className="text-sm text-gray-500">{org.leaderTitle || 'Leader'}</p>
                     </div>
                   </div>
+                  {!org.leaderName && (
+                    <Link href={`/church/org/${id}/edit`} className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 border border-purple-200 text-purple-600 rounded-lg hover:bg-purple-50 text-sm">
+                      <Edit className="w-4 h-4" /> Set Leader Name
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
