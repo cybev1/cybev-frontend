@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/church/org/create.jsx
 // PURPOSE: Create New Organization Page
-// VERSION: 3.0 - Cascading hierarchical parent selection
+// VERSION: 3.1 - Leader name + title support
 // DEPLOY TO: cybev-frontend-main/src/pages/church/org/create.jsx
 // ============================================
 
@@ -44,6 +44,8 @@ export default function CreateOrganizationPage() {
     motto: '',
     parentId: '',
     colorTheme: 'purple',
+    leaderName: '',  // Actual leader's name (may differ from creator)
+    leaderTitle: '', // e.g., Pastor, Deacon, Brother, Sister
     contact: { email: '', phone: '', address: '' }
   });
 
@@ -257,6 +259,17 @@ export default function CreateOrganizationPage() {
   // Get organizations by type
   const getOrgsByType = (type) => allOrgs.filter(o => o.type === type);
   
+  // Helper to get display name for leader (prefer leaderTitle + leaderName, fallback to CYBEV account)
+  const getLeaderDisplay = (org) => {
+    if (org.leaderName) {
+      return `(${org.leaderTitle || 'Led by'} ${org.leaderName})`;
+    }
+    if (org.leader?.name) {
+      return `(Led by ${org.leader.name})`;
+    }
+    return '';
+  };
+  
   // Helper to compare IDs (handles ObjectId vs string)
   const matchesId = (field, targetId) => {
     if (!field || !targetId) return false;
@@ -425,6 +438,54 @@ export default function CreateOrganizationPage() {
             </div>
           </div>
 
+          {/* Leader Information */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Leader Information</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Specify the leader of this {selectedType?.label}. Leave blank if you are the leader.
+            </p>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Leader Title</label>
+                <select
+                  name="leaderTitle"
+                  value={formData.leaderTitle}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="">-- Select Title --</option>
+                  <option value="Pastor">Pastor</option>
+                  <option value="Reverend">Reverend</option>
+                  <option value="Deacon">Deacon</option>
+                  <option value="Deaconess">Deaconess</option>
+                  <option value="Elder">Elder</option>
+                  <option value="Brother">Brother</option>
+                  <option value="Sister">Sister</option>
+                  <option value="Minister">Minister</option>
+                  <option value="Evangelist">Evangelist</option>
+                  <option value="Bishop">Bishop</option>
+                  <option value="Apostle">Apostle</option>
+                  <option value="Prophet">Prophet</option>
+                  <option value="Leader">Leader</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Leader Full Name</label>
+                <input
+                  type="text"
+                  name="leaderName"
+                  value={formData.leaderName}
+                  onChange={handleChange}
+                  placeholder="e.g., Earnest Omoleme"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 mt-2">
+              💡 If the leader has a CYBEV account, they can be assigned later in Settings.
+            </p>
+          </div>
+
           {/* Hierarchical Parent Organization Selection */}
           {formData.type !== 'zone' && (
             <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -478,7 +539,7 @@ export default function CreateOrganizationPage() {
                         <option value="">-- Select Zone (Optional) --</option>
                         {zones.map(org => (
                           <option key={org._id} value={org._id}>
-                            {org.name} {org.leader?.name ? `(Led by ${org.leader.name})` : ''}
+                            {org.name} {getLeaderDisplay(org)}
                           </option>
                         ))}
                       </select>
@@ -512,7 +573,7 @@ export default function CreateOrganizationPage() {
                         <option value="">-- Select Church {selectedZone ? 'in this Zone' : '(Optional)'} --</option>
                         {churches.map(org => (
                           <option key={org._id} value={org._id}>
-                            {org.name} {org.leader?.name ? `(Led by ${org.leader.name})` : ''}
+                            {org.name} {getLeaderDisplay(org)}
                           </option>
                         ))}
                       </select>
@@ -548,7 +609,7 @@ export default function CreateOrganizationPage() {
                         <option value="">-- Select Fellowship {selectedChurch ? 'in this Church' : '(Optional)'} --</option>
                         {fellowships.map(org => (
                           <option key={org._id} value={org._id}>
-                            {org.name} {org.leader?.name ? `(Led by ${org.leader.name})` : ''}
+                            {org.name} {getLeaderDisplay(org)}
                           </option>
                         ))}
                       </select>
@@ -581,7 +642,7 @@ export default function CreateOrganizationPage() {
                         <option value="">-- Select Cell {selectedFellowship ? 'in this Fellowship' : '(Optional)'} --</option>
                         {cells.map(org => (
                           <option key={org._id} value={org._id}>
-                            {org.name} {org.leader?.name ? `(Led by ${org.leader.name})` : ''}
+                            {org.name} {getLeaderDisplay(org)}
                           </option>
                         ))}
                       </select>
