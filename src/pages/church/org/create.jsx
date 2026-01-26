@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/church/org/create.jsx
 // PURPOSE: Create New Organization Page
-// VERSION: 2.0 - Shows existing orgs + create new parent
+// VERSION: 2.1 - Shows ALL orgs as potential parents
 // DEPLOY TO: cybev-frontend-main/src/pages/church/org/create.jsx
 // ============================================
 
@@ -73,15 +73,33 @@ export default function CreateOrganizationPage() {
     setLoadingOrgs(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API}/api/church/organizations/my`, {
+      
+      // Fetch ALL available organizations (not just user's own)
+      // So users can create under existing orgs from other users
+      const res = await fetch(`${API}/api/church/organizations/available-parents`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
+      
       if (data.ok) {
-        setAllOrgs(data.organizations || data.orgs || []);
+        setAllOrgs(data.organizations || []);
+        console.log('Loaded ALL available parent organizations:', data.organizations?.length || 0);
       }
     } catch (err) {
       console.error('Error fetching organizations:', err);
+      // Fallback: try the /my endpoint
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API}/api/church/organizations/my`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.ok) {
+          setAllOrgs(data.organizations || data.orgs || []);
+        }
+      } catch (e) {
+        console.error('Fallback also failed:', e);
+      }
     } finally {
       setLoadingOrgs(false);
     }
@@ -381,7 +399,7 @@ export default function CreateOrganizationPage() {
                     <optgroup key={type} label={`${group.icon} ${group.label}s`}>
                       {group.orgs.map((org) => (
                         <option key={org._id} value={org._id}>
-                          {org.name}
+                          {org.name} {org.leader?.name ? `(Led by ${org.leader.name})` : ''}
                         </option>
                       ))}
                     </optgroup>
