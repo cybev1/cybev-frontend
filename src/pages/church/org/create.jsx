@@ -1,6 +1,7 @@
 // ============================================
 // FILE: src/pages/church/org/create.jsx
 // PURPOSE: Create New Organization Page
+// VERSION: 2.0 - Shows existing orgs + create new parent
 // DEPLOY TO: cybev-frontend-main/src/pages/church/org/create.jsx
 // ============================================
 
@@ -9,17 +10,16 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import {
-  ArrowLeft, Building, Church, Users, Target, BookOpen,
-  Palette, Save, Loader2, AlertCircle, CheckCircle
+  ArrowLeft, Save, Loader2, AlertCircle, CheckCircle, Plus, X
 } from 'lucide-react';
 import AppLayout from '@/components/Layout/AppLayout';
 
 const ORG_TYPES = [
-  { value: 'zone', label: 'Zone', description: 'Regional collection of churches', icon: '🌍', color: 'bg-blue-500' },
-  { value: 'church', label: 'Church', description: 'Local church congregation', icon: '⛪', color: 'bg-purple-500' },
-  { value: 'fellowship', label: 'Fellowship', description: 'Group of cells within a church', icon: '🤝', color: 'bg-green-500' },
-  { value: 'cell', label: 'Cell', description: 'Small group meeting', icon: '🏠', color: 'bg-orange-500' },
-  { value: 'biblestudy', label: 'Bible Study', description: 'Bible study group', icon: '📖', color: 'bg-teal-500' }
+  { value: 'zone', label: 'Zone', description: 'Regional collection of churches', icon: '🌍', level: 0, parentType: null },
+  { value: 'church', label: 'Church', description: 'Local church congregation', icon: '⛪', level: 1, parentType: 'zone' },
+  { value: 'fellowship', label: 'Fellowship', description: 'Group of cells within a church', icon: '🤝', level: 2, parentType: 'church' },
+  { value: 'cell', label: 'Cell', description: 'Small group meeting', icon: '🏠', level: 3, parentType: 'fellowship' },
+  { value: 'biblestudy', label: 'Bible Study', description: 'Bible study group', icon: '📖', level: 4, parentType: 'cell' }
 ];
 
 const COLOR_THEMES = [
@@ -35,40 +35,42 @@ const COLOR_THEMES = [
 
 export default function CreateOrganizationPage() {
   const router = useRouter();
-  const { parentId } = router.query;
+  const { parentId, type: queryType } = router.query;
 
   const [formData, setFormData] = useState({
     name: '',
     type: 'church',
     description: '',
     motto: '',
-    parentId: parentId || '',
+    parentId: '',
     colorTheme: 'purple',
-    contact: {
-      email: '',
-      phone: '',
-      address: ''
-    }
+    contact: { email: '', phone: '', address: '' }
   });
 
-  const [parentOrgs, setParentOrgs] = useState([]);
+  const [allOrgs, setAllOrgs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingOrgs, setLoadingOrgs] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  
+  // Quick create parent modal
+  const [showCreateParent, setShowCreateParent] = useState(false);
+  const [newParentName, setNewParentName] = useState('');
+  const [creatingParent, setCreatingParent] = useState(false);
 
   const API = process.env.NEXT_PUBLIC_API_URL || '';
 
   useEffect(() => {
-    fetchParentOrganizations();
+    fetchOrganizations();
   }, []);
 
   useEffect(() => {
-    if (parentId) {
-      setFormData(prev => ({ ...prev, parentId }));
-    }
-  }, [parentId]);
+    if (parentId) setFormData(prev => ({ ...prev, parentId }));
+    if (queryType) setFormData(prev => ({ ...prev, type: queryType }));
+  }, [parentId, queryType]);
 
-  const fetchParentOrganizations = async () => {
+  const fetchOrganizations = async () => {
+    setLoadingOrgs(true);
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API}/api/church/organizations/my`, {
@@ -76,10 +78,12 @@ export default function CreateOrganizationPage() {
       });
       const data = await res.json();
       if (data.ok) {
-        setParentOrgs(data.organizations || data.orgs || []);
+        setAllOrgs(data.organizations || data.orgs || []);
       }
     } catch (err) {
-      console.error('Error fetching parent organizations:', err);
+      console.error('Error fetching organizations:', err);
+    } finally {
+      setLoadingOrgs(false);
     }
   };
 
@@ -94,6 +98,10 @@ export default function CreateOrganizationPage() {
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
+  };
+
+  const handleTypeChange = (newType) => {
+    setFormData(prev => ({ ...prev, type: newType, parentId: '' }));
   };
 
   const handleSubmit = async (e) => {
@@ -116,7 +124,6 @@ export default function CreateOrganizationPage() {
 
       if (data.ok) {
         setSuccess(true);
-        // Redirect to the new organization
         setTimeout(() => {
           const orgId = data.organization?._id || data.org?._id;
           router.push(`/church/org/${orgId}`);
@@ -131,14 +138,80 @@ export default function CreateOrganizationPage() {
     }
   };
 
-  const selectedType = ORG_TYPES.find(t => t.value === formData.type);
-
-  // Get valid parent types based on selected type
-  const getValidParentTypes = () => {
-    const hierarchy = { zone: 0, church: 1, fellowship: 2, cell: 3, biblestudy: 4 };
-    const currentLevel = hierarchy[formData.type];
-    return parentOrgs.filter(org => hierarchy[org.type] < currentLevel);
+  // Get the recommended parent type for current org type
+  const getRecommendedParentType = () => {
+    const typeInfo = ORG_TYPES.find(t => t.value === formData.type);
+    return typeInfo?.parentType || null;
   };
+
+  // Get valid parent organizations (orgs with level < current type level)
+  const getValidParentOrgs = () => {
+    const currentTypeInfo = ORG_TYPES.find(t => t.value === formData.type);
+    if (!currentTypeInfo) return [];
+    return allOrgs.filter(org => {
+      const orgTypeInfo = ORG_TYPES.find(t => t.value === org.type);
+      return orgTypeInfo && orgTypeInfo.level < currentTypeInfo.level;
+    });
+  };
+
+  // Group parent orgs by type for better display
+  const getGroupedParentOrgs = () => {
+    const validOrgs = getValidParentOrgs();
+    const grouped = {};
+    ORG_TYPES.forEach(type => {
+      const orgsOfType = validOrgs.filter(org => org.type === type.value);
+      if (orgsOfType.length > 0) {
+        grouped[type.value] = { label: type.label, icon: type.icon, orgs: orgsOfType };
+      }
+    });
+    return grouped;
+  };
+
+  // Quick create a parent organization
+  const handleCreateParent = async () => {
+    if (!newParentName.trim()) return;
+    
+    setCreatingParent(true);
+    const parentType = getRecommendedParentType();
+    
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API}/api/church/organizations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: newParentName,
+          type: parentType,
+          colorTheme: 'purple'
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.ok) {
+        const newOrg = data.organization || data.org;
+        setAllOrgs(prev => [...prev, newOrg]);
+        setFormData(prev => ({ ...prev, parentId: newOrg._id }));
+        setShowCreateParent(false);
+        setNewParentName('');
+      } else {
+        setError(data.error || 'Failed to create parent');
+      }
+    } catch (err) {
+      setError('Network error');
+    } finally {
+      setCreatingParent(false);
+    }
+  };
+
+  const selectedType = ORG_TYPES.find(t => t.value === formData.type);
+  const recommendedParentType = getRecommendedParentType();
+  const validParentOrgs = getValidParentOrgs();
+  const groupedParentOrgs = getGroupedParentOrgs();
+  const hasValidParents = validParentOrgs.length > 0;
 
   return (
     <AppLayout>
@@ -149,10 +222,7 @@ export default function CreateOrganizationPage() {
       <div className="max-w-3xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Link
-            href="/church"
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
-          >
+          <Link href="/church" className="p-2 hover:bg-gray-100 rounded-lg transition">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
@@ -161,35 +231,37 @@ export default function CreateOrganizationPage() {
           </div>
         </div>
 
-        {/* Success Message */}
+        {/* Messages */}
         {success && (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3">
             <CheckCircle className="w-5 h-5 text-green-600" />
             <div>
               <p className="font-medium text-green-800">Organization created successfully!</p>
-              <p className="text-sm text-green-600">Redirecting to your new organization...</p>
+              <p className="text-sm text-green-600">Redirecting...</p>
             </div>
           </div>
         )}
 
-        {/* Error Message */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
             <AlertCircle className="w-5 h-5 text-red-600" />
             <p className="text-red-800">{error}</p>
+            <button onClick={() => setError('')} className="ml-auto">
+              <X className="w-4 h-4" />
+            </button>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Organization Type */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Organization Type</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               {ORG_TYPES.map((type) => (
                 <button
                   key={type.value}
                   type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, type: type.value, parentId: '' }))}
+                  onClick={() => handleTypeChange(type.value)}
                   className={`p-4 rounded-xl border-2 text-center transition ${
                     formData.type === type.value
                       ? 'border-purple-500 bg-purple-50'
@@ -220,29 +292,25 @@ export default function CreateOrganizationPage() {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  placeholder="e.g., Christ Embassy Lagos Zone"
+                  placeholder={`e.g., ${selectedType?.label || 'Organization'} Name`}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <textarea
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
                   rows={3}
-                  placeholder="Brief description of your organization..."
+                  placeholder="Brief description..."
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Motto (Optional)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Motto (Optional)</label>
                 <input
                   type="text"
                   name="motto"
@@ -255,26 +323,71 @@ export default function CreateOrganizationPage() {
             </div>
           </div>
 
-          {/* Parent Organization */}
+          {/* Parent Organization - Only show if not Zone */}
           {formData.type !== 'zone' && (
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Parent Organization</h2>
-              <p className="text-sm text-gray-500 mb-4">
-                Select which organization this {formData.type} belongs to (optional)
-              </p>
-              <select
-                name="parentId"
-                value={formData.parentId}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              >
-                <option value="">No parent (standalone)</option>
-                {getValidParentTypes().map((org) => (
-                  <option key={org._id} value={org._id}>
-                    {org.name} ({org.type})
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Parent Organization</h2>
+                  <p className="text-sm text-gray-500">
+                    {recommendedParentType 
+                      ? `Select a ${ORG_TYPES.find(t => t.value === recommendedParentType)?.label || 'parent'} for this ${selectedType?.label}`
+                      : `Select which organization this ${selectedType?.label} belongs to`
+                    }
+                  </p>
+                </div>
+                {recommendedParentType && (
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateParent(true)}
+                    className="flex items-center gap-2 px-3 py-2 text-sm bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition"
+                  >
+                    <Plus className="w-4 h-4" />
+                    New {ORG_TYPES.find(t => t.value === recommendedParentType)?.label}
+                  </button>
+                )}
+              </div>
+
+              {loadingOrgs ? (
+                <div className="flex items-center gap-2 text-gray-500 py-4">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Loading organizations...
+                </div>
+              ) : !hasValidParents ? (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <p className="text-yellow-800 text-sm">
+                    You don't have any {recommendedParentType ? ORG_TYPES.find(t => t.value === recommendedParentType)?.label + 's' : 'organizations'} yet.
+                  </p>
+                  {recommendedParentType && (
+                    <button
+                      type="button"
+                      onClick={() => setShowCreateParent(true)}
+                      className="mt-2 flex items-center gap-2 text-sm text-purple-600 hover:text-purple-700"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Create a {ORG_TYPES.find(t => t.value === recommendedParentType)?.label} first
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <select
+                  name="parentId"
+                  value={formData.parentId}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="">-- Select Parent Organization --</option>
+                  {Object.entries(groupedParentOrgs).map(([type, group]) => (
+                    <optgroup key={type} label={`${group.icon} ${group.label}s`}>
+                      {group.orgs.map((org) => (
+                        <option key={org._id} value={org._id}>
+                          {org.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              )}
             </div>
           )}
 
@@ -298,14 +411,12 @@ export default function CreateOrganizationPage() {
             </div>
           </div>
 
-          {/* Contact Information */}
+          {/* Contact Info */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Contact Information (Optional)</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Contact (Optional)</h2>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <input
                   type="email"
                   name="contact.email"
@@ -316,9 +427,7 @@ export default function CreateOrganizationPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
                 <input
                   type="tel"
                   name="contact.phone"
@@ -328,28 +437,12 @@ export default function CreateOrganizationPage() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
               </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Address
-                </label>
-                <input
-                  type="text"
-                  name="contact.address"
-                  value={formData.contact.address}
-                  onChange={handleChange}
-                  placeholder="123 Church Street, City, Country"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
             </div>
           </div>
 
-          {/* Submit Button */}
+          {/* Submit */}
           <div className="flex items-center justify-between pt-4">
-            <Link
-              href="/church"
-              className="px-6 py-3 text-gray-600 hover:text-gray-900 transition"
-            >
+            <Link href="/church" className="px-6 py-3 text-gray-600 hover:text-gray-900">
               Cancel
             </Link>
             <button
@@ -358,25 +451,65 @@ export default function CreateOrganizationPage() {
               className="flex items-center gap-2 px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
               {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Creating...
-                </>
+                <><Loader2 className="w-5 h-5 animate-spin" /> Creating...</>
               ) : success ? (
-                <>
-                  <CheckCircle className="w-5 h-5" />
-                  Created!
-                </>
+                <><CheckCircle className="w-5 h-5" /> Created!</>
               ) : (
-                <>
-                  <Save className="w-5 h-5" />
-                  Create Organization
-                </>
+                <><Save className="w-5 h-5" /> Create {selectedType?.label}</>
               )}
             </button>
           </div>
         </form>
       </div>
+
+      {/* Quick Create Parent Modal */}
+      {showCreateParent && recommendedParentType && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">
+                Create New {ORG_TYPES.find(t => t.value === recommendedParentType)?.label}
+              </h3>
+              <button onClick={() => setShowCreateParent(false)} className="p-1 hover:bg-gray-100 rounded">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <p className="text-sm text-gray-500 mb-4">
+              Quickly create a {ORG_TYPES.find(t => t.value === recommendedParentType)?.label.toLowerCase()} to be the parent of your {selectedType?.label.toLowerCase()}.
+            </p>
+
+            <input
+              type="text"
+              value={newParentName}
+              onChange={(e) => setNewParentName(e.target.value)}
+              placeholder={`${ORG_TYPES.find(t => t.value === recommendedParentType)?.label} name...`}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-4"
+              autoFocus
+            />
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCreateParent(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateParent}
+                disabled={!newParentName.trim() || creatingParent}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+              >
+                {creatingParent ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Creating...</>
+                ) : (
+                  <><Plus className="w-4 h-4" /> Create</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 }
