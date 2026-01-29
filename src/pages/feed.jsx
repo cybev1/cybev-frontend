@@ -1,12 +1,13 @@
 // ============================================
 // FILE: src/pages/feed.jsx
 // CYBEV Social-Blogging Platform - Complete Feed
-// VERSION: 2.0 - Fixed livestream post click routing
+// VERSION: 2.1 - Fixed livestream thumbnail + routing
 // Features: VLOG, TV, PIN POST, Ads, Groups, Websites
-// FIXES:
-//   - Livestream posts now route to /live/[id] instead of /blog/[id]
-//   - isLivePost detects all livestream types (postType, type, isLiveStream, etc.)
-//   - LIVE badge overlay on livestream images
+// CRITICAL FIXES:
+//   - Added imageUrl check to getImages() for livestream Mux thumbnails
+//   - Enhanced isLivePost detection: checks postType, type, isLiveStream, liveStreamId
+//   - Livestream posts route to /live/[liveStreamId] instead of /blog/[postId]
+//   - All click handlers (title, image, "See more", "Watch Live") use correct route
 // ============================================
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -837,6 +838,11 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
     if (item.featuredImage) {
       const featImg = typeof item.featuredImage === 'string' ? item.featuredImage : item.featuredImage.url;
       if (featImg) imgs.push(featImg);
+    }
+    
+    // Add imageUrl for livestreams (saved by webrtc.routes.js as Mux thumbnail)
+    if (item.imageUrl && !imgs.includes(item.imageUrl)) {
+      imgs.push(item.imageUrl);
     }
     
     // Add from images array
