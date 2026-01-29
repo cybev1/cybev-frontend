@@ -1,10 +1,12 @@
 // ============================================
 // FILE: components/Feed/PostCard.jsx
 // PostCard Component - Feed Post Display
-// VERSION: 2.0 - Enhanced image detection + LIVE badge
+// VERSION: 2.1 - Livestream click goes to /live page
 // FIXES:
 //   - Check imageUrl, media[], streamData for images
 //   - Show LIVE badge on livestream post images
+//   - Click livestream -> /live/[id], regular -> /blog/[id]
+//   - "Watch Live" hover overlay on livestream images
 // ============================================
 
 import { useEffect, useState } from 'react';
@@ -182,6 +184,30 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
 
   const displayImage = getDisplayImage();
 
+  // Get correct URL based on post type (livestream goes to /live, others to /blog)
+  const getPostUrl = () => {
+    // Check if it's a livestream
+    const isLivestream = post.postType === 'live' || 
+                         post.type === 'livestream' || 
+                         post.isLiveStream || 
+                         post.liveStreamId ||
+                         post.streamData?.streamId;
+    
+    if (isLivestream) {
+      // Use liveStreamId or streamData.streamId for the live page
+      const streamId = post.liveStreamId || post.streamData?.streamId || post._id;
+      return `/live/${streamId}`;
+    }
+    
+    // Regular blog/post
+    return `/blog/${post._id || post.slug}`;
+  };
+
+  // Handle post click - navigate to appropriate page
+  const handlePostClick = () => {
+    router.push(getPostUrl());
+  };
+
   return (
     <>
       <motion.div
@@ -279,7 +305,7 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
           {post.title && (
             <h3 
               className="text-xl md:text-2xl font-black mb-3 cursor-pointer hover:opacity-80 transition-opacity line-clamp-2"
-              onClick={() => router.push(`/blog/${post._id || post.slug}`)}
+              onClick={handlePostClick}
             >
               <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
                 {post.title}
@@ -297,13 +323,16 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
 
         {/* Featured Image - Auto-fit with color-matched background */}
         {displayImage && (
-          <div className="relative w-full overflow-hidden bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100">
+          <div 
+            className="relative w-full overflow-hidden bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 cursor-pointer"
+            onClick={handlePostClick}
+          >
             <div className="relative w-full" style={{ paddingBottom: '56.25%' }}> {/* 16:9 aspect ratio */}
               <Image
                 src={displayImage}
                 alt={post.title || 'Post image'}
                 fill
-                className="object-contain" /* Changed from cover to contain */
+                className="object-contain hover:scale-105 transition-transform duration-300" /* Added hover effect */
                 unoptimized
                 style={{
                   position: 'absolute',
@@ -319,6 +348,15 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
               <div className="absolute top-3 left-3 px-3 py-1.5 bg-red-600 rounded-full text-xs font-bold text-white flex items-center gap-1.5 animate-pulse">
                 <span className="w-2 h-2 bg-white rounded-full" />
                 LIVE
+              </div>
+            )}
+            {/* Click to watch overlay for livestreams */}
+            {(isLive || post.postType === 'live' || post.type === 'livestream' || post.isLiveStream) && (
+              <div className="absolute inset-0 bg-black/0 hover:bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-all">
+                <span className="bg-red-600 text-white px-4 py-2 rounded-full font-bold flex items-center gap-2">
+                  <Radio className="w-4 h-4" />
+                  Watch Live
+                </span>
               </div>
             )}
             {isAIGenerated && (
