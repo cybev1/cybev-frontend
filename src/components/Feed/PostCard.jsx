@@ -1,3 +1,12 @@
+// ============================================
+// FILE: components/Feed/PostCard.jsx
+// PostCard Component - Feed Post Display
+// VERSION: 2.0 - Enhanced image detection + LIVE badge
+// FIXES:
+//   - Check imageUrl, media[], streamData for images
+//   - Show LIVE badge on livestream post images
+// ============================================
+
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -146,13 +155,27 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
     }
   };
 
-  // Get display image - check both featuredImage and images array
+  // Get display image - check featuredImage, imageUrl, and media array
   const getDisplayImage = () => {
+    // Check featuredImage first (for blogs)
     if (post.featuredImage) {
       return post.featuredImage;
     }
+    // Check imageUrl (for posts)
+    if (post.imageUrl) {
+      return post.imageUrl;
+    }
+    // Check media array
+    if (post.media && post.media.length > 0) {
+      return post.media[0].url || post.media[0].thumbnail;
+    }
+    // Check images array (legacy)
     if (post.images && post.images.length > 0) {
       return post.images[0].url;
+    }
+    // Check streamData thumbnail for livestreams
+    if (post.streamData?.thumbnailUrl) {
+      return post.streamData.thumbnailUrl;
     }
     return null;
   };
@@ -291,6 +314,13 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
                 }}
               />
             </div>
+            {/* LIVE Badge for livestream posts */}
+            {(isLive || post.postType === 'live' || post.type === 'livestream' || post.isLiveStream) && (
+              <div className="absolute top-3 left-3 px-3 py-1.5 bg-red-600 rounded-full text-xs font-bold text-white flex items-center gap-1.5 animate-pulse">
+                <span className="w-2 h-2 bg-white rounded-full" />
+                LIVE
+              </div>
+            )}
             {isAIGenerated && (
               <div className="absolute top-3 right-3 px-3 py-1.5 bg-black/70 backdrop-blur-sm rounded-full text-xs font-semibold text-white flex items-center gap-1.5 border border-white/20">
                 <Sparkles className="w-3.5 h-3.5 text-purple-400" />
