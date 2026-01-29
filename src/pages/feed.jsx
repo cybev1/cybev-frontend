@@ -1,8 +1,12 @@
 // ============================================
 // FILE: src/pages/feed.jsx
 // CYBEV Social-Blogging Platform - Complete Feed
+// VERSION: 2.0 - Fixed livestream post click routing
 // Features: VLOG, TV, PIN POST, Ads, Groups, Websites
-// FIX: AI Blog Builder → AI Website Builder /studio/sites/new
+// FIXES:
+//   - Livestream posts now route to /live/[id] instead of /blog/[id]
+//   - isLivePost detects all livestream types (postType, type, isLiveStream, etc.)
+//   - LIVE badge overlay on livestream images
 // ============================================
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -647,7 +651,18 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
   const reactionTimeout = useRef(null);
 
   const isBlog = item.contentType === 'blog' || item.title;
-  const isLivePost = item.isLive || item.contentType === 'live';
+  // FIXED: Detect all livestream post types
+  const isLivePost = item.isLive || 
+                     item.contentType === 'live' || 
+                     item.type === 'livestream' || 
+                     item.postType === 'live' || 
+                     item.isLiveStream ||
+                     item.liveStreamId ||
+                     item.streamData?.streamId;
+  
+  // Get stream ID for routing
+  const liveStreamId = item.liveStreamId || item.streamData?.streamId || item._id;
+  
   const authorId = item.author?._id || item.author || item.authorId?._id || item.authorId;
   const isOwner = currentUserId && (String(authorId) === String(currentUserId));
 
@@ -943,9 +958,9 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
           
           {showMoreMenu && (
             <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-gray-200 py-2 min-w-[180px] z-50">
-              <button onClick={() => { router.push(`/blog/${item._id}`); setShowMoreMenu(false); }}
+              <button onClick={() => { router.push(isLivePost ? `/live/${liveStreamId}` : `/blog/${item._id}`); setShowMoreMenu(false); }}
                 className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm">
-                <ExternalLink className="w-4 h-4" /> Open post
+                <ExternalLink className="w-4 h-4" /> {isLivePost ? 'Watch live' : 'Open post'}
               </button>
               
               {/* Pin - Admin can pin on feed, Owner can pin on their timeline */}
@@ -982,7 +997,7 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
       {/* Content */}
       <div className="px-4 pb-3">
         {item.title && (
-          <h3 onClick={() => router.push(isLivePost ? `/live/${item.liveStreamId || item._id}` : `/blog/${item._id}`)}
+          <h3 onClick={() => router.push(isLivePost ? `/live/${liveStreamId}` : `/blog/${item._id}`)}
             className="text-lg font-bold text-gray-900 mb-2 cursor-pointer hover:text-purple-600">
             {item.title}
           </h3>
@@ -995,7 +1010,7 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
             return cleanText;
           })()}
           {(item.content?.length > 400 || item.excerpt?.length > 400) && (
-            <span onClick={() => router.push(`/blog/${item._id}`)}
+            <span onClick={() => router.push(isLivePost ? `/live/${liveStreamId}` : `/blog/${item._id}`)}
               className="text-purple-600 cursor-pointer hover:underline font-medium"> ...See more</span>
           )}
         </p>
@@ -1005,7 +1020,7 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
       {isLivePost && (
         <div className="px-4 pb-3">
           <button
-            onClick={() => router.push(`/live/${item.liveStreamId || item._id}`)}
+            onClick={() => router.push(`/live/${liveStreamId}`)}
             className="w-full py-3 bg-gradient-to-r from-red-500 to-pink-500 text-gray-900 font-bold rounded-xl flex items-center justify-center gap-2 hover:from-red-600 hover:to-pink-600 transition"
           >
             <Radio className="w-5 h-5" />
@@ -1017,11 +1032,18 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
 
       {/* Images */}
       {images.length > 0 && (
-        <div onClick={() => router.push(`/blog/${item._id}`)}
+        <div onClick={() => router.push(isLivePost ? `/live/${liveStreamId}` : `/blog/${item._id}`)}
           className={`cursor-pointer ${images.length > 1 ? 'grid grid-cols-2 gap-0.5' : ''}`}>
           {images.slice(0, 4).map((img, idx) => (
             <div key={idx} className={`relative ${images.length === 1 ? 'aspect-video' : 'aspect-square'} bg-gray-100`}>
               <img src={img} alt="" className="w-full h-full object-cover" onError={e => e.target.style.display = 'none'} />
+              {/* LIVE overlay for livestream posts */}
+              {isLivePost && idx === 0 && (
+                <div className="absolute top-2 left-2 px-2 py-1 bg-red-600 rounded text-xs font-bold text-white flex items-center gap-1 animate-pulse">
+                  <span className="w-1.5 h-1.5 bg-white rounded-full" />
+                  LIVE
+                </div>
+              )}
             </div>
           ))}
         </div>
