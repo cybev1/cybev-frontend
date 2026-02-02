@@ -1,9 +1,29 @@
-// ============================================
+// =====================================================
 // FILE: src/pages/live/go-live.jsx
-// Facebook Live-Style Streaming - Camera + OBS Support
-// VERSION: 4.0 - Quality Selector + Low Latency
-// ADDED: Quality presets (1080p/720p/480p) for different bandwidths
-// ============================================
+// COMPONENT: Live Streaming - Camera + OBS Support
+// =====================================================
+// VERSION: 4.1.0
+// DATE: Feb 2, 2026
+// AUTHOR: D
+//
+// CHANGELOG:
+// v4.1.0 (Feb 2, 2026) - Stream End Endpoint Fix
+//   - Fixed endStream() to check streamMode before calling endpoint
+//   - OBS mode: /api/live/:id/end (CORRECT)
+//   - Camera mode: /api/webrtc/stop-stream/:id (CORRECT)
+//   - FIXES: Can't end livestreams, streams stuck as 'live'
+//   - BREAKING CHANGES: None | BACKWARD COMPATIBLE: Yes
+//
+// v4.0 (Earlier) - Quality Selector + Low Latency
+//   - Quality presets (1080p/720p/480p)
+//   - Low latency mode
+//
+// FEATURES:
+// - Camera + OBS streaming support
+// - Multiple quality presets
+// - Low latency mode
+// - Proper stream lifecycle (start → end)
+// =====================================================
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Head from 'next/head';
