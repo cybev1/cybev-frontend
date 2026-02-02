@@ -133,7 +133,14 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
       const token = localStorage.getItem('token');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
-      const response = await fetch(`${API_URL}/posts/${post._id}`, {
+      // ✨ NEW FIX: Determine correct delete endpoint based on contentType or type
+      const contentType = post.contentType || post.type || 'post';
+      const deleteEndpoint = contentType === 'blog' ? 'blogs' : 'posts';
+      const deleteUrl = `${API_URL}/${deleteEndpoint}/${post._id}`;
+
+      console.log(`🗑️ Deleting ${contentType} with endpoint: ${deleteUrl}`);
+
+      const response = await fetch(deleteUrl, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -142,7 +149,7 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
 
       const data = await response.json();
 
-      if (data.success) {
+      if (data.success || data.ok) {
         alert('✅ Post deleted successfully!');
         if (onDelete) onDelete(post._id);
         window.location.reload(); // Refresh feed
