@@ -558,7 +558,22 @@ export default function GoLivePage() {
     try {
       disconnectWebRTC();
       clearInterval(statusIntervalRef.current);
-      if (streamId) await api.post(`/api/webrtc/stop-stream/${streamId}`).catch(() => {});
+      
+      if (streamId) {
+        // ✨ FIX: Use correct endpoint based on stream mode
+        if (streamMode === STREAM_MODES.SOFTWARE) {
+          // OBS mode uses /api/live/:id/end
+          await api.post(`/api/live/${streamId}/end`).catch((err) => {
+            console.error('Error ending OBS stream:', err);
+          });
+        } else {
+          // Camera/WebRTC mode uses /api/webrtc/stop-stream/:id
+          await api.post(`/api/webrtc/stop-stream/${streamId}`).catch((err) => {
+            console.error('Error stopping WebRTC stream:', err);
+          });
+        }
+      }
+      
       toast.info('Stream ended');
       router.push('/tv');
     } catch (error) { toast.error('Error ending stream'); }
