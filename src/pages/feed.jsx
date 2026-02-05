@@ -781,6 +781,14 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh, isPinnedPost }) {
     if (!confirm('Delete this post?')) return;
     const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
     try {
+      // If this is a live stream post, also end the stream
+      if (item.contentType === 'live' && item.liveStreamId) {
+        try {
+          await api.post(`/api/live/${item.liveStreamId}/end`, {}, { headers: { Authorization: `Bearer ${token}` } });
+        } catch (e) {
+          console.log('Stream may already be ended:', e.message);
+        }
+      }
       await api.delete(`/api/blogs/${item._id}`, { headers: { Authorization: `Bearer ${token}` } });
       toast.success('Deleted!');
       if (onRefresh) onRefresh();

@@ -277,10 +277,11 @@ export const formsAPI = {
 // ========== MEET APIs (NEW v6.8.1) ==========
 export const meetAPI = {
   createRoom: (data) => api.post('/api/meet/create', data),
-  joinRoom: (roomId) => api.post(`/api/meet/join/${roomId}`),
-  getRooms: () => api.get('/api/meet/rooms'),
-  getRoom: (roomId) => api.get(`/api/meet/room/${roomId}`),
-  endRoom: (roomId) => api.post(`/api/meet/end/${roomId}`),
+  joinRoom: (roomId) => api.post(`/api/meet/${roomId}/join`),
+  getRooms: () => api.get('/api/meet/my-meetings'),
+  getRoom: (roomId) => api.get(`/api/meet/${roomId}`),
+  endRoom: (roomId) => api.post(`/api/meet/${roomId}/end`),
+  scheduleRoom: (data) => api.post('/api/meet/schedule', data),
 };
 
 // ========== SOCIAL TOOLS APIs (NEW v6.8.1) ==========

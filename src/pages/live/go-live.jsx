@@ -580,17 +580,22 @@ export default function GoLivePage() {
       clearInterval(statusIntervalRef.current);
       
       if (streamId) {
-        // ✨ FIX: Use correct endpoint based on stream mode
-        if (streamMode === STREAM_MODES.SOFTWARE) {
-          // OBS mode uses /api/live/:id/end
-          await api.post(`/api/live/${streamId}/end`).catch((err) => {
-            console.error('Error ending OBS stream:', err);
-          });
-        } else {
-          // Camera/WebRTC mode uses /api/webrtc/stop-stream/:id
-          await api.post(`/api/webrtc/stop-stream/${streamId}`).catch((err) => {
-            console.error('Error stopping WebRTC stream:', err);
-          });
+        // Always try /api/live/:id/end first (handles blog deletion + Mux cleanup)
+        try {
+          await api.post(`/api/live/${streamId}/end`);
+          debugLog('Stream ended via /api/live');
+        } catch (err) {
+          debugLog('Primary end failed: ' + err.message);
+        }
+        
+        // For camera/WebRTC mode, also stop the WebRTC stream
+        if (streamMode === STREAM_MODES.CAMERA) {
+          try {
+            await api.post(`/api/webrtc/stop-stream/${streamId}`);
+            debugLog('WebRTC stream stopped');
+          } catch (err) {
+            debugLog('WebRTC stop failed (may already be stopped): ' + err.message);
+          }
         }
       }
       

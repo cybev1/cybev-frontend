@@ -170,7 +170,7 @@ export default function CreateVlogPage() {
             <button
               onClick={handleUpload}
               disabled={!videoFile || uploading}
-              className="px-4 py-2 bg-purple-600 text-gray-900 font-semibold rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {uploading ? 'Posting...' : 'Post'}
             </button>
@@ -192,7 +192,7 @@ export default function CreateVlogPage() {
                 />
                 <button
                   onClick={removeVideo}
-                  className="absolute top-4 right-4 p-2 bg-gray-900/50 rounded-full text-gray-900 hover:bg-gray-900/70"
+                  className="absolute top-4 right-4 p-2 bg-gray-900/50 rounded-full text-white hover:bg-gray-900/70"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -203,9 +203,9 @@ export default function CreateVlogPage() {
                 className={`w-full h-full flex flex-col items-center justify-center cursor-pointer bg-gradient-to-br ${gradients[0]} hover:opacity-90 transition-opacity`}
               >
                 <div className="w-20 h-20 bg-white/20 backdrop-blur rounded-full flex items-center justify-center mb-4">
-                  <Video className="w-10 h-10 text-gray-900" />
+                  <Video className="w-10 h-10 text-white" />
                 </div>
-                <p className="text-gray-900 font-semibold text-lg">Upload Video</p>
+                <p className="text-white font-semibold text-lg">Upload Video</p>
                 <p className="text-white/70 text-sm mt-1">Tap to select a video</p>
                 <p className="text-white/50 text-xs mt-4">Max 100MB · MP4, MOV, WebM</p>
               </div>
@@ -215,7 +215,7 @@ export default function CreateVlogPage() {
             {uploading && (
               <div className="absolute inset-0 bg-gray-900/70 flex flex-col items-center justify-center">
                 <Loader2 className="w-12 h-12 text-purple-500 animate-spin mb-4" />
-                <p className="text-gray-900 font-semibold">Uploading... {uploadProgress}%</p>
+                <p className="text-white font-semibold">Uploading... {uploadProgress}%</p>
                 <div className="w-48 h-2 bg-gray-700 rounded-full mt-2 overflow-hidden">
                   <div
                     className="h-full bg-purple-500 transition-all duration-300"
