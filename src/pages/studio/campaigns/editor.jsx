@@ -488,10 +488,26 @@ export default function EmailEditor() {
       const res = await fetch(`${API_URL}/api/campaigns-enhanced/templates/${tplId}`, getAuth());
       const data = await res.json();
       if (data.template) {
+        console.log('📧 Loaded template:', data.template.name);
         setBlocks(data.template.content?.blocks || []);
+        // Set campaign info from template
+        setCampaign({
+          name: `Campaign from ${data.template.name}`,
+          subject: data.template.subject || '',
+          templateId: tplId
+        });
       }
     } catch (err) {
       console.error('Failed to fetch template:', err);
+      // Fallback to default blocks if template load fails
+      setBlocks([
+        { id: `block_${Date.now()}_1`, type: 'header', data: getDefaultBlockData('header') },
+        { id: `block_${Date.now()}_2`, type: 'text', data: { ...getDefaultBlockData('text'), content: '<h1 style="margin:0;font-size:28px;">Welcome to our newsletter!</h1>' } },
+        { id: `block_${Date.now()}_3`, type: 'image', data: getDefaultBlockData('image') },
+        { id: `block_${Date.now()}_4`, type: 'text', data: getDefaultBlockData('text') },
+        { id: `block_${Date.now()}_5`, type: 'button', data: getDefaultBlockData('button') },
+        { id: `block_${Date.now()}_6`, type: 'footer', data: getDefaultBlockData('footer') }
+      ]);
     } finally {
       setLoading(false);
     }
