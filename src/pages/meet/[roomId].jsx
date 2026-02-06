@@ -7,7 +7,8 @@
 import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { Copy, Check, Users, PhoneOff } from 'lucide-react';
+import { Copy, Check, Users, PhoneOff, AlertTriangle } from 'lucide-react';
+import { meetAPI } from '@/lib/api';
 
 export default function MeetingRoom() {
   const router = useRouter();
@@ -18,23 +19,94 @@ export default function MeetingRoom() {
   const [jitsiApi, setJitsiApi] = useState(null);
 
   useEffect(() => {
-    if (!roomId) return;
+  if (!roomId) return;
 
-    // Load Jitsi script
+  let cancelled = false;
+  let heartbeatTimer = null;
+  let pollTimer = null;
+  let cleanupScript = null;
+
+  const loadScript = (baseUrlOrDomain) => {
+    const domain = (baseUrlOrDomain || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
     const script = document.createElement('script');
-    script.src = 'https://meet.jit.si/external_api.js';
+    script.src = `https://${domain}/external_api.js`;
     script.async = true;
-    script.onload = initJitsi;
+    script.onload = () => initJitsi(domain);
     document.body.appendChild(script);
-
-    return () => {
-      if (jitsiApi) {
-        jitsiApi.dispose();
-      }
+    cleanupScript = () => {
+      try { document.body.removeChild(script); } catch (e) {}
     };
-  }, [roomId]);
+  };
 
-  const initJitsi = () => {
+  const startHeartbeat = () => {
+    heartbeatTimer = setInterval(async () => {
+      try {
+        const r = await meetAPI.heartbeat(roomId);
+        const data = r?.data || r;
+        if (data?.ended) {
+          alert(
+            data?.reason === 'monthly_limit' ? 'Monthly meeting minutes exhausted. Please upgrade or top up.' :
+            data?.reason === 'per_meeting_limit' ? 'Meeting time limit reached.' :
+            data?.reason === 'event_boost_exhausted' ? 'Event Boost minutes exhausted. Please top up.' :
+            'Meeting ended.'
+          );
+          if (jitsiApi) jitsiApi.executeCommand('hangup');
+          router.push('/meet');
+        }
+      } catch (e) {}
+    }, 30000);
+  };
+
+  const joinAndInit = async () => {
+    try {
+      const resp = await meetAPI.joinRoom(roomId);
+      const data = resp?.data || {};
+      if (cancelled) return;
+
+      const joinUrl = data.joinUrl || data.url || data.meeting?.joinUrl;
+      const token = data.token || data.jwt || data.meeting?.token;
+      const role = data.role || data.meeting?.role;
+
+      let baseUrl = data.baseUrl || data.meeting?.baseUrl;
+      if (!baseUrl && joinUrl) {
+        try { baseUrl = new URL(joinUrl).origin; } catch (e) {}
+      }
+      if (!baseUrl) baseUrl = 'https://meet.cybev.io';
+
+      window.__CYBEV_MEET = { token, role, baseUrl };
+
+      // Load external api from our server (not public meet.jit.si)
+      loadScript(baseUrl);
+
+      if (role === 'host' || role === 'moderator') startHeartbeat();
+
+      // stop polling if any
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    } catch (e) {
+      const status = e?.response?.status;
+      if (status === 423) {
+        if (!pollTimer) pollTimer = setInterval(joinAndInit, 5000);
+        return;
+      }
+      console.error('Failed to join meeting:', e);
+      alert(e?.response?.data?.error || 'Failed to join meeting');
+      router.push('/meet');
+    }
+  };
+
+  joinAndInit();
+
+  return () => {
+    cancelled = true;
+    if (heartbeatTimer) clearInterval(heartbeatTimer);
+    if (pollTimer) clearInterval(pollTimer);
+    if (cleanupScript) cleanupScript();
+    if (jitsiApi) {
+      try { jitsiApi.dispose(); } catch (e) {}
+    }
+  };
+}, [roomId]);
+const initJitsi = () => {
     if (!window.JitsiMeetExternalAPI || !jitsiContainer.current) return;
 
     const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -54,7 +126,9 @@ export default function MeetingRoom() {
     observer.observe(jitsiContainer.current, { childList: true, subtree: true });
     
     try {
-      const api = new window.JitsiMeetExternalAPI('meet.jit.si', {
+      const meetCfg = (typeof window !== 'undefined' && window.__CYBEV_MEET) ? window.__CYBEV_MEET : {};
+      const api = new window.JitsiMeetExternalAPI(domain || 'meet.cybev.io', {
+        jwt: meetCfg.token || undefined,
         roomName: `cybev-${roomId}`,
         parentNode: jitsiContainer.current,
         width: '100%',
@@ -133,6 +207,14 @@ export default function MeetingRoom() {
       </Head>
 
       <div className="h-screen bg-gray-900 flex flex-col">
+{/* Waiting banner (host-only start) */}
+{typeof window !== 'undefined' && window.__CYBEV_MEET?.role === 'guest' && (
+  <div className="bg-yellow-900/30 border-b border-yellow-700 px-4 py-2 text-yellow-200 text-sm flex items-center gap-2">
+    <AlertTriangle className="w-4 h-4" />
+    If the host hasn't started yet, you'll stay on standby until the meeting begins.
+  </div>
+)}
+
         {/* Header */}
         <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">

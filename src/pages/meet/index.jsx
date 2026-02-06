@@ -9,7 +9,8 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import AppLayout from '@/components/Layout/AppLayout';
-import { Video, Plus, Users, Calendar, Clock, Copy, Check, Loader2, ArrowLeft } from 'lucide-react';
+import { Video, Plus, Users, Calendar, Clock, Copy, Check, Loader2, ArrowLeft, Zap } from 'lucide-react';
+import { meetAPI } from '@/lib/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
@@ -20,10 +21,20 @@ export default function MeetDashboard() {
   const [creating, setCreating] = useState(false);
   const [joinCode, setJoinCode] = useState('');
   const [copied, setCopied] = useState(null);
+  const [usage, setUsage] = useState(null);
+  const [boosting, setBoosting] = useState(false);
 
   useEffect(() => {
     fetchMeetings();
+    fetchUsage();
   }, []);
+
+  const fetchUsage = async () => {
+    try {
+      const r = await meetAPI.usage();
+      setUsage(r.data || r);
+    } catch (e) {}
+  };
 
   const getAuth = () => {
     const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
@@ -96,10 +107,15 @@ export default function MeetDashboard() {
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-900 mb-2">Meet</h1>
           <p className="text-gray-600 dark:text-gray-500">Start or join video meetings instantly</p>
+          {usage && (
+            <div className="mt-3 text-sm text-gray-600 dark:text-gray-500">
+              <span className="font-medium">Usage:</span> {usage.minutesUsed ?? 0} / {usage.minutesLimit ?? '—'} min this month
+            </div>
+          )}
         </div>
 
         {/* Quick Actions */}
-        <div className="grid md:grid-cols-3 gap-4 mb-8">
+        <div className="grid md:grid-cols-4 gap-4 mb-8">
           {/* New Meeting */}
           <div className="bg-white dark:bg-white rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-200">
             <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center mb-4">
@@ -156,6 +172,33 @@ export default function MeetDashboard() {
               </button>
             </Link>
           </div>
+{/* Event Boost */}
+<div className="bg-white dark:bg-white rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-200">
+  <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center mb-4">
+    <Zap className="w-6 h-6 text-orange-600" />
+  </div>
+  <h3 className="font-semibold text-gray-900 dark:text-gray-900 mb-2">Event Boost</h3>
+  <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">Top up for 100–300 participants</p>
+  <button
+    onClick={async () => {
+      setBoosting(true);
+      try {
+        await meetAPI.createBoost({ maxParticipants: 100, minutesTotal: 120, amount: 0, currency: 'USD' });
+        alert('Boost created. Complete payment/activation to use it.');
+      } catch (e) {
+        alert(e?.response?.data?.error || 'Failed to create boost');
+      } finally {
+        setBoosting(false);
+      }
+    }}
+    disabled={boosting}
+    className="w-full py-2.5 bg-orange-600 text-gray-900 rounded-lg font-medium hover:bg-orange-700 disabled:opacity-50 flex items-center justify-center gap-2"
+  >
+    {boosting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+    {boosting ? 'Creating...' : 'Create Boost'}
+  </button>
+</div>
+
         </div>
 
         {/* Meetings List */}

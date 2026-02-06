@@ -282,6 +282,11 @@ export const meetAPI = {
   getRoom: (roomId) => api.get(`/api/meet/${roomId}`),
   endRoom: (roomId) => api.post(`/api/meet/${roomId}/end`),
   scheduleRoom: (data) => api.post('/api/meet/schedule', data),
+  heartbeat: (roomId) => api.post(`/api/meet/${roomId}/heartbeat`),
+  usage: () => api.get('/api/meet/usage'),
+  createBoost: (data) => api.post('/api/meet/boost/create', data),
+  activateBoost: (data) => api.post('/api/meet/boost/activate', data),
+  myBoosts: () => api.get('/api/meet/boost/my'),
 };
 
 // ========== SOCIAL TOOLS APIs (NEW v6.8.1) ==========
