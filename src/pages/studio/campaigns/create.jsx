@@ -107,11 +107,17 @@ export default function CreateCampaign() {
         if (tagData.tags) setTags(tagData.tags);
         if (tmplData.templates) setTemplates(tmplData.templates);
         if (statData.contacts) { setStats(statData.contacts); setAudienceCount(statData.contacts.subscribed || 0); }
+        
+        // Handle pre-selected list from query parameter
+        const preselectedList = router.query.list;
+        if (preselectedList && listData.lists?.some(l => l._id === preselectedList)) {
+          setCampaign(p => ({ ...p, audienceType: 'list', selectedLists: [preselectedList] }));
+        }
       } catch (err) { console.error('Fetch error:', err); }
       finally { setLoading(false); }
     };
     fetchData();
-  }, []);
+  }, [router.query.list]);
 
   const previewAudience = async () => {
     setLoadingAudience(true);
