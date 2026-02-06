@@ -428,6 +428,12 @@ export default function EmailEditor() {
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   
+  // Save as Template
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [templateCategory, setTemplateCategory] = useState('General');
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  
   const [emailSettings, setEmailSettings] = useState({
     backgroundColor: '#f3f4f6',
     contentWidth: 600,
@@ -643,6 +649,43 @@ export default function EmailEditor() {
     }
   };
 
+  const saveAsTemplate = async () => {
+    if (!templateName.trim()) {
+      alert('Please enter a template name');
+      return;
+    }
+    
+    setSavingTemplate(true);
+    try {
+      const html = generateHTML();
+      
+      const res = await fetch(`${API_URL}/api/campaigns-enhanced/templates`, {
+        method: 'POST',
+        ...getAuth(),
+        body: JSON.stringify({
+          name: templateName.trim(),
+          category: templateCategory,
+          html,
+          designJson: { blocks, settings: emailSettings }
+        })
+      });
+      
+      const data = await res.json();
+      if (data.ok) {
+        alert('Template saved successfully!');
+        setShowSaveTemplate(false);
+        setTemplateName('');
+      } else {
+        alert(data.error || 'Failed to save template');
+      }
+    } catch (err) {
+      console.error('Save template error:', err);
+      alert('Failed to save template');
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
+
   const selectedBlock = blocks.find(b => b.id === selectedBlockId);
 
   if (loading) {
@@ -710,6 +753,13 @@ export default function EmailEditor() {
 
             {/* Actions */}
             <button
+              onClick={() => setShowSaveTemplate(true)}
+              className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+            >
+              <Layout className="w-4 h-4" />
+              Save as Template
+            </button>
+            <button
               onClick={saveCampaign}
               disabled={saving}
               className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2 disabled:opacity-50"
@@ -719,6 +769,65 @@ export default function EmailEditor() {
             </button>
           </div>
         </div>
+
+        {/* Save as Template Modal */}
+        {showSaveTemplate && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl w-full max-w-md">
+              <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Save as Template</h3>
+                <button onClick={() => setShowSaveTemplate(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Template Name *</label>
+                  <input
+                    type="text"
+                    value={templateName}
+                    onChange={(e) => setTemplateName(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="My Email Template"
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <select
+                    value={templateCategory}
+                    onChange={(e) => setTemplateCategory(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="General">General</option>
+                    <option value="welcome">Welcome</option>
+                    <option value="newsletter">Newsletter</option>
+                    <option value="promotional">Promotional</option>
+                    <option value="announcement">Announcement</option>
+                    <option value="event">Event</option>
+                    <option value="ecommerce">E-commerce</option>
+                  </select>
+                </div>
+              </div>
+              <div className="p-6 border-t border-gray-100 flex justify-end gap-3">
+                <button
+                  onClick={() => setShowSaveTemplate(false)}
+                  className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveAsTemplate}
+                  disabled={savingTemplate || !templateName.trim()}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
+                >
+                  {savingTemplate && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Save Template
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Main Editor */}
         <div className="flex-1 flex overflow-hidden">
