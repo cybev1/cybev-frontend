@@ -433,6 +433,8 @@ export default function EmailEditor() {
   const [templateName, setTemplateName] = useState('');
   const [templateCategory, setTemplateCategory] = useState('General');
   const [savingTemplate, setSavingTemplate] = useState(false);
+  const [showSavedModal, setShowSavedModal] = useState(false);
+  const [savedCampaignId, setSavedCampaignId] = useState(null);
   
   const [emailSettings, setEmailSettings] = useState({
     backgroundColor: '#f3f4f6',
@@ -599,26 +601,82 @@ export default function EmailEditor() {
   };
 
   const generateHTML = () => {
+    const renderBlockHTML = (block) => {
+      const { type, data } = block;
+      const padding = data.padding ? `padding: ${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px;` : '';
+      const bgColor = data.backgroundColor ? `background-color: ${data.backgroundColor};` : '';
+      const align = data.alignment ? `text-align: ${data.alignment};` : '';
+      
+      switch (type) {
+        case 'header':
+          const logoHtml = data.logo?.url 
+            ? `<img src="${data.logo.url}" alt="${data.logo.alt || 'Logo'}" style="max-width: ${data.logo.width || 150}px; height: auto;" />`
+            : `<div style="font-size: 24px; font-weight: bold; color: #ffffff;">Your Logo</div>`;
+          return `<div style="${padding}${bgColor}${align}">${logoHtml}</div>`;
+          
+        case 'text':
+          return `<div style="${padding}${bgColor}${align}font-size: ${data.fontSize || 16}px; line-height: ${data.lineHeight || 1.6}; color: ${data.color || '#374151'};">${data.content || ''}</div>`;
+          
+        case 'image':
+          const imgStyle = `max-width: 100%; width: ${data.width || '100%'}; display: block;${data.alignment === 'center' ? ' margin: 0 auto;' : ''}`;
+          const imgHtml = `<img src="${data.src}" alt="${data.alt || ''}" style="${imgStyle}" />`;
+          return `<div style="${padding}${align}">${data.link ? `<a href="${data.link}" target="_blank">${imgHtml}</a>` : imgHtml}</div>`;
+          
+        case 'button':
+          const btnPadding = data.padding ? `${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px` : '14px 32px';
+          return `<div style="${padding}${align}">
+            <a href="${data.link || '#'}" style="display: ${data.fullWidth ? 'block' : 'inline-block'}; background-color: ${data.backgroundColor || '#7c3aed'}; color: ${data.textColor || '#ffffff'}; font-size: ${data.fontSize || 16}px; font-weight: ${data.fontWeight || 'bold'}; padding: ${btnPadding}; border-radius: ${data.borderRadius || 8}px; text-decoration: none; text-align: center;">${data.text || 'Click Here'}</a>
+          </div>`;
+          
+        case 'divider':
+          return `<div style="${padding}"><hr style="border: none; border-top: ${data.thickness || 1}px ${data.style || 'solid'} ${data.color || '#e5e7eb'}; width: ${data.width || '100%'}; margin: 0 auto;" /></div>`;
+          
+        case 'spacer':
+          return `<div style="height: ${data.height || 30}px;${bgColor}"></div>`;
+          
+        case 'footer':
+          return `<div style="${padding}${bgColor}font-size: ${data.fontSize || 14}px; color: ${data.textColor || '#6b7280'}; text-align: center;">
+            <p style="margin: 0 0 8px;">${data.companyName || 'Company Name'}</p>
+            <p style="margin: 0 0 8px;">${data.address || ''}</p>
+            ${data.showSocial ? '<p style="margin: 0 0 8px;">Follow us on social media</p>' : ''}
+            <p style="margin: 8px 0 0;"><a href="{{unsubscribe_url}}" style="color: ${data.textColor || '#6b7280'};">${data.unsubscribeText || 'Unsubscribe'}</a></p>
+          </div>`;
+          
+        case 'social':
+          const socialLinks = data.links || {};
+          const iconSize = data.iconSize || 32;
+          let socialHtml = '<div style="display: flex; justify-content: center; gap: 12px;">';
+          if (socialLinks.facebook) socialHtml += `<a href="${socialLinks.facebook}" style="display: inline-block;"><img src="https://cdn-icons-png.flaticon.com/32/733/733547.png" alt="Facebook" width="${iconSize}" /></a>`;
+          if (socialLinks.twitter) socialHtml += `<a href="${socialLinks.twitter}" style="display: inline-block;"><img src="https://cdn-icons-png.flaticon.com/32/733/733579.png" alt="Twitter" width="${iconSize}" /></a>`;
+          if (socialLinks.instagram) socialHtml += `<a href="${socialLinks.instagram}" style="display: inline-block;"><img src="https://cdn-icons-png.flaticon.com/32/2111/2111463.png" alt="Instagram" width="${iconSize}" /></a>`;
+          if (socialLinks.linkedin) socialHtml += `<a href="${socialLinks.linkedin}" style="display: inline-block;"><img src="https://cdn-icons-png.flaticon.com/32/733/733561.png" alt="LinkedIn" width="${iconSize}" /></a>`;
+          socialHtml += '</div>';
+          return `<div style="${padding}${align}">${socialHtml}</div>`;
+          
+        default:
+          return `<div style="${padding}${bgColor}"><!-- ${type} block --></div>`;
+      }
+    };
+    
     let html = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { margin: 0; padding: 0; background-color: ${emailSettings.backgroundColor}; font-family: ${emailSettings.fontFamily}; }
+    body { margin: 0; padding: 0; background-color: ${emailSettings.backgroundColor}; font-family: ${emailSettings.fontFamily}; -webkit-font-smoothing: antialiased; }
     .email-container { max-width: ${emailSettings.contentWidth}px; margin: 0 auto; background-color: #ffffff; }
-    img { max-width: 100%; height: auto; }
+    img { max-width: 100%; height: auto; border: 0; }
     a { color: inherit; }
+    p { margin: 0; }
+    * { box-sizing: border-box; }
   </style>
 </head>
 <body>
   <div class="email-container">`;
     
     blocks.forEach(block => {
-      html += `<div class="email-block" data-type="${block.type}">`;
-      // Generate block HTML (simplified - in production, use server-side rendering)
-      html += `<!-- Block: ${block.type} -->`;
-      html += `</div>`;
+      html += renderBlockHTML(block);
     });
     
     html += `</div></body></html>`;
@@ -641,6 +699,7 @@ export default function EmailEditor() {
         body: JSON.stringify({
           name: campaign?.name || 'Untitled Campaign',
           subject: campaign?.subject || 'Newsletter',
+          html: html,
           content: {
             blocks,
             html,
@@ -650,16 +709,20 @@ export default function EmailEditor() {
       });
       
       const data = await res.json();
-      if (data.ok) {
-        setCampaign(data.campaign);
-        alert('Saved successfully!');
+      if (data.ok || data.campaign) {
+        const savedCampaign = data.campaign;
+        setCampaign(savedCampaign);
+        setSavedCampaignId(savedCampaign._id);
+        setShowSavedModal(true);
         if (!campaign?._id) {
-          router.replace(`/studio/campaigns/editor?id=${data.campaign._id}`, undefined, { shallow: true });
+          router.replace(`/studio/campaigns/editor?id=${savedCampaign._id}`, undefined, { shallow: true });
         }
+      } else {
+        alert(data.error || 'Failed to save');
       }
     } catch (err) {
       console.error('Save error:', err);
-      alert('Failed to save');
+      alert('Failed to save: ' + err.message);
     } finally {
       setSaving(false);
     }
@@ -845,6 +908,49 @@ export default function EmailEditor() {
           </div>
         )}
 
+        {/* Success Modal - After Save */}
+        {showSavedModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl w-full max-w-md text-center">
+              <div className="p-8">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Check className="w-8 h-8 text-green-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Campaign Saved! 🎉</h3>
+                <p className="text-gray-500 mb-6">Your email design has been saved successfully.</p>
+                
+                <div className="space-y-3">
+                  <button
+                    onClick={() => {
+                      setShowSavedModal(false);
+                      router.push(`/studio/campaigns/create?editId=${savedCampaignId}`);
+                    }}
+                    className="w-full py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium flex items-center justify-center gap-2"
+                  >
+                    <Send className="w-5 h-5" />
+                    Send This Campaign
+                  </button>
+                  <button
+                    onClick={() => setShowSavedModal(false)}
+                    className="w-full py-3 border border-gray-200 rounded-xl hover:bg-gray-50 font-medium"
+                  >
+                    Continue Editing
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowSavedModal(false);
+                      router.push('/studio/campaigns');
+                    }}
+                    className="w-full py-2 text-gray-500 hover:text-gray-700 text-sm"
+                  >
+                    Back to Campaigns
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Main Editor */}
         <div className="flex-1 flex overflow-hidden">
           {/* Left Panel - Block Library */}
@@ -926,21 +1032,32 @@ export default function EmailEditor() {
                 blocks.map((block, index) => (
                   <div
                     key={block.id}
-                    onClick={() => setSelectedBlockId(block.id)}
-                    className={`relative group ${selectedBlockId === block.id ? 'ring-2 ring-purple-500 ring-inset' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedBlockId(block.id);
+                    }}
+                    className={`relative group cursor-pointer transition-all ${selectedBlockId === block.id ? 'ring-2 ring-purple-500 ring-inset bg-purple-50/30' : 'hover:ring-2 hover:ring-purple-200 hover:ring-inset'}`}
+                    style={{ minHeight: '20px' }}
                   >
+                    {/* Click hint overlay */}
+                    {selectedBlockId !== block.id && (
+                      <div className="absolute inset-0 bg-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10 pointer-events-none">
+                        <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded shadow-lg">Click to edit</span>
+                      </div>
+                    )}
+                    
                     {/* Block Actions */}
-                    <div className={`absolute -right-12 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition ${selectedBlockId === block.id ? 'opacity-100' : ''}`}>
-                      <button onClick={() => moveBlock(block.id, 'up')} className="p-1.5 bg-white border border-gray-200 rounded shadow-sm hover:bg-gray-50">
+                    <div className={`absolute -right-12 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition z-20 ${selectedBlockId === block.id ? 'opacity-100' : ''}`}>
+                      <button onClick={(e) => { e.stopPropagation(); moveBlock(block.id, 'up'); }} className="p-1.5 bg-white border border-gray-200 rounded shadow-sm hover:bg-gray-50">
                         <ChevronUp className="w-4 h-4" />
                       </button>
-                      <button onClick={() => moveBlock(block.id, 'down')} className="p-1.5 bg-white border border-gray-200 rounded shadow-sm hover:bg-gray-50">
+                      <button onClick={(e) => { e.stopPropagation(); moveBlock(block.id, 'down'); }} className="p-1.5 bg-white border border-gray-200 rounded shadow-sm hover:bg-gray-50">
                         <ChevronDown className="w-4 h-4" />
                       </button>
-                      <button onClick={() => duplicateBlock(block.id)} className="p-1.5 bg-white border border-gray-200 rounded shadow-sm hover:bg-gray-50">
+                      <button onClick={(e) => { e.stopPropagation(); duplicateBlock(block.id); }} className="p-1.5 bg-white border border-gray-200 rounded shadow-sm hover:bg-gray-50">
                         <Copy className="w-4 h-4" />
                       </button>
-                      <button onClick={() => deleteBlock(block.id)} className="p-1.5 bg-white border border-gray-200 rounded shadow-sm hover:bg-red-50 text-red-500">
+                      <button onClick={(e) => { e.stopPropagation(); deleteBlock(block.id); }} className="p-1.5 bg-white border border-gray-200 rounded shadow-sm hover:bg-red-50 text-red-500">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -1066,6 +1183,225 @@ export default function EmailEditor() {
                         type="text"
                         value={selectedBlock.data.link || ''}
                         onChange={(e) => updateBlock(selectedBlock.id, { link: e.target.value })}
+                        className="w-full p-2 border border-gray-300 rounded-lg"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Header Block Settings */}
+                {selectedBlock.type === 'header' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
+                      <input
+                        type="text"
+                        value={selectedBlock.data.logo?.url || ''}
+                        onChange={(e) => updateBlock(selectedBlock.id, { logo: { ...selectedBlock.data.logo, url: e.target.value } })}
+                        placeholder="https://yoursite.com/logo.png"
+                        className="w-full p-2 border border-gray-300 rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Logo Alt Text</label>
+                      <input
+                        type="text"
+                        value={selectedBlock.data.logo?.alt || 'Logo'}
+                        onChange={(e) => updateBlock(selectedBlock.id, { logo: { ...selectedBlock.data.logo, alt: e.target.value } })}
+                        className="w-full p-2 border border-gray-300 rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Logo Width</label>
+                      <input
+                        type="number"
+                        value={selectedBlock.data.logo?.width || 150}
+                        onChange={(e) => updateBlock(selectedBlock.id, { logo: { ...selectedBlock.data.logo, width: parseInt(e.target.value) } })}
+                        className="w-full p-2 border border-gray-300 rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
+                      <input
+                        type="color"
+                        value={selectedBlock.data.backgroundColor || '#ffffff'}
+                        onChange={(e) => updateBlock(selectedBlock.id, { backgroundColor: e.target.value })}
+                        className="w-full h-10 rounded-lg cursor-pointer"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Footer Block Settings */}
+                {selectedBlock.type === 'footer' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+                      <input
+                        type="text"
+                        value={selectedBlock.data.companyName || ''}
+                        onChange={(e) => updateBlock(selectedBlock.id, { companyName: e.target.value })}
+                        className="w-full p-2 border border-gray-300 rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Address / Contact</label>
+                      <input
+                        type="text"
+                        value={selectedBlock.data.address || ''}
+                        onChange={(e) => updateBlock(selectedBlock.id, { address: e.target.value })}
+                        className="w-full p-2 border border-gray-300 rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Unsubscribe Text</label>
+                      <input
+                        type="text"
+                        value={selectedBlock.data.unsubscribeText || 'Unsubscribe'}
+                        onChange={(e) => updateBlock(selectedBlock.id, { unsubscribeText: e.target.value })}
+                        className="w-full p-2 border border-gray-300 rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
+                      <input
+                        type="color"
+                        value={selectedBlock.data.backgroundColor || '#f3f4f6'}
+                        onChange={(e) => updateBlock(selectedBlock.id, { backgroundColor: e.target.value })}
+                        className="w-full h-10 rounded-lg cursor-pointer"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Text Color</label>
+                      <input
+                        type="color"
+                        value={selectedBlock.data.textColor || '#6b7280'}
+                        onChange={(e) => updateBlock(selectedBlock.id, { textColor: e.target.value })}
+                        className="w-full h-10 rounded-lg cursor-pointer"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="showSocial"
+                        checked={selectedBlock.data.showSocial || false}
+                        onChange={(e) => updateBlock(selectedBlock.id, { showSocial: e.target.checked })}
+                        className="rounded border-gray-300 text-purple-600"
+                      />
+                      <label htmlFor="showSocial" className="text-sm text-gray-700">Show Social Icons</label>
+                    </div>
+                  </>
+                )}
+
+                {/* Divider Block Settings */}
+                {selectedBlock.type === 'divider' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Line Color</label>
+                      <input
+                        type="color"
+                        value={selectedBlock.data.color || '#e5e7eb'}
+                        onChange={(e) => updateBlock(selectedBlock.id, { color: e.target.value })}
+                        className="w-full h-10 rounded-lg cursor-pointer"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Thickness (px)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={selectedBlock.data.thickness || 1}
+                        onChange={(e) => updateBlock(selectedBlock.id, { thickness: parseInt(e.target.value) })}
+                        className="w-full p-2 border border-gray-300 rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Width</label>
+                      <select
+                        value={selectedBlock.data.width || '100%'}
+                        onChange={(e) => updateBlock(selectedBlock.id, { width: e.target.value })}
+                        className="w-full p-2 border border-gray-300 rounded-lg"
+                      >
+                        <option value="100%">Full Width</option>
+                        <option value="75%">75%</option>
+                        <option value="50%">50%</option>
+                        <option value="25%">25%</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Style</label>
+                      <select
+                        value={selectedBlock.data.style || 'solid'}
+                        onChange={(e) => updateBlock(selectedBlock.id, { style: e.target.value })}
+                        className="w-full p-2 border border-gray-300 rounded-lg"
+                      >
+                        <option value="solid">Solid</option>
+                        <option value="dashed">Dashed</option>
+                        <option value="dotted">Dotted</option>
+                      </select>
+                    </div>
+                  </>
+                )}
+
+                {/* Spacer Block Settings */}
+                {selectedBlock.type === 'spacer' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Height (px)</label>
+                      <input
+                        type="range"
+                        min="10"
+                        max="100"
+                        value={selectedBlock.data.height || 30}
+                        onChange={(e) => updateBlock(selectedBlock.id, { height: parseInt(e.target.value) })}
+                        className="w-full"
+                      />
+                      <p className="text-center text-sm text-gray-500 mt-1">{selectedBlock.data.height || 30}px</p>
+                    </div>
+                  </>
+                )}
+
+                {/* Social Block Settings */}
+                {selectedBlock.type === 'social' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Facebook URL</label>
+                      <input
+                        type="text"
+                        value={selectedBlock.data.links?.facebook || ''}
+                        onChange={(e) => updateBlock(selectedBlock.id, { links: { ...selectedBlock.data.links, facebook: e.target.value } })}
+                        placeholder="https://facebook.com/yourpage"
+                        className="w-full p-2 border border-gray-300 rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Twitter/X URL</label>
+                      <input
+                        type="text"
+                        value={selectedBlock.data.links?.twitter || ''}
+                        onChange={(e) => updateBlock(selectedBlock.id, { links: { ...selectedBlock.data.links, twitter: e.target.value } })}
+                        placeholder="https://twitter.com/yourhandle"
+                        className="w-full p-2 border border-gray-300 rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Instagram URL</label>
+                      <input
+                        type="text"
+                        value={selectedBlock.data.links?.instagram || ''}
+                        onChange={(e) => updateBlock(selectedBlock.id, { links: { ...selectedBlock.data.links, instagram: e.target.value } })}
+                        placeholder="https://instagram.com/yourhandle"
+                        className="w-full p-2 border border-gray-300 rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn URL</label>
+                      <input
+                        type="text"
+                        value={selectedBlock.data.links?.linkedin || ''}
+                        onChange={(e) => updateBlock(selectedBlock.id, { links: { ...selectedBlock.data.links, linkedin: e.target.value } })}
+                        placeholder="https://linkedin.com/company/yourcompany"
                         className="w-full p-2 border border-gray-300 rounded-lg"
                       />
                     </div>
