@@ -41,7 +41,7 @@ const FEATURES = [
   { id: 'campaigns', title: 'Email Campaigns', description: 'Create beautiful emails with our drag-and-drop builder', icon: Mail, color: 'purple', link: '/studio/campaigns/create' },
   { id: 'automation', title: 'Automation', description: 'Set up welcome series, abandoned cart, and more', icon: Zap, color: 'blue', link: '/studio/campaigns/automation', badge: 'Pro' },
   { id: 'templates', title: 'Templates', description: '50+ professional templates ready to customize', icon: Layout, color: 'green', link: '/studio/campaigns/templates' },
-  { id: 'segments', title: 'Segments', description: 'Target the right audience with smart filtering', icon: Target, color: 'orange', link: '/studio/campaigns/segments', badge: 'Pro' },
+  { id: 'segments', title: 'Segments', description: 'Target the right audience with smart filtering', icon: Target, color: 'orange', link: '/studio/campaigns/contacts?tab=segments', badge: 'Pro' },
   { id: 'analytics', title: 'Analytics', description: 'Track opens, clicks, and revenue', icon: BarChart3, color: 'pink', link: '/studio/campaigns/analytics' },
   { id: 'forms', title: 'Sign-up Forms', description: 'Grow your list with embedded forms', icon: FileText, color: 'indigo', link: '/studio/forms' },
 ];
