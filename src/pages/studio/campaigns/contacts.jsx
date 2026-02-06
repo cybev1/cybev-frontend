@@ -1219,16 +1219,75 @@ export default function CampaignContacts() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Add to List
                   </label>
-                  <select
-                    value={newContact.list}
-                    onChange={(e) => setNewContact({ ...newContact, list: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-purple-500"
-                  >
-                    <option value="">No list (general contacts)</option>
-                    {lists.map(list => (
-                      <option key={list._id} value={list._id}>{list.name}</option>
-                    ))}
-                  </select>
+                  {!newContact.showCreateList ? (
+                    <div className="space-y-2">
+                      <select
+                        value={newContact.list}
+                        onChange={(e) => setNewContact({ ...newContact, list: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-purple-500"
+                      >
+                        <option value="">No list (general contacts)</option>
+                        {lists.map(list => (
+                          <option key={list._id} value={list._id}>{list.name}</option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => setNewContact({ ...newContact, showCreateList: true, newListName: '' })}
+                        className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                      >
+                        <Plus className="w-4 h-4" /> Create new list
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={newContact.newListName || ''}
+                        onChange={(e) => setNewContact({ ...newContact, newListName: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Enter list name"
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!newContact.newListName?.trim()) return;
+                            setCreatingList(true);
+                            try {
+                              const res = await fetch(`${API_URL}/api/campaigns-enhanced/lists`, {
+                                method: 'POST',
+                                ...getAuth(),
+                                body: JSON.stringify({ name: newContact.newListName.trim() })
+                              });
+                              const data = await res.json();
+                              if (data.list) {
+                                setLists([...lists, data.list]);
+                                setNewContact({ ...newContact, list: data.list._id, showCreateList: false, newListName: '' });
+                              }
+                            } catch (err) {
+                              alert('Failed to create list');
+                            } finally {
+                              setCreatingList(false);
+                            }
+                          }}
+                          disabled={creatingList || !newContact.newListName?.trim()}
+                          className="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-1"
+                        >
+                          {creatingList ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                          Create
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setNewContact({ ...newContact, showCreateList: false, newListName: '' })}
+                          className="px-3 py-1.5 border border-gray-200 text-gray-600 text-sm rounded-lg hover:bg-gray-50"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="p-6 border-t border-gray-100 flex justify-end gap-3">
