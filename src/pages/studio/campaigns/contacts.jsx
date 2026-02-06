@@ -715,6 +715,39 @@ export default function CampaignContacts() {
           </div>
         </div>
 
+        {/* Workflow Guidance Banner - Show when contacts exist */}
+        {stats.subscribed > 0 && (
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-green-900">Ready to send!</h3>
+                    <p className="text-sm text-green-700">
+                      You have {stats.subscribed} subscribed contact{stats.subscribed > 1 ? 's' : ''} 
+                      {selectedList && lists.find(l => l._id === selectedList) 
+                        ? ` in "${lists.find(l => l._id === selectedList)?.name}"` 
+                        : ''
+                      }. Create a campaign to start sending emails.
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/studio/campaigns/create"
+                  className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition shadow-lg shadow-green-200 font-medium"
+                >
+                  <Mail className="w-5 h-5" />
+                  <span>Create Campaign</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex gap-6">
             {/* Left Sidebar - Lists */}
@@ -848,6 +881,30 @@ export default function CampaignContacts() {
                   </div>
                 </div>
               </div>
+
+              {/* Quick Actions Card */}
+              {stats.subscribed > 0 && (
+                <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border border-purple-200 p-4 mt-4">
+                  <h3 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
+                    <Zap className="w-4 h-4" />
+                    Quick Actions
+                  </h3>
+                  <div className="space-y-2">
+                    <Link
+                      href={`/studio/campaigns/create${selectedList ? `?list=${selectedList}` : ''}`}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium"
+                    >
+                      <Mail className="w-4 h-4" />
+                      <span>Send Campaign</span>
+                    </Link>
+                    {selectedList && lists.find(l => l._id === selectedList)?.contactCount > 0 && (
+                      <p className="text-xs text-purple-600 text-center">
+                        To {lists.find(l => l._id === selectedList)?.contactCount} contacts in "{lists.find(l => l._id === selectedList)?.name}"
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Danger Zone */}
               <div className="bg-white rounded-xl border border-red-200 p-4 mt-4">
