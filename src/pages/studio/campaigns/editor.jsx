@@ -1,7 +1,13 @@
 // ============================================
 // FILE: src/pages/studio/campaigns/editor.jsx
 // CYBEV Email Builder - Klaviyo Quality
-// VERSION: 3.0.0 - Full Drag & Drop Editor
+// VERSION: 3.4.0 - Complete Block Editing + Save Modal
+// CHANGELOG:
+//   3.4.0 - Full HTML generation, header/footer/social editing
+//   3.3.0 - Success modal after save with next steps
+//   3.2.0 - Visual block selection feedback
+//   3.1.0 - Load templates with pre-built content
+//   3.0.0 - Full Drag & Drop Editor
 // ============================================
 
 import { useState, useEffect, useCallback, useRef } from 'react';
