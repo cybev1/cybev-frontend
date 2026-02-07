@@ -1,8 +1,9 @@
 // ============================================
 // FILE: src/pages/studio/campaigns/create.jsx  
 // CYBEV Campaign Creation Wizard - Fully Functional
-// VERSION: 5.3.0 - Edit Template Button
+// VERSION: 5.4.0 - Send Success Modal
 // CHANGELOG:
+//   5.4.0 - Added beautiful send success modal with stats
 //   5.3.0 - Added "Edit Template" button after template selection
 //   5.2.0 - Display built-in templates with thumbnails, ratings, usage counts
 //   5.1.0 - Pre-select list from query parameter
@@ -83,6 +84,8 @@ export default function CreateCampaign() {
   const [contentPrompt, setContentPrompt] = useState('');
   const [testEmail, setTestEmail] = useState('');
   const [showTestModal, setShowTestModal] = useState(false);
+  const [showSendSuccess, setShowSendSuccess] = useState(false);
+  const [sendResult, setSendResult] = useState({ sent: 0, campaignId: null });
   const [showSchedule, setShowSchedule] = useState(false);
   const [scheduleDate, setScheduleDate] = useState('');
   const [scheduleTime, setScheduleTime] = useState('');
@@ -223,10 +226,18 @@ export default function CreateCampaign() {
     try {
       const res = await fetch(`${API_URL}/api/campaigns-enhanced/send`, { method: 'POST', ...getAuth(), body: JSON.stringify(campaign) });
       const data = await res.json();
-      if (data.ok) { alert(`Sent to ${data.sent || audienceCount} recipients!`); router.push('/studio/campaigns'); }
-      else alert(data.error || 'Failed');
-    } catch { alert('Failed'); }
-    finally { setSending(false); }
+      if (data.ok) {
+        setSendResult({ sent: data.sent || audienceCount, campaignId: data.campaignId });
+        setShowSendSuccess(true);
+      } else {
+        alert(data.error || 'Failed to send campaign');
+      }
+    } catch (err) {
+      console.error('Send error:', err);
+      alert('Failed to send campaign');
+    } finally {
+      setSending(false);
+    }
   };
 
   const canProceed = () => {
@@ -641,6 +652,63 @@ export default function CreateCampaign() {
                 <button onClick={scheduleCampaign} disabled={sending} className="px-4 py-2 bg-purple-600 text-white rounded-lg disabled:opacity-50 flex items-center gap-2">
                   {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calendar className="w-4 h-4" />}Schedule
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Send Success Modal */}
+        {showSendSuccess && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl w-full max-w-md text-center overflow-hidden">
+              {/* Success Animation Header */}
+              <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-8">
+                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <Send className="w-10 h-10 text-green-500" />
+                </div>
+                <h3 className="text-2xl font-bold text-white">Campaign Sent! 🎉</h3>
+              </div>
+              
+              <div className="p-8">
+                <div className="bg-green-50 rounded-xl p-4 mb-6">
+                  <p className="text-3xl font-bold text-green-600">{sendResult.sent.toLocaleString()}</p>
+                  <p className="text-green-700">emails sent successfully</p>
+                </div>
+                
+                <p className="text-gray-500 mb-6">
+                  Your campaign "<span className="font-medium text-gray-700">{campaign.name}</span>" is now being delivered to your subscribers.
+                </p>
+                
+                <div className="space-y-3">
+                  <button
+                    onClick={() => {
+                      setShowSendSuccess(false);
+                      router.push('/studio/campaigns');
+                    }}
+                    className="w-full py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium flex items-center justify-center gap-2"
+                  >
+                    <BarChart3 className="w-5 h-5" />
+                    View Campaign Analytics
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowSendSuccess(false);
+                      // Reset for new campaign
+                      setCampaign({
+                        name: '', type: 'regular', subject: '', previewText: '',
+                        sender: { name: '', email: '' },
+                        audienceType: 'all', selectedLists: [], includeTags: [], excludeTags: [],
+                        segment: { conditions: [], matchType: 'all' },
+                        content: { type: 'editor', templateId: null, html: '', designJson: null },
+                        scheduledFor: null
+                      });
+                      setCurrentStep(0);
+                    }}
+                    className="w-full py-3 border border-gray-200 rounded-xl hover:bg-gray-50 font-medium"
+                  >
+                    Create Another Campaign
+                  </button>
+                </div>
               </div>
             </div>
           </div>
