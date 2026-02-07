@@ -1,8 +1,9 @@
 // ============================================
 // FILE: src/pages/studio/campaigns/create.jsx  
 // CYBEV Campaign Creation Wizard - Fully Functional
-// VERSION: 5.2.0 - Built-in Templates with Thumbnails
+// VERSION: 5.3.0 - Edit Template Button
 // CHANGELOG:
+//   5.3.0 - Added "Edit Template" button after template selection
 //   5.2.0 - Display built-in templates with thumbnails, ratings, usage counts
 //   5.1.0 - Pre-select list from query parameter
 //   5.0.0 - AI, Tags, Segments, Sender Config
@@ -495,6 +496,32 @@ export default function CreateCampaign() {
                           </div>
                         </button>
                       ))}
+                    </div>
+                  )}
+                  
+                  {/* Edit Template Button - Shows after selection */}
+                  {campaign.content.templateId && (
+                    <div className="mt-6 p-4 bg-purple-50 rounded-xl border border-purple-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <CheckCircle className="w-5 h-5 text-purple-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-purple-900">
+                              {templates.find(t => t._id === campaign.content.templateId)?.name || 'Template'} selected
+                            </p>
+                            <p className="text-sm text-purple-600">Customize it to match your brand</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => router.push(`/studio/campaigns/editor?templateId=${campaign.content.templateId}`)}
+                          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2 font-medium"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                          Edit Template
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
