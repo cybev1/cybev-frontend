@@ -1,7 +1,11 @@
 // ============================================
 // FILE: src/pages/studio/campaigns/create.jsx  
 // CYBEV Campaign Creation Wizard - Fully Functional
-// VERSION: 5.0.0 - AI, Tags, Segments, Sender Config
+// VERSION: 5.2.0 - Built-in Templates with Thumbnails
+// CHANGELOG:
+//   5.2.0 - Display built-in templates with thumbnails, ratings, usage counts
+//   5.1.0 - Pre-select list from query parameter
+//   5.0.0 - AI, Tags, Segments, Sender Config
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -456,13 +460,39 @@ export default function CreateCampaign() {
               {campaign.content.type === 'template' && (
                 <div className="bg-white rounded-xl border p-6">
                   <h3 className="font-semibold mb-4">Choose a Template</h3>
-                  {templates.length === 0 ? <p className="text-gray-500 text-center py-8">No templates. <Link href="/studio/campaigns/templates" className="text-purple-600">Create one →</Link></p> : (
-                    <div className="grid md:grid-cols-3 gap-4">
+                  {templates.length === 0 ? <p className="text-gray-500 text-center py-8">Loading templates... <Loader2 className="w-4 h-4 animate-spin inline ml-2" /></p> : (
+                    <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
                       {templates.map(t => (
                         <button key={t._id} onClick={() => updateCampaign('content', { ...campaign.content, templateId: t._id, html: t.html })}
-                          className={`p-4 rounded-lg border-2 text-left ${campaign.content.templateId === t._id ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-300'}`}>
-                          <div className="aspect-video bg-gray-100 rounded-lg mb-3" />
-                          <h4 className="font-medium">{t.name}</h4>
+                          className={`group rounded-xl border-2 text-left overflow-hidden transition-all ${campaign.content.templateId === t._id ? 'border-purple-500 ring-2 ring-purple-200' : 'border-gray-200 hover:border-purple-300 hover:shadow-lg'}`}>
+                          <div className="aspect-[4/3] bg-gray-100 relative overflow-hidden">
+                            {t.thumbnail ? (
+                              <img src={t.thumbnail} alt={t.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-indigo-100">
+                                <Mail className="w-8 h-8 text-purple-300" />
+                              </div>
+                            )}
+                            {t.type === 'system' && (
+                              <span className="absolute top-2 left-2 px-2 py-0.5 bg-purple-600 text-white text-xs rounded-full">Pro</span>
+                            )}
+                            {campaign.content.templateId === t._id && (
+                              <div className="absolute inset-0 bg-purple-500/20 flex items-center justify-center">
+                                <CheckCircle className="w-10 h-10 text-purple-600 bg-white rounded-full" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="p-3">
+                            <h4 className="font-medium text-gray-900 truncate">{t.name}</h4>
+                            <p className="text-xs text-gray-500 capitalize">{t.category || 'General'}</p>
+                            {t.rating && (
+                              <div className="flex items-center gap-1 mt-1">
+                                <span className="text-yellow-500 text-xs">★</span>
+                                <span className="text-xs text-gray-500">{t.rating}</span>
+                                {t.usageCount && <span className="text-xs text-gray-400 ml-1">• {t.usageCount.toLocaleString()} uses</span>}
+                              </div>
+                            )}
+                          </div>
                         </button>
                       ))}
                     </div>
