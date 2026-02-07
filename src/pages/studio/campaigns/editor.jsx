@@ -1,8 +1,9 @@
 // ============================================
 // FILE: src/pages/studio/campaigns/editor.jsx
 // CYBEV Email Builder - Klaviyo Quality
-// VERSION: 3.4.0 - Complete Block Editing + Save Modal
+// VERSION: 3.5.0 - Fixed Save + Better Block Rendering
 // CHANGELOG:
+//   3.5.0 - Fixed header text color, improved save error handling
 //   3.4.0 - Full HTML generation, header/footer/social editing
 //   3.3.0 - Success modal after save with next steps
 //   3.2.0 - Visual block selection feedback
@@ -224,9 +225,9 @@ const BlockRenderer = ({ block, isPreview = false }) => {
       return (
         <div style={style}>
           {data.logo?.url ? (
-            <img src={data.logo.url} alt={data.logo.alt} style={{ maxWidth: data.logo.width || 150 }} />
+            <img src={data.logo.url} alt={data.logo.alt || 'Logo'} style={{ maxWidth: data.logo.width || 150, height: 'auto' }} />
           ) : (
-            <div style={{ fontSize: 24, fontWeight: 'bold', color: '#1f2937' }}>Your Logo</div>
+            <div style={{ fontSize: 24, fontWeight: 'bold', color: data.textColor || '#ffffff' }}>Your Logo</div>
           )}
         </div>
       );
