@@ -1,7 +1,11 @@
 // ============================================
 // FILE: src/pages/studio/campaigns/contacts.jsx
 // CYBEV Contacts Management - Professional Grade
-// VERSION: 5.0.0 - Complete with All Features
+// VERSION: 5.2.0 - Workflow Guidance + Quick Actions
+// CHANGELOG:
+//   5.2.0 - Added "Ready to send" banner, Quick Actions card
+//   5.1.0 - Create Campaign button with list pre-selection
+//   5.0.0 - Complete with All Features
 // ============================================
 
 import { useState, useEffect, useRef, useCallback } from 'react';
