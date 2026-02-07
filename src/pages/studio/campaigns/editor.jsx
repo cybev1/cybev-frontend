@@ -1,8 +1,9 @@
 // ============================================
 // FILE: src/pages/studio/campaigns/editor.jsx
 // CYBEV Email Builder - Klaviyo Quality
-// VERSION: 3.5.0 - Fixed Save + Better Block Rendering
+// VERSION: 3.6.0 - Fixed Link Clicks in Edit Mode
 // CHANGELOG:
+//   3.6.0 - Prevent button/image links from redirecting in edit mode
 //   3.5.0 - Fixed header text color, improved save error handling
 //   3.4.0 - Full HTML generation, header/footer/social editing
 //   3.3.0 - Success modal after save with next steps
@@ -220,6 +221,14 @@ const BlockRenderer = ({ block, isPreview = false }) => {
     textAlign: data.alignment || 'left'
   };
   
+  // Prevent link clicks in edit mode
+  const handleLinkClick = (e) => {
+    if (!isPreview) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+  
   switch (type) {
     case 'header':
       return (
@@ -243,7 +252,7 @@ const BlockRenderer = ({ block, isPreview = false }) => {
     case 'image':
       return (
         <div style={style}>
-          {data.link ? (
+          {data.link && isPreview ? (
             <a href={data.link} target="_blank" rel="noopener noreferrer">
               <img src={data.src} alt={data.alt} style={{ maxWidth: '100%', width: data.width, display: 'block', margin: data.alignment === 'center' ? '0 auto' : undefined }} />
             </a>
@@ -257,20 +266,22 @@ const BlockRenderer = ({ block, isPreview = false }) => {
       return (
         <div style={{ ...style, padding: style.padding }}>
           <a
-            href={data.link}
+            href={isPreview ? data.link : '#'}
+            onClick={handleLinkClick}
             style={{
               display: data.fullWidth ? 'block' : 'inline-block',
-              backgroundColor: data.backgroundColor,
-              color: data.textColor,
-              fontSize: data.fontSize,
-              fontWeight: data.fontWeight,
-              padding: `${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px`,
-              borderRadius: data.borderRadius,
+              backgroundColor: data.backgroundColor || '#7c3aed',
+              color: data.textColor || '#ffffff',
+              fontSize: data.fontSize || 16,
+              fontWeight: data.fontWeight || 'bold',
+              padding: data.padding ? `${data.padding.top}px ${data.padding.right}px ${data.padding.bottom}px ${data.padding.left}px` : '14px 32px',
+              borderRadius: data.borderRadius || 8,
               textDecoration: 'none',
-              textAlign: 'center'
+              textAlign: 'center',
+              cursor: isPreview ? 'pointer' : 'default'
             }}
           >
-            {data.text}
+            {data.text || 'Click Here'}
           </a>
         </div>
       );
