@@ -1,8 +1,9 @@
 // ============================================
 // FILE: src/pages/studio/campaigns/editor.jsx
 // CYBEV Email Builder - Klaviyo Quality
-// VERSION: 3.6.0 - Fixed Link Clicks in Edit Mode
+// VERSION: 3.7.0 - Live Preview + Image Upload
 // CHANGELOG:
+//   3.7.0 - Fixed live preview updates, added image upload, fixed click hint position
 //   3.6.0 - Prevent button/image links from redirecting in edit mode
 //   3.5.0 - Fixed header text color, improved save error handling
 //   3.4.0 - Full HTML generation, header/footer/social editing
@@ -24,7 +25,7 @@ import {
   ChevronDown, ChevronUp, X, Check, Loader2, GripVertical,
   AlignLeft, AlignCenter, AlignRight, Bold, Italic, Underline,
   FileText, Mail, Sparkles, Timer, ShoppingCart, Star, Users,
-  Zap, Clock, Target, BarChart3, Hash, Heart, Globe
+  Zap, Clock, Target, BarChart3, Hash, Heart, Globe, Upload, ImagePlus
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
@@ -236,7 +237,9 @@ const BlockRenderer = ({ block, isPreview = false }) => {
           {data.logo?.url ? (
             <img src={data.logo.url} alt={data.logo.alt || 'Logo'} style={{ maxWidth: data.logo.width || 150, height: 'auto' }} />
           ) : (
-            <div style={{ fontSize: 24, fontWeight: 'bold', color: data.textColor || '#ffffff' }}>Your Logo</div>
+            <div style={{ fontSize: 24, fontWeight: 'bold', color: data.textColor || '#ffffff' }}>
+              {data.logo?.alt || 'Your Logo'}
+            </div>
           )}
         </div>
       );
@@ -446,6 +449,11 @@ export default function EmailEditor() {
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   
+  // Image upload
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef(null);
+  const logoInputRef = useRef(null);
+  
   // Save as Template
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
   const [templateName, setTemplateName] = useState('');
@@ -575,11 +583,80 @@ export default function EmailEditor() {
   };
 
   const updateBlock = (blockId, newData) => {
-    const newBlocks = blocks.map(b => 
-      b.id === blockId ? { ...b, data: { ...b.data, ...newData } } : b
-    );
-    setBlocks(newBlocks);
-    saveToHistory(newBlocks);
+    setBlocks(prevBlocks => {
+      const newBlocks = prevBlocks.map(b => {
+        if (b.id !== blockId) return b;
+        
+        // Handle nested logo object specially
+        if (newData.logo !== undefined) {
+          return {
+            ...b,
+            data: {
+              ...b.data,
+              logo: { ...b.data.logo, ...newData.logo }
+            }
+          };
+        }
+        
+        return { ...b, data: { ...b.data, ...newData } };
+      });
+      saveToHistory(newBlocks);
+      return newBlocks;
+    });
+  };
+
+  // Helper for updating specific logo properties
+  const updateLogoProperty = (blockId, property, value) => {
+    setBlocks(prevBlocks => {
+      const newBlocks = prevBlocks.map(b => {
+        if (b.id !== blockId) return b;
+        return {
+          ...b,
+          data: {
+            ...b.data,
+            logo: { ...(b.data.logo || {}), [property]: value }
+          }
+        };
+      });
+      saveToHistory(newBlocks);
+      return newBlocks;
+    });
+  };
+
+  // Upload image function
+  const uploadImage = async (file, targetBlockId, fieldPath) => {
+    if (!file) return;
+    
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/upload/image`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      
+      const data = await res.json();
+      if (data.url) {
+        // Update the block with the new image URL
+        if (fieldPath === 'logo') {
+          updateLogoProperty(targetBlockId, 'url', data.url);
+        } else if (fieldPath === 'src') {
+          updateBlock(targetBlockId, { src: data.url });
+        }
+        console.log('✅ Image uploaded:', data.url);
+      } else {
+        alert(data.error || 'Failed to upload image');
+      }
+    } catch (err) {
+      console.error('Upload error:', err);
+      alert('Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const deleteBlock = (blockId) => {
@@ -1052,15 +1129,16 @@ export default function EmailEditor() {
                     key={block.id}
                     onClick={(e) => {
                       e.stopPropagation();
+                      e.preventDefault();
                       setSelectedBlockId(block.id);
                     }}
                     className={`relative group cursor-pointer transition-all ${selectedBlockId === block.id ? 'ring-2 ring-purple-500 ring-inset bg-purple-50/30' : 'hover:ring-2 hover:ring-purple-200 hover:ring-inset'}`}
                     style={{ minHeight: '20px' }}
                   >
-                    {/* Click hint overlay */}
+                    {/* Click hint - positioned at top right corner */}
                     {selectedBlockId !== block.id && (
-                      <div className="absolute inset-0 bg-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10 pointer-events-none">
-                        <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded shadow-lg">Click to edit</span>
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                        <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap">Click to edit</span>
                       </div>
                     )}
                     
@@ -1178,11 +1256,58 @@ export default function EmailEditor() {
                 {selectedBlock.type === 'image' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Image</label>
+                      
+                      {/* Current image preview */}
+                      {selectedBlock.data.src && (
+                        <div className="mb-3 p-2 bg-gray-50 rounded-lg">
+                          <img 
+                            src={selectedBlock.data.src} 
+                            alt={selectedBlock.data.alt || 'Image'} 
+                            className="max-w-full h-auto max-h-32 mx-auto rounded"
+                          />
+                        </div>
+                      )}
+                      
+                      {/* Upload button */}
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) {
+                            uploadImage(e.target.files[0], selectedBlock.id, 'src');
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingImage}
+                        className="w-full py-2.5 border-2 border-dashed border-purple-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors flex items-center justify-center gap-2 text-purple-600 font-medium mb-3"
+                      >
+                        {uploadingImage ? (
+                          <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</>
+                        ) : (
+                          <><ImagePlus className="w-4 h-4" /> Upload Image</>
+                        )}
+                      </button>
+                      
+                      {/* Or enter URL */}
+                      <div className="relative my-3">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-gray-200" />
+                        </div>
+                        <div className="relative flex justify-center text-xs">
+                          <span className="px-2 bg-white text-gray-500">or paste URL</span>
+                        </div>
+                      </div>
+                      
                       <input
                         type="text"
                         value={selectedBlock.data.src || ''}
                         onChange={(e) => updateBlock(selectedBlock.id, { src: e.target.value })}
+                        placeholder="https://example.com/image.jpg"
                         className="w-full p-2 border border-gray-300 rounded-lg"
                       />
                     </div>
@@ -1192,6 +1317,7 @@ export default function EmailEditor() {
                         type="text"
                         value={selectedBlock.data.alt || ''}
                         onChange={(e) => updateBlock(selectedBlock.id, { alt: e.target.value })}
+                        placeholder="Describe the image"
                         className="w-full p-2 border border-gray-300 rounded-lg"
                       />
                     </div>
@@ -1201,6 +1327,7 @@ export default function EmailEditor() {
                         type="text"
                         value={selectedBlock.data.link || ''}
                         onChange={(e) => updateBlock(selectedBlock.id, { link: e.target.value })}
+                        placeholder="https://example.com"
                         className="w-full p-2 border border-gray-300 rounded-lg"
                       />
                     </div>
@@ -1211,38 +1338,89 @@ export default function EmailEditor() {
                 {selectedBlock.type === 'header' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Logo Image</label>
+                      
+                      {/* Current logo preview */}
+                      {selectedBlock.data.logo?.url && (
+                        <div className="mb-3 p-3 bg-gray-50 rounded-lg">
+                          <img 
+                            src={selectedBlock.data.logo.url} 
+                            alt={selectedBlock.data.logo?.alt || 'Logo'} 
+                            className="max-w-full h-auto max-h-20 mx-auto"
+                          />
+                        </div>
+                      )}
+                      
+                      {/* Upload button */}
+                      <input
+                        type="file"
+                        ref={logoInputRef}
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) {
+                            uploadImage(e.target.files[0], selectedBlock.id, 'logo');
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={() => logoInputRef.current?.click()}
+                        disabled={uploadingImage}
+                        className="w-full py-2.5 border-2 border-dashed border-purple-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors flex items-center justify-center gap-2 text-purple-600 font-medium mb-3"
+                      >
+                        {uploadingImage ? (
+                          <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</>
+                        ) : (
+                          <><Upload className="w-4 h-4" /> Upload Logo</>
+                        )}
+                      </button>
+                      
+                      {/* Or enter URL */}
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-gray-200" />
+                        </div>
+                        <div className="relative flex justify-center text-xs">
+                          <span className="px-2 bg-white text-gray-500">or enter URL</span>
+                        </div>
+                      </div>
+                      
                       <input
                         type="text"
                         value={selectedBlock.data.logo?.url || ''}
-                        onChange={(e) => updateBlock(selectedBlock.id, { logo: { ...selectedBlock.data.logo, url: e.target.value } })}
+                        onChange={(e) => updateLogoProperty(selectedBlock.id, 'url', e.target.value)}
                         placeholder="https://yoursite.com/logo.png"
-                        className="w-full p-2 border border-gray-300 rounded-lg"
+                        className="w-full p-2 border border-gray-300 rounded-lg mt-3"
                       />
                     </div>
+                    
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Logo Alt Text</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Logo Text (shown if no image)</label>
                       <input
                         type="text"
-                        value={selectedBlock.data.logo?.alt || 'Logo'}
-                        onChange={(e) => updateBlock(selectedBlock.id, { logo: { ...selectedBlock.data.logo, alt: e.target.value } })}
+                        value={selectedBlock.data.logo?.alt || ''}
+                        onChange={(e) => updateLogoProperty(selectedBlock.id, 'alt', e.target.value)}
+                        placeholder="Your Brand Name"
                         className="w-full p-2 border border-gray-300 rounded-lg"
                       />
+                      <p className="text-xs text-gray-500 mt-1">This text displays when no logo image is set</p>
                     </div>
+                    
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Logo Width</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Logo Width (px)</label>
                       <input
                         type="number"
                         value={selectedBlock.data.logo?.width || 150}
-                        onChange={(e) => updateBlock(selectedBlock.id, { logo: { ...selectedBlock.data.logo, width: parseInt(e.target.value) } })}
+                        onChange={(e) => updateLogoProperty(selectedBlock.id, 'width', parseInt(e.target.value) || 150)}
                         className="w-full p-2 border border-gray-300 rounded-lg"
                       />
                     </div>
+                    
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
                       <input
                         type="color"
-                        value={selectedBlock.data.backgroundColor || '#ffffff'}
+                        value={selectedBlock.data.backgroundColor || '#7c3aed'}
                         onChange={(e) => updateBlock(selectedBlock.id, { backgroundColor: e.target.value })}
                         className="w-full h-10 rounded-lg cursor-pointer"
                       />
