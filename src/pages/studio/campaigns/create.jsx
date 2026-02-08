@@ -1,8 +1,9 @@
 // ============================================
 // FILE: src/pages/studio/campaigns/create.jsx  
 // CYBEV Campaign Creation Wizard - Fully Functional
-// VERSION: 5.4.0 - Send Success Modal
+// VERSION: 5.5.0 - Fixed Send From Editor Flow
 // CHANGELOG:
+//   5.5.0 - Load campaign from editId, skip to review, fix html in send request
 //   5.4.0 - Added beautiful send success modal with stats
 //   5.3.0 - Added "Edit Template" button after template selection
 //   5.2.0 - Display built-in templates with thumbnails, ratings, usage counts
@@ -121,11 +122,52 @@ export default function CreateCampaign() {
         if (preselectedList && listData.lists?.some(l => l._id === preselectedList)) {
           setCampaign(p => ({ ...p, audienceType: 'list', selectedLists: [preselectedList] }));
         }
+
+        // Handle editId - load campaign from editor
+        const editId = router.query.editId;
+        if (editId) {
+          try {
+            const campaignRes = await fetch(`${API_URL}/api/campaigns-enhanced/${editId}`, getAuth());
+            const campaignData = await campaignRes.json();
+            if (campaignData.campaign || campaignData._id) {
+              const c = campaignData.campaign || campaignData;
+              const htmlContent = c.html || c.content?.html || '';
+              setCampaign(p => ({
+                ...p,
+                _id: c._id,
+                name: c.name || p.name,
+                subject: c.subject || p.subject,
+                previewText: c.previewText || '',
+                type: c.type || 'regular',
+                html: htmlContent, // Also set at top level for send
+                sender: {
+                  name: c.fromName || p.sender.name,
+                  email: c.fromEmail || p.sender.email
+                },
+                audienceType: c.audienceType || 'all',
+                selectedLists: c.lists || [],
+                includeTags: c.includeTags || [],
+                excludeTags: c.excludeTags || [],
+                content: {
+                  type: 'editor',
+                  templateId: null,
+                  html: htmlContent,
+                  designJson: c.designJson || c.content?.json || null
+                }
+              }));
+              // Skip to review step if coming from editor
+              setCurrentStep(4); // Review step
+              console.log('📧 Loaded campaign from editor:', c.name, 'HTML length:', htmlContent.length);
+            }
+          } catch (err) {
+            console.error('Error loading campaign for editing:', err);
+          }
+        }
       } catch (err) { console.error('Fetch error:', err); }
       finally { setLoading(false); }
     };
     fetchData();
-  }, [router.query.list]);
+  }, [router.query.list, router.query.editId]);
 
   const previewAudience = async () => {
     setLoadingAudience(true);
@@ -224,12 +266,26 @@ export default function CreateCampaign() {
     if (!confirm(`Send to ${audienceCount.toLocaleString()} recipients?`)) return;
     setSending(true);
     try {
-      const res = await fetch(`${API_URL}/api/campaigns-enhanced/send`, { method: 'POST', ...getAuth(), body: JSON.stringify(campaign) });
+      // Prepare campaign data with html at top level for backend
+      const sendData = {
+        ...campaign,
+        html: campaign.html || campaign.content?.html || '',
+        fromEmail: campaign.sender?.email,
+        fromName: campaign.sender?.name
+      };
+      
+      console.log('📤 Sending campaign:', sendData.name, 'HTML length:', sendData.html?.length);
+      
+      const res = await fetch(`${API_URL}/api/campaigns-enhanced/send`, { method: 'POST', ...getAuth(), body: JSON.stringify(sendData) });
       const data = await res.json();
+      console.log('📤 Send response:', data);
+      
       if (data.ok) {
-        setSendResult({ sent: data.sent || audienceCount, campaignId: data.campaignId });
+        console.log('✅ Campaign sent successfully, showing modal');
+        setSendResult({ sent: data.sent || audienceCount, campaignId: data.campaign?._id || data.campaignId });
         setShowSendSuccess(true);
       } else {
+        console.error('❌ Send failed:', data.error);
         alert(data.error || 'Failed to send campaign');
       }
     } catch (err) {
