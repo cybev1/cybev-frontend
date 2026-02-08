@@ -1,8 +1,9 @@
 // ============================================
 // FILE: src/pages/studio/campaigns/editor.jsx
 // CYBEV Email Builder - Klaviyo Quality
-// VERSION: 3.7.0 - Live Preview + Image Upload
+// VERSION: 3.8.0 - Fixed Logo Text in HTML Generation
 // CHANGELOG:
+//   3.8.0 - Fixed HTML generation to use logo.alt text instead of hardcoded "Your Logo"
 //   3.7.0 - Fixed live preview updates, added image upload, fixed click hint position
 //   3.6.0 - Prevent button/image links from redirecting in edit mode
 //   3.5.0 - Fixed header text color, improved save error handling
@@ -704,9 +705,10 @@ export default function EmailEditor() {
       
       switch (type) {
         case 'header':
+          const logoText = data.logo?.alt || 'Your Logo';
           const logoHtml = data.logo?.url 
             ? `<img src="${data.logo.url}" alt="${data.logo.alt || 'Logo'}" style="max-width: ${data.logo.width || 150}px; height: auto;" />`
-            : `<div style="font-size: 24px; font-weight: bold; color: #ffffff;">Your Logo</div>`;
+            : `<div style="font-size: 24px; font-weight: bold; color: ${data.textColor || '#ffffff'};">${logoText}</div>`;
           return `<div style="${padding}${bgColor}${align}">${logoHtml}</div>`;
           
         case 'text':
