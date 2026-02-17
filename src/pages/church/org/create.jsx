@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/church/org/create.jsx
 // PURPOSE: Create New Organization with Ministry Selection & CE Zones
-// VERSION: 3.0 - Ministry Selection + CE Zones Support
+// VERSION: 3.2 - FIXED zone selection + proper category labels
 // DEPLOY TO: cybev-frontend-main/src/pages/church/org/create.jsx
 // ============================================
 
@@ -45,7 +45,9 @@ const ZONE_CATEGORIES = [
   { value: 'zone', label: 'Main Zones' },
   { value: 'blw', label: 'BLW Zones' },
   { value: 'ministry', label: 'Ministry Zones' },
+  { value: 'mvp', label: 'MVP Zones' },
   { value: 'ism', label: 'ISM Zones' },
+  { value: 'digital', label: 'Digital Zones' },
   { value: 'department', label: 'Departments' }
 ];
 
@@ -59,6 +61,20 @@ const COLOR_THEMES = [
   { value: 'teal', label: 'Teal', class: 'bg-teal-500' },
   { value: 'indigo', label: 'Indigo', class: 'bg-indigo-500' }
 ];
+
+// Helper to get proper category label
+const getCategoryLabel = (category) => {
+  switch(category) {
+    case 'zone': return 'Main Zone';
+    case 'blw': return 'BLW Zone';
+    case 'ism': return 'ISM Zone';
+    case 'mvp': return 'MVP Zone';
+    case 'ministry': return 'Ministry Zone';
+    case 'digital': return 'Digital Zone';
+    case 'department': return 'Department';
+    default: return category;
+  }
+};
 
 export default function CreateOrganizationPage() {
   const router = useRouter();
@@ -149,45 +165,29 @@ export default function CreateOrganizationPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      
       if (data.ok) {
         setCeZones(data.zones || []);
         setFilteredZones(data.zones || []);
       }
     } catch (err) {
-      console.error('Error fetching CE zones:', err);
+      console.error('Failed to fetch zones:', err);
     } finally {
       setLoadingZones(false);
     }
   };
 
   const fetchOrganizations = async () => {
-    setLoadingOrgs(true);
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API}/api/church/organizations/available-parents`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      
       if (data.ok) {
         setAllOrgs(data.organizations || []);
       }
     } catch (err) {
-      console.error('Error fetching organizations:', err);
-      // Fallback
-      try {
-        const token = localStorage.getItem('token');
-        const res = await fetch(`${API}/api/church/organizations/my`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const data = await res.json();
-        if (data.ok) {
-          setAllOrgs(data.organizations || data.orgs || []);
-        }
-      } catch (e) {
-        console.error('Fallback failed:', e);
-      }
+      console.error('Failed to fetch organizations:', err);
     } finally {
       setLoadingOrgs(false);
     }
@@ -195,20 +195,28 @@ export default function CreateOrganizationPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name.startsWith('contact.')) {
-      const field = name.split('.')[1];
+    if (name.includes('.')) {
+      const [parent, child] = name.split('.');
       setFormData(prev => ({
         ...prev,
-        contact: { ...prev.contact, [field]: value }
+        [parent]: { ...prev[parent], [child]: value }
       }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
 
-  const selectZone = (zone) => {
+  // FIXED: Zone selection handler
+  const handleSelectZone = (zone) => {
+    console.log('Selecting zone:', zone);
     setSelectedZone(zone);
     setFormData(prev => ({ ...prev, ceZoneId: zone.id }));
+  };
+
+  // FIXED: Clear zone selection
+  const handleClearZone = () => {
+    setSelectedZone(null);
+    setFormData(prev => ({ ...prev, ceZoneId: '' }));
   };
 
   const handleSubmit = async (e) => {
@@ -251,74 +259,39 @@ export default function CreateOrganizationPage() {
         setError(data.error || 'Failed to create organization');
       }
     } catch (err) {
-      setError('Network error. Please try again.');
+      setError('Failed to create organization. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Quick create a parent organization
-  const handleCreateParent = async () => {
-    if (!newParentName.trim() || !createParentType) return;
-    
-    setCreatingParent(true);
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API}/api/church/organizations`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          name: newParentName,
-          type: createParentType,
-          ministry: formData.ministry,
-          ceZone: selectedZone ? {
-            id: selectedZone.id,
-            name: selectedZone.name,
-            category: selectedZone.category
-          } : null
-        })
-      });
-      
-      const data = await res.json();
-      if (data.ok) {
-        const newOrg = data.organization || data.org;
-        setAllOrgs(prev => [...prev, newOrg]);
-        setSelectedParentOrg(newOrg._id);
-        setFormData(prev => ({ ...prev, parentId: newOrg._id }));
-        setShowCreateParent(false);
-        setNewParentName('');
-      } else {
-        alert(data.error || 'Failed to create');
+  const nextStep = () => {
+    if (currentStep < totalSteps) {
+      // Validation for each step
+      if (currentStep === 1 && formData.ministry === 'others' && !formData.customMinistry.trim()) {
+        setError('Please enter your ministry/denomination name');
+        return;
       }
-    } catch (err) {
-      alert('Error creating organization');
-    } finally {
-      setCreatingParent(false);
+      if (currentStep === 2 && formData.ministry === 'christ_embassy' && !selectedZone) {
+        setError('Please select a CE Zone');
+        return;
+      }
+      setError('');
+      setCurrentStep(currentStep + 1);
     }
   };
 
-  const openCreateParentModal = (type) => {
-    setCreateParentType(type);
-    setNewParentName('');
-    setShowCreateParent(true);
-  };
-
-  // Step navigation
-  const nextStep = () => {
-    if (currentStep < totalSteps) setCurrentStep(currentStep + 1);
-  };
-
   const prevStep = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1);
+    if (currentStep > 1) {
+      setError('');
+      setCurrentStep(currentStep - 1);
+    }
   };
 
   const canProceed = () => {
     switch (currentStep) {
-      case 1: return formData.ministry;
-      case 2: return formData.ministry === 'others' || (formData.ministry === 'christ_embassy' && selectedZone);
+      case 1: return formData.ministry && (formData.ministry !== 'others' || formData.customMinistry.trim());
+      case 2: return formData.ministry !== 'christ_embassy' || selectedZone;
       case 3: return formData.type;
       case 4: return formData.name.trim();
       case 5: return true;
@@ -326,28 +299,22 @@ export default function CreateOrganizationPage() {
     }
   };
 
-  // Get available parent organizations based on type and zone
+  // Get available parent organizations based on selected type
   const getAvailableParents = () => {
+    const hierarchy = { zone: 0, church: 1, fellowship: 2, cell: 3, biblestudy: 4 };
+    const currentLevel = hierarchy[formData.type] || 1;
+    
+    // Filter orgs that can be parents (lower level number = higher in hierarchy)
     let parents = allOrgs.filter(org => {
-      // Filter by ministry
-      if (formData.ministry === 'christ_embassy' && org.ministry !== 'christ_embassy') return false;
-      
-      // Filter by zone if selected
-      if (selectedZone && org.ceZone?.id !== selectedZone.id) return false;
-      
-      return true;
+      const orgLevel = hierarchy[org.type] || 0;
+      return orgLevel < currentLevel;
     });
 
-    // Filter by type hierarchy
-    const typeOrder = ['zone', 'church', 'fellowship', 'cell', 'biblestudy'];
-    const currentTypeIndex = typeOrder.indexOf(formData.type);
-    
-    if (currentTypeIndex > 0) {
-      // Can only have parents that are higher in hierarchy
-      parents = parents.filter(org => {
-        const orgTypeIndex = typeOrder.indexOf(org.type);
-        return orgTypeIndex < currentTypeIndex;
-      });
+    // If CE zone is selected, prioritize orgs from that zone
+    if (selectedZone) {
+      parents = parents.filter(org => 
+        org.ceZone?.id === selectedZone.id || !org.ceZone
+      );
     }
 
     return parents;
@@ -518,15 +485,12 @@ export default function CreateOrganizationPage() {
                         <MapPin className="w-5 h-5 text-purple-600" />
                         <div>
                           <p className="font-medium text-purple-900">{selectedZone.name}</p>
-                          <p className="text-sm text-purple-600 capitalize">{selectedZone.category} Zone</p>
+                          <p className="text-sm text-purple-600">{getCategoryLabel(selectedZone.category)}</p>
                         </div>
                       </div>
                       <button
                         type="button"
-                        onClick={() => {
-                          setSelectedZone(null);
-                          setFormData(prev => ({ ...prev, ceZoneId: '' }));
-                        }}
+                        onClick={handleClearZone}
                         className="p-1 hover:bg-purple-100 rounded"
                       >
                         <X className="w-5 h-5 text-purple-600" />
@@ -549,11 +513,10 @@ export default function CreateOrganizationPage() {
                         </div>
                       ) : (
                         filteredZones.map(zone => (
-                          <button
+                          <div
                             key={zone.id}
-                            type="button"
-                            onClick={() => selectZone(zone)}
-                            className={`w-full p-3 text-left hover:bg-gray-50 flex items-center justify-between ${
+                            onClick={() => handleSelectZone(zone)}
+                            className={`w-full p-3 text-left hover:bg-gray-50 flex items-center justify-between cursor-pointer ${
                               selectedZone?.id === zone.id ? 'bg-purple-50' : ''
                             }`}
                           >
@@ -563,13 +526,13 @@ export default function CreateOrganizationPage() {
                               }`} />
                               <div>
                                 <p className="font-medium text-gray-900">{zone.name}</p>
-                                <p className="text-xs text-gray-500 capitalize">{zone.category}</p>
+                                <p className="text-xs text-gray-500">{getCategoryLabel(zone.category)}</p>
                               </div>
                             </div>
                             {selectedZone?.id === zone.id && (
                               <CheckCircle className="w-5 h-5 text-purple-600" />
                             )}
-                          </button>
+                          </div>
                         ))
                       )}
                     </div>
@@ -625,26 +588,26 @@ export default function CreateOrganizationPage() {
               <h2 className="text-lg font-semibold text-gray-900 mb-2">Organization Type</h2>
               <p className="text-gray-500 text-sm mb-6">What type of organization are you creating?</p>
               
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-3">
                 {ORG_TYPES.map(type => (
                   <button
                     key={type.value}
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, type: type.value }))}
-                    className={`p-4 rounded-xl border-2 text-left transition ${
+                    className={`w-full p-4 rounded-xl border-2 text-left transition ${
                       formData.type === type.value
                         ? 'border-purple-500 bg-purple-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-center gap-4">
                       <span className="text-2xl">{type.icon}</span>
                       <div className="flex-1">
                         <p className="font-semibold text-gray-900">{type.label}</p>
                         <p className="text-sm text-gray-500">{type.description}</p>
                       </div>
                       {formData.type === type.value && (
-                        <CheckCircle className="w-5 h-5 text-purple-600" />
+                        <CheckCircle className="w-6 h-6 text-purple-600" />
                       )}
                     </div>
                   </button>
@@ -653,32 +616,20 @@ export default function CreateOrganizationPage() {
 
               {/* Parent Organization Selection */}
               {formData.type !== 'church' && (
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Parent Organization (Optional)
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => openCreateParentModal(
-                        formData.type === 'cell' ? 'fellowship' :
-                        formData.type === 'biblestudy' ? 'cell' : 'church'
-                      )}
-                      className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1"
-                    >
-                      <Plus className="w-3 h-3" /> Create New
-                    </button>
-                  </div>
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Parent Organization <span className="text-gray-400">(Optional)</span>
+                  </label>
                   <select
+                    name="parentId"
                     value={formData.parentId}
-                    onChange={(e) => setFormData(prev => ({ ...prev, parentId: e.target.value }))}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   >
-                    <option value="">-- No Parent (Standalone) --</option>
+                    <option value="">No Parent (Independent)</option>
                     {getAvailableParents().map(org => (
                       <option key={org._id} value={org._id}>
                         {org.name} ({org.type})
-                        {org.ceZone?.name ? ` - ${org.ceZone.name}` : ''}
                       </option>
                     ))}
                   </select>
@@ -687,26 +638,58 @@ export default function CreateOrganizationPage() {
             </div>
           )}
 
-          {/* Step 4: Organization Details */}
+          {/* Step 4: Basic Details */}
           {currentStep === 4 && (
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-2">Organization Details</h2>
-              <p className="text-gray-500 text-sm mb-6">Provide basic information about your {selectedType?.label.toLowerCase()}</p>
+              <p className="text-gray-500 text-sm mb-6">Enter the basic information</p>
               
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {selectedType?.label} Name <span className="text-red-500">*</span>
+                    Organization Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    placeholder={`e.g., Christ Embassy ${formData.contact.city || 'Lagos'} - Main`}
+                    placeholder={`e.g., Christ Embassy ${formData.contact.city || 'Lagos'}`}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     required
                   />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Leader Title</label>
+                    <select
+                      name="leaderTitle"
+                      value={formData.leaderTitle}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    >
+                      <option value="">Select Title</option>
+                      <option value="Pastor">Pastor</option>
+                      <option value="Deacon">Deacon</option>
+                      <option value="Deaconess">Deaconess</option>
+                      <option value="Brother">Brother</option>
+                      <option value="Sister">Sister</option>
+                      <option value="Elder">Elder</option>
+                      <option value="Reverend">Reverend</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Leader Name</label>
+                    <input
+                      type="text"
+                      name="leaderName"
+                      value={formData.leaderName}
+                      onChange={handleChange}
+                      placeholder="Leader's full name"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -717,45 +700,12 @@ export default function CreateOrganizationPage() {
                     onChange={handleChange}
                     rows={3}
                     placeholder="Brief description of your organization..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                   />
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Leader Name</label>
-                    <input
-                      type="text"
-                      name="leaderName"
-                      value={formData.leaderName}
-                      onChange={handleChange}
-                      placeholder="Full name of the leader"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Leader Title</label>
-                    <select
-                      name="leaderTitle"
-                      value={formData.leaderTitle}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    >
-                      <option value="">-- Select Title --</option>
-                      <option value="Pastor">Pastor</option>
-                      <option value="Deacon">Deacon</option>
-                      <option value="Deaconess">Deaconess</option>
-                      <option value="Brother">Brother</option>
-                      <option value="Sister">Sister</option>
-                      <option value="Elder">Elder</option>
-                      <option value="Minister">Minister</option>
-                      <option value="Evangelist">Evangelist</option>
-                    </select>
-                  </div>
-                </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Motto (Optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Motto</label>
                   <input
                     type="text"
                     name="motto"
@@ -766,22 +716,23 @@ export default function CreateOrganizationPage() {
                   />
                 </div>
 
-                {/* Color Theme */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Color Theme</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Theme Color</label>
                   <div className="flex flex-wrap gap-3">
-                    {COLOR_THEMES.map((theme) => (
+                    {COLOR_THEMES.map(color => (
                       <button
-                        key={theme.value}
+                        key={color.value}
                         type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, colorTheme: theme.value }))}
-                        className={`w-10 h-10 rounded-full ${theme.class} transition transform ${
-                          formData.colorTheme === theme.value
-                            ? 'ring-4 ring-offset-2 ring-gray-400 scale-110'
-                            : 'hover:scale-105'
+                        onClick={() => setFormData(prev => ({ ...prev, colorTheme: color.value }))}
+                        className={`w-10 h-10 rounded-full ${color.class} flex items-center justify-center transition-transform ${
+                          formData.colorTheme === color.value ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''
                         }`}
-                        title={theme.label}
-                      />
+                        title={color.label}
+                      >
+                        {formData.colorTheme === color.value && (
+                          <CheckCircle className="w-5 h-5 text-white" />
+                        )}
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -793,7 +744,7 @@ export default function CreateOrganizationPage() {
           {currentStep === 5 && (
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-2">Contact Information</h2>
-              <p className="text-gray-500 text-sm mb-6">How can people reach this organization?</p>
+              <p className="text-gray-500 text-sm mb-6">Add contact details (optional)</p>
               
               <div className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
@@ -804,7 +755,7 @@ export default function CreateOrganizationPage() {
                       name="contact.email"
                       value={formData.contact.email}
                       onChange={handleChange}
-                      placeholder="contact@example.com"
+                      placeholder="contact@church.com"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
@@ -815,7 +766,7 @@ export default function CreateOrganizationPage() {
                       name="contact.phone"
                       value={formData.contact.phone}
                       onChange={handleChange}
-                      placeholder="+1 234 567 8900"
+                      placeholder="+234 xxx xxxx"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
@@ -829,142 +780,97 @@ export default function CreateOrganizationPage() {
                     onChange={handleChange}
                     rows={2}
                     placeholder="Street address"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                   />
                 </div>
 
-                {/* Summary */}
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h3 className="font-medium text-gray-900 mb-3">Summary</h3>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Ministry:</span>
-                      <span className="font-medium text-gray-900">
-                        {formData.ministry === 'christ_embassy' ? 'Christ Embassy' : formData.customMinistry || 'Other'}
-                      </span>
+                {formData.ministry === 'christ_embassy' && (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                      <input
+                        type="text"
+                        name="contact.city"
+                        value={formData.contact.city}
+                        onChange={handleChange}
+                        placeholder="City"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
                     </div>
-                    {selectedZone && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Zone:</span>
-                        <span className="font-medium text-gray-900">{selectedZone.name}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Type:</span>
-                      <span className="font-medium text-gray-900">{selectedType?.label}</span>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                      <input
+                        type="text"
+                        name="contact.country"
+                        value={formData.contact.country}
+                        onChange={handleChange}
+                        placeholder="Country"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Name:</span>
-                      <span className="font-medium text-gray-900">{formData.name || '-'}</span>
-                    </div>
-                    {formData.leaderName && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Leader:</span>
-                        <span className="font-medium text-gray-900">
-                          {formData.leaderTitle} {formData.leaderName}
-                        </span>
-                      </div>
-                    )}
                   </div>
+                )}
+              </div>
+
+              {/* Summary */}
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h3 className="font-medium text-gray-900 mb-2">Summary</h3>
+                <div className="space-y-1 text-sm text-gray-600">
+                  <p><span className="font-medium">Ministry:</span> {formData.ministry === 'christ_embassy' ? 'Christ Embassy' : formData.customMinistry}</p>
+                  {selectedZone && <p><span className="font-medium">Zone:</span> {selectedZone.name}</p>}
+                  <p><span className="font-medium">Type:</span> {selectedType?.label}</p>
+                  <p><span className="font-medium">Name:</span> {formData.name || 'Not set'}</p>
+                  {formData.leaderName && <p><span className="font-medium">Leader:</span> {formData.leaderTitle} {formData.leaderName}</p>}
                 </div>
               </div>
             </div>
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex items-center justify-between mt-6">
-            {currentStep > 1 ? (
+          <div className="flex gap-4 mt-6">
+            {currentStep > 1 && (
               <button
                 type="button"
                 onClick={prevStep}
-                className="px-6 py-3 text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                className="flex-1 py-3 px-4 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 flex items-center justify-center gap-2"
               >
-                <ArrowLeft className="w-4 h-4" /> Back
+                <ArrowLeft className="w-5 h-5" />
+                Back
               </button>
-            ) : (
-              <Link href="/church" className="px-6 py-3 text-gray-600 hover:text-gray-900">
-                Cancel
-              </Link>
             )}
-
+            
             {currentStep < totalSteps ? (
               <button
                 type="button"
                 onClick={nextStep}
                 disabled={!canProceed()}
-                className="flex items-center gap-2 px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="flex-1 py-3 px-4 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Next <ChevronRight className="w-4 h-4" />
+                Next
+                <ChevronRight className="w-5 h-5" />
               </button>
             ) : (
               <button
                 type="submit"
-                disabled={loading || !formData.name || success}
-                className="flex items-center gap-2 px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                disabled={loading || success || !formData.name.trim()}
+                className="flex-1 py-3 px-4 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
-                  <><Loader2 className="w-5 h-5 animate-spin" /> Creating...</>
-                ) : success ? (
-                  <><CheckCircle className="w-5 h-5" /> Created!</>
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Creating...
+                  </>
                 ) : (
-                  <><Save className="w-5 h-5" /> Create {selectedType?.label}</>
+                  <>
+                    <Save className="w-5 h-5" />
+                    Create Organization
+                  </>
                 )}
               </button>
             )}
           </div>
         </form>
       </div>
-
-      {/* Quick Create Parent Modal */}
-      {showCreateParent && createParentType && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">
-                Create New {ORG_TYPES.find(t => t.value === createParentType)?.label || createParentType}
-              </h3>
-              <button onClick={() => setShowCreateParent(false)} className="p-1 hover:bg-gray-100 rounded">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <p className="text-sm text-gray-500 mb-4">
-              Quickly create a parent organization.
-            </p>
-
-            <input
-              type="text"
-              value={newParentName}
-              onChange={(e) => setNewParentName(e.target.value)}
-              placeholder={`${ORG_TYPES.find(t => t.value === createParentType)?.label || 'Organization'} name...`}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-4"
-              autoFocus
-            />
-
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setShowCreateParent(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleCreateParent}
-                disabled={!newParentName.trim() || creatingParent}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
-              >
-                {creatingParent ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Creating...</>
-                ) : (
-                  <><Plus className="w-4 h-4" /> Create</>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </AppLayout>
   );
 }
