@@ -628,11 +628,11 @@ export default function AddSoulPage() {
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="Search zones..."
+                        placeholder="👆 Click here to select a zone..."
                         value={zoneSearch}
                         onChange={(e) => setZoneSearch(e.target.value)}
                         onFocus={() => setShowZoneDropdown(true)}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-400"
                       />
                     </div>
                     <select
@@ -718,11 +718,11 @@ export default function AddSoulPage() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <input
                           type="text"
-                          placeholder="Search churches in this zone..."
+                          placeholder="👆 Click to select or search church..."
                           value={churchSearch}
                           onChange={(e) => setChurchSearch(e.target.value)}
                           onFocus={() => setShowChurchDropdown(true)}
-                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-400"
                         />
                       </div>
                       <button
