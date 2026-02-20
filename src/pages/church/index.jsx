@@ -1,8 +1,11 @@
 // ============================================
 // FILE: src/pages/church/index.jsx
-// PURPOSE: Church Dashboard with Ministry Selection & CE Zones
-// VERSION: 3.0 - Ministry Filter + CE Zones Support
-// DEPLOY TO: cybev-frontend-main/src/pages/church/index.jsx
+// PURPOSE: Church Dashboard with Quick Create Buttons
+// VERSION: 4.0 - Added Create Church, Fellowship, Cell, Bible Study buttons
+// FIXES:
+//   - Quick create buttons prominently displayed
+//   - Easy access to create different org types
+//   - Better UX for finding creation options
 // ============================================
 
 import { useState, useEffect } from 'react';
@@ -12,7 +15,8 @@ import Link from 'next/link';
 import {
   Plus, Heart, Users, Building, Award, UserPlus, Target,
   BarChart2, BookOpen, Calendar, ChevronRight, Search,
-  TrendingUp, Church, Globe, Filter, MapPin
+  TrendingUp, Church, Globe, Filter, MapPin, Home, Users2,
+  BookOpenCheck, PlusCircle
 } from 'lucide-react';
 import AppLayout from '@/components/Layout/AppLayout';
 
@@ -60,17 +64,14 @@ export default function ChurchDashboard() {
   useEffect(() => {
     let filtered = [...organizations];
     
-    // Ministry filter
     if (ministryFilter !== 'all') {
       filtered = filtered.filter(org => org.ministry === ministryFilter);
     }
     
-    // Type filter
     if (typeFilter !== 'all') {
       filtered = filtered.filter(org => org.type === typeFilter);
     }
     
-    // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(org => 
@@ -91,7 +92,6 @@ export default function ChurchDashboard() {
         return;
       }
 
-      // Fetch organizations
       const orgsRes = await fetch(`${API}/api/church/organizations`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -102,7 +102,6 @@ export default function ChurchDashboard() {
         setOrganizations(orgs);
         setFilteredOrgs(orgs);
         
-        // Calculate stats from organizations
         const totalMembers = orgs.reduce((sum, org) => 
           sum + (org.members?.length || org.memberCount || 0), 0);
         const totalSouls = orgs.reduce((sum, org) => 
@@ -119,7 +118,6 @@ export default function ChurchDashboard() {
         }));
       }
 
-      // Fetch recent souls
       const soulsRes = await fetch(`${API}/api/church/souls?limit=5`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -127,7 +125,6 @@ export default function ChurchDashboard() {
       if (soulsData.ok) {
         setRecentSouls(soulsData.souls || []);
         
-        // Calculate new souls this month
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const newThisMonth = (soulsData.souls || []).filter(soul => 
@@ -137,7 +134,6 @@ export default function ChurchDashboard() {
         setStats(prev => ({ ...prev, newSoulsThisMonth: newThisMonth }));
       }
 
-      // Try to fetch dashboard stats
       try {
         const statsRes = await fetch(`${API}/api/church/dashboard/stats`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -152,9 +148,7 @@ export default function ChurchDashboard() {
             fsGraduates: statsData.fsGraduates || prev.fsGraduates
           }));
         }
-      } catch (e) {
-        // Stats endpoint optional
-      }
+      } catch (e) {}
 
     } catch (err) {
       console.error('Error fetching dashboard:', err);
@@ -210,6 +204,73 @@ export default function ChurchDashboard() {
           </Link>
         </div>
 
+        {/* ============================================ */}
+        {/* QUICK CREATE BUTTONS - NEW SECTION */}
+        {/* ============================================ */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <PlusCircle className="w-5 h-5 text-purple-600" />
+            Quick Create
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Create Church */}
+            <Link
+              href="/church/org/create?type=church"
+              className="flex flex-col items-center gap-3 p-4 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 transition shadow-lg hover:shadow-xl"
+            >
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center">
+                <Church className="w-7 h-7" />
+              </div>
+              <div className="text-center">
+                <p className="font-semibold">Create Church</p>
+                <p className="text-xs text-white/80">Local church</p>
+              </div>
+            </Link>
+
+            {/* Create Fellowship */}
+            <Link
+              href="/church/org/create?type=fellowship"
+              className="flex flex-col items-center gap-3 p-4 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition shadow-lg hover:shadow-xl"
+            >
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center">
+                <Users className="w-7 h-7" />
+              </div>
+              <div className="text-center">
+                <p className="font-semibold">Create Fellowship</p>
+                <p className="text-xs text-white/80">Small group</p>
+              </div>
+            </Link>
+
+            {/* Create Cell */}
+            <Link
+              href="/church/org/create?type=cell"
+              className="flex flex-col items-center gap-3 p-4 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition shadow-lg hover:shadow-xl"
+            >
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center">
+                <Home className="w-7 h-7" />
+              </div>
+              <div className="text-center">
+                <p className="font-semibold">Create Cell</p>
+                <p className="text-xs text-white/80">Home cell</p>
+              </div>
+            </Link>
+
+            {/* Create Bible Study Group */}
+            <Link
+              href="/church/org/create?type=biblestudy"
+              className="flex flex-col items-center gap-3 p-4 bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition shadow-lg hover:shadow-xl"
+            >
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center">
+                <BookOpenCheck className="w-7 h-7" />
+              </div>
+              <div className="text-center">
+                <p className="font-semibold">Bible Study</p>
+                <p className="text-xs text-white/80">Study group</p>
+              </div>
+            </Link>
+          </div>
+        </div>
+
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <StatCard
@@ -239,186 +300,86 @@ export default function ChurchDashboard() {
           />
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions - Original section */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <QuickAction
-            icon={UserPlus}
-            label="Add Soul"
-            description="Record new convert"
-            href="/church/souls/add"
-            color="red"
-          />
-          <QuickAction
-            icon={Target}
-            label="Soul Tracker"
-            description="Manage follow-ups"
-            href="/church/souls"
-            color="green"
-          />
-          <QuickAction
-            icon={BookOpen}
-            label="Foundation School"
-            description="Discipleship program"
-            href="/church/foundation"
-            color="blue"
-          />
-          <QuickAction
-            icon={BarChart2}
-            label="Attendance"
-            description="Record & analytics"
-            href="/church/attendance"
-            color="purple"
-          />
+          <QuickAction icon={UserPlus} label="Add Soul" description="Record new convert" href="/church/souls/add" color="red" />
+          <QuickAction icon={Target} label="Soul Tracker" description="Manage follow-ups" href="/church/souls" color="green" />
+          <QuickAction icon={BookOpen} label="Foundation School" description="Discipleship program" href="/church/foundation" color="blue" />
+          <QuickAction icon={BarChart2} label="Attendance" description="Record & analytics" href="/church/attendance" color="purple" />
         </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search organizations, zones, cities..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-            
-            {/* Ministry Filter */}
-            <div className="flex items-center gap-2">
-              <Globe className="w-5 h-5 text-gray-400" />
-              <select
-                value={ministryFilter}
-                onChange={(e) => setMinistryFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              >
-                {MINISTRIES.map(m => (
-                  <option key={m.value} value={m.value}>{m.icon} {m.label}</option>
-                ))}
-              </select>
-            </div>
-            
-            {/* Type Filter */}
-            <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-gray-400" />
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              >
-                <option value="all">All Types</option>
-                <option value="church">Churches</option>
-                <option value="fellowship">Fellowships</option>
-                <option value="cell">Cells</option>
-                <option value="biblestudy">Bible Studies</option>
-              </select>
-            </div>
+        {/* Search and Filters */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search organizations, zones, cities..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            />
           </div>
-          
-          {/* Active filters display */}
-          {(ministryFilter !== 'all' || typeFilter !== 'all' || searchQuery) && (
-            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
-              <span className="text-sm text-gray-500">Showing:</span>
-              {ministryFilter !== 'all' && (
-                <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
-                  {MINISTRIES.find(m => m.value === ministryFilter)?.label}
-                </span>
-              )}
-              {typeFilter !== 'all' && (
-                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                  {getOrgTypeLabel(typeFilter)}s
-                </span>
-              )}
-              {searchQuery && (
-                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                  "{searchQuery}"
-                </span>
-              )}
-              <button
-                onClick={() => {
-                  setMinistryFilter('all');
-                  setTypeFilter('all');
-                  setSearchQuery('');
-                }}
-                className="text-xs text-red-500 hover:underline ml-2"
-              >
-                Clear all
-              </button>
-            </div>
-          )}
+          <div className="flex gap-2">
+            <button className="p-3 border border-gray-200 rounded-xl hover:bg-gray-50">
+              <Globe className="w-5 h-5 text-gray-600" />
+            </button>
+            <select
+              value={ministryFilter}
+              onChange={(e) => setMinistryFilter(e.target.value)}
+              className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+            >
+              {MINISTRIES.map(m => (
+                <option key={m.value} value={m.value}>{m.icon} {m.label}</option>
+              ))}
+            </select>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="all">All Types</option>
+              <option value="church">Church</option>
+              <option value="cell">Cell</option>
+              <option value="fellowship">Fellowship</option>
+              <option value="biblestudy">Bible Study</option>
+              <option value="zone">Zone</option>
+            </select>
+          </div>
         </div>
 
-        {/* Organizations & Recent Souls */}
+        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Organizations List */}
           <div className="lg:col-span-2">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">
-                My Organizations
-                <span className="text-sm font-normal text-gray-500 ml-2">
-                  ({filteredOrgs.length} of {organizations.length})
-                </span>
+                My Organizations ({filteredOrgs.length} of {organizations.length})
               </h2>
-              <Link href="/church/org" className="text-sm text-purple-600 hover:underline flex items-center gap-1">
+              <Link href="/church/organizations" className="text-sm text-purple-600 hover:underline flex items-center gap-1">
                 View All <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
 
             {filteredOrgs.length === 0 ? (
-              <div className="bg-white rounded-xl p-8 text-center border border-gray-200">
-                <Building className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                {organizations.length === 0 ? (
-                  <>
-                    <h3 className="font-semibold text-gray-900 mb-2">No organizations yet</h3>
-                    <p className="text-gray-500 text-sm mb-4">Create your first church or ministry organization</p>
-                    <Link
-                      href="/church/org/create"
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Create Organization
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <h3 className="font-semibold text-gray-900 mb-2">No matching organizations</h3>
-                    <p className="text-gray-500 text-sm mb-4">Try adjusting your filters</p>
-                    <button
-                      onClick={() => {
-                        setMinistryFilter('all');
-                        setTypeFilter('all');
-                        setSearchQuery('');
-                      }}
-                      className="text-purple-600 hover:underline"
-                    >
-                      Clear filters
-                    </button>
-                  </>
-                )}
+              <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+                <Building className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="font-semibold text-gray-900 mb-2">No organizations found</h3>
+                <p className="text-gray-500 mb-4">Create your first organization to get started</p>
+                <Link href="/church/org/create" className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                  Create Organization
+                </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid gap-4">
                 {filteredOrgs.slice(0, 6).map(org => (
                   <OrgCard key={org._id} org={org} getOrgTypeLabel={getOrgTypeLabel} />
                 ))}
               </div>
             )}
-            
-            {filteredOrgs.length > 6 && (
-              <div className="text-center mt-4">
-                <Link
-                  href="/church/org"
-                  className="text-purple-600 hover:underline text-sm"
-                >
-                  View all {filteredOrgs.length} organizations →
-                </Link>
-              </div>
-            )}
           </div>
 
-          {/* Right Column */}
+          {/* Sidebar */}
           <div className="space-y-6">
             {/* Recent Souls */}
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -433,43 +394,29 @@ export default function ChurchDashboard() {
                 <div className="p-6 text-center">
                   <Heart className="w-10 h-10 text-gray-400 mx-auto mb-2" />
                   <p className="text-gray-500 text-sm mb-3">No souls recorded yet</p>
-                  <Link
-                    href="/church/souls/add"
-                    className="text-sm text-purple-600 hover:underline"
-                  >
+                  <Link href="/church/souls/add" className="text-sm text-purple-600 hover:underline">
                     Add First Soul
                   </Link>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100">
                   {recentSouls.map(soul => (
-                    <Link
-                      key={soul._id}
-                      href={`/church/souls/${soul._id}`}
-                      className="p-4 hover:bg-gray-50 block"
-                    >
+                    <Link key={soul._id} href={`/church/souls/${soul._id}`} className="p-4 hover:bg-gray-50 block">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium text-gray-900">
-                            {soul.firstName} {soul.lastName}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {soul.ceZone?.name || soul.organization?.name || 'Unassigned'}
-                          </p>
+                          <p className="font-medium text-gray-900">{soul.firstName} {soul.lastName}</p>
+                          <p className="text-sm text-gray-500">{soul.ceZone?.name || soul.organization?.name || 'Unassigned'}</p>
                         </div>
                         <div className="text-right">
                           <span className={`text-xs px-2 py-1 rounded-full ${
                             soul.status === 'new' ? 'bg-yellow-100 text-yellow-700' :
                             soul.status === 'contacted' ? 'bg-blue-100 text-blue-700' :
                             soul.status === 'attending' ? 'bg-green-100 text-green-700' :
-                            soul.status === 'member' ? 'bg-emerald-100 text-emerald-700' :
                             'bg-gray-100 text-gray-700'
                           }`}>
                             {soul.status || 'new'}
                           </span>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {new Date(soul.createdAt).toLocaleDateString()}
-                          </p>
+                          <p className="text-xs text-gray-400 mt-1">{new Date(soul.createdAt).toLocaleDateString()}</p>
                         </div>
                       </div>
                     </Link>
@@ -482,33 +429,11 @@ export default function ChurchDashboard() {
             <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl p-6 text-white">
               <BookOpen className="w-10 h-10 mb-3 opacity-80" />
               <h3 className="text-lg font-semibold mb-1">Foundation School</h3>
-              <p className="text-sm text-white/80 mb-4">
-                Enroll new believers in our 6-module discipleship program
-              </p>
-              <Link
-                href="/church/foundation"
-                className="block w-full text-center py-2 bg-white/20 hover:bg-white/30 rounded-lg transition"
-              >
+              <p className="text-sm text-white/80 mb-4">Enroll new believers in our 6-module discipleship program</p>
+              <Link href="/church/foundation" className="block w-full text-center py-2 bg-white/20 hover:bg-white/30 rounded-lg transition">
                 View Modules
               </Link>
             </div>
-            
-            {/* Christ Embassy Zone Highlight */}
-            {organizations.some(org => org.ministry === 'christ_embassy') && (
-              <div className="bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl p-6 text-white">
-                <Globe className="w-10 h-10 mb-3 opacity-80" />
-                <h3 className="text-lg font-semibold mb-1">Christ Embassy Zones</h3>
-                <p className="text-sm text-white/80 mb-4">
-                  You're connected to {organizations.filter(org => org.ministry === 'christ_embassy').length} CE organization(s)
-                </p>
-                <Link
-                  href="/church/org/create"
-                  className="block w-full text-center py-2 bg-white/20 hover:bg-white/30 rounded-lg transition"
-                >
-                  Add More
-                </Link>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -554,10 +479,7 @@ function QuickAction({ icon: Icon, label, description, href, color }) {
   };
 
   return (
-    <Link
-      href={href}
-      className={`bg-gradient-to-br ${colors[color]} rounded-xl p-4 text-white hover:opacity-90 transition`}
-    >
+    <Link href={href} className={`bg-gradient-to-br ${colors[color]} rounded-xl p-4 text-white hover:opacity-90 transition`}>
       <Icon className="w-8 h-8 mb-2 opacity-90" />
       <p className="font-semibold">{label}</p>
       <p className="text-sm text-white/80">{description}</p>
@@ -565,16 +487,13 @@ function QuickAction({ icon: Icon, label, description, href, color }) {
   );
 }
 
-// Organization Card Component - With CE Zone Support
+// Organization Card Component
 function OrgCard({ org, getOrgTypeLabel }) {
   const typeColor = ORG_TYPE_COLORS[org.type] || ORG_TYPE_COLORS.church;
   const orgLink = `/church/org/${org._id}`;
 
   return (
-    <Link
-      href={orgLink}
-      className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition block"
-    >
+    <Link href={orgLink} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition block">
       <div className="flex items-start gap-3 mb-3">
         <div className={`w-10 h-10 rounded-lg ${typeColor.light} flex items-center justify-center`}>
           <Building className={`w-5 h-5 ${typeColor.text}`} />
@@ -586,16 +505,13 @@ function OrgCard({ org, getOrgTypeLabel }) {
               {getOrgTypeLabel(org.type)}
             </span>
             {org.ministry === 'christ_embassy' && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
-                CE
-              </span>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">CE</span>
             )}
           </div>
         </div>
         <ChevronRight className="w-5 h-5 text-gray-400" />
       </div>
       
-      {/* CE Zone Display */}
       {org.ceZone?.name && (
         <div className="flex items-center gap-2 mb-3 text-sm text-gray-600">
           <MapPin className="w-4 h-4 text-purple-500" />
@@ -605,21 +521,15 @@ function OrgCard({ org, getOrgTypeLabel }) {
 
       <div className="grid grid-cols-3 gap-2 text-center">
         <div>
-          <p className="text-lg font-bold text-gray-900">
-            {org.members?.length || org.memberCount || 0}
-          </p>
+          <p className="text-lg font-bold text-gray-900">{org.members?.length || org.memberCount || 0}</p>
           <p className="text-xs text-gray-500">Members</p>
         </div>
         <div>
-          <p className="text-lg font-bold text-gray-900">
-            {org.stats?.totalSouls || org.soulsWon || 0}
-          </p>
+          <p className="text-lg font-bold text-gray-900">{org.stats?.totalSouls || org.soulsWon || 0}</p>
           <p className="text-xs text-gray-500">Souls</p>
         </div>
         <div>
-          <p className="text-lg font-bold text-gray-900">
-            {org.stats?.avgAttendance || org.avgAttendance || 0}
-          </p>
+          <p className="text-lg font-bold text-gray-900">{org.stats?.avgAttendance || org.avgAttendance || 0}</p>
           <p className="text-xs text-gray-500">Avg. Att.</p>
         </div>
       </div>
@@ -631,10 +541,7 @@ function OrgCard({ org, getOrgTypeLabel }) {
               {(org.leaderName || org.leader?.name || org.leader?.username)?.[0] || 'L'}
             </span>
           </div>
-          <span>
-            {org.leaderTitle && `${org.leaderTitle} `}
-            {org.leaderName || org.leader?.name || org.leader?.username}
-          </span>
+          <span>{org.leaderTitle && `${org.leaderTitle} `}{org.leaderName || org.leader?.name || org.leader?.username}</span>
         </div>
       )}
     </Link>
