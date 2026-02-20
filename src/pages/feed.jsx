@@ -186,6 +186,28 @@ function PostComposer({ user }) {
 // ==========================================
 // VLOGS SECTION - FIXED with Video Previews
 // ==========================================
+
+// Helper: Generate thumbnail URL from Cloudinary video URL
+const generateThumbnailFromVideoUrl = (videoUrl) => {
+  if (!videoUrl) return null;
+  
+  try {
+    const url = new URL(videoUrl);
+    const pathParts = url.pathname.split('/');
+    const uploadIndex = pathParts.indexOf('upload');
+    if (uploadIndex === -1) return null;
+    
+    pathParts.splice(uploadIndex + 1, 0, 'so_1,w_300,h_400,c_fill');
+    const lastPart = pathParts[pathParts.length - 1];
+    pathParts[pathParts.length - 1] = lastPart.replace(/\.[^.]+$/, '.jpg');
+    
+    url.pathname = pathParts.join('/');
+    return url.toString();
+  } catch (e) {
+    return null;
+  }
+};
+
 function VlogSection({ user }) {
   const router = useRouter();
   const [stories, setStories] = useState([]);
@@ -201,6 +223,7 @@ function VlogSection({ user }) {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       
       const response = await api.get('/api/vlogs/feed', { headers });
+      console.log('Vlogs feed response:', response.data);
       if (response.data?.success || response.data?.stories) {
         setStories(response.data.stories || []);
       }
@@ -277,7 +300,7 @@ function VlogSection({ user }) {
             <div 
               key={`placeholder-${idx}`}
               className="flex-shrink-0 w-28 h-44 rounded-xl overflow-hidden relative cursor-pointer opacity-50 hover:opacity-70 transition"
-              onClick={() => router.push('/explore')}
+              onClick={() => router.push('/tv')}
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${gradients[(idx + 1) % gradients.length]}`} />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -298,21 +321,50 @@ function VlogSection({ user }) {
 }
 
 function VlogCard({ story, gradient, onClick }) {
-  const hasVideo = story.vlogs?.[0]?.videoUrl || story.vlogs?.[0]?.thumbnailUrl;
+  const [thumbnailError, setThumbnailError] = useState(false);
   const hasUnviewed = story.hasUnviewed;
+  const vlog = story.vlogs?.[0];
+  
+  // Get thumbnail - try multiple sources
+  const getThumbnail = () => {
+    if (!vlog) return null;
+    
+    // 1. Direct thumbnail URL
+    if (vlog.thumbnailUrl && !thumbnailError) return vlog.thumbnailUrl;
+    
+    // 2. Generate from video URL (Cloudinary)
+    if (vlog.videoUrl && !thumbnailError) {
+      const generated = generateThumbnailFromVideoUrl(vlog.videoUrl);
+      if (generated) return generated;
+    }
+    
+    return null;
+  };
+  
+  const thumbnail = getThumbnail();
   
   return (
     <div 
       onClick={onClick}
       className="flex-shrink-0 w-28 h-44 rounded-xl overflow-hidden relative cursor-pointer group shadow-sm"
     >
-      {/* Background - Video thumbnail or gradient */}
+      {/* Background - Video thumbnail, video element, or gradient */}
       <div className="absolute inset-0">
-        {story.vlogs?.[0]?.thumbnailUrl ? (
+        {thumbnail ? (
           <img 
-            src={story.vlogs[0].thumbnailUrl} 
+            src={thumbnail} 
             alt="" 
             className="w-full h-full object-cover"
+            onError={() => setThumbnailError(true)}
+          />
+        ) : vlog?.videoUrl ? (
+          // Fallback: Show video element as preview (first frame)
+          <video 
+            src={vlog.videoUrl} 
+            className="w-full h-full object-cover"
+            muted
+            playsInline
+            preload="metadata"
           />
         ) : (
           <div className={`w-full h-full bg-gradient-to-br ${gradient}`} />
