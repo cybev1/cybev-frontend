@@ -210,30 +210,45 @@ const generateThumbnailFromVideoUrl = (videoUrl) => {
 
 function VlogSection({ user }) {
   const router = useRouter();
-  const [stories, setStories] = useState([]);
+  const [vlogs, setVlogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchStories();
+    fetchVlogs();
   }, []);
 
-  const fetchStories = async () => {
+  const fetchVlogs = async () => {
     try {
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       
-      const response = await api.get('/api/vlogs/feed', { headers });
-      console.log('Vlogs feed response:', response.data);
-      if (response.data?.success || response.data?.stories) {
-        setStories(response.data.stories || []);
+      // Fetch actual vlogs directly (not grouped stories)
+      const response = await api.get('/api/vlogs?limit=10', { headers });
+      console.log('Vlogs response:', response.data);
+      
+      if (response.data?.vlogs) {
+        setVlogs(response.data.vlogs);
+      } else if (response.data?.success && Array.isArray(response.data.data)) {
+        setVlogs(response.data.data);
       }
     } catch (error) {
       console.log('Vlogs fetch error:', error);
+      // Fallback: try feed endpoint
+      try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const feedResponse = await api.get('/api/vlogs/feed', { headers });
+        if (feedResponse.data?.vlogs) {
+          setVlogs(feedResponse.data.vlogs);
+        }
+      } catch (e) {
+        console.log('Feed fallback also failed');
+      }
     }
     setLoading(false);
   };
 
-  // Gradient colors for placeholder backgrounds
+  // Gradient colors for backgrounds when no thumbnail
   const gradients = [
     'from-purple-500 to-pink-500',
     'from-blue-500 to-cyan-500',
@@ -282,54 +297,48 @@ function VlogSection({ user }) {
           </div>
         </div>
 
-        {/* User Stories with Video Previews */}
-        {stories.length > 0 ? stories.map((story, idx) => (
-          <VlogCard 
-            key={story.user?._id || idx}
-            story={story}
-            gradient={gradients[(idx + 1) % gradients.length]}
-            onClick={() => {
-              if (story.vlogs?.[0]?._id) {
-                router.push(`/vlog/${story.vlogs[0]._id}`);
-              }
-            }}
-          />
-        )) : (
-          // Placeholder cards when no stories
+        {/* Show actual vlogs with thumbnails */}
+        {loading ? (
+          // Loading placeholders
           [...Array(4)].map((_, idx) => (
-            <div 
-              key={`placeholder-${idx}`}
-              className="flex-shrink-0 w-28 h-44 rounded-xl overflow-hidden relative cursor-pointer opacity-50 hover:opacity-70 transition"
-              onClick={() => router.push('/tv')}
-            >
-              <div className={`absolute inset-0 bg-gradient-to-br ${gradients[(idx + 1) % gradients.length]}`} />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-              <div className="absolute top-2 left-2">
-                <div className="w-9 h-9 rounded-full bg-gray-300 border-2 border-white flex items-center justify-center">
-                  <span className="text-gray-500 text-xs">+</span>
-                </div>
-              </div>
-              <div className="absolute bottom-2 left-2 right-2">
-                <p className="text-white text-xs font-medium">Explore</p>
-              </div>
-            </div>
+            <div key={`loading-${idx}`} className="flex-shrink-0 w-28 h-44 rounded-xl bg-gray-200 animate-pulse" />
           ))
+        ) : vlogs.length > 0 ? (
+          vlogs.slice(0, 8).map((vlog, idx) => (
+            <VlogThumbnailCard 
+              key={vlog._id || idx}
+              vlog={vlog}
+              gradient={gradients[(idx + 1) % gradients.length]}
+              onClick={() => router.push(`/vlog/${vlog._id}`)}
+            />
+          ))
+        ) : (
+          // Empty state - encourage creating vlogs
+          <div 
+            onClick={() => router.push('/tv')}
+            className="flex-shrink-0 w-28 h-44 rounded-xl overflow-hidden relative cursor-pointer hover:opacity-90 transition border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50"
+          >
+            <div className="text-center p-2">
+              <Play className="w-8 h-8 text-gray-400 mx-auto mb-1" />
+              <p className="text-gray-500 text-xs">Watch Vlogs</p>
+            </div>
+          </div>
         )}
       </div>
     </div>
   );
 }
 
-function VlogCard({ story, gradient, onClick }) {
+// Individual Vlog Thumbnail Card - Shows actual video thumbnails
+function VlogThumbnailCard({ vlog, gradient, onClick }) {
   const [thumbnailError, setThumbnailError] = useState(false);
-  const hasUnviewed = story.hasUnviewed;
-  const vlog = story.vlogs?.[0];
+  const author = vlog.user || vlog.author;
   
   // Get thumbnail - try multiple sources
   const getThumbnail = () => {
     if (!vlog) return null;
     
-    // 1. Direct thumbnail URL
+    // 1. Direct thumbnail URL from API
     if (vlog.thumbnailUrl && !thumbnailError) return vlog.thumbnailUrl;
     
     // 2. Generate from video URL (Cloudinary)
@@ -348,16 +357,16 @@ function VlogCard({ story, gradient, onClick }) {
       onClick={onClick}
       className="flex-shrink-0 w-28 h-44 rounded-xl overflow-hidden relative cursor-pointer group shadow-sm"
     >
-      {/* Background - Video thumbnail, video element, or gradient */}
+      {/* Background - Video thumbnail or video element */}
       <div className="absolute inset-0">
         {thumbnail ? (
           <img 
             src={thumbnail} 
-            alt="" 
+            alt={vlog.caption || 'Vlog'} 
             className="w-full h-full object-cover"
             onError={() => setThumbnailError(true)}
           />
-        ) : vlog?.videoUrl ? (
+        ) : vlog.videoUrl ? (
           // Fallback: Show video element as preview (first frame)
           <video 
             src={vlog.videoUrl} 
@@ -367,6 +376,7 @@ function VlogCard({ story, gradient, onClick }) {
             preload="metadata"
           />
         ) : (
+          // Last resort: gradient background
           <div className={`w-full h-full bg-gradient-to-br ${gradient}`} />
         )}
       </div>
@@ -374,41 +384,40 @@ function VlogCard({ story, gradient, onClick }) {
       {/* Overlay gradient */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
       
-      {/* Profile picture ring - shows viewed/unviewed state */}
-      <div className="absolute top-2 left-2">
-        <div className={`w-10 h-10 rounded-full p-0.5 ${hasUnviewed ? 'bg-gradient-to-br from-purple-500 to-pink-500' : 'bg-gray-400'}`}>
-          <div className="w-full h-full rounded-full bg-white p-0.5 overflow-hidden">
-            {story.user?.profilePicture || story.user?.avatar ? (
-              <img 
-                src={story.user.profilePicture || story.user.avatar} 
-                alt="" 
-                className="w-full h-full rounded-full object-cover"
-              />
-            ) : (
-              <div className={`w-full h-full rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-white text-xs font-bold`}>
-                {story.user?.name?.[0] || 'U'}
-              </div>
-            )}
-          </div>
+      {/* Play icon on hover */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+        <div className="w-10 h-10 bg-white/30 backdrop-blur rounded-full flex items-center justify-center">
+          <Play className="w-5 h-5 text-white fill-white" />
         </div>
       </div>
       
-      {/* Play button on hover */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-        <div className="w-12 h-12 bg-white/30 backdrop-blur rounded-full flex items-center justify-center">
-          <Play className="w-6 h-6 text-white fill-white" />
+      {/* Profile picture */}
+      <div className="absolute top-2 left-2">
+        <div className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-gradient-to-br from-purple-500 to-pink-500">
+          {author?.profilePicture || author?.avatar ? (
+            <img 
+              src={author.profilePicture || author.avatar} 
+              alt="" 
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-white text-xs font-bold">
+              {author?.name?.[0] || 'U'}
+            </div>
+          )}
         </div>
       </div>
       
       {/* Username */}
       <div className="absolute bottom-2 left-2 right-2">
         <p className="text-white text-xs font-semibold truncate drop-shadow-lg">
-          {story.user?.name || story.user?.username}
+          {author?.name || author?.username || 'User'}
         </p>
       </div>
     </div>
   );
 }
+
 
 // ==========================================
 // FEED POST CARD - Facebook Style with Working Reactions
