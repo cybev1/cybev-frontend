@@ -1,6 +1,11 @@
 // ============================================
 // FILE: src/pages/vlog/create.jsx
 // Create Vlog/Story Page
+// VERSION: 2.0 - FIXED upload timeout
+// FIXES:
+//   - 5-minute timeout for video uploads (was 30 seconds)
+//   - Better progress tracking
+//   - Improved error handling
 // ============================================
 
 import { useState, useRef, useEffect } from 'react';
@@ -9,6 +14,9 @@ import { useRouter } from 'next/router';
 import { ArrowLeft, Upload, Camera, Video, X, Loader2, Play, Music, Hash, Globe, Users, Lock } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'react-toastify';
+import axios from 'axios';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
 export default function CreateVlogPage() {
   const router = useRouter();
@@ -22,6 +30,7 @@ export default function CreateVlogPage() {
   const [isStory, setIsStory] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState('');
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -59,35 +68,44 @@ export default function CreateVlogPage() {
     }
 
     setUploading(true);
-    setUploadProgress(10);
+    setUploadProgress(5);
+    setUploadStatus('Preparing upload...');
 
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('cybev_token');
       
-      // First, upload the video file
+      // Prepare form data
       const formData = new FormData();
       formData.append('file', videoFile);
       formData.append('type', 'vlog');
 
-      setUploadProgress(30);
+      setUploadProgress(10);
+      setUploadStatus('Uploading video...');
 
-      // Upload video
-      const uploadResponse = await api.post('/api/upload/video', formData, {
+      // FIXED: Use axios directly with 5-minute timeout for large videos
+      const uploadResponse = await axios.post(`${API_URL}/api/upload/video`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`
         },
+        timeout: 300000, // 5 minutes timeout (was 30 seconds)
         onUploadProgress: (progressEvent) => {
-          const progress = Math.round((progressEvent.loaded * 60) / progressEvent.total) + 30;
-          setUploadProgress(progress);
+          if (progressEvent.total) {
+            // Upload progress: 10% to 80%
+            const percentCompleted = Math.round((progressEvent.loaded * 70) / progressEvent.total);
+            setUploadProgress(10 + percentCompleted);
+            
+            const uploadedMB = (progressEvent.loaded / (1024 * 1024)).toFixed(1);
+            const totalMB = (progressEvent.total / (1024 * 1024)).toFixed(1);
+            setUploadStatus(`Uploading: ${uploadedMB}MB / ${totalMB}MB`);
+          }
         }
       });
 
       // Check if upload was successful
-      if (!uploadResponse.data?.success && !uploadResponse.data?.url) {
-        // Video storage not configured
+      if (!uploadResponse.data?.success && !uploadResponse.data?.url && !uploadResponse.data?.ok) {
         if (uploadResponse.data?.error?.includes('not configured')) {
-          toast.error('Video storage not configured. Contact admin to set up Cloudinary.');
+          toast.error('Video storage not configured. Contact admin.');
           setUploading(false);
           return;
         }
@@ -95,7 +113,7 @@ export default function CreateVlogPage() {
       }
 
       const videoUrl = uploadResponse.data?.url || uploadResponse.data?.videoUrl;
-      const thumbnailUrl = uploadResponse.data?.thumbnailUrl;
+      const thumbnailUrl = uploadResponse.data?.thumbnailUrl || uploadResponse.data?.thumbnail;
       
       if (!videoUrl) {
         toast.error('Video upload failed. Please try again.');
@@ -103,7 +121,8 @@ export default function CreateVlogPage() {
         return;
       }
 
-      setUploadProgress(90);
+      setUploadProgress(85);
+      setUploadStatus('Creating vlog post...');
 
       // Create vlog entry
       const vlogData = {
@@ -113,28 +132,42 @@ export default function CreateVlogPage() {
         hashtags: hashtags.split(',').map(t => t.trim()).filter(Boolean),
         visibility,
         isStory,
-        duration: 0 // TODO: Get actual duration
+        duration: 0
       };
 
       const response = await api.post('/api/vlogs', vlogData, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 30000 // 30 seconds for vlog creation
       });
 
       setUploadProgress(100);
+      setUploadStatus('Done!');
 
       if (response.data?.success) {
-        toast.success('🎉 Vlog posted!');
-        router.push('/feed');
+        toast.success('🎉 Vlog posted successfully!');
+        setTimeout(() => router.push('/feed'), 500);
       } else {
         throw new Error(response.data?.error || 'Failed to create vlog');
       }
 
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error(error.response?.data?.error || error.message || 'Failed to upload vlog');
+      
+      // Provide helpful error messages
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        toast.error('Upload timed out. Please try a smaller video or check your connection.');
+      } else if (error.response?.status === 413) {
+        toast.error('Video too large. Maximum size is 100MB.');
+      } else if (error.response?.status === 401) {
+        toast.error('Session expired. Please login again.');
+        router.push('/login');
+      } else {
+        toast.error(error.response?.data?.error || error.message || 'Failed to upload vlog');
+      }
     }
 
     setUploading(false);
+    setUploadStatus('');
   };
 
   const removeVideo = () => {
@@ -153,6 +186,8 @@ export default function CreateVlogPage() {
     'from-indigo-500 to-purple-500'
   ];
 
+  const fileSizeMB = videoFile ? (videoFile.size / (1024 * 1024)).toFixed(1) : 0;
+
   return (
     <>
       <Head>
@@ -163,7 +198,7 @@ export default function CreateVlogPage() {
         {/* Header */}
         <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200 px-4 py-3">
           <div className="max-w-lg mx-auto flex items-center justify-between">
-            <button onClick={() => router.back()} className="p-2 text-gray-900 hover:bg-white rounded-full">
+            <button onClick={() => router.back()} className="p-2 text-gray-600 hover:bg-gray-100 rounded-full">
               <ArrowLeft className="w-6 h-6" />
             </button>
             <h1 className="text-lg font-bold text-gray-900">Create Vlog</h1>
@@ -179,7 +214,7 @@ export default function CreateVlogPage() {
 
         <main className="max-w-lg mx-auto px-4 py-6">
           {/* Video Preview / Upload Area */}
-          <div className="aspect-[9/16] rounded-2xl overflow-hidden mb-6 relative bg-white">
+          <div className="aspect-[9/16] rounded-2xl overflow-hidden mb-6 relative bg-gray-900">
             {videoPreview ? (
               <>
                 <video
@@ -192,10 +227,14 @@ export default function CreateVlogPage() {
                 />
                 <button
                   onClick={removeVideo}
-                  className="absolute top-4 right-4 p-2 bg-gray-900/50 rounded-full text-white hover:bg-gray-900/70"
+                  className="absolute top-4 right-4 p-2 bg-black/50 rounded-full text-white hover:bg-black/70"
                 >
                   <X className="w-5 h-5" />
                 </button>
+                {/* File size indicator */}
+                <div className="absolute bottom-4 left-4 px-3 py-1 bg-black/50 rounded-full text-white text-sm">
+                  {fileSizeMB} MB
+                </div>
               </>
             ) : (
               <div
@@ -213,15 +252,19 @@ export default function CreateVlogPage() {
 
             {/* Upload Progress */}
             {uploading && (
-              <div className="absolute inset-0 bg-gray-900/70 flex flex-col items-center justify-center">
+              <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center">
                 <Loader2 className="w-12 h-12 text-purple-500 animate-spin mb-4" />
-                <p className="text-white font-semibold">Uploading... {uploadProgress}%</p>
-                <div className="w-48 h-2 bg-gray-700 rounded-full mt-2 overflow-hidden">
+                <p className="text-white font-semibold text-lg">{uploadProgress}%</p>
+                <p className="text-white/70 text-sm mt-1">{uploadStatus}</p>
+                <div className="w-48 h-2 bg-gray-700 rounded-full mt-4 overflow-hidden">
                   <div
                     className="h-full bg-purple-500 transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
                   />
                 </div>
+                {uploadProgress < 80 && (
+                  <p className="text-white/50 text-xs mt-4">Large videos may take a few minutes...</p>
+                )}
               </div>
             )}
           </div>
@@ -235,7 +278,7 @@ export default function CreateVlogPage() {
           />
 
           {/* Caption */}
-          <div className="bg-white rounded-xl p-4 mb-4">
+          <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
             <textarea
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
@@ -250,7 +293,7 @@ export default function CreateVlogPage() {
           </div>
 
           {/* Hashtags */}
-          <div className="bg-white rounded-xl p-4 mb-4">
+          <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
             <div className="flex items-center gap-2 text-gray-500 mb-2">
               <Hash className="w-4 h-4" />
               <span className="text-sm">Hashtags</span>
@@ -265,7 +308,7 @@ export default function CreateVlogPage() {
           </div>
 
           {/* Settings */}
-          <div className="bg-white rounded-xl p-4 space-y-4">
+          <div className="bg-white rounded-xl p-4 space-y-4 shadow-sm">
             {/* Visibility */}
             <div>
               <label className="text-gray-500 text-sm mb-2 block">Who can see this?</label>
@@ -281,7 +324,7 @@ export default function CreateVlogPage() {
                     className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition ${
                       visibility === option.value
                         ? 'bg-purple-600 text-white'
-                        : 'bg-gray-700 text-gray-500 hover:bg-gray-600'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >
                     <option.icon className="w-4 h-4" />
@@ -300,11 +343,11 @@ export default function CreateVlogPage() {
               <button
                 onClick={() => setIsStory(!isStory)}
                 className={`w-12 h-6 rounded-full transition ${
-                  isStory ? 'bg-purple-600' : 'bg-gray-600'
+                  isStory ? 'bg-purple-600' : 'bg-gray-300'
                 }`}
               >
                 <div
-                  className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                  className={`w-5 h-5 bg-white rounded-full transition-transform shadow ${
                     isStory ? 'translate-x-6' : 'translate-x-0.5'
                   }`}
                 />
@@ -316,14 +359,16 @@ export default function CreateVlogPage() {
           <div className="mt-6 grid grid-cols-2 gap-3">
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center justify-center gap-2 py-3 bg-white text-gray-900 rounded-xl hover:bg-gray-100"
+              disabled={uploading}
+              className="flex items-center justify-center gap-2 py-3 bg-white text-gray-900 rounded-xl hover:bg-gray-100 shadow-sm disabled:opacity-50"
             >
               <Upload className="w-5 h-5" />
               Upload
             </button>
             <button
               onClick={() => toast.info('Camera coming soon!')}
-              className="flex items-center justify-center gap-2 py-3 bg-white text-gray-900 rounded-xl hover:bg-gray-100"
+              disabled={uploading}
+              className="flex items-center justify-center gap-2 py-3 bg-white text-gray-900 rounded-xl hover:bg-gray-100 shadow-sm disabled:opacity-50"
             >
               <Camera className="w-5 h-5" />
               Record
