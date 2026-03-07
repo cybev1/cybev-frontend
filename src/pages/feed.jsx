@@ -1,8 +1,10 @@
 // ============================================
 // FILE: src/pages/feed.jsx
 // CYBEV Social Platform - FACEBOOK-LIKE FEED
-// VERSION: 3.0 - Complete Facebook-like Experience
+// VERSION: 4.0 - Working Post Creation Modal
 // FIXES:
+//   - "What's on your mind" now opens a POST MODAL (not redirect to studio)
+//   - Create posts with text and images
 //   - Vlogs show video previews and profile pictures
 //   - Reactions work and show proper state
 //   - View counts work
@@ -137,49 +139,269 @@ function IconButton({ onClick, icon: Icon, badge }) {
 }
 
 // ==========================================
-// POST COMPOSER
+// POST COMPOSER WITH MODAL
 // ==========================================
-function PostComposer({ user }) {
-  const router = useRouter();
-  
+function CreatePostModal({ isOpen, onClose, user, onPostCreated }) {
+  const [content, setContent] = useState('');
+  const [images, setImages] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [posting, setPosting] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleImageSelect = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    
+    setUploading(true);
+    const token = localStorage.getItem('token');
+    
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) continue;
+      if (images.length >= 4) break;
+      
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io'}/api/upload/image`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData
+        });
+        
+        const data = await response.json();
+        if (data.url || data.imageUrl) {
+          setImages(prev => [...prev, data.url || data.imageUrl]);
+        }
+      } catch (err) {
+        console.error('Image upload error:', err);
+      }
+    }
+    
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeImage = (index) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handlePost = async () => {
+    if (!content.trim() && images.length === 0) {
+      toast.error('Please write something or add an image');
+      return;
+    }
+    
+    setPosting(true);
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io'}/api/posts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          content: content.trim(),
+          images: images,
+          type: images.length > 0 ? 'image' : 'text',
+          visibility: 'public'
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success || data.post) {
+        toast.success('Posted! 🎉');
+        setContent('');
+        setImages([]);
+        onClose();
+        if (onPostCreated) onPostCreated(data.post);
+      } else {
+        throw new Error(data.error || 'Failed to create post');
+      }
+    } catch (err) {
+      console.error('Post error:', err);
+      toast.error(err.message || 'Failed to post');
+    }
+    
+    setPosting(false);
+  };
+
+  if (!isOpen) return null;
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 p-4">
-      <div className="flex items-center gap-3">
-        <Link href={user?.username ? `/profile/${user.username}` : '/profile'}>
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden cursor-pointer hover:ring-2 hover:ring-purple-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
+      <div 
+        className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <h2 className="text-xl font-bold text-gray-900">Create Post</h2>
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+        
+        {/* User Info */}
+        <div className="flex items-center gap-3 p-4">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden">
             {user?.profilePicture || user?.avatar ? (
               <img src={user.profilePicture || user.avatar} alt="" className="w-full h-full object-cover" />
             ) : (
               user?.name?.[0] || 'U'
             )}
           </div>
-        </Link>
-        <button 
-          onClick={() => router.push('/studio')}
-          className="flex-1 bg-gray-100 hover:bg-gray-200 rounded-full px-4 py-2.5 text-left text-gray-500 transition"
-        >
-          What's on your mind, {user?.name?.split(' ')[0] || 'friend'}?
-        </button>
-        <button onClick={() => router.push('/studio')} className="p-2 hover:bg-gray-100 rounded-full">
-          <ImageIcon className="w-6 h-6 text-green-500" />
-        </button>
-      </div>
-      
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-        <button onClick={() => router.push('/live/go-live')} className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-sm font-medium">
-          <Radio className="w-5 h-5 text-red-500" />
-          Live video
-        </button>
-        <button onClick={() => router.push('/studio/ai-blog')} className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-sm font-medium">
-          <Wand2 className="w-5 h-5 text-purple-500" />
-          Write with AI
-        </button>
-        <button onClick={() => router.push('/studio/sites/new')} className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-sm font-medium">
-          <Globe className="w-5 h-5 text-blue-500" />
-          AI Website
-        </button>
+          <div>
+            <p className="font-semibold text-gray-900">{user?.name || 'User'}</p>
+            <div className="flex items-center gap-1 text-xs text-gray-500">
+              <Globe className="w-3 h-3" />
+              <span>Public</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Content Input */}
+        <div className="px-4">
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder={`What's on your mind, ${user?.name?.split(' ')[0] || 'friend'}?`}
+            className="w-full min-h-[120px] resize-none text-lg text-gray-900 placeholder-gray-400 focus:outline-none"
+            autoFocus
+          />
+        </div>
+        
+        {/* Image Previews */}
+        {images.length > 0 && (
+          <div className={`px-4 pb-4 grid gap-2 ${images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+            {images.map((img, idx) => (
+              <div key={idx} className="relative group rounded-xl overflow-hidden aspect-video">
+                <img src={img} alt="" className="w-full h-full object-cover" />
+                <button
+                  onClick={() => removeImage(idx)}
+                  className="absolute top-2 right-2 p-1.5 bg-black/50 rounded-full text-white hover:bg-black/70 transition"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* Upload Progress */}
+        {uploading && (
+          <div className="px-4 pb-2">
+            <div className="flex items-center gap-2 text-sm text-purple-600">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Uploading...</span>
+            </div>
+          </div>
+        )}
+        
+        {/* Actions */}
+        <div className="p-4 border-t border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-sm text-gray-500">Add to your post</span>
+            <div className="flex items-center gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageSelect}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={images.length >= 4 || uploading}
+                className="p-2 hover:bg-gray-100 rounded-full transition disabled:opacity-50"
+              >
+                <ImageIcon className="w-6 h-6 text-green-500" />
+              </button>
+              <button className="p-2 hover:bg-gray-100 rounded-full transition">
+                <Smile className="w-6 h-6 text-yellow-500" />
+              </button>
+            </div>
+          </div>
+          
+          <button
+            onClick={handlePost}
+            disabled={(!content.trim() && images.length === 0) || posting}
+            className="w-full py-3 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {posting ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Posting...
+              </>
+            ) : (
+              'Post'
+            )}
+          </button>
+        </div>
       </div>
     </div>
+  );
+}
+
+function PostComposer({ user, onPostCreated }) {
+  const router = useRouter();
+  const [showModal, setShowModal] = useState(false);
+  
+  return (
+    <>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 p-4">
+        <div className="flex items-center gap-3">
+          <Link href={user?.username ? `/profile/${user.username}` : '/profile'}>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden cursor-pointer hover:ring-2 hover:ring-purple-300">
+              {user?.profilePicture || user?.avatar ? (
+                <img src={user.profilePicture || user.avatar} alt="" className="w-full h-full object-cover" />
+              ) : (
+                user?.name?.[0] || 'U'
+              )}
+            </div>
+          </Link>
+          <button 
+            onClick={() => setShowModal(true)}
+            className="flex-1 bg-gray-100 hover:bg-gray-200 rounded-full px-4 py-2.5 text-left text-gray-500 transition"
+          >
+            What's on your mind, {user?.name?.split(' ')[0] || 'friend'}?
+          </button>
+          <button onClick={() => setShowModal(true)} className="p-2 hover:bg-gray-100 rounded-full">
+            <ImageIcon className="w-6 h-6 text-green-500" />
+          </button>
+        </div>
+        
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+          <button onClick={() => router.push('/live/go-live')} className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-sm font-medium">
+            <Radio className="w-5 h-5 text-red-500" />
+            Live video
+          </button>
+          <button onClick={() => router.push('/studio/ai-blog')} className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-sm font-medium">
+            <Wand2 className="w-5 h-5 text-purple-500" />
+            Write with AI
+          </button>
+          <button onClick={() => router.push('/studio/sites/new')} className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-sm font-medium">
+            <Globe className="w-5 h-5 text-blue-500" />
+            AI Website
+          </button>
+        </div>
+      </div>
+      
+      {/* Post Creation Modal */}
+      <CreatePostModal 
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        user={user}
+        onPostCreated={onPostCreated}
+      />
+    </>
   );
 }
 
@@ -954,7 +1176,7 @@ export default function Feed() {
         <TopNavBar user={user} />
 
         <div className="max-w-screen-sm mx-auto px-4 py-4 pb-20 md:pb-4">
-          <PostComposer user={user} />
+          <PostComposer user={user} onPostCreated={() => fetchFeed()} />
           <VlogSection user={user} />
 
           {loading ? (
