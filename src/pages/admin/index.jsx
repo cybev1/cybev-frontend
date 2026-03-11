@@ -1,7 +1,7 @@
 // ============================================
 // FILE: src/pages/admin/index.jsx
 // PURPOSE: Comprehensive Admin Dashboard
-// VERSION: 3.0 - Real API Integration
+// VERSION: 4.0 - Added Special Users Panel
 // ============================================
 
 import { useState, useEffect, useCallback } from 'react';
@@ -38,7 +38,13 @@ import {
   Zap,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Bot,
+  Globe,
+  Sparkles,
+  UserPlus,
+  Play,
+  Pause
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -158,6 +164,9 @@ export default function AdminDashboard() {
   const [systemHealth, setSystemHealth] = useState(null);
   const [topContent, setTopContent] = useState([]);
   const [liveStreams, setLiveStreams] = useState([]);
+  const [specialStats, setSpecialStats] = useState(null);
+  const [quickGenerating, setQuickGenerating] = useState(false);
+  const [quickSimulating, setQuickSimulating] = useState(false);
 
   useEffect(() => { 
     checkAdmin(); 
@@ -212,12 +221,13 @@ export default function AdminDashboard() {
       const headers = { Authorization: `Bearer ${token}` };
 
       // Fetch all dashboard data in parallel
-      const [overviewRes, usersRes, contentRes, healthRes, streamsRes] = await Promise.all([
+      const [overviewRes, usersRes, contentRes, healthRes, streamsRes, specialRes] = await Promise.all([
         axios.get(`${API_URL}/api/admin-analytics/overview`, { headers }).catch(e => ({ data: {} })),
         axios.get(`${API_URL}/api/admin-analytics/users/list?limit=5&sort=createdAt&order=desc`, { headers }).catch(e => ({ data: { users: [] } })),
         axios.get(`${API_URL}/api/admin-analytics/content/top?limit=5`, { headers }).catch(e => ({ data: { content: [] } })),
         axios.get(`${API_URL}/api/admin-analytics/system/health`, { headers }).catch(e => ({ data: { system: null } })),
-        axios.get(`${API_URL}/api/admin-analytics/streams?status=live&limit=5`, { headers }).catch(e => ({ data: { streams: [] } }))
+        axios.get(`${API_URL}/api/admin-analytics/streams?status=live&limit=5`, { headers }).catch(e => ({ data: { streams: [] } })),
+        axios.get(`${API_URL}/api/admin/fake-users/stats`, { headers }).catch(e => ({ data: { stats: null } }))
       ]);
 
       setOverview(overviewRes.data.overview || null);
@@ -225,6 +235,7 @@ export default function AdminDashboard() {
       setTopContent(contentRes.data.content || []);
       setSystemHealth(healthRes.data.system || null);
       setLiveStreams(streamsRes.data.streams || []);
+      setSpecialStats(specialRes.data.stats || null);
 
       // Generate activity from recent users
       generateRecentActivity(usersRes.data.users || []);
@@ -315,6 +326,40 @@ export default function AdminDashboard() {
     } catch (error) {
       toast.error('Export failed');
     }
+  };
+
+  const quickGenerate = async (count = 500) => {
+    setQuickGenerating(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_URL}/api/admin/fake-users/generate`, 
+        { count, daysBack: 365 },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(`Generated ${res.data.generated} special users! (${res.data.autoFollowed} auto-follows)`);
+      // Refresh stats
+      const statsRes = await axios.get(`${API_URL}/api/admin/fake-users/stats`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { stats: null } }));
+      setSpecialStats(statsRes.data.stats || null);
+      fetchDashboardData();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Generation failed');
+    }
+    setQuickGenerating(false);
+  };
+
+  const quickSimulate = async (action = 'like', count = 100) => {
+    setQuickSimulating(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_URL}/api/admin/fake-users/simulate-engagement`,
+        { action, count, targetType: 'posts' },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(`${res.data.engaged} ${action}s simulated!`);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Simulation failed');
+    }
+    setQuickSimulating(false);
   };
 
   if (!isAdmin) {
@@ -522,6 +567,14 @@ export default function AdminDashboard() {
                   onClick={() => router.push('/admin/notifications')} 
                 />
                 <QuickAction 
+                  title="Special Users" 
+                  description={`${specialStats?.totalSynthetic?.toLocaleString() || 0} users across 190 countries`}
+                  icon={Bot} 
+                  color="bg-gradient-to-br from-violet-500 to-fuchsia-500" 
+                  onClick={() => router.push('/admin/fake-users')} 
+                  badge={0}
+                />
+                <QuickAction 
                   title="Monetization" 
                   description="Subscriptions & ads" 
                   icon={TrendingUp} 
@@ -562,6 +615,114 @@ export default function AdminDashboard() {
                 )) : (
                   <p className="text-center text-gray-500 py-4">No users yet</p>
                 )}
+              </div>
+            </div>
+
+            {/* ==========================================
+               SPECIAL USERS PANEL
+               ========================================== */}
+            <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 rounded-2xl border border-violet-200 p-6">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-lg flex items-center justify-center">
+                    <Bot className="w-4 h-4 text-white" />
+                  </div>
+                  Special Users
+                </h3>
+                <Link href="/admin/fake-users" className="text-sm text-violet-600 hover:text-violet-700 font-medium flex items-center gap-1">
+                  Full Panel <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+
+              {/* Stats Row */}
+              <div className="grid grid-cols-4 gap-3 mb-5">
+                <div className="bg-white/80 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-violet-600">{formatNumber(specialStats?.totalSynthetic || 0)}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Special</p>
+                </div>
+                <div className="bg-white/80 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-blue-600">{formatNumber(specialStats?.totalReal || 0)}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Real</p>
+                </div>
+                <div className="bg-white/80 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-green-600">{specialStats?.ratio || '0'}:1</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Ratio</p>
+                </div>
+                <div className="bg-white/80 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-orange-600">{specialStats?.countryBreakdown?.length || 0}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Countries</p>
+                </div>
+              </div>
+
+              {/* Country Distribution (Top 8) */}
+              {specialStats?.countryBreakdown?.length > 0 && (
+                <div className="mb-5">
+                  <p className="text-xs font-medium text-gray-500 mb-2 flex items-center gap-1">
+                    <Globe className="w-3 h-3" /> Top Countries
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {specialStats.countryBreakdown.slice(0, 8).map(c => (
+                      <span key={c.country} className="px-2 py-1 bg-white/70 rounded-full text-xs text-gray-600">
+                        {c.country}: <strong>{c.count}</strong>
+                      </span>
+                    ))}
+                    {specialStats.countryBreakdown.length > 8 && (
+                      <span className="px-2 py-1 bg-violet-100 rounded-full text-xs text-violet-600 font-medium">
+                        +{specialStats.countryBreakdown.length - 8} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Must-Follow Accounts */}
+              {specialStats?.mustFollowAccounts?.length > 0 && (
+                <div className="mb-5">
+                  <p className="text-xs font-medium text-gray-500 mb-2">Auto-Follow Accounts</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {specialStats.mustFollowAccounts.map(u => (
+                      <span key={u.id} className="px-2 py-1 bg-violet-100 rounded-full text-xs text-violet-700 font-medium">
+                        @{u.username}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Quick Action Buttons */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => quickGenerate(500)}
+                  disabled={quickGenerating}
+                  className="flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white text-sm font-semibold rounded-xl hover:from-violet-600 hover:to-fuchsia-600 disabled:opacity-50 transition-all shadow-sm"
+                >
+                  {quickGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+                  {quickGenerating ? 'Generating...' : 'Generate 500'}
+                </button>
+                <button
+                  onClick={() => quickSimulate('like', 100)}
+                  disabled={quickSimulating}
+                  className="flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-semibold rounded-xl hover:from-orange-600 hover:to-red-600 disabled:opacity-50 transition-all shadow-sm"
+                >
+                  {quickSimulating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                  {quickSimulating ? 'Simulating...' : 'Boost 100 Likes'}
+                </button>
+                <button
+                  onClick={() => quickSimulate('comment', 50)}
+                  disabled={quickSimulating}
+                  className="flex items-center justify-center gap-2 py-2.5 bg-white text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 border border-gray-200 disabled:opacity-50 transition-all"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  50 Comments
+                </button>
+                <button
+                  onClick={() => quickSimulate('follow', 100)}
+                  disabled={quickSimulating}
+                  className="flex items-center justify-center gap-2 py-2.5 bg-white text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 border border-gray-200 disabled:opacity-50 transition-all"
+                >
+                  <Users className="w-4 h-4" />
+                  100 Follows
+                </button>
               </div>
             </div>
 
