@@ -108,9 +108,10 @@ function VideoMaker({ balance }) {
         setStatus('completed');
       } else {
         // Poll for status
+        const provider = data.provider || 'replicate';
         pollRef.current = setInterval(async () => {
           try {
-            const { data: statusData } = await api.get(`/api/ai-content/video/status/${data.taskId}`);
+            const { data: statusData } = await api.get(`/api/ai-content/video/status/${data.taskId}?provider=${provider}`);
             setProgress(statusData.progress || Math.min(progress + 10, 90));
             if (statusData.status === 'completed') {
               clearInterval(pollRef.current);
@@ -277,9 +278,10 @@ function MusicComposer({ balance }) {
         setResult(data);
         setStatus('completed');
       } else {
+        const musicProvider = data.provider || 'replicate';
         pollRef.current = setInterval(async () => {
           try {
-            const { data: statusData } = await api.get(`/api/ai-content/music/status/${data.taskId}`);
+            const { data: statusData } = await api.get(`/api/ai-content/music/status/${data.taskId}?provider=${musicProvider}`);
             setProgress(p => Math.min(p + 10, 90));
             if (statusData.status === 'completed') {
               clearInterval(pollRef.current);
