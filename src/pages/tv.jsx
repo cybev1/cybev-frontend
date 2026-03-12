@@ -73,7 +73,7 @@ function FeaturedHero({ stream, onClick }) {
               <span className="text-gray-300">{stream.host?.displayName || stream.host?.username}</span>
             </div>
           )}
-          <span className="flex items-center gap-1"><Eye size={14} /> {stream.viewerCount || stream.views || 0}</span>
+          <span className="flex items-center gap-1"><Eye size={14} /> {stream.viewerCount || getViewCount(stream)}</span>
         </div>
         {/* Play button */}
         <button className="mt-4 flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full font-semibold transition-colors">
@@ -125,7 +125,7 @@ function StreamCard({ stream, onClick, size = 'normal' }) {
         {/* Viewer count */}
         {(isLive || stream.viewerCount > 0) && (
           <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/60 text-white px-1.5 py-0.5 rounded text-[10px]">
-            <Eye size={10} /> {stream.viewerCount || stream.views || 0}
+            <Eye size={10} /> {stream.viewerCount || getViewCount(stream)}
           </div>
         )}
       </div>
@@ -139,9 +139,9 @@ function StreamCard({ stream, onClick, size = 'normal' }) {
               {stream.host?.displayName || stream.host?.username || stream.author?.username}
             </span>
           )}
-          {stream.views > 0 && (
+          {getViewCount(stream) > 0 && (
             <span className={`text-gray-400 ${isSmall ? 'text-[10px]' : 'text-xs'}`}>
-              · {formatViews(stream.views)} views
+              · {formatViews(getViewCount(stream))} views
             </span>
           )}
         </div>
@@ -220,6 +220,13 @@ function ContentRow({ title, icon: Icon, items, onClick, seeAllHref, size = 'nor
 }
 
 // ─── Helpers ───
+function getViewCount(item) {
+  if (item.viewsCount !== undefined) return item.viewsCount;
+  if (typeof item.views === 'number') return item.views;
+  if (Array.isArray(item.views)) return item.views.length;
+  return 0;
+}
+
 function formatDuration(seconds) {
   if (!seconds) return '';
   const m = Math.floor(seconds / 60);

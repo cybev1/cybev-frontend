@@ -98,7 +98,8 @@ export default function LiveStreamViewer() {
           res = await api.get(`/api/vlogs/${streamId}`);
         }
         setStream(res.data);
-        setViewerCount(res.data.viewerCount || res.data.views || 0);
+        const v = res.data.viewerCount || res.data.viewsCount || (Array.isArray(res.data.views) ? res.data.views.length : res.data.views) || 0;
+        setViewerCount(v);
       } catch (err) {
         console.error('Failed to load stream:', err);
         setError('Stream not found');

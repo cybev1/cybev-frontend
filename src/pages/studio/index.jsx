@@ -16,7 +16,8 @@ import {
   Globe, Plus, Eye, Trash2, MoreHorizontal, Edit3, ExternalLink,
   PenTool, Video, Sparkles, FileText, Calendar, Users, Share2, Send,
   Church, ChevronRight, TrendingUp, Loader2, Clock, EyeOff, Copy, Check, Rss,
-  Wand2, Edit, Image as ImageIcon, Home, BookOpenCheck, PlusCircle, BarChart2, BookOpen
+  Wand2, Edit, Image as ImageIcon, Home, BookOpenCheck, PlusCircle, BarChart2, BookOpen,
+  Film, Music, Tv
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
@@ -35,6 +36,8 @@ const QUICK_ACTIONS = [
   { id: 'meet', title: 'Meet', desc: 'Video call', icon: Video, href: '/meet', color: '#10b981', bg: '#d1fae5', badge: 'New' },
   { id: 'social', title: 'Social Tools', desc: 'Automation', icon: Share2, href: '/studio/social', color: '#8b5cf6', bg: '#ede9fe', badge: 'New' },
   { id: 'campaigns', title: 'Campaigns', desc: 'Email & SMS', icon: Send, href: '/studio/campaigns', color: '#f97316', bg: '#ffedd5', badge: 'New' },
+  { id: 'watch-party', title: 'Watch Party', desc: 'Watch together', icon: Film, href: '/watch-party', color: '#7c3aed', bg: '#ede9fe', badge: 'New' },
+  { id: 'ai-studio', title: 'AI Studio', desc: 'Video, Music, Art', icon: Wand2, href: '/ai-studio', color: '#ec4899', bg: '#fce7f3', badge: '✨ AI' },
 ];
 
 function QuickActionCard({ action }) {
