@@ -30,7 +30,9 @@ import {
   Coins,
   HelpCircle,
   Moon,
-  Sun
+  Sun,
+  Film,
+  Wand2
 } from 'lucide-react';
 import NotificationBell from '@/components/notificationBell';
 import MobileNav from '@/components/Navigation/MobileNav';
@@ -311,6 +313,31 @@ export default function AppLayout({ children }) {
                       </div>
                     </Link>
 
+                    <Link href="/watch-party">
+                      <div
+                        className="dropdown-item"
+                        onClick={() => setShowProfileMenu(false)}
+                      >
+                        <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">
+                          <Film className="w-5 h-5 text-gray-700" />
+                        </div>
+                        <span>Watch Parties</span>
+                      </div>
+                    </Link>
+
+                    <Link href="/ai-studio">
+                      <div
+                        className="dropdown-item"
+                        onClick={() => setShowProfileMenu(false)}
+                      >
+                        <div className="w-9 h-9 rounded-full bg-purple-50 flex items-center justify-center">
+                          <Wand2 className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <span>AI Studio</span>
+                        <span className="ml-auto text-[10px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full font-semibold">NEW</span>
+                      </div>
+                    </Link>
+
                     {isAdmin && (
                       <Link href="/admin">
                         <div
@@ -447,6 +474,33 @@ export default function AppLayout({ children }) {
                   </div>
                 </Link>
               ))}
+
+              {/* Watch Parties */}
+              <Link href="/watch-party">
+                <div
+                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-gray-700"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                    <Film className="w-5 h-5" />
+                  </div>
+                  <span className="font-medium">Watch Parties</span>
+                </div>
+              </Link>
+
+              {/* AI Studio */}
+              <Link href="/ai-studio">
+                <div
+                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-purple-50 text-gray-700"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
+                    <Wand2 className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <span className="font-medium">AI Studio</span>
+                  <span className="ml-auto text-[10px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full font-semibold">NEW</span>
+                </div>
+              </Link>
 
               <div className="divider" />
 
