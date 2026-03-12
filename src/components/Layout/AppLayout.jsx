@@ -94,17 +94,30 @@ export default function AppLayout({ children }) {
     }
   }, []);
 
-  // Fetch token balance
+  // Fetch credit balance
   useEffect(() => {
     const fetchBalance = async () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
         const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
-        const res = await fetch(`${API}/api/rewards/wallet`, {
+        // Try wallet endpoint first, fallback to rewards
+        let data;
+        try {
+          const res = await fetch(`${API}/api/wallet`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          data = await res.json();
+          if (data.ok || data.wallet) {
+            setTokenBalance(data.wallet?.credits || data.wallet?.usdBalance || data.balance || 0);
+            return;
+          }
+        } catch {}
+        // Fallback
+        const res2 = await fetch(`${API}/api/rewards/wallet`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        const data = await res.json();
+        data = await res2.json();
         if (data.success || data.ok) {
           setTokenBalance(data.balance || data.wallet?.balance || 0);
         }
@@ -308,7 +321,7 @@ export default function AppLayout({ children }) {
                         </div>
                         <span>Wallet</span>
                         <span className="ml-auto text-amber-500 font-semibold text-sm">
-                          {tokenBalance} CYBEV
+                          {tokenBalance} credits
                         </span>
                       </div>
                     </Link>
@@ -448,7 +461,7 @@ export default function AppLayout({ children }) {
                     </div>
                     <span className="font-medium text-gray-900">Wallet</span>
                   </div>
-                  <span className="text-amber-600 font-semibold">{tokenBalance} CYBEV</span>
+                  <span className="text-amber-600 font-semibold">{tokenBalance} credits</span>
                 </div>
               </Link>
 

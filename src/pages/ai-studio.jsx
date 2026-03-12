@@ -39,7 +39,7 @@ function TokenCost({ cost, label }) {
     <div className="flex items-center gap-1.5 text-sm text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full">
       <Coins size={14} />
       <span className="font-medium">{cost}</span>
-      <span className="text-amber-500">CYBEV</span>
+      <span className="text-amber-500">credits</span>
       {label && <span className="text-amber-400 text-xs">({label})</span>}
     </div>
   );
@@ -182,7 +182,7 @@ function VideoMaker({ balance }) {
                 }`}
               >
                 <div>{d.label}</div>
-                <div className="text-amber-500 text-[10px] mt-0.5">{d.cost} CYBEV</div>
+                <div className="text-amber-500 text-[10px] mt-0.5">{d.cost} credits</div>
               </button>
             ))}
           </div>
@@ -614,7 +614,7 @@ export default function AIStudio() {
           <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-full px-4 py-2">
             <Coins size={18} className="text-amber-500" />
             <span className="font-bold text-amber-700">{loadingBalance ? '...' : balance.toLocaleString()}</span>
-            <span className="text-amber-500 text-sm">CYBEV</span>
+            <span className="text-amber-500 text-sm">credits</span>
           </div>
         </div>
 
