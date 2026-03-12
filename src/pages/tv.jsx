@@ -38,9 +38,9 @@ function FeaturedHero({ stream, onClick }) {
       onClick={() => onClick(stream)}
       className="relative w-full aspect-[21/9] md:aspect-[21/7] rounded-2xl overflow-hidden cursor-pointer group bg-gray-900"
     >
-      {stream.thumbnail || stream.coverImage ? (
+      {getThumbnail(stream) ? (
         <img
-          src={stream.thumbnail || stream.coverImage}
+          src={getThumbnail(stream)}
           alt={stream.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
         />
@@ -96,9 +96,9 @@ function StreamCard({ stream, onClick, size = 'normal' }) {
       className={`group cursor-pointer flex-shrink-0 ${isSmall ? 'w-48 md:w-56' : 'w-full'}`}
     >
       <div className={`relative rounded-xl overflow-hidden bg-gray-800 ${isSmall ? 'aspect-video' : 'aspect-video'}`}>
-        {stream.thumbnail || stream.coverImage ? (
+        {getThumbnail(stream) ? (
           <img
-            src={stream.thumbnail || stream.coverImage}
+            src={getThumbnail(stream)}
             alt={stream.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
@@ -220,6 +220,30 @@ function ContentRow({ title, icon: Icon, items, onClick, seeAllHref, size = 'nor
 }
 
 // ─── Helpers ───
+
+// Generate thumbnail from Cloudinary video URL
+const generateThumbnailFromVideoUrl = (videoUrl) => {
+  if (!videoUrl) return null;
+  try {
+    const url = new URL(videoUrl);
+    const pathParts = url.pathname.split('/');
+    const uploadIndex = pathParts.indexOf('upload');
+    if (uploadIndex === -1) return null;
+    pathParts.splice(uploadIndex + 1, 0, 'so_1,w_400,h_400,c_fill');
+    const lastPart = pathParts[pathParts.length - 1];
+    pathParts[pathParts.length - 1] = lastPart.replace(/\.[^.]+$/, '.jpg');
+    url.pathname = pathParts.join('/');
+    return url.toString();
+  } catch { return null; }
+};
+
+// Get best available thumbnail for a vlog/stream
+function getThumbnail(item) {
+  return item.thumbnailUrl || item.thumbnail || item.coverImage
+    || generateThumbnailFromVideoUrl(item.videoUrl || item.url)
+    || null;
+}
+
 function getViewCount(item) {
   if (item.viewsCount !== undefined) return item.viewsCount;
   if (typeof item.views === 'number') return item.views;
