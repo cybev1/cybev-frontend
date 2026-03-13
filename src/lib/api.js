@@ -2,11 +2,11 @@
 // FILE: src/lib/api.js
 // PATH: cybev-frontend/src/lib/api.js
 // PURPOSE: API client with all routes
-// VERSION: 6.8.3 - Fixed /api/ prefix on all routes
-// PREVIOUS: 6.5.0 - Missing /api/ prefix on blog routes
+// VERSION: 6.8.4 - Guest access on watch-party pages (no 401 redirect)
+// PREVIOUS: 6.8.3 - Fixed /api/ prefix on all routes
 // ROLLBACK: Check backend route paths if issues
 // GITHUB: https://github.com/cybev1/cybev-frontend
-// UPDATED: 2026-01-12
+// UPDATED: 2026-03-13
 // ============================================
 
 import axios from 'axios';
@@ -47,9 +47,13 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/auth/login';
+        // Don't redirect to login on watch-party pages — guests are allowed
+        const isGuestAllowed = window.location.pathname.startsWith('/watch-party/');
+        if (!isGuestAllowed) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.location.href = '/auth/login';
+        }
       }
     }
     return Promise.reject(error);

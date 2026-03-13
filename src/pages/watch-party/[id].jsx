@@ -35,6 +35,14 @@ import {
 const REACTION_EMOJIS = ['🔥', '❤️', '😂', '👏', '🎉', '😮', '💯', '🙌', '😍', '💀', '🤣', '👀'];
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
+// Format viewer counts: 999, 1.2K, 15K, 1.5M, etc.
+const formatCount = (n) => {
+  if (!n || n < 0) return '0';
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, '')}K`;
+  return n.toLocaleString();
+};
+
 // ─── Floating Reaction Component ───
 function FloatingReaction({ emoji, id, onDone }) {
   useEffect(() => {
@@ -109,7 +117,7 @@ function LiveBadgeOverlay({ isLive, viewerCount }) {
       <div className="flex items-center gap-1 bg-black/70 backdrop-blur-sm rounded px-2 py-0.5">
         <Eye size={13} className="text-white" />
         <span className="text-white text-xs font-bold">
-          {viewerCount >= 1000 ? `${(viewerCount / 1000).toFixed(1)}K` : viewerCount.toLocaleString()}
+          {formatCount(viewerCount)}
         </span>
       </div>
     </div>
@@ -613,7 +621,7 @@ function EndPartyModal({ isOpen, onClose, onConfirm, viewerCount }) {
         </div>
         <h3 className="text-white text-lg font-bold mb-2">End Watch Party?</h3>
         <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-          This will end the party for {viewerCount > 0 ? `all ${viewerCount} viewer${viewerCount !== 1 ? 's' : ''}` : 'everyone'}.
+          This will end the party for {viewerCount > 0 ? `all ${formatCount(viewerCount)} viewers` : 'everyone'}.
           This action cannot be undone.
         </p>
         <div className="flex gap-3">
@@ -742,7 +750,13 @@ export default function WatchPartyRoom() {
   useEffect(() => {
     if (!partyId || !party) return;
     const user = getUser();
-    if (!user) return;
+    // Guests get a random guest ID for socket tracking
+    const guestId = typeof window !== 'undefined'
+      ? (sessionStorage.getItem('cybev_guest_id') || (() => { const id = 'guest_' + Math.random().toString(36).slice(2, 10); sessionStorage.setItem('cybev_guest_id', id); return id; })())
+      : 'guest';
+    const socketUser = user
+      ? { userId: user._id, username: user.displayName || user.username, avatar: user.avatar || '' }
+      : { userId: guestId, username: 'Guest', avatar: '' };
 
     const socket = io(`${API_URL}/watch-party`, {
       transports: ['websocket', 'polling'],
@@ -755,9 +769,7 @@ export default function WatchPartyRoom() {
       console.log('🎬 Connected to watch party socket');
       socket.emit('join-room', {
         partyId,
-        userId: user._id,
-        username: user.displayName || user.username,
-        avatar: user.avatar || ''
+        ...socketUser
       });
     });
 
@@ -1322,7 +1334,7 @@ export default function WatchPartyRoom() {
                 <button onClick={() => setShowParticipants(true)}
                   className={`text-sm font-semibold flex items-center gap-1 transition-colors ${showParticipants ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
                 >
-                  <Users size={14} /> {activeViewers.toLocaleString()}
+                  <Users size={14} /> {formatCount(activeViewers)}
                 </button>
               </div>
               <button onClick={() => setShowChat(false)} className="text-gray-500 hover:text-white lg:hidden">

@@ -64,7 +64,9 @@ function PartyCard({ party, onJoin }) {
         {/* Viewer count */}
         <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-black/70 text-white px-2 py-1 rounded-full text-xs">
           <Eye size={12} />
-          {activeViewers >= 1000 ? `${(activeViewers / 1000).toFixed(1)}K` : activeViewers} watching
+          {activeViewers >= 1000000 ? `${(activeViewers / 1000000).toFixed(1).replace(/\.0$/, '')}M`
+            : activeViewers >= 1000 ? `${(activeViewers / 1000).toFixed(1).replace(/\.0$/, '')}K`
+            : activeViewers} watching
         </div>
         {/* Play overlay */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
