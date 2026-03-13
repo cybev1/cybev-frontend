@@ -130,7 +130,15 @@ export default function WatchPartyIndex() {
   const fetchStreamKey = async () => {
     try {
       setLoadingRtmp(true);
-      const { data } = await api.get('/api/live/stream-key');
+      // POST generate-key creates a Mux live stream and returns credentials
+      const { data } = await api.post('/api/live/generate-key', { 
+        keyType: 'obs', 
+        title: form.title || 'Watch Party Stream' 
+      });
+      if (!data.success || !data.streamKey) {
+        alert(data.error || 'Failed to generate stream key');
+        return;
+      }
       setRtmpInfo({
         streamKey: data.streamKey,
         rtmpUrl: data.rtmpUrl || 'rtmps://global-live.mux.com:443/app',
@@ -138,8 +146,8 @@ export default function WatchPartyIndex() {
         streamId: data.streamId || data._id
       });
     } catch (err) {
-      console.error('Failed to get stream key:', err);
-      alert('Failed to get RTMP stream key. Make sure you have Mux configured.');
+      console.error('Failed to generate stream key:', err);
+      alert(err?.response?.data?.error || 'Failed to generate RTMP stream key');
     } finally {
       setLoadingRtmp(false);
     }
@@ -273,7 +281,7 @@ export default function WatchPartyIndex() {
                       <button onClick={fetchStreamKey} disabled={loadingRtmp}
                         className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50">
                         {loadingRtmp ? <Loader2 size={16} className="animate-spin" /> : <Radio size={16} />}
-                        {loadingRtmp ? 'Getting Stream Key...' : 'Get RTMP Stream Key'}
+                        {loadingRtmp ? 'Generating...' : 'Generate Stream Key'}
                       </button>
                     ) : (
                       <div className="bg-gray-50 rounded-lg p-3 space-y-2 text-sm">
