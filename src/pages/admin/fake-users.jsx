@@ -361,21 +361,21 @@ export default function FakeUsersAdmin() {
               </div>
             </div>
 
-            {/* Stream Viewers Panel */}
+            {/* Stream / Watch Party Viewers Panel */}
             <div className="bg-white rounded-2xl border border-gray-200 p-6">
               <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <Radio className="w-5 h-5 text-red-600" />
-                Stream Viewers
+                Stream / Watch Party Viewers
               </h3>
               
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Stream ID</label>
+                  <label className="text-sm font-medium text-gray-700">Stream or Watch Party ID</label>
                   <input
                     type="text"
                     value={streamId}
                     onChange={e => setStreamId(e.target.value)}
-                    placeholder="Paste livestream ID"
+                    placeholder="Paste livestream or watch party ID"
                     className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg"
                   />
                 </div>
@@ -387,14 +387,14 @@ export default function FakeUsersAdmin() {
                     value={viewerCount}
                     onChange={e => setViewerCount(Number(e.target.value))}
                     min={10}
-                    max={1000}
+                    max={100000}
                     className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg"
                   />
                 </div>
 
                 <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
                   <AlertTriangle className="w-4 h-4 inline mr-1" />
-                  Make sure the stream is active before adding viewers
+                  Works with both livestreams and watch parties
                 </div>
 
                 <button
