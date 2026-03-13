@@ -1,13 +1,16 @@
 // =============================================
 // FILE: [id].jsx
 // PATH: /src/pages/watch-party/[id].jsx
-// VERSION: v2.0.0
+// VERSION: v2.1.0
 // CYBEV Watch Party Room — Synchronized Viewing
 // Features: LIVE Badge Overlay, Viewer Count,
 //           Invite Friends Modal, Share (Web Share API),
 //           Publish to Feed, End Party Modal,
 //           Admin Boost Panel, Live Chat, Reactions,
 //           HLS/Mux/YouTube/RTMP, Co-host Roles
+// FIXES: Stray JSX bracket breaking LiveBadge,
+//        Inline dark styles (light-mode-only _app.jsx),
+//        Facebook-style LIVE badge with CYBEV branding
 // STACK: Next.js (Pages Router) + Socket.io + Tailwind
 // BACKEND: api.cybev.io/api/watch-party/*
 // AUTHOR: @prince
@@ -84,24 +87,29 @@ function ChatMsg({ msg }) {
 function LiveBadgeOverlay({ isLive, viewerCount }) {
   return (
     <div className="absolute top-3 left-3 z-20 flex items-center gap-2">
+      {/* CYBEV logo pill */}
+      <div className="flex items-center gap-1 bg-purple-600 rounded px-1.5 py-0.5">
+        <span className="text-white text-[10px] font-bold tracking-wide">CYBEV</span>
+      </div>
       {/* LIVE pill */}
-      <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md backdrop-blur-md border ${
-        isLive
-          ? 'bg-red-600/80 border-red-500/50'
-          : 'bg-gray-800/80 border-gray-600/50'
+      <div className={`flex items-center gap-1.5 rounded px-2 py-0.5 ${
+        isLive ? 'bg-red-600' : 'bg-gray-600'
       }`}>
         {isLive && (
-          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+          </span>
         )}
-        <span className="text-white text-[11px] font-bold tracking-wider">
+        <span className="text-white text-xs font-bold tracking-wider">
           {isLive ? 'LIVE' : 'ENDED'}
         </span>
       </div>
       {/* Viewer count pill */}
-      <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md rounded-md px-2.5 py-1 border border-white/10">
-        <Eye size={12} className="text-gray-300" />
-        <span className="text-white text-[11px] font-semibold">
-          {viewerCount >= 1000 ? `${(viewerCount / 1000).toFixed(1)}K` : viewerCount}
+      <div className="flex items-center gap-1 bg-black/70 backdrop-blur-sm rounded px-2 py-0.5">
+        <Eye size={13} className="text-white" />
+        <span className="text-white text-xs font-bold">
+          {viewerCount >= 1000 ? `${(viewerCount / 1000).toFixed(1)}K` : viewerCount.toLocaleString()}
         </span>
       </div>
     </div>
@@ -812,13 +820,13 @@ export default function WatchPartyRoom() {
   }, [isHLS, hlsLoaded, party, videoSrc]);
 
   if (loading) return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center" style={{ backgroundColor: '#030712' }}>
       <div className="animate-spin w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full" />
     </div>
   );
 
   if (error || !party) return (
-    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-white gap-4">
+    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-white gap-4" style={{ backgroundColor: '#030712' }}>
       <p className="text-xl">{error || 'Party not found'}</p>
       <button onClick={() => router.push('/watch-party')} className="px-4 py-2 bg-purple-600 rounded-lg">
         Back to Parties
@@ -851,11 +859,11 @@ export default function WatchPartyRoom() {
         }
       `}</style>
 
-      <div className="min-h-screen bg-gray-950 flex flex-col lg:flex-row">
+      <div className="min-h-screen bg-gray-950 flex flex-col lg:flex-row" style={{ backgroundColor: '#030712', color: '#f9fafb' }}>
         {/* ─── Video Area ─── */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top bar */}
-          <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-gray-900 border-b border-gray-800">
+          <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-gray-900 border-b border-gray-800" style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}>
             <button onClick={handleLeave} className="text-gray-400 hover:text-white transition-colors flex-shrink-0">
               <ArrowLeft size={20} />
             </button>
@@ -964,7 +972,7 @@ export default function WatchPartyRoom() {
             )}
 
             {/* v2: LIVE Badge Overlay (Facebook Live style) */}
-            <LiveBadgeOverlay isLive={!isEnded} viewerCount={activeViewers} />}
+            <LiveBadgeOverlay isLive={!isEnded} viewerCount={activeViewers} />
 
             {/* Floating Reactions */}
             {floatingReactions.map(r => (
@@ -1031,7 +1039,7 @@ export default function WatchPartyRoom() {
 
           {/* Reaction Bar */}
           {!isEnded && (
-            <div className="bg-gray-900 border-t border-gray-800 px-2 sm:px-4 py-2 flex items-center gap-1 sm:gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+            <div className="bg-gray-900 border-t border-gray-800 px-2 sm:px-4 py-2 flex items-center gap-1 sm:gap-2 overflow-x-auto" style={{ backgroundColor: '#111827', borderColor: '#1f2937', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
               {REACTION_EMOJIS.map(emoji => (
                 <button key={emoji} onClick={() => sendReaction(emoji)}
                   className="text-2xl sm:text-xl p-1.5 sm:p-1 hover:scale-125 active:scale-90 transition-transform flex-shrink-0"
@@ -1045,7 +1053,7 @@ export default function WatchPartyRoom() {
 
         {/* ─── Chat Sidebar ─── */}
         {showChat && (
-          <div className="w-full lg:w-80 xl:w-96 border-t lg:border-t-0 lg:border-l border-gray-800 bg-gray-900 flex flex-col h-[50vh] lg:h-auto">
+          <div className="w-full lg:w-80 xl:w-96 border-t lg:border-t-0 lg:border-l border-gray-800 bg-gray-900 flex flex-col h-[50vh] lg:h-auto" style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}>
             {/* Chat header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
               <div className="flex gap-3">
