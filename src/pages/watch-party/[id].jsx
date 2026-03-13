@@ -280,7 +280,7 @@ const BOOST_PRESETS = [
 const REACTION_EMOJIS_BOOST = ['🔥', '❤️', '😂', '👏', '🎉', '😮', '💯', '🙌', '😍', '🤣', '👀'];
 
 function AdminBoostPanel({ isOpen, onClose, partyId, socketRef }) {
-  const [tab, setTab] = useState('presets'); // presets | custom
+  const [tab, setTab] = useState('presets'); // presets | custom | manage
   const [viewers, setViewers] = useState(0);
   const [viewCount, setViewCount] = useState(0);
   const [commentCount, setCommentCount] = useState(0);
@@ -288,9 +288,24 @@ function AdminBoostPanel({ isOpen, onClose, partyId, socketRef }) {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]); // track boosts applied
+  const [boostStatus, setBoostStatus] = useState(null);
+  const [reducePercent, setReducePercent] = useState(25);
 
   const currentUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null;
   const isAdmin = currentUser?.isAdmin || currentUser?.role === 'admin';
+
+  // Poll boost status every 10s when manage tab is active
+  useEffect(() => {
+    if (!isOpen || !isAdmin || tab !== 'manage') return;
+    const fetchStatus = () => {
+      api.get(`/api/watch-party/${partyId}/boost/status`)
+        .then(({ data }) => setBoostStatus(data))
+        .catch(() => {});
+    };
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 10000);
+    return () => clearInterval(interval);
+  }, [isOpen, tab, partyId, isAdmin]);
 
   // Generate random comments from template pool
   const generateComments = (count) => {
@@ -336,6 +351,36 @@ function AdminBoostPanel({ isOpen, onClose, partyId, socketRef }) {
 
   const handleCustomBoost = () => {
     handleBoost(viewers, viewCount, commentCount, reactionCount);
+  };
+
+  const handleReduce = async (pct) => {
+    setSubmitting(true);
+    setResult(null);
+    try {
+      const { data } = await api.post(`/api/watch-party/${partyId}/boost/reduce`, { percent: pct });
+      setResult({ ok: true, msg: data.message || `Reduced by ${pct}%` });
+      socketRef?.current?.emit('request-sync', { partyId });
+    } catch (err) {
+      setResult({ ok: false, msg: err.response?.data?.error || 'Reduce failed' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleStopBoost = async () => {
+    if (!confirm('Stop all boost? Viewer count will drop to real viewers only.')) return;
+    setSubmitting(true);
+    setResult(null);
+    try {
+      const { data } = await api.post(`/api/watch-party/${partyId}/boost/stop`);
+      setResult({ ok: true, msg: data.message || 'Boost stopped' });
+      setBoostStatus(null);
+      socketRef?.current?.emit('request-sync', { partyId });
+    } catch (err) {
+      setResult({ ok: false, msg: err.response?.data?.error || 'Stop failed' });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -412,6 +457,7 @@ function AdminBoostPanel({ isOpen, onClose, partyId, socketRef }) {
         {[
           { id: 'presets', label: '⚡ Quick Presets' },
           { id: 'custom', label: '🎛️ Custom Boost' },
+          { id: 'manage', label: '📊 Manage' },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`flex-1 py-2.5 text-xs font-semibold transition-colors border-b-2 ${
@@ -458,7 +504,7 @@ function AdminBoostPanel({ isOpen, onClose, partyId, socketRef }) {
               ))}
             </div>
           </div>
-        ) : (
+        ) : tab === 'custom' ? (
           /* ─── Custom Boost ─── */
           <div className="space-y-4">
             <p className="text-gray-500 text-xs">Fine-tune boost numbers. Comments are auto-generated from Special Users.</p>
@@ -573,6 +619,106 @@ function AdminBoostPanel({ isOpen, onClose, partyId, socketRef }) {
                 <><Rocket size={16} /> Apply Boost</>
               )}
             </button>
+          </div>
+        ) : (
+          /* ─── Manage Boost (reduce / stop / status) ─── */
+          <div className="space-y-4">
+            {/* Current Status */}
+            {boostStatus?.boost ? (
+              <div className="rounded-xl p-4 border" style={{ backgroundColor: '#1a2332', borderColor: '#1f2937' }}>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-gray-400 text-[11px] font-semibold uppercase tracking-wider">Simulation Status</span>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                    boostStatus.boost.isActive
+                      ? boostStatus.boost.phase === 'peak' ? 'bg-green-500/20 text-green-400'
+                        : boostStatus.boost.phase === 'climbing' ? 'bg-blue-500/20 text-blue-400'
+                        : boostStatus.boost.phase === 'dipping' ? 'bg-orange-500/20 text-orange-400'
+                        : 'bg-purple-500/20 text-purple-400'
+                      : 'bg-gray-700 text-gray-400'
+                  }`}>
+                    {boostStatus.boost.isActive ? boostStatus.boost.phase?.toUpperCase() : 'STOPPED'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <div className="text-gray-500 text-[11px]">Peak Target</div>
+                    <div className="text-white font-bold">{formatCount(boostStatus.boost.peakTarget)}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500 text-[11px]">Current Simulated</div>
+                    <div className="text-yellow-400 font-bold">{formatCount(boostStatus.boost.currentSimulated)}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500 text-[11px]">Min Floor</div>
+                    <div className="text-white font-bold">{formatCount(boostStatus.boost.minFloor)}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500 text-[11px]">Total Viewers</div>
+                    <div className="text-green-400 font-bold">{formatCount(boostStatus.viewers?.total)}</div>
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-gray-800 flex items-center gap-2 text-[11px] text-gray-500">
+                  <span>Real: {boostStatus.viewers?.real || 0}</span>
+                  <span>•</span>
+                  <span>Boosted: {formatCount(boostStatus.viewers?.simulated)}</span>
+                  <span>•</span>
+                  <span>Synthetic: {formatCount(boostStatus.viewers?.synthetic)}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-6 text-gray-500 text-sm">
+                {boostStatus === null ? 'Loading...' : 'No active boost simulation'}
+              </div>
+            )}
+
+            {/* Reduce by % */}
+            <div>
+              <label className="text-gray-400 text-[11px] font-semibold uppercase tracking-wider mb-2 block">
+                📉 Reduce Boost
+              </label>
+              <div className="flex gap-2 flex-wrap">
+                {[10, 25, 50, 75].map(pct => (
+                  <button key={pct} onClick={() => handleReduce(pct)} disabled={submitting}
+                    className="px-4 py-2 rounded-lg border text-sm font-semibold transition-all disabled:opacity-40 bg-gray-800 border-gray-700 text-orange-400 hover:bg-orange-500/10 hover:border-orange-500/40"
+                  >
+                    -{pct}%
+                  </button>
+                ))}
+              </div>
+              {/* Custom reduce */}
+              <div className="flex gap-2 mt-2">
+                <input type="number" min={1} max={99} value={reducePercent}
+                  onChange={e => setReducePercent(Math.max(1, Math.min(99, parseInt(e.target.value) || 25)))}
+                  className="flex-1 px-3 py-2 rounded-lg border text-sm outline-none"
+                  style={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#fff' }}
+                  placeholder="Custom %"
+                />
+                <button onClick={() => handleReduce(reducePercent)} disabled={submitting}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-40"
+                  style={{ backgroundColor: '#422006', color: '#fb923c', border: '1px solid #854d0e' }}
+                >
+                  Reduce
+                </button>
+              </div>
+            </div>
+
+            {/* Stop / Remove All */}
+            <div>
+              <label className="text-gray-400 text-[11px] font-semibold uppercase tracking-wider mb-2 block">
+                🛑 Stop Boost
+              </label>
+              <button onClick={handleStopBoost} disabled={submitting}
+                className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-40"
+                style={{ backgroundColor: '#450a0a', color: '#f87171', border: '1px solid #991b1b' }}
+              >
+                {submitting ? (
+                  <div className="animate-spin w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full" />
+                ) : (
+                  <><X size={16} /> Stop All Boost & Reset to 0</>
+                )}
+              </button>
+              <p className="text-gray-600 text-[11px] mt-1.5 text-center">This will remove all simulated viewers immediately</p>
+            </div>
           </div>
         )}
 
