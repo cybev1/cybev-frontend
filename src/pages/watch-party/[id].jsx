@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import Script from 'next/script';
 import io from 'socket.io-client';
 import api from '@/lib/api';
 import {
@@ -105,6 +106,8 @@ export default function WatchPartyRoom() {
   const playerContainerRef = useRef(null);
   const controlsTimerRef = useRef(null);
   const isSyncingRef = useRef(false); // prevent feedback loops
+  const hlsRef = useRef(null);
+  const [hlsLoaded, setHlsLoaded] = useState(false);
 
   // Get current user from localStorage
   const getUser = () => {
@@ -384,11 +387,57 @@ export default function WatchPartyRoom() {
 
   // Check if YouTube
   const isYouTube = party?.videoSource?.type === 'youtube';
+  const isMux = party?.videoSource?.type === 'mux' || getVideoSrc().includes('.m3u8');
   const getYouTubeEmbedUrl = () => {
     const url = party?.videoSource?.url || '';
     const match = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
     return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1&enablejsapi=1` : '';
   };
+
+  // ─── HLS.js for Mux/RTMP streams ───
+  useEffect(() => {
+    if (!isMux || isYouTube || !videoRef.current) return;
+    const videoSrc = getVideoSrc();
+    if (!videoSrc || !videoSrc.includes('.m3u8')) return;
+
+    const initHls = () => {
+      if (typeof window === 'undefined' || !window.Hls) {
+        setTimeout(initHls, 500);
+        return;
+      }
+      const Hls = window.Hls;
+      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+
+      if (Hls.isSupported()) {
+        const hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: true,
+          backBufferLength: 90,
+          maxBufferLength: 30,
+          manifestLoadingMaxRetry: 10,
+          manifestLoadingRetryDelay: 2000,
+        });
+        hls.loadSource(videoSrc);
+        hls.attachMedia(videoRef.current);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          videoRef.current?.play().catch(() => {});
+        });
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          if (data.fatal && data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+            setTimeout(() => hls.startLoad(), 3000);
+          }
+        });
+        hlsRef.current = hls;
+      } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
+        // Safari native HLS
+        videoRef.current.src = videoSrc;
+        videoRef.current.play().catch(() => {});
+      }
+    };
+
+    if (hlsLoaded) initHls();
+    return () => { if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; } };
+  }, [isMux, hlsLoaded, party]);
 
   if (loading) return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center">
@@ -427,37 +476,37 @@ export default function WatchPartyRoom() {
         {/* ─── Video Area ─── */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top bar */}
-          <div className="flex items-center gap-3 px-4 py-3 bg-gray-900 border-b border-gray-800">
-            <button onClick={handleLeave} className="text-gray-400 hover:text-white transition-colors">
+          <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-gray-900 border-b border-gray-800">
+            <button onClick={handleLeave} className="text-gray-400 hover:text-white transition-colors flex-shrink-0">
               <ArrowLeft size={20} />
             </button>
             <div className="flex-1 min-w-0">
-              <h1 className="text-white font-semibold truncate">{party.title}</h1>
-              <div className="flex items-center gap-3 text-xs text-gray-400">
+              <h1 className="text-white font-semibold truncate text-sm sm:text-base">{party.title}</h1>
+              <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-gray-400">
                 <span className="flex items-center gap-1">
-                  {isEnded ? <Eye size={12} /> : <Radio size={12} className="text-red-500 animate-pulse" />}
+                  {isEnded ? <Eye size={10} /> : <Radio size={10} className="text-red-500 animate-pulse" />}
                   {isEnded ? 'Ended' : 'Live'}
                 </span>
                 <span className="flex items-center gap-1">
-                  <Users size={12} /> {activeViewers} watching
+                  <Users size={10} /> {activeViewers}
                 </span>
-                <span>Host: {party.host?.displayName || party.host?.username}</span>
+                <span className="hidden sm:inline">Host: {party.host?.displayName || party.host?.username}</span>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={copyInviteLink} className="text-gray-400 hover:text-white p-2" title="Copy invite link">
-                <Share2 size={18} />
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              <button onClick={copyInviteLink} className="text-gray-400 hover:text-white p-1.5 sm:p-2" title="Copy invite link">
+                <Share2 size={16} />
               </button>
               <button onClick={() => setShowChat(!showChat)}
-                className={`p-2 rounded-lg transition-colors ${showChat ? 'text-purple-400 bg-purple-500/10' : 'text-gray-400 hover:text-white'}`}
+                className={`p-1.5 sm:p-2 rounded-lg transition-colors ${showChat ? 'text-purple-400 bg-purple-500/10' : 'text-gray-400 hover:text-white'}`}
               >
-                <MessageCircle size={18} />
+                <MessageCircle size={16} />
               </button>
               {isHost && !isEnded && (
                 <button onClick={handleEndParty}
-                  className="text-red-400 hover:text-red-300 text-xs font-medium px-3 py-1.5 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-colors"
+                  className="text-red-400 hover:text-red-300 text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1 sm:py-1.5 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-colors"
                 >
-                  End Party
+                  End
                 </button>
               )}
             </div>
@@ -466,8 +515,9 @@ export default function WatchPartyRoom() {
           {/* Video Player */}
           <div
             ref={playerContainerRef}
-            className="relative flex-1 bg-black flex items-center justify-center cursor-pointer"
+            className="relative flex-1 bg-black flex items-center justify-center cursor-pointer min-h-[200px] sm:min-h-[300px]"
             onMouseMove={showControlsTemporarily}
+            onTouchStart={showControlsTemporarily}
             onClick={() => { if (canControl) handlePlayPause(); }}
           >
             {isYouTube ? (
@@ -481,7 +531,7 @@ export default function WatchPartyRoom() {
             ) : (
               <video
                 ref={videoRef}
-                src={getVideoSrc()}
+                src={isMux ? undefined : getVideoSrc()}
                 className="w-full h-full"
                 onTimeUpdate={handleTimeUpdate}
                 onLoadedMetadata={handleLoadedMetadata}
@@ -562,10 +612,10 @@ export default function WatchPartyRoom() {
 
           {/* Reaction Bar */}
           {!isEnded && (
-            <div className="bg-gray-900 border-t border-gray-800 px-4 py-2 flex items-center gap-2 overflow-x-auto">
+            <div className="bg-gray-900 border-t border-gray-800 px-2 sm:px-4 py-2 flex items-center gap-1 sm:gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
               {REACTION_EMOJIS.map(emoji => (
                 <button key={emoji} onClick={() => sendReaction(emoji)}
-                  className="text-xl hover:scale-125 active:scale-90 transition-transform flex-shrink-0"
+                  className="text-2xl sm:text-xl p-1.5 sm:p-1 hover:scale-125 active:scale-90 transition-transform flex-shrink-0"
                 >
                   {emoji}
                 </button>
@@ -576,7 +626,7 @@ export default function WatchPartyRoom() {
 
         {/* ─── Chat Sidebar ─── */}
         {showChat && (
-          <div className="w-full lg:w-80 xl:w-96 border-t lg:border-t-0 lg:border-l border-gray-800 bg-gray-900 flex flex-col h-80 lg:h-auto">
+          <div className="w-full lg:w-80 xl:w-96 border-t lg:border-t-0 lg:border-l border-gray-800 bg-gray-900 flex flex-col h-[50vh] lg:h-auto">
             {/* Chat header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
               <div className="flex gap-3">
@@ -644,6 +694,13 @@ export default function WatchPartyRoom() {
           </div>
         )}
       </div>
+
+      {/* HLS.js for Mux/RTMP stream playback */}
+      <Script
+        src="https://cdn.jsdelivr.net/npm/hls.js@latest"
+        strategy="afterInteractive"
+        onLoad={() => setHlsLoaded(true)}
+      />
     </>
   );
 }

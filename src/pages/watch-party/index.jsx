@@ -11,7 +11,7 @@ import api from '@/lib/api';
 import AppLayout from '@/components/Layout/AppLayout';
 import {
   Play, Plus, Users, Clock, Eye, Search, Filter, Tv,
-  Calendar, Globe, Lock, UserCheck, Loader2, Radio
+  Calendar, Globe, Lock, UserCheck, Loader2, Radio, Copy
 } from 'lucide-react';
 
 const PRIVACY_OPTIONS = [
@@ -23,7 +23,8 @@ const PRIVACY_OPTIONS = [
 const VIDEO_SOURCES = [
   { value: 'url', label: 'Video URL' },
   { value: 'youtube', label: 'YouTube URL' },
-  { value: 'vlog', label: 'My Vlogs' }
+  { value: 'vlog', label: 'My Vlogs' },
+  { value: 'rtmp', label: 'Live Stream (OBS/RTMP)' }
 ];
 
 function PartyCard({ party, onJoin }) {
@@ -122,6 +123,27 @@ export default function WatchPartyIndex() {
     maxParticipants: 50
   });
   const [creating, setCreating] = useState(false);
+  const [rtmpInfo, setRtmpInfo] = useState(null);
+  const [loadingRtmp, setLoadingRtmp] = useState(false);
+
+  // Fetch RTMP stream key when RTMP source is selected
+  const fetchStreamKey = async () => {
+    try {
+      setLoadingRtmp(true);
+      const { data } = await api.get('/api/live/stream-key');
+      setRtmpInfo({
+        streamKey: data.streamKey,
+        rtmpUrl: data.rtmpUrl || 'rtmps://global-live.mux.com:443/app',
+        playbackId: data.playbackId || data.muxPlaybackId,
+        streamId: data.streamId || data._id
+      });
+    } catch (err) {
+      console.error('Failed to get stream key:', err);
+      alert('Failed to get RTMP stream key. Make sure you have Mux configured.');
+    } finally {
+      setLoadingRtmp(false);
+    }
+  };
 
   const fetchParties = useCallback(async () => {
     try {
@@ -143,18 +165,29 @@ export default function WatchPartyIndex() {
   };
 
   const handleCreate = async () => {
-    if (!form.title.trim() || !form.videoUrl.trim()) return;
+    if (!form.title.trim()) return;
+    if (form.videoSourceType !== 'rtmp' && !form.videoUrl.trim()) return;
     try {
       setCreating(true);
-      const videoSource = {
-        type: form.videoSourceType,
-        url: form.videoUrl,
-        title: form.title
-      };
-      // Extract YouTube thumbnail if applicable
-      if (form.videoSourceType === 'youtube') {
-        const ytMatch = form.videoUrl.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-        if (ytMatch) videoSource.thumbnail = `https://img.youtube.com/vi/${ytMatch[1]}/maxresdefault.jpg`;
+      let videoSource;
+
+      if (form.videoSourceType === 'rtmp' && rtmpInfo) {
+        videoSource = {
+          type: 'mux',
+          muxPlaybackId: rtmpInfo.playbackId,
+          url: rtmpInfo.playbackId ? `https://stream.mux.com/${rtmpInfo.playbackId}.m3u8` : '',
+          title: form.title
+        };
+      } else {
+        videoSource = {
+          type: form.videoSourceType,
+          url: form.videoUrl,
+          title: form.title
+        };
+        if (form.videoSourceType === 'youtube') {
+          const ytMatch = form.videoUrl.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+          if (ytMatch) videoSource.thumbnail = `https://img.youtube.com/vi/${ytMatch[1]}/maxresdefault.jpg`;
+        }
       }
 
       const { data } = await api.post('/api/watch-party', {
@@ -204,7 +237,7 @@ export default function WatchPartyIndex() {
 
         {/* Create Form */}
         {showCreate && (
-          <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 mb-6 shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Create a Watch Party</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
@@ -234,11 +267,41 @@ export default function WatchPartyIndex() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Video URL</label>
-                <input
-                  type="url" placeholder="https://..."
-                  value={form.videoUrl} onChange={e => setForm({...form, videoUrl: e.target.value})}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                />
+                {form.videoSourceType === 'rtmp' ? (
+                  <div className="space-y-3">
+                    {!rtmpInfo ? (
+                      <button onClick={fetchStreamKey} disabled={loadingRtmp}
+                        className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50">
+                        {loadingRtmp ? <Loader2 size={16} className="animate-spin" /> : <Radio size={16} />}
+                        {loadingRtmp ? 'Getting Stream Key...' : 'Get RTMP Stream Key'}
+                      </button>
+                    ) : (
+                      <div className="bg-gray-50 rounded-lg p-3 space-y-2 text-sm">
+                        <div>
+                          <span className="text-gray-500">RTMP URL:</span>
+                          <div className="flex items-center gap-2 mt-1">
+                            <code className="flex-1 bg-white px-2 py-1.5 rounded border text-xs break-all">{rtmpInfo.rtmpUrl}</code>
+                            <button onClick={() => { navigator.clipboard.writeText(rtmpInfo.rtmpUrl); }} className="p-1.5 hover:bg-gray-200 rounded"><Copy size={14} /></button>
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Stream Key:</span>
+                          <div className="flex items-center gap-2 mt-1">
+                            <code className="flex-1 bg-white px-2 py-1.5 rounded border text-xs break-all">{rtmpInfo.streamKey}</code>
+                            <button onClick={() => { navigator.clipboard.writeText(rtmpInfo.streamKey); }} className="p-1.5 hover:bg-gray-200 rounded"><Copy size={14} /></button>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-2">Paste these into OBS → Settings → Stream → Custom. Start streaming in OBS, then click "Start Party" here.</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <input
+                    type="url" placeholder="https://..."
+                    value={form.videoUrl} onChange={e => setForm({...form, videoUrl: e.target.value})}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                  />
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Privacy</label>
@@ -271,7 +334,7 @@ export default function WatchPartyIndex() {
                 className="px-5 py-2.5 text-gray-600 hover:text-gray-800 font-medium transition-colors">
                 Cancel
               </button>
-              <button onClick={handleCreate} disabled={creating || !form.title.trim() || !form.videoUrl.trim()}
+              <button onClick={handleCreate} disabled={creating || !form.title.trim() || (form.videoSourceType !== 'rtmp' && !form.videoUrl.trim()) || (form.videoSourceType === 'rtmp' && !rtmpInfo)}
                 className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white rounded-full font-medium transition-colors"
               >
                 {creating ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
