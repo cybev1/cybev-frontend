@@ -21,10 +21,11 @@ const PRIVACY_OPTIONS = [
 ];
 
 const VIDEO_SOURCES = [
-  { value: 'url', label: 'Video URL' },
+  { value: 'url', label: 'Video URL (MP4)' },
+  { value: 'hls', label: 'Live Stream URL (HLS/m3u8)' },
   { value: 'youtube', label: 'YouTube URL' },
   { value: 'vlog', label: 'My Vlogs' },
-  { value: 'rtmp', label: 'Live Stream (OBS/RTMP)' }
+  { value: 'rtmp', label: 'Stream from OBS/vMix (RTMP)' }
 ];
 
 function PartyCard({ party, onJoin }) {
@@ -209,10 +210,14 @@ export default function WatchPartyIndex() {
         };
       } else {
         videoSource = {
-          type: form.videoSourceType,
+          type: form.videoSourceType === 'hls' ? 'url' : form.videoSourceType,
           url: form.videoUrl,
           title: form.title
         };
+        // HLS streams: also set as mux type so player uses HLS.js
+        if (form.videoSourceType === 'hls' || form.videoUrl.includes('.m3u8')) {
+          videoSource.type = 'url'; // the room player detects .m3u8 in any URL
+        }
         if (form.videoSourceType === 'youtube') {
           const ytMatch = form.videoUrl.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
           if (ytMatch) videoSource.thumbnail = `https://img.youtube.com/vi/${ytMatch[1]}/maxresdefault.jpg`;
@@ -333,11 +338,25 @@ export default function WatchPartyIndex() {
                     )}
                   </div>
                 ) : (
-                  <input
-                    type="url" placeholder="https://..."
-                    value={form.videoUrl} onChange={e => setForm({...form, videoUrl: e.target.value})}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                  />
+                  <div>
+                    <input
+                      type="url"
+                      placeholder={
+                        form.videoSourceType === 'hls'
+                          ? 'https://example.com/stream/chunklist.m3u8'
+                          : form.videoSourceType === 'youtube'
+                            ? 'https://youtube.com/watch?v=...'
+                            : 'https://example.com/video.mp4'
+                      }
+                      value={form.videoUrl} onChange={e => setForm({...form, videoUrl: e.target.value})}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                    />
+                    {form.videoSourceType === 'hls' && (
+                      <p className="text-xs text-gray-400 mt-1.5">
+                        Paste any .m3u8 HLS stream URL. Works with church streams, live TV, CDN streams, etc.
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
               <div>
