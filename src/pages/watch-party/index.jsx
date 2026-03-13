@@ -130,24 +130,39 @@ export default function WatchPartyIndex() {
   const fetchStreamKey = async () => {
     try {
       setLoadingRtmp(true);
-      // POST generate-key creates a Mux live stream and returns credentials
-      const { data } = await api.post('/api/live/generate-key', { 
-        keyType: 'obs', 
-        title: form.title || 'Watch Party Stream' 
-      });
+      // Try new multi-provider endpoint first, fallback to old Mux endpoint
+      let data;
+      try {
+        const res = await api.post('/api/stream-gen/create', {
+          title: form.title || 'Watch Party Stream',
+          lowLatency: true
+        });
+        data = res.data;
+      } catch (e1) {
+        // Fallback to old endpoint
+        console.log('stream-gen failed, trying /api/live/generate-key');
+        const res = await api.post('/api/live/generate-key', {
+          keyType: 'obs',
+          title: form.title || 'Watch Party Stream'
+        });
+        data = res.data;
+      }
+
       if (!data.success || !data.streamKey) {
-        alert(data.error || 'Failed to generate stream key');
+        alert(data.error || 'Failed to generate stream key. Check your Mux or Livepeer configuration.');
         return;
       }
       setRtmpInfo({
         streamKey: data.streamKey,
         rtmpUrl: data.rtmpUrl || 'rtmps://global-live.mux.com:443/app',
-        playbackId: data.playbackId || data.muxPlaybackId,
-        streamId: data.streamId || data._id
+        playbackId: data.playbackId,
+        playbackUrl: data.playbackUrl,
+        streamId: data.streamId,
+        provider: data.provider || 'mux'
       });
     } catch (err) {
       console.error('Failed to generate stream key:', err);
-      alert(err?.response?.data?.error || 'Failed to generate RTMP stream key');
+      alert(err?.response?.data?.error || 'Failed to generate stream key. Make sure Mux or Livepeer is configured.');
     } finally {
       setLoadingRtmp(false);
     }
@@ -181,10 +196,16 @@ export default function WatchPartyIndex() {
 
       if (form.videoSourceType === 'rtmp' && rtmpInfo) {
         videoSource = {
-          type: 'mux',
+          type: 'mux', // keep 'mux' type for HLS player compatibility
           muxPlaybackId: rtmpInfo.playbackId,
-          url: rtmpInfo.playbackId ? `https://stream.mux.com/${rtmpInfo.playbackId}.m3u8` : '',
-          title: form.title
+          url: rtmpInfo.playbackUrl
+            || (rtmpInfo.provider === 'livepeer' && rtmpInfo.playbackId
+              ? `https://livepeercdn.studio/hls/${rtmpInfo.playbackId}/index.m3u8`
+              : rtmpInfo.playbackId
+                ? `https://stream.mux.com/${rtmpInfo.playbackId}.m3u8`
+                : ''),
+          title: form.title,
+          provider: rtmpInfo.provider
         };
       } else {
         videoSource = {
@@ -285,6 +306,11 @@ export default function WatchPartyIndex() {
                       </button>
                     ) : (
                       <div className="bg-gray-50 rounded-lg p-3 space-y-2 text-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                            via {rtmpInfo.provider === 'livepeer' ? 'Livepeer' : 'Mux'}
+                          </span>
+                        </div>
                         <div>
                           <span className="text-gray-500">RTMP URL:</span>
                           <div className="flex items-center gap-2 mt-1">
@@ -299,7 +325,10 @@ export default function WatchPartyIndex() {
                             <button onClick={() => { navigator.clipboard.writeText(rtmpInfo.streamKey); }} className="p-1.5 hover:bg-gray-200 rounded"><Copy size={14} /></button>
                           </div>
                         </div>
-                        <p className="text-xs text-gray-400 mt-2">Paste these into OBS → Settings → Stream → Custom. Start streaming in OBS, then click "Start Party" here.</p>
+                        <p className="text-xs text-gray-400 mt-2">
+                          Open OBS → Settings → Stream → Service: <strong>Custom</strong> → paste Server URL and Stream Key above. 
+                          Start streaming in OBS first, then click "Start Party".
+                        </p>
                       </div>
                     )}
                   </div>
