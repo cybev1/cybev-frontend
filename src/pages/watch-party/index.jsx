@@ -44,8 +44,22 @@ function PartyCard({ party, onJoin }) {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900 to-indigo-900">
-            <Tv size={48} className="text-white/30" />
+          /* Branded default thumbnail — much richer than a bare icon */
+          <div className="w-full h-full flex flex-col items-center justify-center text-center p-4"
+            style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #4c1d95 40%, #7c3aed 70%, #a855f7 100%)' }}
+          >
+            {/* Decorative elements */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20">
+              <div className="absolute top-[-20%] right-[-10%] w-40 h-40 bg-pink-500 rounded-full blur-3xl" />
+              <div className="absolute bottom-[-10%] left-[-10%] w-32 h-32 bg-blue-500 rounded-full blur-3xl" />
+            </div>
+            <div className="relative z-10">
+              <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur flex items-center justify-center mx-auto mb-3 border border-white/20">
+                <Play size={20} className="text-white ml-0.5" />
+              </div>
+              <p className="text-white font-bold text-sm leading-tight line-clamp-2 max-w-[200px]">{party.title}</p>
+              <p className="text-purple-200 text-xs mt-1.5 opacity-80">Watch Party • CYBEV</p>
+            </div>
           </div>
         )}
         {/* Live badge */}

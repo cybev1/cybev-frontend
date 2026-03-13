@@ -14,7 +14,7 @@ import { motion } from 'framer-motion';
 import {
   Heart, MessageCircle, Share2, Bookmark,
   Eye, Flame, Coins, Sparkles, Pin, Radio, TrendingUp, Award,
-  Edit, Trash2, MoreHorizontal, X, Save, Loader2
+  Edit, Trash2, MoreHorizontal, X, Save, Loader2, Play
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -65,7 +65,9 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
     setClientNow(Date.now());
   }, []);
   const isOwner = post.authorId?._id === currentUserId || 
-                  post.authorId === currentUserId;
+                  post.authorId === currentUserId ||
+                  post.author?._id === currentUserId ||
+                  post.author === currentUserId;
 
   const handleReaction = (reaction) => {
     setSelectedReaction(reaction);
@@ -96,7 +98,11 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
       const token = localStorage.getItem('token');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
-      const response = await fetch(`${API_URL}/posts/${post._id}`, {
+      const contentType = post.contentType || post.type || 'post';
+      const isWatchParty = post.title?.includes('Watch Party:') || post.tags?.includes('watch-party');
+      const editEndpoint = (contentType === 'blog' || isWatchParty) ? 'blogs' : 'posts';
+
+      const response = await fetch(`${API_URL}/api/${editEndpoint}/${post._id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -133,10 +139,11 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
       const token = localStorage.getItem('token');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
-      // ✨ NEW FIX: Determine correct delete endpoint based on contentType or type
+      // ✨ FIX: Determine correct delete endpoint based on contentType or type
       const contentType = post.contentType || post.type || 'post';
-      const deleteEndpoint = contentType === 'blog' ? 'blogs' : 'posts';
-      const deleteUrl = `${API_URL}/${deleteEndpoint}/${post._id}`;
+      const isWatchParty = post.title?.includes('Watch Party:') || post.tags?.includes('watch-party');
+      const deleteEndpoint = (contentType === 'blog' || isWatchParty) ? 'blogs' : 'posts';
+      const deleteUrl = `${API_URL}/api/${deleteEndpoint}/${post._id}`;
 
       console.log(`🗑️ Deleting ${contentType} with endpoint: ${deleteUrl}`);
 
@@ -382,6 +389,33 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
                 AI Generated
               </div>
             )}
+          </div>
+        )}
+
+        {/* Watch Party Banner — shows branded card when no featured image */}
+        {!displayImage && (post.title?.includes('Watch Party:') || post.tags?.includes('watch-party')) && (
+          <div className="relative w-full cursor-pointer overflow-hidden" onClick={handlePostClick}
+            style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #4c1d95 40%, #7c3aed 70%, #a855f7 100%)' }}
+          >
+            <div className="relative z-10 flex items-center gap-4 px-5 py-6">
+              <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center flex-shrink-0 border border-white/20">
+                <Play className="w-6 h-6 text-white ml-0.5" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Radio className="w-3 h-3 animate-pulse" />
+                    LIVE
+                  </span>
+                  <span className="text-purple-200 text-xs">Watch Party</span>
+                </div>
+                <p className="text-white font-bold text-sm truncate">{post.title?.replace('🎬 Watch Party: ', '')}</p>
+                <p className="text-purple-200 text-xs mt-0.5">Tap to join on CYBEV</p>
+              </div>
+            </div>
+            {/* Decorative blobs */}
+            <div className="absolute top-0 right-0 w-24 h-24 bg-pink-500/20 rounded-full blur-2xl" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-blue-500/20 rounded-full blur-2xl" />
           </div>
         )}
 
