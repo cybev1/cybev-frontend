@@ -191,8 +191,18 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
 
   const displayImage = getDisplayImage();
 
-  // Get correct URL based on post type (livestream goes to /live, others to /blog)
+  // Get correct URL based on post type (livestream goes to /live, watch-party goes to /watch-party, others to /blog)
   const getPostUrl = () => {
+    // Check if it's a watch party post (published from watch party)
+    const isWatchParty = post.title?.includes('Watch Party:') ||
+                         post.tags?.includes('watch-party') ||
+                         post.content?.includes('/watch-party/');
+    if (isWatchParty) {
+      // Extract watch party ID from content link
+      const wpMatch = post.content?.match(/\/watch-party\/([a-f0-9]{24})/);
+      if (wpMatch) return `/watch-party/${wpMatch[1]}`;
+    }
+
     // Check if it's a livestream
     const isLivestream = post.postType === 'live' || 
                          post.type === 'livestream' || 

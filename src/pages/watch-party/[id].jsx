@@ -281,6 +281,9 @@ function AdminBoostPanel({ isOpen, onClose, partyId, socketRef }) {
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]); // track boosts applied
 
+  const currentUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null;
+  const isAdmin = currentUser?.isAdmin || currentUser?.role === 'admin';
+
   // Generate random comments from template pool
   const generateComments = (count) => {
     const shuffled = [...BOOST_COMMENTS].sort(() => Math.random() - 0.5);
@@ -329,6 +332,58 @@ function AdminBoostPanel({ isOpen, onClose, partyId, socketRef }) {
 
   if (!isOpen) return null;
 
+  // ─── Non-admin paywall ───
+  if (!isAdmin) {
+    return (
+      <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl border-t shadow-2xl animate-slide-up"
+        style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))', backgroundColor: '#111827', borderColor: '#854d0e33' }}
+      >
+        <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: '#1f2937' }}>
+          <div className="flex items-center gap-2 text-yellow-400">
+            <Rocket size={18} />
+            <span className="font-bold text-sm">Boost Watch Party</span>
+          </div>
+          <button onClick={onClose} className="text-gray-500 hover:text-white p-1"><X size={18} /></button>
+        </div>
+        <div className="px-4 py-6 text-center">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: '#422006' }}>
+            <Rocket size={28} className="text-yellow-400" />
+          </div>
+          <h3 className="text-white text-lg font-bold mb-2">Boost Your Watch Party</h3>
+          <p className="text-gray-400 text-sm mb-6 leading-relaxed max-w-xs mx-auto">
+            Get more viewers, reactions, and engagement on your watch party. Boosting uses CYBEV Credits.
+          </p>
+          <div className="space-y-2 mb-6 text-left max-w-xs mx-auto">
+            <div className="flex items-center gap-3 text-sm" style={{ color: '#d1d5db' }}>
+              <span style={{ color: '#fbbf24' }}>⚡</span> +500 viewers — 50 Credits
+            </div>
+            <div className="flex items-center gap-3 text-sm" style={{ color: '#d1d5db' }}>
+              <span style={{ color: '#fbbf24' }}>🔥</span> +2,000 viewers — 150 Credits
+            </div>
+            <div className="flex items-center gap-3 text-sm" style={{ color: '#d1d5db' }}>
+              <span style={{ color: '#fbbf24' }}>🚀</span> +10,000 viewers — 500 Credits
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button onClick={() => { onClose(); if (typeof window !== 'undefined') window.location.href = '/wallet'; }}
+              className="flex-1 py-3 rounded-xl font-bold text-sm transition-all"
+              style={{ backgroundColor: '#422006', color: '#fbbf24', border: '1px solid #854d0e' }}
+            >
+              Add Credits
+            </button>
+            <button onClick={() => { onClose(); if (typeof window !== 'undefined') window.location.href = '/pricing'; }}
+              className="flex-1 py-3 rounded-xl font-bold text-sm transition-all"
+              style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', color: '#fff' }}
+            >
+              Upgrade Plan
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Admin boost panel ───
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 rounded-t-2xl border-t border-yellow-500/20 shadow-2xl animate-slide-up max-h-[85vh] overflow-y-auto"
       style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))', backgroundColor: '#111827' }}
@@ -1012,6 +1067,16 @@ export default function WatchPartyRoom() {
     <>
       <Head>
         <title>{party.title} — Watch Party — CYBEV</title>
+        <meta property="og:title" content={`🎬 ${party.title} — Watch Party on CYBEV`} />
+        <meta property="og:description" content={party.description || `Join ${party.host?.displayName || 'a creator'}'s Watch Party on CYBEV!`} />
+        <meta property="og:image" content={party.coverImage || party.videoSource?.thumbnail || 'https://cybev.io/og-watch-party.png'} />
+        <meta property="og:url" content={`https://cybev.io/watch-party/${partyId}`} />
+        <meta property="og:type" content="video.other" />
+        <meta property="og:site_name" content="CYBEV" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`🎬 ${party.title} — Watch Party`} />
+        <meta name="twitter:description" content={party.description || 'Join the Watch Party on CYBEV!'} />
+        <meta name="twitter:image" content={party.coverImage || party.videoSource?.thumbnail || 'https://cybev.io/og-watch-party.png'} />
       </Head>
 
       {/* Float-up + slide-up animations */}
@@ -1205,8 +1270,8 @@ export default function WatchPartyRoom() {
                   </button>
                 )}
 
-                {/* Boost (admin) */}
-                {getUser()?.isAdmin && (
+                {/* Boost — visible to host + admins, non-admin hosts see paywall */}
+                {(getUser()?.isAdmin || isHost) && (
                   <button onClick={() => setShowBoostPanel(!showBoostPanel)}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all flex-shrink-0"
                     style={{ backgroundColor: '#422006', color: '#fbbf24', border: '1px solid #854d0e' }}

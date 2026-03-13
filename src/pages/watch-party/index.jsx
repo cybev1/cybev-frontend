@@ -29,7 +29,8 @@ const VIDEO_SOURCES = [
 ];
 
 function PartyCard({ party, onJoin }) {
-  const activeViewers = (party.participants || []).filter(p => p.isActive).length;
+  // Use server-computed activeViewers (includes boosted + synthetic) with fallback
+  const activeViewers = party.activeViewers || (party.participants || []).filter(p => p.isActive).length;
   const isLive = party.status === 'live';
 
   return (
@@ -63,7 +64,7 @@ function PartyCard({ party, onJoin }) {
         {/* Viewer count */}
         <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-black/70 text-white px-2 py-1 rounded-full text-xs">
           <Eye size={12} />
-          {activeViewers} watching
+          {activeViewers >= 1000 ? `${(activeViewers / 1000).toFixed(1)}K` : activeViewers} watching
         </div>
         {/* Play overlay */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
@@ -121,7 +122,8 @@ export default function WatchPartyIndex() {
     videoSourceType: 'url',
     videoUrl: '',
     privacy: 'public',
-    maxParticipants: 50
+    maxParticipants: 50,
+    coverImage: ''
   });
   const [creating, setCreating] = useState(false);
   const [rtmpInfo, setRtmpInfo] = useState(null);
@@ -229,7 +231,9 @@ export default function WatchPartyIndex() {
         description: form.description,
         videoSource,
         privacy: form.privacy,
-        maxParticipants: parseInt(form.maxParticipants)
+        maxParticipants: parseInt(form.maxParticipants),
+        coverImage: form.coverImage || videoSource.thumbnail || '',
+        publishToFeed: true
       });
       router.push(`/watch-party/${data._id}`);
     } catch (err) {
@@ -379,11 +383,30 @@ export default function WatchPartyIndex() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Max Viewers</label>
                 <input
-                  type="number" min={2} max={200}
+                  type="number" min={2} max={500000}
                   value={form.maxParticipants} onChange={e => setForm({...form, maxParticipants: e.target.value})}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
                 />
               </div>
+            </div>
+
+            {/* Cover Image (for thumbnails) */}
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Cover Image URL <span className="text-gray-400 font-normal">(optional — used as thumbnail)</span>
+              </label>
+              <input
+                type="url"
+                value={form.coverImage} onChange={e => setForm({...form, coverImage: e.target.value})}
+                placeholder="https://example.com/thumbnail.jpg"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm"
+              />
+              {form.coverImage && (
+                <div className="mt-2 relative w-40 h-24 rounded-lg overflow-hidden border border-gray-200">
+                  <img src={form.coverImage} alt="Cover preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+              <p className="text-xs text-gray-400 mt-1">Shown on party listing, feed, and when shared on social media</p>
             </div>
             <div className="flex justify-end gap-3 mt-5">
               <button onClick={() => setShowCreate(false)}
