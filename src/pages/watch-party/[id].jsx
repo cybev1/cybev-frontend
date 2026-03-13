@@ -247,44 +247,94 @@ function InviteModal({ isOpen, onClose, partyId }) {
 }
 
 // ─── Admin Boost Panel ───
-function AdminBoostPanel({ isOpen, onClose, partyId }) {
-  const [boostType, setBoostType] = useState('trending');
-  const [boostDuration, setBoostDuration] = useState(30);
-  const [notifyAll, setNotifyAll] = useState(false);
+// Matches backend: POST /api/watch-party/:id/boost
+// Payload: { viewers, viewCount, comments[], reactions[] }
+const BOOST_COMMENTS = [
+  "This is amazing! 🔥", "God bless you pastor! 🙏", "Watching from Nigeria 🇳🇬",
+  "Hallelujah! Glory to God!", "So powerful! Thank you Jesus 🙌",
+  "Watching from South Africa 🇿🇦", "This is a blessing!", "Amen! 🙏🙏🙏",
+  "Powerful word! 🔥🔥", "Thank you for this! Watching from Ghana 🇬🇭",
+  "I receive it in Jesus name!", "Glory!!! 🎉", "Watching from UK 🇬🇧",
+  "This changed my life!", "What a time to be alive! 🙌",
+  "Watching from the US 🇺🇸", "So blessed by this stream", "Wow! Incredible!",
+  "I'm sharing this with everyone!", "Praise the Lord! 🎶",
+  "Watching from India 🇮🇳", "God is good all the time!", "Thank you CYBEV! ❤️",
+  "Best platform ever!", "Watching with my family 👨‍👩‍👧‍👦",
+];
+
+const BOOST_PRESETS = [
+  { label: 'Light', viewers: 50, viewCount: 100, comments: 5, reactions: 10, color: 'blue' },
+  { label: 'Medium', viewers: 250, viewCount: 500, comments: 15, reactions: 30, color: 'purple' },
+  { label: 'Heavy', viewers: 1000, viewCount: 2000, comments: 25, reactions: 50, color: 'orange' },
+  { label: 'Viral 🚀', viewers: 5000, viewCount: 10000, comments: 25, reactions: 100, color: 'red' },
+];
+
+const REACTION_EMOJIS_BOOST = ['🔥', '❤️', '😂', '👏', '🎉', '😮', '💯', '🙌', '😍', '🤣', '👀'];
+
+function AdminBoostPanel({ isOpen, onClose, partyId, socketRef }) {
+  const [tab, setTab] = useState('presets'); // presets | custom
+  const [viewers, setViewers] = useState(0);
+  const [viewCount, setViewCount] = useState(0);
+  const [commentCount, setCommentCount] = useState(0);
+  const [reactionCount, setReactionCount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
+  const [history, setHistory] = useState([]); // track boosts applied
 
-  const handleBoost = async () => {
+  // Generate random comments from template pool
+  const generateComments = (count) => {
+    const shuffled = [...BOOST_COMMENTS].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, Math.min(count, shuffled.length));
+  };
+
+  // Generate random reactions
+  const generateReactions = (count) => {
+    return Array.from({ length: count }, () =>
+      REACTION_EMOJIS_BOOST[Math.floor(Math.random() * REACTION_EMOJIS_BOOST.length)]
+    );
+  };
+
+  const handleBoost = async (v, vc, cc, rc) => {
     setSubmitting(true);
     setResult(null);
     try {
-      const { data } = await api.post(`/api/admin/watch-party/${partyId}/boost`, {
-        type: boostType,
-        durationMinutes: boostDuration,
-        notifyAllUsers: notifyAll,
-      });
-      setResult({ ok: true, msg: data.message || 'Boost activated!' });
-    } catch {
-      setResult({ ok: false, msg: 'Boost failed. Try again.' });
+      const payload = {
+        viewers: v || 0,
+        viewCount: vc || 0,
+        comments: cc > 0 ? generateComments(cc) : [],
+        reactions: rc > 0 ? generateReactions(rc) : [],
+      };
+      const { data } = await api.post(`/api/watch-party/${partyId}/boost`, payload);
+      setResult({ ok: true, msg: data.message || 'Boost applied!' });
+      setHistory(prev => [...prev, {
+        time: new Date().toLocaleTimeString(),
+        viewers: v, comments: cc, reactions: rc
+      }]);
+      // Refresh socket viewer count for instant UI update
+      socketRef?.current?.emit('request-sync', { partyId });
+    } catch (err) {
+      setResult({ ok: false, msg: err.response?.data?.error || 'Boost failed. Are you admin?' });
     } finally {
       setSubmitting(false);
     }
   };
 
+  const handlePreset = (preset) => {
+    handleBoost(preset.viewers, preset.viewCount, preset.comments, preset.reactions);
+  };
+
+  const handleCustomBoost = () => {
+    handleBoost(viewers, viewCount, commentCount, reactionCount);
+  };
+
   if (!isOpen) return null;
 
-  const boostTypes = [
-    { id: 'trending', label: 'Trending', icon: <Flame size={16} /> },
-    { id: 'featured', label: 'Featured', icon: <Star size={16} /> },
-    { id: 'notification', label: 'Push Notify', icon: <Bell size={16} /> },
-  ];
-
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 rounded-t-2xl border-t border-yellow-500/20 shadow-2xl animate-slide-up"
-      style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 rounded-t-2xl border-t border-yellow-500/20 shadow-2xl animate-slide-up max-h-[85vh] overflow-y-auto"
+      style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))', backgroundColor: '#111827' }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 sticky top-0 bg-gray-900 z-10" style={{ backgroundColor: '#111827' }}>
         <div className="flex items-center gap-2 text-yellow-400">
           <Rocket size={18} />
           <span className="font-bold text-sm">Admin Boost Panel</span>
@@ -294,80 +344,204 @@ function AdminBoostPanel({ isOpen, onClose, partyId }) {
         </button>
       </div>
 
-      <div className="px-4 py-3 space-y-4">
-        {/* Boost Type */}
-        <div>
-          <label className="text-gray-400 text-[11px] font-semibold uppercase tracking-wider mb-2 block">
-            Boost Type
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {boostTypes.map(t => (
-              <button key={t.id} onClick={() => setBoostType(t.id)}
-                className={`flex flex-col items-center gap-1.5 py-2.5 rounded-xl border text-xs font-medium transition-all ${
-                  boostType === t.id
-                    ? 'bg-yellow-500/10 border-yellow-500/40 text-yellow-400'
-                    : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
-                }`}
-              >
-                {t.icon}
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Duration */}
-        <div>
-          <label className="text-gray-400 text-[11px] font-semibold uppercase tracking-wider mb-2 block">
-            Duration
-          </label>
-          <div className="grid grid-cols-4 gap-2">
-            {[15, 30, 60, 120].map(min => (
-              <button key={min} onClick={() => setBoostDuration(min)}
-                className={`py-2 rounded-lg border text-sm font-semibold transition-all ${
-                  boostDuration === min
-                    ? 'bg-yellow-500/10 border-yellow-500/40 text-yellow-400'
-                    : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
-                }`}
-              >
-                {min < 60 ? `${min}m` : `${min / 60}h`}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Notify all toggle */}
-        <div className="flex items-center justify-between">
-          <span className="text-gray-400 text-xs font-semibold uppercase tracking-wider">
-            Notify all users
-          </span>
-          <button onClick={() => setNotifyAll(!notifyAll)}
-            className={`relative w-10 h-6 rounded-full transition-colors ${notifyAll ? 'bg-red-500' : 'bg-gray-700'}`}
+      {/* Tabs */}
+      <div className="flex border-b border-gray-800 px-4">
+        {[
+          { id: 'presets', label: '⚡ Quick Presets' },
+          { id: 'custom', label: '🎛️ Custom Boost' },
+        ].map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className={`flex-1 py-2.5 text-xs font-semibold transition-colors border-b-2 ${
+              tab === t.id
+                ? 'text-yellow-400 border-yellow-400'
+                : 'text-gray-500 border-transparent hover:text-gray-300'
+            }`}
           >
-            <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-              notifyAll ? 'left-5' : 'left-1'
-            }`} />
+            {t.label}
           </button>
-        </div>
+        ))}
+      </div>
+
+      <div className="px-4 py-3">
+        {tab === 'presets' ? (
+          /* ─── Quick Presets ─── */
+          <div className="space-y-3">
+            <p className="text-gray-500 text-xs">One-tap boost with Special Users. Viewers + comments + reactions added instantly.</p>
+            <div className="grid grid-cols-2 gap-2">
+              {BOOST_PRESETS.map(preset => (
+                <button key={preset.label} onClick={() => handlePreset(preset)} disabled={submitting}
+                  className={`relative p-3 rounded-xl border text-left transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 ${
+                    preset.color === 'blue' ? 'border-blue-500/30 bg-blue-500/5 hover:bg-blue-500/10' :
+                    preset.color === 'purple' ? 'border-purple-500/30 bg-purple-500/5 hover:bg-purple-500/10' :
+                    preset.color === 'orange' ? 'border-orange-500/30 bg-orange-500/5 hover:bg-orange-500/10' :
+                    'border-red-500/30 bg-red-500/5 hover:bg-red-500/10'
+                  }`}
+                >
+                  <div className={`text-sm font-bold mb-1.5 ${
+                    preset.color === 'blue' ? 'text-blue-400' :
+                    preset.color === 'purple' ? 'text-purple-400' :
+                    preset.color === 'orange' ? 'text-orange-400' :
+                    'text-red-400'
+                  }`}>
+                    {preset.label}
+                  </div>
+                  <div className="space-y-0.5 text-[11px] text-gray-400">
+                    <div>👥 +{preset.viewers.toLocaleString()} viewers</div>
+                    <div>👁 +{preset.viewCount.toLocaleString()} views</div>
+                    <div>💬 +{preset.comments} comments</div>
+                    <div>🔥 +{preset.reactions} reactions</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          /* ─── Custom Boost ─── */
+          <div className="space-y-4">
+            <p className="text-gray-500 text-xs">Fine-tune boost numbers. Comments are auto-generated from Special Users.</p>
+
+            {/* Viewers */}
+            <div>
+              <label className="text-gray-400 text-[11px] font-semibold uppercase tracking-wider mb-2 block">
+                👥 Boost Viewers
+              </label>
+              <div className="flex gap-2 flex-wrap">
+                {[100, 500, 1000, 5000, 10000].map(v => (
+                  <button key={v} onClick={() => setViewers(v)}
+                    className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
+                      viewers === v
+                        ? 'bg-yellow-500/10 border-yellow-500/40 text-yellow-400'
+                        : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
+                    }`}
+                  >
+                    +{v >= 1000 ? `${v / 1000}K` : v}
+                  </button>
+                ))}
+              </div>
+              <input
+                type="number" min="0" value={viewers}
+                onChange={e => setViewers(Math.max(0, parseInt(e.target.value) || 0))}
+                className="mt-2 w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-yellow-500"
+                style={{ backgroundColor: '#1f2937' }}
+                placeholder="Custom viewer count..."
+              />
+            </div>
+
+            {/* View Count */}
+            <div>
+              <label className="text-gray-400 text-[11px] font-semibold uppercase tracking-wider mb-2 block">
+                👁 Synthetic Views
+              </label>
+              <div className="flex gap-2 flex-wrap">
+                {[100, 500, 2000, 5000, 10000].map(v => (
+                  <button key={v} onClick={() => setViewCount(v)}
+                    className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
+                      viewCount === v
+                        ? 'bg-yellow-500/10 border-yellow-500/40 text-yellow-400'
+                        : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
+                    }`}
+                  >
+                    +{v >= 1000 ? `${v / 1000}K` : v}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Comments */}
+            <div>
+              <label className="text-gray-400 text-[11px] font-semibold uppercase tracking-wider mb-2 block">
+                💬 Auto-Comments (from Special Users)
+              </label>
+              <div className="flex gap-2 flex-wrap">
+                {[5, 10, 15, 25].map(c => (
+                  <button key={c} onClick={() => setCommentCount(c)}
+                    className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
+                      commentCount === c
+                        ? 'bg-yellow-500/10 border-yellow-500/40 text-yellow-400'
+                        : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
+                    }`}
+                  >
+                    +{c}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Reactions */}
+            <div>
+              <label className="text-gray-400 text-[11px] font-semibold uppercase tracking-wider mb-2 block">
+                🔥 Reaction Burst
+              </label>
+              <div className="flex gap-2 flex-wrap">
+                {[10, 25, 50, 100].map(r => (
+                  <button key={r} onClick={() => setReactionCount(r)}
+                    className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
+                      reactionCount === r
+                        ? 'bg-yellow-500/10 border-yellow-500/40 text-yellow-400'
+                        : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
+                    }`}
+                  >
+                    +{r}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Summary */}
+            {(viewers > 0 || viewCount > 0 || commentCount > 0 || reactionCount > 0) && (
+              <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700" style={{ backgroundColor: '#1a2332' }}>
+                <div className="text-[11px] font-semibold text-gray-400 uppercase mb-1.5">Boost Summary</div>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-300">
+                  {viewers > 0 && <span>👥 +{viewers.toLocaleString()} viewers</span>}
+                  {viewCount > 0 && <span>👁 +{viewCount.toLocaleString()} views</span>}
+                  {commentCount > 0 && <span>💬 +{commentCount} comments</span>}
+                  {reactionCount > 0 && <span>🔥 +{reactionCount} reactions</span>}
+                </div>
+              </div>
+            )}
+
+            {/* Apply */}
+            <button onClick={handleCustomBoost} disabled={submitting || (viewers === 0 && viewCount === 0 && commentCount === 0 && reactionCount === 0)}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 disabled:opacity-40 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all"
+            >
+              {submitting ? (
+                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+              ) : (
+                <><Rocket size={16} /> Apply Boost</>
+              )}
+            </button>
+          </div>
+        )}
 
         {/* Result message */}
         {result && (
-          <p className={`text-center text-sm font-medium ${result.ok ? 'text-green-400' : 'text-red-400'}`}>
+          <div className={`mt-3 text-center text-sm font-medium py-2 rounded-lg ${
+            result.ok ? 'text-green-400 bg-green-500/10' : 'text-red-400 bg-red-500/10'
+          }`}>
             {result.msg}
-          </p>
+          </div>
         )}
 
-        {/* Submit */}
-        <button onClick={handleBoost} disabled={submitting}
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all"
-        >
-          {submitting ? (
-            <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-          ) : (
-            <><Rocket size={16} /> Activate Boost</>
-          )}
-        </button>
+        {/* Boost History */}
+        {history.length > 0 && (
+          <div className="mt-3 border-t border-gray-800 pt-3">
+            <div className="text-[11px] font-semibold text-gray-500 uppercase mb-2">Boost History (this session)</div>
+            <div className="space-y-1 max-h-24 overflow-y-auto">
+              {history.slice().reverse().map((h, i) => (
+                <div key={i} className="text-[11px] text-gray-500 flex items-center gap-2">
+                  <span className="text-gray-600">{h.time}</span>
+                  <span>👥{h.viewers}</span>
+                  <span>💬{h.comments}</span>
+                  <span>🔥{h.reactions}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+    </div>
+  );
+}
     </div>
   );
 }
@@ -1134,6 +1308,7 @@ export default function WatchPartyRoom() {
         isOpen={showBoostPanel}
         onClose={() => setShowBoostPanel(false)}
         partyId={partyId}
+        socketRef={socketRef}
       />
 
       {/* v2: End Party Confirmation Modal */}
