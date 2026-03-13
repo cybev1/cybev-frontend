@@ -387,18 +387,24 @@ export default function WatchPartyRoom() {
 
   // Check if YouTube
   const isYouTube = party?.videoSource?.type === 'youtube';
-  const isMux = party?.videoSource?.type === 'mux' || getVideoSrc().includes('.m3u8');
+  // Check if HLS stream (.m3u8) — works for Mux, Livepeer, or any HLS URL
+  const videoSrc = getVideoSrc();
+  const isHLS = !isYouTube && videoSrc && (
+    videoSrc.includes('.m3u8') ||
+    party?.videoSource?.type === 'mux' ||
+    videoSrc.includes('livepeercdn') ||
+    videoSrc.includes('/chunklist') ||
+    videoSrc.includes('/playlist')
+  );
   const getYouTubeEmbedUrl = () => {
     const url = party?.videoSource?.url || '';
     const match = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
     return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1&enablejsapi=1` : '';
   };
 
-  // ─── HLS.js for Mux/RTMP streams ───
+  // ─── HLS.js for any .m3u8 stream (Mux, Livepeer, custom HLS URLs) ───
   useEffect(() => {
-    if (!isMux || isYouTube || !videoRef.current) return;
-    const videoSrc = getVideoSrc();
-    if (!videoSrc || !videoSrc.includes('.m3u8')) return;
+    if (!isHLS || !videoRef.current || !videoSrc) return;
 
     const initHls = () => {
       if (typeof window === 'undefined' || !window.Hls) {
@@ -437,7 +443,7 @@ export default function WatchPartyRoom() {
 
     if (hlsLoaded) initHls();
     return () => { if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; } };
-  }, [isMux, hlsLoaded, party]);
+  }, [isHLS, hlsLoaded, party, videoSrc]);
 
   if (loading) return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center">
@@ -531,7 +537,7 @@ export default function WatchPartyRoom() {
             ) : (
               <video
                 ref={videoRef}
-                src={isMux ? undefined : getVideoSrc()}
+                src={isHLS ? undefined : getVideoSrc()}
                 className="w-full h-full"
                 onTimeUpdate={handleTimeUpdate}
                 onLoadedMetadata={handleLoadedMetadata}
