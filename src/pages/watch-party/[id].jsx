@@ -1033,81 +1033,21 @@ export default function WatchPartyRoom() {
       <div className="min-h-screen bg-gray-950 flex flex-col lg:flex-row" style={{ backgroundColor: '#030712', color: '#f9fafb' }}>
         {/* ─── Video Area ─── */}
         <div className="flex-1 flex flex-col min-w-0">
-          {/* Top bar */}
-          <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-gray-900 border-b border-gray-800" style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}>
-            <button onClick={handleLeave} className="text-gray-400 hover:text-white transition-colors flex-shrink-0">
+          {/* ─── Slim Top Nav ─── */}
+          <div className="flex items-center gap-3 px-3 py-2 border-b" style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}>
+            <button onClick={handleLeave} className="text-gray-400 hover:text-white transition-colors">
               <ArrowLeft size={20} />
             </button>
             <div className="flex-1 min-w-0">
-              <h1 className="text-white font-semibold truncate text-sm sm:text-base">{party.title}</h1>
-              <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-gray-400">
-                <span className="flex items-center gap-1">
-                  {isEnded ? <Eye size={10} /> : <Radio size={10} className="text-red-500 animate-pulse" />}
-                  {isEnded ? 'Ended' : 'Live'}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Users size={10} /> {activeViewers}
-                </span>
-                <span className="hidden sm:inline">Host: {party.host?.displayName || party.host?.username}</span>
-              </div>
+              <h1 className="text-white font-semibold truncate text-sm">{party.title}</h1>
+              <p className="text-gray-500 text-xs truncate">Host: {party.host?.displayName || party.host?.username}</p>
             </div>
-            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-              {/* v2: Invite friends */}
-              {!isEnded && (
-                <button onClick={() => setShowInviteModal(true)}
-                  className="text-gray-400 hover:text-white p-1.5 sm:p-2" title="Invite friends">
-                  <UserPlus size={16} />
-                </button>
-              )}
-
-              {/* v2: Share (Web Share API) */}
-              <button onClick={handleShare}
-                className="text-gray-400 hover:text-white p-1.5 sm:p-2" title={linkCopied ? 'Copied!' : 'Share'}>
-                {linkCopied ? <Check size={16} className="text-green-400" /> : <Share2 size={16} />}
-              </button>
-
-              {/* v2: Publish to feed (host only) */}
-              {isHost && !isEnded && (
-                <button onClick={handlePublish} disabled={publishLoading || published}
-                  className={`text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border transition-colors flex items-center gap-1 ${
-                    published
-                      ? 'text-green-400 border-green-500/30 bg-green-500/10 cursor-default'
-                      : 'text-blue-400 border-blue-500/30 hover:bg-blue-500/10'
-                  }`}
-                  title="Publish to feed"
-                >
-                  <Megaphone size={12} />
-                  {published ? 'Published' : publishLoading ? '...' : 'Publish'}
-                </button>
-              )}
-
-              {/* Chat toggle */}
-              <button onClick={() => setShowChat(!showChat)}
-                className={`p-1.5 sm:p-2 rounded-lg transition-colors ${showChat ? 'text-purple-400 bg-purple-500/10' : 'text-gray-400 hover:text-white'}`}
-              >
-                <MessageCircle size={16} />
-              </button>
-
-              {/* v2: Admin boost — visible to any admin, not just host */}
-              {getUser()?.isAdmin && !isEnded && (
-                <button onClick={() => setShowBoostPanel(!showBoostPanel)}
-                  className="text-yellow-400 hover:text-yellow-300 text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1 sm:py-1.5 border border-yellow-500/30 rounded-lg hover:bg-yellow-500/10 transition-colors flex items-center gap-1"
-                  title="Boost party"
-                >
-                  <Rocket size={14} />
-                  <span className="hidden sm:inline">Boost</span>
-                </button>
-              )}
-
-              {/* v2: End party (host, uses modal now) */}
-              {isHost && !isEnded && (
-                <button onClick={() => setShowEndModal(true)}
-                  className="text-red-400 hover:text-red-300 text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1 sm:py-1.5 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-colors"
-                >
-                  End
-                </button>
-              )}
-            </div>
+            {/* Chat toggle (desktop: always visible, mobile: toggle) */}
+            <button onClick={() => setShowChat(!showChat)}
+              className={`p-2 rounded-lg transition-colors lg:hidden ${showChat ? 'text-purple-400 bg-purple-500/10' : 'text-gray-400'}`}
+            >
+              <MessageCircle size={18} />
+            </button>
           </div>
 
           {/* Video Player */}
@@ -1211,35 +1151,113 @@ export default function WatchPartyRoom() {
             )}
           </div>
 
-          {/* Reaction Bar */}
-          {!isEnded && (
-            <div className="bg-gray-900 border-t border-gray-800 px-2 sm:px-4 py-2 flex items-center gap-1 sm:gap-2 overflow-x-auto" style={{ backgroundColor: '#111827', borderColor: '#1f2937', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-              {REACTION_EMOJIS.map(emoji => (
-                <button key={emoji} onClick={() => sendReaction(emoji)}
-                  className="text-2xl sm:text-xl p-1.5 sm:p-1 hover:scale-125 active:scale-90 transition-transform flex-shrink-0"
-                >
-                  {emoji}
+          {/* ═══ Facebook Live-Style Action Bar ═══ */}
+          {!isEnded ? (
+            <div style={{ backgroundColor: '#111827', borderColor: '#1f2937' }} className="border-t border-gray-800">
+              {/* Emoji Reactions Row */}
+              <div className="flex items-center gap-1 px-3 py-2 overflow-x-auto border-b border-gray-800/50" style={{ scrollbarWidth: 'none' }}>
+                {REACTION_EMOJIS.map(emoji => (
+                  <button key={emoji} onClick={() => sendReaction(emoji)}
+                    className="text-xl p-1.5 hover:scale-125 active:scale-90 transition-transform flex-shrink-0 rounded-lg hover:bg-white/5"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+                <div className="flex-1" />
+                {/* Fullscreen toggle */}
+                <button onClick={toggleFullscreen} className="text-gray-500 hover:text-white p-1.5 flex-shrink-0">
+                  {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
                 </button>
-              ))}
+              </div>
+
+              {/* Main Action Buttons — clearly visible like Facebook */}
+              <div className="flex items-center gap-2 px-3 py-2.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+                {/* Invite */}
+                <button onClick={() => setShowInviteModal(true)}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all flex-shrink-0"
+                  style={{ backgroundColor: '#1e293b', color: '#e2e8f0' }}
+                >
+                  <UserPlus size={16} />
+                  <span>Invite</span>
+                </button>
+
+                {/* Share */}
+                <button onClick={handleShare}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all flex-shrink-0"
+                  style={{ backgroundColor: '#1e293b', color: '#e2e8f0' }}
+                >
+                  {linkCopied ? <Check size={16} className="text-green-400" /> : <Share2 size={16} />}
+                  <span>{linkCopied ? 'Copied!' : 'Share'}</span>
+                </button>
+
+                {/* Publish (host) */}
+                {isHost && (
+                  <button onClick={handlePublish} disabled={publishLoading || published}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all flex-shrink-0 disabled:opacity-60"
+                    style={{
+                      backgroundColor: published ? '#052e16' : '#1e3a5f',
+                      color: published ? '#4ade80' : '#60a5fa',
+                      border: published ? '1px solid #166534' : '1px solid #1e40af'
+                    }}
+                  >
+                    <Megaphone size={16} />
+                    <span>{published ? 'Published ✓' : publishLoading ? 'Publishing...' : 'Publish'}</span>
+                  </button>
+                )}
+
+                {/* Boost (admin) */}
+                {getUser()?.isAdmin && (
+                  <button onClick={() => setShowBoostPanel(!showBoostPanel)}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all flex-shrink-0"
+                    style={{ backgroundColor: '#422006', color: '#fbbf24', border: '1px solid #854d0e' }}
+                  >
+                    <Rocket size={16} />
+                    <span>Boost</span>
+                  </button>
+                )}
+
+                <div className="flex-1" />
+
+                {/* End Party (host) — right-aligned, red */}
+                {isHost && (
+                  <button onClick={() => setShowEndModal(true)}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold transition-all flex-shrink-0"
+                    style={{ backgroundColor: '#450a0a', color: '#f87171', border: '1px solid #991b1b' }}
+                  >
+                    <LogOut size={16} />
+                    <span>End</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* Ended state bar */
+            <div className="px-4 py-3 text-center border-t" style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}>
+              <p className="text-gray-400 text-sm">This watch party has ended</p>
+              <button onClick={() => router.push('/watch-party')}
+                className="mt-2 px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-full text-sm font-medium transition-colors"
+              >
+                Browse Parties
+              </button>
             </div>
           )}
         </div>
 
         {/* ─── Chat Sidebar ─── */}
         {showChat && (
-          <div className="w-full lg:w-80 xl:w-96 border-t lg:border-t-0 lg:border-l border-gray-800 bg-gray-900 flex flex-col h-[50vh] lg:h-auto" style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}>
+          <div className="w-full lg:w-80 xl:w-96 border-t lg:border-t-0 lg:border-l flex flex-col h-[50vh] lg:h-auto" style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}>
             {/* Chat header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
+            <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor: '#1f2937' }}>
               <div className="flex gap-3">
                 <button onClick={() => setShowParticipants(false)}
-                  className={`text-sm font-medium transition-colors ${!showParticipants ? 'text-purple-400' : 'text-gray-500 hover:text-gray-300'}`}
+                  className={`text-sm font-semibold transition-colors ${!showParticipants ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
                 >
                   Chat
                 </button>
                 <button onClick={() => setShowParticipants(true)}
-                  className={`text-sm font-medium flex items-center gap-1 transition-colors ${showParticipants ? 'text-purple-400' : 'text-gray-500 hover:text-gray-300'}`}
+                  className={`text-sm font-semibold flex items-center gap-1 transition-colors ${showParticipants ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
                 >
-                  <Users size={14} /> {activeViewers}
+                  <Users size={14} /> {activeViewers.toLocaleString()}
                 </button>
               </div>
               <button onClick={() => setShowChat(false)} className="text-gray-500 hover:text-white lg:hidden">
