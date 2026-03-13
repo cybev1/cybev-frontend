@@ -542,9 +542,6 @@ function AdminBoostPanel({ isOpen, onClose, partyId, socketRef }) {
     </div>
   );
 }
-    </div>
-  );
-}
 
 // ─── End Party Confirmation Modal ───
 function EndPartyModal({ isOpen, onClose, onConfirm, viewerCount }) {
@@ -1091,11 +1088,14 @@ export default function WatchPartyRoom() {
                 <MessageCircle size={16} />
               </button>
 
-              {/* v2: Admin boost (admin only) */}
-              {isHost && getUser()?.isAdmin && !isEnded && (
+              {/* v2: Admin boost — visible to any admin, not just host */}
+              {getUser()?.isAdmin && !isEnded && (
                 <button onClick={() => setShowBoostPanel(!showBoostPanel)}
-                  className="text-yellow-400 hover:text-yellow-300 p-1.5 sm:p-2" title="Boost party">
-                  <Rocket size={16} />
+                  className="text-yellow-400 hover:text-yellow-300 text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1 sm:py-1.5 border border-yellow-500/30 rounded-lg hover:bg-yellow-500/10 transition-colors flex items-center gap-1"
+                  title="Boost party"
+                >
+                  <Rocket size={14} />
+                  <span className="hidden sm:inline">Boost</span>
                 </button>
               )}
 
