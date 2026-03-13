@@ -1,8 +1,18 @@
-// ============================================
+// =============================================
 // FILE: [id].jsx
 // PATH: /src/pages/watch-party/[id].jsx
+// VERSION: v2.0.0
 // CYBEV Watch Party Room — Synchronized Viewing
-// ============================================
+// Features: LIVE Badge Overlay, Viewer Count,
+//           Invite Friends Modal, Share (Web Share API),
+//           Publish to Feed, End Party Modal,
+//           Admin Boost Panel, Live Chat, Reactions,
+//           HLS/Mux/YouTube/RTMP, Co-host Roles
+// STACK: Next.js (Pages Router) + Socket.io + Tailwind
+// BACKEND: api.cybev.io/api/watch-party/*
+// AUTHOR: @prince
+// UPDATED: 2026-03-13
+// =============================================
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
@@ -13,7 +23,10 @@ import {
   Play, Pause, Volume2, VolumeX, Maximize, Minimize,
   Send, Users, MessageCircle, X, ArrowLeft, Radio,
   Crown, Shield, Eye, Share2, MoreVertical, LogOut,
-  ChevronDown, ChevronUp, Settings, Copy
+  ChevronDown, ChevronUp, Settings, Copy,
+  // v2.0 additions
+  UserPlus, Search, Rocket, Megaphone, PhoneOff,
+  Check, ExternalLink, Bell, Star, Flame, AlertTriangle
 } from 'lucide-react';
 
 const REACTION_EMOJIS = ['🔥', '❤️', '😂', '👏', '🎉', '😮', '💯', '🙌', '😍', '💀', '🤣', '👀'];
@@ -67,6 +80,325 @@ function ChatMsg({ msg }) {
   );
 }
 
+// ─── LIVE Badge Overlay (Facebook Live style) ───
+function LiveBadgeOverlay({ isLive, viewerCount }) {
+  return (
+    <div className="absolute top-3 left-3 z-20 flex items-center gap-2">
+      {/* LIVE pill */}
+      <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md backdrop-blur-md border ${
+        isLive
+          ? 'bg-red-600/80 border-red-500/50'
+          : 'bg-gray-800/80 border-gray-600/50'
+      }`}>
+        {isLive && (
+          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+        )}
+        <span className="text-white text-[11px] font-bold tracking-wider">
+          {isLive ? 'LIVE' : 'ENDED'}
+        </span>
+      </div>
+      {/* Viewer count pill */}
+      <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md rounded-md px-2.5 py-1 border border-white/10">
+        <Eye size={12} className="text-gray-300" />
+        <span className="text-white text-[11px] font-semibold">
+          {viewerCount >= 1000 ? `${(viewerCount / 1000).toFixed(1)}K` : viewerCount}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Invite Friends Modal ───
+function InviteModal({ isOpen, onClose, partyId }) {
+  const [search, setSearch] = useState('');
+  const [friends, setFriends] = useState([]);
+  const [invited, setInvited] = useState(new Set());
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setLoading(true);
+    api.get(`/api/users/friends?search=${search}`)
+      .then(({ data }) => setFriends(data.friends || data || []))
+      .catch(() => setFriends([]))
+      .finally(() => setLoading(false));
+  }, [isOpen, search]);
+
+  const handleInvite = async (userId) => {
+    try {
+      await api.post(`/api/watch-party/${partyId}/invite`, { userId });
+      setInvited(prev => new Set([...prev, userId]));
+    } catch (err) {
+      console.error('Invite failed:', err);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center"
+      onClick={onClose}
+    >
+      <div className="w-full sm:max-w-md max-h-[80vh] bg-gray-900 rounded-t-2xl sm:rounded-2xl flex flex-col animate-slide-up"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
+          <h3 className="text-white font-bold text-lg flex items-center gap-2">
+            <UserPlus size={18} /> Invite Friends
+          </h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-white p-1">
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="px-4 py-3">
+          <div className="flex items-center gap-2 bg-gray-800 rounded-lg px-3 py-2.5 border border-gray-700 focus-within:border-purple-500 transition-colors">
+            <Search size={16} className="text-gray-500 flex-shrink-0" />
+            <input
+              className="flex-1 bg-transparent text-white text-sm outline-none placeholder-gray-500"
+              placeholder="Search friends..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Friends list */}
+        <div className="flex-1 overflow-y-auto px-4 pb-2 min-h-[200px]">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full" />
+            </div>
+          ) : friends.length === 0 ? (
+            <p className="text-center text-gray-500 py-8 text-sm">
+              {search ? 'No friends found' : 'Loading friends...'}
+            </p>
+          ) : (
+            friends.map(friend => (
+              <div key={friend._id} className="flex items-center justify-between py-2.5 border-b border-gray-800/50 last:border-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="relative flex-shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-purple-500/20 flex items-center justify-center overflow-hidden">
+                      {friend.profilePicture || friend.avatar ? (
+                        <img src={friend.profilePicture || friend.avatar} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-purple-300 text-xs font-bold">
+                          {(friend.displayName || friend.username || '?')[0].toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                    {friend.isOnline && (
+                      <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-white text-sm font-medium truncate">{friend.displayName || friend.username}</p>
+                    <p className="text-gray-500 text-xs truncate">@{friend.username}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleInvite(friend._id)}
+                  disabled={invited.has(friend._id)}
+                  className={`text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1 flex-shrink-0 ${
+                    invited.has(friend._id)
+                      ? 'bg-green-500/10 text-green-400 border border-green-500/30 cursor-default'
+                      : 'bg-purple-600 hover:bg-purple-700 text-white'
+                  }`}
+                >
+                  {invited.has(friend._id) ? <><Check size={12} /> Sent</> : 'Invite'}
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Invite link footer */}
+        <div className="px-4 py-3 border-t border-gray-800">
+          <p className="text-gray-500 text-xs mb-2 font-medium">Or share invite link</p>
+          <div className="flex gap-2">
+            <input
+              readOnly
+              value={`${typeof window !== 'undefined' ? window.location.origin : 'https://cybev.io'}/watch-party/${partyId}`}
+              className="flex-1 bg-gray-800 text-gray-400 text-xs px-3 py-2 rounded-lg border border-gray-700 font-mono truncate"
+            />
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/watch-party/${partyId}`);
+              }}
+              className="flex items-center gap-1 text-xs font-medium px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg border border-gray-700 transition-colors flex-shrink-0"
+            >
+              <Copy size={12} /> Copy
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Admin Boost Panel ───
+function AdminBoostPanel({ isOpen, onClose, partyId }) {
+  const [boostType, setBoostType] = useState('trending');
+  const [boostDuration, setBoostDuration] = useState(30);
+  const [notifyAll, setNotifyAll] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const handleBoost = async () => {
+    setSubmitting(true);
+    setResult(null);
+    try {
+      const { data } = await api.post(`/api/admin/watch-party/${partyId}/boost`, {
+        type: boostType,
+        durationMinutes: boostDuration,
+        notifyAllUsers: notifyAll,
+      });
+      setResult({ ok: true, msg: data.message || 'Boost activated!' });
+    } catch {
+      setResult({ ok: false, msg: 'Boost failed. Try again.' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  const boostTypes = [
+    { id: 'trending', label: 'Trending', icon: <Flame size={16} /> },
+    { id: 'featured', label: 'Featured', icon: <Star size={16} /> },
+    { id: 'notification', label: 'Push Notify', icon: <Bell size={16} /> },
+  ];
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 rounded-t-2xl border-t border-yellow-500/20 shadow-2xl animate-slide-up"
+      style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
+        <div className="flex items-center gap-2 text-yellow-400">
+          <Rocket size={18} />
+          <span className="font-bold text-sm">Admin Boost Panel</span>
+        </div>
+        <button onClick={onClose} className="text-gray-500 hover:text-white p-1">
+          <X size={18} />
+        </button>
+      </div>
+
+      <div className="px-4 py-3 space-y-4">
+        {/* Boost Type */}
+        <div>
+          <label className="text-gray-400 text-[11px] font-semibold uppercase tracking-wider mb-2 block">
+            Boost Type
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            {boostTypes.map(t => (
+              <button key={t.id} onClick={() => setBoostType(t.id)}
+                className={`flex flex-col items-center gap-1.5 py-2.5 rounded-xl border text-xs font-medium transition-all ${
+                  boostType === t.id
+                    ? 'bg-yellow-500/10 border-yellow-500/40 text-yellow-400'
+                    : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
+                }`}
+              >
+                {t.icon}
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Duration */}
+        <div>
+          <label className="text-gray-400 text-[11px] font-semibold uppercase tracking-wider mb-2 block">
+            Duration
+          </label>
+          <div className="grid grid-cols-4 gap-2">
+            {[15, 30, 60, 120].map(min => (
+              <button key={min} onClick={() => setBoostDuration(min)}
+                className={`py-2 rounded-lg border text-sm font-semibold transition-all ${
+                  boostDuration === min
+                    ? 'bg-yellow-500/10 border-yellow-500/40 text-yellow-400'
+                    : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
+                }`}
+              >
+                {min < 60 ? `${min}m` : `${min / 60}h`}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Notify all toggle */}
+        <div className="flex items-center justify-between">
+          <span className="text-gray-400 text-xs font-semibold uppercase tracking-wider">
+            Notify all users
+          </span>
+          <button onClick={() => setNotifyAll(!notifyAll)}
+            className={`relative w-10 h-6 rounded-full transition-colors ${notifyAll ? 'bg-red-500' : 'bg-gray-700'}`}
+          >
+            <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
+              notifyAll ? 'left-5' : 'left-1'
+            }`} />
+          </button>
+        </div>
+
+        {/* Result message */}
+        {result && (
+          <p className={`text-center text-sm font-medium ${result.ok ? 'text-green-400' : 'text-red-400'}`}>
+            {result.msg}
+          </p>
+        )}
+
+        {/* Submit */}
+        <button onClick={handleBoost} disabled={submitting}
+          className="w-full py-3 rounded-xl bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all"
+        >
+          {submitting ? (
+            <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+          ) : (
+            <><Rocket size={16} /> Activate Boost</>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── End Party Confirmation Modal ───
+function EndPartyModal({ isOpen, onClose, onConfirm, viewerCount }) {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4"
+      onClick={onClose}
+    >
+      <div className="w-full max-w-sm bg-gray-900 rounded-2xl p-6 text-center animate-slide-up"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="w-14 h-14 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+          <AlertTriangle size={28} className="text-red-500" />
+        </div>
+        <h3 className="text-white text-lg font-bold mb-2">End Watch Party?</h3>
+        <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+          This will end the party for {viewerCount > 0 ? `all ${viewerCount} viewer${viewerCount !== 1 ? 's' : ''}` : 'everyone'}.
+          This action cannot be undone.
+        </p>
+        <div className="flex gap-3">
+          <button onClick={onClose}
+            className="flex-1 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium text-sm border border-gray-700 transition-colors"
+          >
+            Keep Going
+          </button>
+          <button onClick={onConfirm}
+            className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm transition-colors"
+          >
+            End Party
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function WatchPartyRoom() {
   const router = useRouter();
   const { id: partyId } = router.query;
@@ -98,6 +430,14 @@ export default function WatchPartyRoom() {
   // Reactions
   const [floatingReactions, setFloatingReactions] = useState([]);
   const [showReactions, setShowReactions] = useState(false);
+
+  // v2.0 — New UI state
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showBoostPanel, setShowBoostPanel] = useState(false);
+  const [showEndModal, setShowEndModal] = useState(false);
+  const [publishLoading, setPublishLoading] = useState(false);
+  const [published, setPublished] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   // Refs
   const videoRef = useRef(null);
@@ -350,11 +690,12 @@ export default function WatchPartyRoom() {
     router.push('/watch-party');
   };
 
-  // ─── End party (host only) ───
+  // ─── End party (host only) ─── (v2: uses modal)
   const handleEndParty = async () => {
-    if (!confirm('End this watch party for everyone?')) return;
     try {
       await api.post(`/api/watch-party/${partyId}/end`);
+      socketRef.current?.emit('end-party', { partyId });
+      setShowEndModal(false);
       router.push('/watch-party');
     } catch (err) {
       console.error('Failed to end party:', err);
@@ -368,10 +709,35 @@ export default function WatchPartyRoom() {
     return `${m}:${sec.toString().padStart(2, '0')}`;
   };
 
-  // ─── Copy invite link ───
-  const copyInviteLink = () => {
-    navigator.clipboard.writeText(`${window.location.origin}/watch-party/${partyId}`);
-    alert('Invite link copied!');
+  // ─── Copy invite link ─── (v2: Web Share API with fallback)
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/watch-party/${partyId}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: party?.title || 'Watch Party on CYBEV',
+          text: 'Join my Watch Party on CYBEV! 🎉',
+          url: shareUrl,
+        });
+        return;
+      } catch {}
+    }
+    navigator.clipboard.writeText(shareUrl);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  };
+
+  // ─── Publish to feed ─── (v2)
+  const handlePublish = async () => {
+    setPublishLoading(true);
+    try {
+      await api.post(`/api/watch-party/${partyId}/publish`);
+      setPublished(true);
+    } catch (err) {
+      console.error('Publish to feed failed:', err);
+    } finally {
+      setPublishLoading(false);
+    }
   };
 
   // Get video source URL
@@ -469,12 +835,19 @@ export default function WatchPartyRoom() {
         <title>{party.title} — Watch Party — CYBEV</title>
       </Head>
 
-      {/* Float-up animation */}
+      {/* Float-up + slide-up animations */}
       <style jsx global>{`
         @keyframes floatUp {
           0% { opacity: 1; transform: translateY(0) scale(1); }
           50% { opacity: 0.8; transform: translateY(-100px) scale(1.2); }
           100% { opacity: 0; transform: translateY(-200px) scale(0.8); }
+        }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up {
+          animation: slideUp 0.3s ease-out;
         }
       `}</style>
 
@@ -500,16 +873,53 @@ export default function WatchPartyRoom() {
               </div>
             </div>
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-              <button onClick={copyInviteLink} className="text-gray-400 hover:text-white p-1.5 sm:p-2" title="Copy invite link">
-                <Share2 size={16} />
+              {/* v2: Invite friends */}
+              {!isEnded && (
+                <button onClick={() => setShowInviteModal(true)}
+                  className="text-gray-400 hover:text-white p-1.5 sm:p-2" title="Invite friends">
+                  <UserPlus size={16} />
+                </button>
+              )}
+
+              {/* v2: Share (Web Share API) */}
+              <button onClick={handleShare}
+                className="text-gray-400 hover:text-white p-1.5 sm:p-2" title={linkCopied ? 'Copied!' : 'Share'}>
+                {linkCopied ? <Check size={16} className="text-green-400" /> : <Share2 size={16} />}
               </button>
+
+              {/* v2: Publish to feed (host only) */}
+              {isHost && !isEnded && (
+                <button onClick={handlePublish} disabled={publishLoading || published}
+                  className={`text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border transition-colors flex items-center gap-1 ${
+                    published
+                      ? 'text-green-400 border-green-500/30 bg-green-500/10 cursor-default'
+                      : 'text-blue-400 border-blue-500/30 hover:bg-blue-500/10'
+                  }`}
+                  title="Publish to feed"
+                >
+                  <Megaphone size={12} />
+                  {published ? 'Published' : publishLoading ? '...' : 'Publish'}
+                </button>
+              )}
+
+              {/* Chat toggle */}
               <button onClick={() => setShowChat(!showChat)}
                 className={`p-1.5 sm:p-2 rounded-lg transition-colors ${showChat ? 'text-purple-400 bg-purple-500/10' : 'text-gray-400 hover:text-white'}`}
               >
                 <MessageCircle size={16} />
               </button>
+
+              {/* v2: Admin boost (admin only) */}
+              {isHost && getUser()?.isAdmin && !isEnded && (
+                <button onClick={() => setShowBoostPanel(!showBoostPanel)}
+                  className="text-yellow-400 hover:text-yellow-300 p-1.5 sm:p-2" title="Boost party">
+                  <Rocket size={16} />
+                </button>
+              )}
+
+              {/* v2: End party (host, uses modal now) */}
               {isHost && !isEnded && (
-                <button onClick={handleEndParty}
+                <button onClick={() => setShowEndModal(true)}
                   className="text-red-400 hover:text-red-300 text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1 sm:py-1.5 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-colors"
                 >
                   End
@@ -552,6 +962,9 @@ export default function WatchPartyRoom() {
                 volume={volume}
               />
             )}
+
+            {/* v2: LIVE Badge Overlay (Facebook Live style) */}
+            <LiveBadgeOverlay isLive={!isEnded} viewerCount={activeViewers} />}
 
             {/* Floating Reactions */}
             {floatingReactions.map(r => (
@@ -700,6 +1113,28 @@ export default function WatchPartyRoom() {
           </div>
         )}
       </div>
+
+      {/* v2: Invite Friends Modal */}
+      <InviteModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        partyId={partyId}
+      />
+
+      {/* v2: Admin Boost Panel */}
+      <AdminBoostPanel
+        isOpen={showBoostPanel}
+        onClose={() => setShowBoostPanel(false)}
+        partyId={partyId}
+      />
+
+      {/* v2: End Party Confirmation Modal */}
+      <EndPartyModal
+        isOpen={showEndModal}
+        onClose={() => setShowEndModal(false)}
+        onConfirm={handleEndParty}
+        viewerCount={activeViewers}
+      />
 
       {/* HLS.js for Mux/RTMP stream playback */}
       <Script
