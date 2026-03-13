@@ -847,23 +847,26 @@ export default function WatchPartyRoom() {
 
   // ─── Video event handlers ───
   const handlePlayPause = () => {
-    if (!isHost && !isCoHost) return;
     const video = videoRef.current;
     if (!video) return;
 
     if (video.paused) {
       video.play().catch(() => {});
       setIsPlaying(true);
-      socketRef.current?.emit('sync-playback', { partyId, isPlaying: true, currentTime: video.currentTime });
+      // Only host/co-host syncs playback to other viewers
+      if (isHost || isCoHost) {
+        socketRef.current?.emit('sync-playback', { partyId, isPlaying: true, currentTime: video.currentTime });
+      }
     } else {
       video.pause();
       setIsPlaying(false);
-      socketRef.current?.emit('sync-playback', { partyId, isPlaying: false, currentTime: video.currentTime });
+      if (isHost || isCoHost) {
+        socketRef.current?.emit('sync-playback', { partyId, isPlaying: false, currentTime: video.currentTime });
+      }
     }
   };
 
   const handleSeek = (e) => {
-    if (!isHost && !isCoHost) return;
     const video = videoRef.current;
     if (!video || !duration) return;
     const rect = e.currentTarget.getBoundingClientRect();
@@ -872,7 +875,10 @@ export default function WatchPartyRoom() {
     const newTime = pct * duration;
     video.currentTime = newTime;
     setCurrentTime(newTime);
-    socketRef.current?.emit('seek', { partyId, currentTime: newTime });
+    // Only host/co-host syncs seek position to other viewers
+    if (isHost || isCoHost) {
+      socketRef.current?.emit('seek', { partyId, currentTime: newTime });
+    }
   };
 
   const handleTimeUpdate = () => {
@@ -1133,7 +1139,7 @@ export default function WatchPartyRoom() {
             className="relative flex-1 bg-black flex items-center justify-center cursor-pointer min-h-[200px] sm:min-h-[300px]"
             onMouseMove={showControlsTemporarily}
             onTouchStart={showControlsTemporarily}
-            onClick={() => { if (canControl) handlePlayPause(); }}
+            onClick={() => { handlePlayPause(); }}
           >
             {isYouTube ? (
               <iframe
@@ -1157,6 +1163,7 @@ export default function WatchPartyRoom() {
                   if (isHost) socketRef.current?.emit('sync-playback', { partyId, isPlaying: false, currentTime: duration });
                 }}
                 playsInline
+                autoPlay
                 muted={muted}
                 volume={volume}
               />
@@ -1170,12 +1177,7 @@ export default function WatchPartyRoom() {
               <FloatingReaction key={r.id} id={r.id} emoji={r.emoji} onDone={removeReaction} />
             ))}
 
-            {/* Not host overlay */}
-            {!canControl && !isYouTube && (
-              <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-black/50 text-gray-300 px-4 py-2 rounded-full text-xs backdrop-blur-sm">
-                Only the host can control playback
-              </div>
-            )}
+            {/* Play/pause controls available to everyone */}
 
             {/* Video Controls (non-YouTube) */}
             {!isYouTube && showControls && (
@@ -1194,11 +1196,10 @@ export default function WatchPartyRoom() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    {canControl && (
-                      <button onClick={handlePlayPause} className="text-white hover:text-purple-400 transition-colors">
-                        {isPlaying ? <Pause size={22} /> : <Play size={22} />}
-                      </button>
-                    )}
+                    {/* Play/pause available to everyone */}
+                    <button onClick={handlePlayPause} className="text-white hover:text-purple-400 transition-colors">
+                      {isPlaying ? <Pause size={22} /> : <Play size={22} />}
+                    </button>
                     <button onClick={() => setMuted(!muted)} className="text-white hover:text-purple-400 transition-colors">
                       {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
                     </button>
