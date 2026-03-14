@@ -144,6 +144,32 @@ export default function WatchPartyIndex() {
   const [creating, setCreating] = useState(false);
   const [rtmpInfo, setRtmpInfo] = useState(null);
   const [loadingRtmp, setLoadingRtmp] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+
+  // Handle cover image file upload
+  const handleCoverUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return alert('Please select an image file');
+    if (file.size > 10 * 1024 * 1024) return alert('Image must be under 10MB');
+
+    setUploadingCover(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'watch-party-covers');
+      formData.append('type', 'image');
+      const { data } = await api.post('/api/upload/image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setForm(prev => ({ ...prev, coverImage: data.url || data.secure_url || data.imageUrl || '' }));
+    } catch (err) {
+      console.error('Cover upload failed:', err);
+      alert('Failed to upload image. Try again.');
+    } finally {
+      setUploadingCover(false);
+    }
+  };
 
   // Fetch RTMP stream key when RTMP source is selected
   const fetchStreamKey = async () => {
@@ -406,21 +432,50 @@ export default function WatchPartyIndex() {
               </div>
             </div>
 
-            {/* Cover Image (for thumbnails) */}
+            {/* Cover Image Upload */}
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Cover Image URL <span className="text-gray-400 font-normal">(optional — used as thumbnail)</span>
+                Cover Image <span className="text-gray-400 font-normal">(optional — used as thumbnail)</span>
               </label>
-              <input
-                type="url"
-                value={form.coverImage} onChange={e => setForm({...form, coverImage: e.target.value})}
-                placeholder="https://example.com/thumbnail.jpg"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm"
-              />
-              {form.coverImage && (
-                <div className="mt-2 relative w-40 h-24 rounded-lg overflow-hidden border border-gray-200">
-                  <img src={form.coverImage} alt="Cover preview" className="w-full h-full object-cover" />
+              {form.coverImage ? (
+                <div className="relative inline-block">
+                  <div className="w-full max-w-xs h-36 rounded-xl overflow-hidden border-2 border-purple-200">
+                    <img src={form.coverImage} alt="Cover preview" className="w-full h-full object-cover" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setForm(prev => ({ ...prev, coverImage: '' }))}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-red-600"
+                  >
+                    ✕
+                  </button>
                 </div>
+              ) : (
+                <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
+                  uploadingCover ? 'border-purple-400 bg-purple-50' : 'border-gray-300 hover:border-purple-400 hover:bg-purple-50'
+                }`}>
+                  {uploadingCover ? (
+                    <div className="flex items-center gap-2 text-purple-600">
+                      <Loader2 size={20} className="animate-spin" />
+                      <span className="text-sm font-medium">Uploading...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mb-2">
+                        <Plus size={20} className="text-purple-600" />
+                      </div>
+                      <span className="text-sm text-gray-500">Click to upload cover image</span>
+                      <span className="text-xs text-gray-400 mt-0.5">JPG, PNG, WebP • Max 10MB</span>
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCoverUpload}
+                    className="hidden"
+                    disabled={uploadingCover}
+                  />
+                </label>
               )}
               <p className="text-xs text-gray-400 mt-1">Shown on party listing, feed, and when shared on social media</p>
             </div>

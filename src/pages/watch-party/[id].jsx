@@ -991,6 +991,22 @@ export default function WatchPartyRoom() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
 
+  // ─── Periodic viewer count refresh (makes smart fluctuation visible) ───
+  useEffect(() => {
+    if (!partyId || !party || party.status === 'ended') return;
+    // Request fresh viewer count every 8-15 seconds (randomized for organic feel)
+    const getInterval = () => 8000 + Math.random() * 7000;
+    let timeout;
+    const tick = () => {
+      if (socketRef.current?.connected) {
+        socketRef.current.emit('request-sync', { partyId });
+      }
+      timeout = setTimeout(tick, getInterval());
+    };
+    timeout = setTimeout(tick, getInterval());
+    return () => clearTimeout(timeout);
+  }, [partyId, party]);
+
   // ─── Video event handlers ───
   const handlePlayPause = () => {
     const video = videoRef.current;
