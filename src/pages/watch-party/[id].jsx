@@ -424,7 +424,7 @@ function AdminBoostPanel({ isOpen, onClose, partyId, socketRef }) {
             >
               Add Credits
             </button>
-            <button onClick={() => { onClose(); if (typeof window !== 'undefined') window.location.href = '/pricing'; }}
+            <button onClick={() => { onClose(); if (typeof window !== 'undefined') window.location.href = '/wallet'; }}
               className="flex-1 py-3 rounded-xl font-bold text-sm transition-all"
               style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', color: '#fff' }}
             >
