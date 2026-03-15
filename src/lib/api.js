@@ -48,7 +48,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
         // Don't redirect to login on watch-party pages — guests are allowed
-        const isGuestAllowed = window.location.pathname.startsWith('/watch-party/');
+        const isGuestAllowed = window.location.pathname.startsWith('/watch-party');
         if (!isGuestAllowed) {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
