@@ -61,13 +61,14 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
   };
 
   const currentUserId = getCurrentUserId();
+  const currentUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null;
+  const isAdmin = currentUser?.isAdmin || currentUser?.role === 'admin';
   useEffect(() => {
     setClientNow(Date.now());
   }, []);
-  const isOwner = post.authorId?._id === currentUserId || 
-                  post.authorId === currentUserId ||
-                  post.author?._id === currentUserId ||
-                  post.author === currentUserId;
+  // Compare as strings to handle ObjectId vs string mismatch
+  const authorId = (post.authorId?._id || post.authorId || post.author?._id || post.author || '').toString();
+  const isOwner = currentUserId && authorId === currentUserId.toString();
 
   const handleReaction = (reaction) => {
     setSelectedReaction(reaction);
@@ -201,12 +202,21 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
   // Get correct URL based on post type (livestream goes to /live, watch-party goes to /watch-party, others to /blog)
   const getPostUrl = () => {
     // Check if it's a watch party post (published from watch party)
-    const isWatchParty = post.title?.includes('Watch Party:') ||
-                         post.tags?.includes('watch-party') ||
-                         post.content?.includes('/watch-party/');
+    const title = post.title || '';
+    const content = post.content || '';
+    const excerpt = post.excerpt || '';
+    const postTags = Array.isArray(post.tags) ? post.tags : [];
+
+    const isWatchParty = title.includes('Watch Party') ||
+                         postTags.some(t => t === 'watch-party' || t === 'recap') ||
+                         content.includes('watch-party/') ||
+                         excerpt.includes('watch-party/') ||
+                         content.includes('Join the Watch Party');
+
     if (isWatchParty) {
-      // Extract watch party ID from content link
-      const wpMatch = post.content?.match(/\/watch-party\/([a-f0-9]{24})/);
+      // Extract watch party ID from content or excerpt link
+      const allText = content + ' ' + excerpt;
+      const wpMatch = allText.match(/watch-party\/([a-f0-9]{24})/);
       if (wpMatch) return `/watch-party/${wpMatch[1]}`;
     }
 
@@ -282,8 +292,8 @@ export default function PostCard({ post, isAIGenerated = false, isPinned = false
               </div>
             </div>
 
-            {/* More Options - Owner Only */}
-            {isOwner && (
+            {/* More Options - Owner or Admin */}
+            {(isOwner || isAdmin) && (
               <div className="relative">
                 <button 
                   onClick={() => setShowMenu(!showMenu)}
