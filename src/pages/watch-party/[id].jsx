@@ -752,6 +752,179 @@ function AdminBoostPanel({ isOpen, onClose, partyId, socketRef }) {
   );
 }
 
+// ─── Edit Watch Party Modal ───
+function EditPartyModal({ isOpen, onClose, party, partyId, onSaved }) {
+  const [form, setForm] = useState({
+    title: '', description: '', videoUrl: '', videoType: '', coverImage: '', privacy: 'public', maxParticipants: 500
+  });
+  const [saving, setSaving] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && party) {
+      setForm({
+        title: party.title || '',
+        description: party.description || '',
+        videoUrl: party.videoSource?.url || '',
+        videoType: party.videoSource?.type || 'url',
+        coverImage: party.coverImage || party.videoSource?.thumbnail || '',
+        privacy: party.privacy || 'public',
+        maxParticipants: party.maxParticipants || 500
+      });
+    }
+  }, [isOpen, party]);
+
+  const handleCoverUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    setUploadingCover(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('folder', 'watch-party-covers');
+      fd.append('type', 'image');
+      const { data } = await api.post('/api/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      setForm(prev => ({ ...prev, coverImage: data.url || data.secure_url || data.imageUrl || '' }));
+    } catch { alert('Upload failed'); }
+    finally { setUploadingCover(false); }
+  };
+
+  const handleSave = async () => {
+    if (!form.title.trim()) return alert('Title is required');
+    setSaving(true);
+    try {
+      const payload = {
+        title: form.title,
+        description: form.description,
+        coverImage: form.coverImage,
+        privacy: form.privacy,
+        maxParticipants: parseInt(form.maxParticipants),
+        videoSource: { url: form.videoUrl, type: form.videoType }
+      };
+      await api.put(`/api/watch-party/${partyId}`, payload);
+      if (onSaved) onSaved();
+      onClose();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to save');
+    } finally { setSaving(false); }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center" onClick={onClose}>
+      <div className="w-full sm:max-w-lg max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl animate-slide-up"
+        style={{ backgroundColor: '#111827' }} onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: '#1f2937' }}>
+          <h3 className="text-white font-bold text-lg">Edit Watch Party</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-white p-1"><X size={20} /></button>
+        </div>
+
+        <div className="px-4 py-4 space-y-4">
+          {/* Title */}
+          <div>
+            <label className="text-gray-400 text-xs font-semibold uppercase block mb-1">Title</label>
+            <input value={form.title} onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))}
+              className="w-full px-3 py-2.5 rounded-lg text-sm outline-none text-white"
+              style={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="text-gray-400 text-xs font-semibold uppercase block mb-1">Description</label>
+            <textarea value={form.description} onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))}
+              rows={3} className="w-full px-3 py-2.5 rounded-lg text-sm outline-none text-white resize-none"
+              style={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
+            />
+          </div>
+
+          {/* Video Source */}
+          <div>
+            <label className="text-gray-400 text-xs font-semibold uppercase block mb-1">Video Source Type</label>
+            <select value={form.videoType} onChange={e => setForm(prev => ({ ...prev, videoType: e.target.value }))}
+              className="w-full px-3 py-2.5 rounded-lg text-sm outline-none text-white"
+              style={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
+            >
+              <option value="url">Video URL (MP4)</option>
+              <option value="hls">Live Stream (HLS/m3u8)</option>
+              <option value="youtube">YouTube URL</option>
+              <option value="mux">Mux Stream</option>
+            </select>
+          </div>
+
+          {/* Video URL */}
+          <div>
+            <label className="text-gray-400 text-xs font-semibold uppercase block mb-1">Video / Stream URL</label>
+            <input value={form.videoUrl} onChange={e => setForm(prev => ({ ...prev, videoUrl: e.target.value }))}
+              placeholder="https://..."
+              className="w-full px-3 py-2.5 rounded-lg text-sm outline-none text-white font-mono"
+              style={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
+            />
+            <p className="text-gray-600 text-[11px] mt-1">Change stream URL mid-party — viewers will see the new source</p>
+          </div>
+
+          {/* Cover Image */}
+          <div>
+            <label className="text-gray-400 text-xs font-semibold uppercase block mb-1">Cover Image</label>
+            {form.coverImage ? (
+              <div className="relative inline-block">
+                <div className="w-full max-w-[200px] h-28 rounded-xl overflow-hidden border" style={{ borderColor: '#374151' }}>
+                  <img src={form.coverImage} alt="Cover" className="w-full h-full object-cover" />
+                </div>
+                <button onClick={() => setForm(prev => ({ ...prev, coverImage: '' }))}
+                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold">✕</button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-xl cursor-pointer transition-colors"
+                style={{ borderColor: uploadingCover ? '#7c3aed' : '#374151' }}
+              >
+                {uploadingCover ? (
+                  <span className="text-purple-400 text-sm">Uploading...</span>
+                ) : (
+                  <span className="text-gray-500 text-sm">Click to upload</span>
+                )}
+                <input type="file" accept="image/*" onChange={handleCoverUpload} className="hidden" disabled={uploadingCover} />
+              </label>
+            )}
+          </div>
+
+          {/* Privacy + Max */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-gray-400 text-xs font-semibold uppercase block mb-1">Privacy</label>
+              <select value={form.privacy} onChange={e => setForm(prev => ({ ...prev, privacy: e.target.value }))}
+                className="w-full px-3 py-2.5 rounded-lg text-sm outline-none text-white"
+                style={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
+              >
+                <option value="public">Public</option>
+                <option value="followers">Followers</option>
+                <option value="private">Private</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-gray-400 text-xs font-semibold uppercase block mb-1">Max Viewers</label>
+              <input type="number" value={form.maxParticipants} onChange={e => setForm(prev => ({ ...prev, maxParticipants: e.target.value }))}
+                className="w-full px-3 py-2.5 rounded-lg text-sm outline-none text-white"
+                style={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
+              />
+            </div>
+          </div>
+
+          {/* Save */}
+          <button onClick={handleSave} disabled={saving}
+            className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', color: '#fff' }}
+          >
+            {saving ? <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" /> : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── End Party Confirmation Modal ───
 function EndPartyModal({ isOpen, onClose, onConfirm, viewerCount }) {
   if (!isOpen) return null;
@@ -823,6 +996,7 @@ export default function WatchPartyRoom() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showBoostPanel, setShowBoostPanel] = useState(false);
   const [showEndModal, setShowEndModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [publishLoading, setPublishLoading] = useState(false);
   const [published, setPublished] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
@@ -1165,8 +1339,9 @@ export default function WatchPartyRoom() {
     return party.videoSource.url || '';
   };
 
-  // Check if YouTube
-  const isYouTube = party?.videoSource?.type === 'youtube';
+  // Check if YouTube — handles both explicit 'youtube' type and URL-type with youtube links
+  const isYouTube = party?.videoSource?.type === 'youtube' ||
+    (party?.videoSource?.url && (party.videoSource.url.includes('youtube.com') || party.videoSource.url.includes('youtu.be')));
   // Check if HLS stream (.m3u8) — works for Mux, Livepeer, or any HLS URL
   const videoSrc = getVideoSrc();
   const isHLS = !isYouTube && videoSrc && (
@@ -1178,8 +1353,8 @@ export default function WatchPartyRoom() {
   );
   const getYouTubeEmbedUrl = () => {
     const url = party?.videoSource?.url || '';
-    const match = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-    return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1&enablejsapi=1` : '';
+    const match = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+    return match ? `https://www.youtube-nocookie.com/embed/${match[1]}?autoplay=1&enablejsapi=1&rel=0&modestbranding=1` : '';
   };
 
   // ─── HLS.js for any .m3u8 stream (Mux, Livepeer, custom HLS URLs) ───
@@ -1306,10 +1481,12 @@ export default function WatchPartyRoom() {
             {isYouTube ? (
               <iframe
                 src={getYouTubeEmbedUrl()}
-                className="w-full h-full"
+                className="w-full h-full absolute inset-0"
                 frameBorder="0"
-                allow="autoplay; fullscreen"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+                style={{ border: 'none', width: '100%', height: '100%' }}
               />
             ) : (
               <video
@@ -1456,6 +1633,17 @@ export default function WatchPartyRoom() {
                   </button>
                 )}
 
+                {/* Edit (host only) */}
+                {isHost && (
+                  <button onClick={() => setShowEditModal(true)}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all flex-shrink-0"
+                    style={{ backgroundColor: '#1e293b', color: '#e2e8f0' }}
+                  >
+                    <Settings size={16} />
+                    <span>Edit</span>
+                  </button>
+                )}
+
                 <div className="flex-1" />
 
                 {/* End Party (host) — right-aligned, red */}
@@ -1575,6 +1763,23 @@ export default function WatchPartyRoom() {
         onClose={() => setShowEndModal(false)}
         onConfirm={handleEndParty}
         viewerCount={activeViewers}
+      />
+
+      {/* v2.4: Edit Watch Party Modal */}
+      <EditPartyModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        party={party}
+        partyId={partyId}
+        onSaved={() => {
+          // Refetch party data after edit
+          api.get(`/api/watch-party/${partyId}`)
+            .then(({ data }) => {
+              setParty(data);
+              setActiveViewers(data.activeViewers || 0);
+            })
+            .catch(() => {});
+        }}
       />
 
       {/* HLS.js for Mux/RTMP stream playback */}
