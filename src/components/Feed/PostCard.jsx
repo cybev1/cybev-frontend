@@ -2,7 +2,7 @@
 // FILE: components/Feed/PostCard.jsx
 // PostCard Component - Feed Post Display
 // VERSION: 2.1 - Livestream click goes to /live page
-// FIXES:
+// FIXES: 
 //   - Check imageUrl, media[], streamData for images
 //   - Show LIVE badge on livestream post images
 //   - Click livestream -> /live/[id], regular -> /blog/[id]
