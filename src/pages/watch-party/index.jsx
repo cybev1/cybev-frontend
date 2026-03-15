@@ -2,7 +2,7 @@
 // FILE: index.jsx
 // PATH: /src/pages/watch-party/index.jsx
 // CYBEV Watch Party — Browse & Create
-// ===========================================
+// ============================================
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';

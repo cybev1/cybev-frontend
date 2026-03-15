@@ -2,7 +2,7 @@
 // FILE: src/pages/admin/fake-users.jsx
 // Admin Panel: Synthetic User Generation & Engagement
 // VERSION: 1.0
-// ===========================================
+// ============================================
 
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
