@@ -29,7 +29,7 @@ import {
   ChevronDown, ChevronUp, Settings, Copy,
   // v2.0 additions
   UserPlus, Search, Rocket, Megaphone, PhoneOff,
-  Check, ExternalLink, Bell, Star, Flame, AlertTriangle
+  Check, ExternalLink, Bell, Star, Flame, AlertTriangle, BarChart2
 } from 'lucide-react';
 
 const REACTION_EMOJIS = ['🔥', '❤️', '😂', '👏', '🎉', '😮', '💯', '🙌', '😍', '💀', '🤣', '👀'];
@@ -1641,6 +1641,17 @@ export default function WatchPartyRoom() {
                   >
                     <Settings size={16} />
                     <span>Edit</span>
+                  </button>
+                )}
+
+                {/* Analytics (host) */}
+                {isHost && (
+                  <button onClick={() => router.push(`/watch-party/${partyId}/analytics`)}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all flex-shrink-0"
+                    style={{ backgroundColor: '#1e293b', color: '#e2e8f0' }}
+                  >
+                    <BarChart2 size={16} />
+                    <span>Analytics</span>
                   </button>
                 )}
 
