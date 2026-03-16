@@ -379,16 +379,20 @@ function PostComposer({ user, onPostCreated }) {
         </div>
         
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-          <button onClick={() => router.push('/live/go-live')} className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-sm font-medium">
-            <Radio className="w-5 h-5 text-red-500" />
+          <button onClick={() => router.push('/live/go-live')} className="flex-1 flex items-center justify-center gap-1.5 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-xs sm:text-sm font-medium">
+            <Radio className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
             Live video
           </button>
-          <button onClick={() => router.push('/studio/ai-blog')} className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-sm font-medium">
-            <Wand2 className="w-5 h-5 text-purple-500" />
+          <button onClick={() => router.push('/watch-party')} className="flex-1 flex items-center justify-center gap-1.5 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-xs sm:text-sm font-medium">
+            <Tv className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
+            Watch Party
+          </button>
+          <button onClick={() => router.push('/studio/ai-blog')} className="flex-1 flex items-center justify-center gap-1.5 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-xs sm:text-sm font-medium">
+            <Wand2 className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
             Write with AI
           </button>
-          <button onClick={() => router.push('/studio/sites/new')} className="flex-1 flex items-center justify-center gap-2 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-sm font-medium">
-            <Globe className="w-5 h-5 text-blue-500" />
+          <button onClick={() => router.push('/studio/sites/new')} className="flex-1 flex items-center justify-center gap-1.5 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-xs sm:text-sm font-medium">
+            <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
             AI Website
           </button>
         </div>
@@ -923,17 +927,58 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh }) {
       </Link>
 
       {/* Image */}
-      {(item.featuredImage || item.coverImage || item.media?.[0]) && (
+      {(item.featuredImage || item.coverImage || item.media?.[0]) ? (
         <Link href={postUrl}>
           <div className="relative cursor-pointer">
             <img 
               src={item.featuredImage || item.coverImage || item.media?.[0]?.url || item.media?.[0]} 
               alt={item.title || 'Post image'}
               className="w-full max-h-[500px] object-cover"
+              onError={(e) => {
+                // Hide broken images instead of showing broken icon
+                e.target.style.display = 'none';
+                e.target.parentElement.style.display = 'none';
+              }}
             />
+            {/* LIVE badge for livestream posts */}
+            {(item.title?.includes('LIVE') || item.postType === 'live' || item.type === 'livestream') && (
+              <div className="absolute top-3 left-3 px-2.5 py-1 bg-red-600 rounded-full text-xs font-bold text-white flex items-center gap-1">
+                <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                LIVE
+              </div>
+            )}
+            {/* Watch Party badge */}
+            {(item.title?.includes('Watch Party') || item.tags?.includes('watch-party')) && (
+              <div className="absolute top-3 left-3 px-2.5 py-1 bg-purple-600 rounded-full text-xs font-bold text-white flex items-center gap-1">
+                <Tv className="w-3 h-3" />
+                Watch Party
+              </div>
+            )}
           </div>
         </Link>
-      )}
+      ) : (item.title?.includes('Watch Party') || item.tags?.includes('watch-party')) ? (
+        /* Branded Watch Party banner when no image */
+        <Link href={postUrl}>
+          <div className="relative cursor-pointer overflow-hidden" style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #4c1d95 40%, #7c3aed 70%, #a855f7 100%)' }}>
+            <div className="relative z-10 flex items-center gap-4 px-5 py-8">
+              <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center flex-shrink-0 border border-white/20">
+                <Tv className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Radio className="w-3 h-3 animate-pulse" /> LIVE
+                  </span>
+                </div>
+                <p className="text-white font-bold text-sm">{item.title?.replace('🎬 Watch Party: ', '').replace('🎬 ', '')}</p>
+                <p className="text-purple-200 text-xs mt-0.5">Tap to join • CYBEV</p>
+              </div>
+            </div>
+            <div className="absolute top-0 right-0 w-24 h-24 bg-pink-500/20 rounded-full blur-2xl" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-blue-500/20 rounded-full blur-2xl" />
+          </div>
+        </Link>
+      ) : null}
 
       {/* Stats Row */}
       <div className="px-4 py-2 flex items-center justify-between text-sm text-gray-500 border-b border-gray-100">
