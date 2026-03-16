@@ -782,13 +782,36 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh }) {
   };
 
   const reactionDisplay = getReactionDisplay();
-  const postUrl = `/blog/${item._id}`;
+
+  // Smart URL routing — watch party posts go to /watch-party/, livestreams to /live/, rest to /blog/
+  const getPostUrl = () => {
+    const title = item.title || '';
+    const content = item.content || '';
+    const excerpt = item.excerpt || '';
+    const tags = Array.isArray(item.tags) ? item.tags : [];
+
+    // Watch party detection
+    if (title.includes('Watch Party') || tags.some(t => t === 'watch-party' || t === 'recap') || content.includes('watch-party/')) {
+      const wpMatch = (content + ' ' + excerpt).match(/watch-party\/([a-f0-9]{24})/);
+      if (wpMatch) return `/watch-party/${wpMatch[1]}`;
+    }
+
+    // Livestream detection
+    if (item.postType === 'live' || item.type === 'livestream' || item.isLiveStream || item.liveStreamId) {
+      const streamId = item.liveStreamId || item.streamData?.streamId || item._id;
+      return `/live/${streamId}`;
+    }
+
+    return `/blog/${item._id}`;
+  };
+
+  const postUrl = getPostUrl();
   const contentPreview = stripMarkdown(item.content || item.excerpt || '');
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 overflow-hidden">
       {/* Header */}
-      <div className="p-4 flex items-center justify-between">
+      <div className="p-4 flex items-center justify-between relative">
         <div className="flex items-center gap-3">
           <Link href={authorUsername ? `/profile/${authorUsername}` : '#'}>
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 overflow-hidden cursor-pointer hover:ring-2 hover:ring-purple-300">
@@ -831,6 +854,57 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh }) {
         >
           <MoreHorizontal className="w-5 h-5 text-gray-500" />
         </button>
+
+        {/* Dropdown Menu */}
+        {showMoreMenu && (
+          <div className="absolute right-4 top-14 bg-white rounded-xl shadow-lg border border-gray-200 z-50 py-1 min-w-[180px]">
+            {/* Copy link */}
+            <button onClick={() => {
+              navigator.clipboard.writeText(`${window.location.origin}${postUrl}`);
+              toast.success('Link copied!');
+              setShowMoreMenu(false);
+            }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700">
+              <Copy className="w-4 h-4" /> Copy Link
+            </button>
+            {/* Open in new tab */}
+            <button onClick={() => {
+              window.open(postUrl, '_blank');
+              setShowMoreMenu(false);
+            }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700">
+              <ExternalLink className="w-4 h-4" /> Open in New Tab
+            </button>
+            {/* Delete — owner or admin only */}
+            {(isOwner || isAdmin) && (
+              <>
+                <div className="border-t border-gray-100 my-1" />
+                <button onClick={async () => {
+                  if (!confirm('Delete this post? This cannot be undone.')) return;
+                  try {
+                    const token = localStorage.getItem('token');
+                    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
+                    const res = await fetch(`${API_URL}/api/blogs/${item._id}`, {
+                      method: 'DELETE',
+                      headers: { Authorization: `Bearer ${token}` }
+                    });
+                    const data = await res.json();
+                    if (data.ok) {
+                      toast.success('Post deleted!');
+                      if (onRefresh) onRefresh();
+                      else window.location.reload();
+                    } else {
+                      toast.error(data.error || 'Failed to delete');
+                    }
+                  } catch (err) {
+                    toast.error('Delete failed');
+                  }
+                  setShowMoreMenu(false);
+                }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 text-sm text-red-600">
+                  <Trash2 className="w-4 h-4" /> Delete Post
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Title & Content */}
