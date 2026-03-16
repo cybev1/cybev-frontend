@@ -43,10 +43,10 @@ const QUICK_ACTIONS = [
 function QuickActionCard({ action }) {
   return (
     <Link href={action.href}>
-      <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group">
-        <div className="flex items-start justify-between mb-4">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110" style={{ backgroundColor: action.bg }}>
-            <action.icon className="w-6 h-6" style={{ color: action.color }} />
+      <div className="bg-white rounded-2xl p-3 sm:p-5 border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group">
+        <div className="flex items-start justify-between mb-2 sm:mb-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110" style={{ backgroundColor: action.bg }}>
+            <action.icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: action.color }} />
           </div>
           {action.badge && (
             <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
@@ -56,8 +56,8 @@ function QuickActionCard({ action }) {
             }`}>{action.badge}</span>
           )}
         </div>
-        <h3 className="font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors">{action.title}</h3>
-        <p className="text-sm text-gray-500">{action.desc}</p>
+        <h3 className="font-bold text-gray-900 mb-0.5 sm:mb-1 text-sm sm:text-base group-hover:text-purple-600 transition-colors">{action.title}</h3>
+        <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">{action.desc}</p>
       </div>
     </Link>
   );
@@ -137,20 +137,20 @@ function SiteCard({ site, onDelete, onPublish }) {
 
 function StatsCard({ icon: Icon, label, value, trend, color }) {
   return (
-    <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
-      <div className="flex items-center justify-between mb-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}15` }}>
-          <Icon className="w-5 h-5" style={{ color }} />
+    <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-5 border border-gray-200 shadow-sm">
+      <div className="flex items-center justify-between mb-1.5 sm:mb-3">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}15` }}>
+          <Icon className="w-4 h-4 sm:w-5 sm:h-5" style={{ color }} />
         </div>
         {trend !== undefined && (
-          <div className={`flex items-center gap-1 text-sm font-medium ${trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
-            <TrendingUp className={`w-4 h-4 ${trend < 0 ? 'rotate-180' : ''}`} />
+          <div className={`flex items-center gap-0.5 text-xs sm:text-sm font-medium ${trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <TrendingUp className={`w-3 h-3 sm:w-4 sm:h-4 ${trend < 0 ? 'rotate-180' : ''}`} />
             {Math.abs(trend)}%
           </div>
         )}
       </div>
-      <p className="text-2xl font-bold text-gray-900 mb-1">{value}</p>
-      <p className="text-sm text-gray-500">{label}</p>
+      <p className="text-lg sm:text-2xl font-bold text-gray-900 mb-0.5">{value}</p>
+      <p className="text-xs sm:text-sm text-gray-500">{label}</p>
     </div>
   );
 }
@@ -415,7 +415,7 @@ export default function StudioPage() {
           {/* Quick Actions - ALL ORIGINAL BUTTONS PRESERVED */}
           <div className="mb-8">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-4">
               {QUICK_ACTIONS.map(action => <QuickActionCard key={action.id} action={action} />)}
             </div>
           </div>
