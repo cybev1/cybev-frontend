@@ -987,6 +987,27 @@ export default function WatchPartyRoom() {
   const [showParticipants, setShowParticipants] = useState(false);
   const [participants, setParticipants] = useState([]);
   const [activeViewers, setActiveViewers] = useState(0);
+  const [displayViewers, setDisplayViewers] = useState(0); // fluctuating display value
+
+  // Client-side micro-fluctuation: makes viewer count feel alive between server updates
+  useEffect(() => {
+    if (activeViewers <= 1) { setDisplayViewers(activeViewers); return; }
+    // On new server value, smoothly move toward it
+    setDisplayViewers(activeViewers);
+    // Then start micro-jitter every 2-4 seconds
+    const jitter = () => {
+      setDisplayViewers(prev => {
+        if (prev <= 1) return prev;
+        const base = activeViewers;
+        // ±1.5% jitter from server value
+        const range = Math.max(3, Math.round(base * 0.015));
+        const delta = Math.floor(Math.random() * range * 2) - range;
+        return Math.max(1, base + delta);
+      });
+    };
+    const id = setInterval(jitter, 2000 + Math.random() * 2000);
+    return () => clearInterval(id);
+  }, [activeViewers]);
 
   // Reactions
   const [floatingReactions, setFloatingReactions] = useState([]);
@@ -1509,7 +1530,7 @@ export default function WatchPartyRoom() {
             )}
 
             {/* v2: LIVE Badge Overlay (Facebook Live style) */}
-            <LiveBadgeOverlay isLive={!isEnded} viewerCount={activeViewers} />
+            <LiveBadgeOverlay isLive={!isEnded} viewerCount={displayViewers} />
 
             {/* Floating Reactions */}
             {floatingReactions.map(r => (
@@ -1696,7 +1717,7 @@ export default function WatchPartyRoom() {
                 <button onClick={() => setShowParticipants(true)}
                   className={`text-sm font-semibold flex items-center gap-1 transition-colors ${showParticipants ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
                 >
-                  <Users size={14} /> {formatCount(activeViewers)}
+                  <Users size={14} /> {formatCount(displayViewers)}
                 </button>
               </div>
               <button onClick={() => setShowChat(false)} className="text-gray-500 hover:text-white lg:hidden">
@@ -1773,7 +1794,7 @@ export default function WatchPartyRoom() {
         isOpen={showEndModal}
         onClose={() => setShowEndModal(false)}
         onConfirm={handleEndParty}
-        viewerCount={activeViewers}
+        viewerCount={displayViewers}
       />
 
       {/* v2.4: Edit Watch Party Modal */}
