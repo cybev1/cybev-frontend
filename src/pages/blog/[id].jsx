@@ -470,17 +470,53 @@ export default function BlogPage({ blog, ogData }) {
       <Head>
         <title>{ogData.title} | CYBEV</title>
         <meta name="description" content={ogData.description} />
+        {blog.seo?.keywords?.length > 0 && (
+          <meta name="keywords" content={blog.seo.keywords.join(', ')} />
+        )}
         <meta property="og:type" content="article" />
         <meta property="og:title" content={ogData.title} />
         <meta property="og:description" content={ogData.description} />
         <meta property="og:image" content={ogData.image} />
         <meta property="og:url" content={ogData.url} />
         <meta property="og:site_name" content="CYBEV" />
+        <meta property="article:published_time" content={blog.createdAt} />
+        {blog.updatedAt && <meta property="article:modified_time" content={blog.updatedAt} />}
+        {blog.author?.name && <meta property="article:author" content={blog.author.name} />}
+        {(blog.tags || []).map((tag, i) => (
+          <meta key={i} property="article:tag" content={tag} />
+        ))}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={ogData.title} />
         <meta name="twitter:description" content={ogData.description} />
         <meta name="twitter:image" content={ogData.image} />
         <link rel="canonical" href={ogData.url} />
+        <link rel="alternate" type="application/rss+xml" title="CYBEV Blog RSS" href="https://api.cybev.io/api/blogs/feed/rss" />
+        {/* JSON-LD Structured Data for Google Rich Results */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Article',
+          headline: ogData.title,
+          description: ogData.description,
+          image: ogData.image,
+          url: ogData.url,
+          datePublished: blog.createdAt,
+          dateModified: blog.updatedAt || blog.createdAt,
+          author: {
+            '@type': 'Person',
+            name: blog.author?.name || blog.authorName || 'CYBEV User',
+            url: blog.author?.username ? `https://cybev.io/profile/${blog.author.username}` : 'https://cybev.io'
+          },
+          publisher: {
+            '@type': 'Organization',
+            name: 'CYBEV',
+            url: 'https://cybev.io',
+            logo: { '@type': 'ImageObject', url: 'https://cybev.io/logo.png' }
+          },
+          mainEntityOfPage: { '@type': 'WebPage', '@id': ogData.url },
+          keywords: (blog.seo?.keywords || blog.tags || []).join(', '),
+          wordCount: (blog.content || '').replace(/<[^>]*>/g, '').split(/\s+/).length,
+          articleSection: blog.category || 'General'
+        })}} />
       </Head>
       
       <div className="min-h-screen bg-gray-50">
