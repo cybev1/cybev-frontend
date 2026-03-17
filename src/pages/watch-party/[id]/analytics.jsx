@@ -258,22 +258,18 @@ export default function WatchPartyAnalytics() {
           {/* Boost Stats */}
           {(stats.boostedViewers > 0 || stats.totalBoostedEver > 0) && (
             <ChartCard title="Boost Performance" className="mb-5">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-purple-50 rounded-lg p-3">
-                  <p className="text-lg font-bold text-purple-700">{formatCount(stats.boostedViewers)}</p>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-purple-50 rounded-lg p-3 text-center">
+                  <p className="text-xl font-bold text-purple-700">{formatCount(stats.boostedViewers)}</p>
                   <p className="text-xs text-purple-500">Current Boosted</p>
                 </div>
-                <div className="bg-amber-50 rounded-lg p-3">
-                  <p className="text-lg font-bold text-amber-700">{formatCount(stats.totalBoostedEver)}</p>
+                <div className="bg-amber-50 rounded-lg p-3 text-center">
+                  <p className="text-xl font-bold text-amber-700">{formatCount(stats.totalBoostedEver)}</p>
                   <p className="text-xs text-amber-500">Total Boosted Ever</p>
                 </div>
-                <div className="bg-blue-50 rounded-lg p-3">
-                  <p className="text-lg font-bold text-blue-700">{stats.realParticipants}</p>
-                  <p className="text-xs text-blue-500">Real Viewers</p>
-                </div>
-                <div className="bg-green-50 rounded-lg p-3">
-                  <p className="text-lg font-bold text-green-700">{formatCount(stats.syntheticViews)}</p>
-                  <p className="text-xs text-green-500">Synthetic Views</p>
+                <div className="bg-blue-50 rounded-lg p-3 text-center">
+                  <p className="text-xl font-bold text-blue-700">{formatCount(stats.totalViews)}</p>
+                  <p className="text-xs text-blue-500">Total Views</p>
                 </div>
               </div>
             </ChartCard>
