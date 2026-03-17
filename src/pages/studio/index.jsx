@@ -17,7 +17,7 @@ import {
   PenTool, Video, Sparkles, FileText, Calendar, Users, Share2, Send,
   Church, ChevronRight, TrendingUp, Loader2, Clock, EyeOff, Copy, Check, Rss,
   Wand2, Edit, Image as ImageIcon, Home, BookOpenCheck, PlusCircle, BarChart2, BookOpen,
-  Film, Music, Tv
+  Film, Music, Tv, MessageCircle, Rocket, Radio
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
@@ -40,24 +40,47 @@ const QUICK_ACTIONS = [
   { id: 'ai-studio', title: 'AI Studio', desc: 'Video, Music, Art', icon: Wand2, href: '/ai-studio', color: '#ec4899', bg: '#fce7f3', badge: '✨ AI' },
 ];
 
+// Desktop: card grid. Mobile: Facebook-style horizontal rows
 function QuickActionCard({ action }) {
   return (
     <Link href={action.href}>
-      <div className="bg-white rounded-2xl p-3 sm:p-5 border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group">
-        <div className="flex items-start justify-between mb-2 sm:mb-4">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110" style={{ backgroundColor: action.bg }}>
-            <action.icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: action.color }} />
+      {/* Desktop — grid card (hidden on mobile) */}
+      <div className="hidden sm:block bg-white rounded-2xl p-5 border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group">
+        <div className="flex items-start justify-between mb-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110" style={{ backgroundColor: action.bg }}>
+            <action.icon className="w-6 h-6" style={{ color: action.color }} />
           </div>
           {action.badge && (
             <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
               action.badge === 'New' ? 'bg-purple-600 text-white' : 
-              action.badge === 'AI' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' :
+              action.badge === 'AI' || action.badge === '✨ AI' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' :
               'bg-purple-100 text-purple-700'
             }`}>{action.badge}</span>
           )}
         </div>
-        <h3 className="font-bold text-gray-900 mb-0.5 sm:mb-1 text-sm sm:text-base group-hover:text-purple-600 transition-colors">{action.title}</h3>
-        <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">{action.desc}</p>
+        <h3 className="font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors">{action.title}</h3>
+        <p className="text-sm text-gray-500">{action.desc}</p>
+      </div>
+
+      {/* Mobile — Facebook-style horizontal row (hidden on desktop) */}
+      <div className="sm:hidden flex items-center gap-3.5 px-4 py-3.5 bg-white rounded-xl border border-gray-100 active:bg-gray-50 transition-colors cursor-pointer">
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: action.bg }}>
+          <action.icon className="w-5 h-5" style={{ color: action.color }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900 text-[15px]">{action.title}</h3>
+            {action.badge && (
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                action.badge === 'New' ? 'bg-purple-600 text-white' : 
+                action.badge === 'AI' || action.badge === '✨ AI' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' :
+                'bg-purple-100 text-purple-700'
+              }`}>{action.badge}</span>
+            )}
+          </div>
+          <p className="text-xs text-gray-500 mt-0.5">{action.desc}</p>
+        </div>
+        <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
       </div>
     </Link>
   );
@@ -326,6 +349,7 @@ export default function StudioPage() {
   const router = useRouter();
   const [sites, setSites] = useState([]);
   const [blogs, setBlogs] = useState([]);
+  const [watchParties, setWatchParties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showBlogOptions, setShowBlogOptions] = useState(false);
 
@@ -341,13 +365,15 @@ export default function StudioPage() {
       
       const headers = { Authorization: `Bearer ${token}` };
       
-      const [sitesRes, blogsRes] = await Promise.all([
+      const [sitesRes, blogsRes, wpRes] = await Promise.all([
         fetch(`${API_URL}/api/sites/my`, { headers }).then(r => r.json()).catch(() => ({ sites: [] })),
-        fetch(`${API_URL}/api/blogs/my`, { headers }).then(r => r.json()).catch(() => ({ blogs: [] }))
+        fetch(`${API_URL}/api/blogs/my`, { headers }).then(r => r.json()).catch(() => ({ blogs: [] })),
+        fetch(`${API_URL}/api/watch-party?limit=50`).then(r => r.json()).catch(() => ({ parties: [] }))
       ]);
 
       setSites(sitesRes.sites || []);
       setBlogs(blogsRes.blogs || blogsRes.data?.blogs || []);
+      setWatchParties(Array.isArray(wpRes.parties) ? wpRes.parties : Array.isArray(wpRes) ? wpRes : []);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
@@ -405,17 +431,118 @@ export default function StudioPage() {
 
         <div className="max-w-6xl mx-auto px-4 py-6">
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             <StatsCard icon={Globe} label="Total Websites" value={sites.length} color="#7c3aed" />
             <StatsCard icon={FileText} label="Blog Posts" value={blogs.length} color="#3b82f6" />
             <StatsCard icon={Eye} label="Total Views" value={sites.reduce((acc, s) => acc + (s.views || 0), 0)} trend={12} color="#10b981" />
             <StatsCard icon={Users} label="Followers" value="0" color="#f59e0b" />
           </div>
 
-          {/* Quick Actions - ALL ORIGINAL BUTTONS PRESERVED */}
+          {/* ─── Watch Party Insights (Facebook-style) ─── */}
+          {watchParties.length > 0 && (() => {
+            const liveParties = watchParties.filter(p => p.status === 'live');
+            const endedParties = watchParties.filter(p => p.status === 'ended');
+            const totalViewers = watchParties.reduce((sum, p) => sum + (p.activeViewers || p.totalViews || p.peakViewers || 0), 0);
+            const totalChats = watchParties.reduce((sum, p) => sum + (p.chatMessages?.length || 0), 0);
+            const totalShares = watchParties.reduce((sum, p) => sum + (p.shareCount || 0), 0);
+            const totalBoosted = watchParties.reduce((sum, p) => sum + (p.boostedViewers || 0) + (p.boostConfig?.totalBoostedEver || 0), 0);
+            const peakEver = Math.max(...watchParties.map(p => p.peakViewers || p.activeViewers || 0), 0);
+
+            return (
+              <div className="mb-6 sm:mb-8">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <Film className="w-5 h-5 text-purple-600" />
+                    Watch Party Insights
+                  </h2>
+                  <Link href="/watch-party">
+                    <span className="text-sm text-purple-600 font-semibold hover:underline cursor-pointer flex items-center gap-1">
+                      See all <ChevronRight className="w-4 h-4" />
+                    </span>
+                  </Link>
+                </div>
+
+                {/* Insight Stats Row */}
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3 mb-4">
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-3 text-center">
+                    <p className="text-lg sm:text-xl font-black text-purple-700">{watchParties.length}</p>
+                    <p className="text-[10px] sm:text-xs text-purple-500 font-medium">Total Parties</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-3 text-center">
+                    <p className="text-lg sm:text-xl font-black text-red-600">{liveParties.length}</p>
+                    <p className="text-[10px] sm:text-xs text-red-500 font-medium">Live Now</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 text-center">
+                    <p className="text-lg sm:text-xl font-black text-blue-700">{totalViewers >= 1000000 ? (totalViewers/1000000).toFixed(1)+'M' : totalViewers >= 1000 ? (totalViewers/1000).toFixed(1)+'K' : totalViewers}</p>
+                    <p className="text-[10px] sm:text-xs text-blue-500 font-medium">Total Viewers</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-3 text-center">
+                    <p className="text-lg sm:text-xl font-black text-amber-700">{totalChats >= 1000 ? (totalChats/1000).toFixed(1)+'K' : totalChats}</p>
+                    <p className="text-[10px] sm:text-xs text-amber-500 font-medium">Chat Messages</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 text-center">
+                    <p className="text-lg sm:text-xl font-black text-green-700">{peakEver >= 1000000 ? (peakEver/1000000).toFixed(1)+'M' : peakEver >= 1000 ? (peakEver/1000).toFixed(1)+'K' : peakEver}</p>
+                    <p className="text-[10px] sm:text-xs text-green-500 font-medium">Peak Viewers</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-3 text-center">
+                    <p className="text-lg sm:text-xl font-black text-pink-700">{totalBoosted >= 1000000 ? (totalBoosted/1000000).toFixed(1)+'M' : totalBoosted >= 1000 ? (totalBoosted/1000).toFixed(1)+'K' : totalBoosted}</p>
+                    <p className="text-[10px] sm:text-xs text-pink-500 font-medium">Boosted</p>
+                  </div>
+                </div>
+
+                {/* Recent Watch Parties list */}
+                <div className="space-y-2">
+                  {watchParties.slice(0, 5).map(wp => (
+                    <Link key={wp._id} href={`/watch-party/${wp._id}/analytics`}>
+                      <div className="flex items-center gap-3 bg-white rounded-xl border border-gray-100 p-3 hover:bg-purple-50 transition-colors cursor-pointer">
+                        {wp.coverImage ? (
+                          <img src={wp.coverImage} alt="" className="w-14 h-10 rounded-lg object-cover flex-shrink-0" />
+                        ) : (
+                          <div className="w-14 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)' }}>
+                            <Tv className="w-5 h-5 text-white" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 truncate">{wp.title}</p>
+                          <div className="flex items-center gap-3 text-[11px] text-gray-500">
+                            <span className="flex items-center gap-1">
+                              <Eye className="w-3 h-3" />
+                              {(wp.activeViewers || wp.peakViewers || 0) >= 1000 ? ((wp.activeViewers || wp.peakViewers || 0)/1000).toFixed(1)+'K' : (wp.activeViewers || wp.peakViewers || 0)}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <MessageCircle className="w-3 h-3" />
+                              {wp.chatMessages?.length || 0}
+                            </span>
+                            {wp.boostedViewers > 0 && (
+                              <span className="flex items-center gap-1 text-purple-600">
+                                <Rocket className="w-3 h-3" />
+                                +{wp.boostedViewers >= 1000 ? (wp.boostedViewers/1000).toFixed(1)+'K' : wp.boostedViewers}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {wp.status === 'live' && (
+                            <span className="px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-[10px] font-bold flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" /> LIVE
+                            </span>
+                          )}
+                          {wp.status === 'ended' && <span className="text-[10px] text-gray-400">Ended</span>}
+                          <ChevronRight className="w-4 h-4 text-gray-400" />
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Quick Actions */}
           <div className="mb-8">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-4">
+            {/* Mobile: vertical list, Desktop: grid */}
+            <div className="flex flex-col gap-2 sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-4">
               {QUICK_ACTIONS.map(action => <QuickActionCard key={action.id} action={action} />)}
             </div>
           </div>
