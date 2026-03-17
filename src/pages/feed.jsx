@@ -383,7 +383,7 @@ function PostComposer({ user, onPostCreated }) {
             <Radio className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
             Live video
           </button>
-          <button onClick={() => router.push('/watch-party')} className="flex-1 flex items-center justify-center gap-1.5 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-xs sm:text-sm font-medium">
+          <button onClick={() => router.push('/watch-party?create=true')} className="flex-1 flex items-center justify-center gap-1.5 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-xs sm:text-sm font-medium">
             <Tv className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
             Watch Party
           </button>
