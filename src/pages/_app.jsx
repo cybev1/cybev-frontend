@@ -72,6 +72,29 @@ export default function App({ Component, pageProps }) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="color-scheme" content="light" />
+
+        {/* Global SEO */}
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+        <meta name="author" content="CYBEV" />
+        <link rel="alternate" type="application/rss+xml" title="CYBEV Blog RSS" href="https://api.cybev.io/api/blogs/feed/rss" />
+
+        {/* Google Search Console — replace YOUR_CODE with actual verification code from search.google.com/search-console */}
+        {/* <meta name="google-site-verification" content="YOUR_CODE" /> */}
+
+        {/* Site-wide Organization Schema */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          name: 'CYBEV',
+          url: 'https://cybev.io',
+          logo: 'https://cybev.io/logo.png',
+          description: 'CYBEV — Where Creators Connect. The global social platform for creators, ministries, and communities.',
+          sameAs: [
+            'https://twitter.com/cybev',
+            'https://facebook.com/cybev',
+            'https://instagram.com/cybev'
+          ]
+        })}} />
       </Head>
 
       <Web3Provider>
