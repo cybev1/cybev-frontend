@@ -40,7 +40,7 @@ const QUICK_ACTIONS = [
   { id: 'ai-studio', title: 'AI Studio', desc: 'Video, Music, Art', icon: Wand2, href: '/ai-studio', color: '#ec4899', bg: '#fce7f3', badge: '✨ AI' },
 ];
 
-// Desktop: card grid. Mobile: Facebook-style horizontal rows
+// Desktop: grid card. Mobile: full-width feed-style card like Facebook posts
 function QuickActionCard({ action }) {
   return (
     <Link href={action.href}>
@@ -62,25 +62,31 @@ function QuickActionCard({ action }) {
         <p className="text-sm text-gray-500">{action.desc}</p>
       </div>
 
-      {/* Mobile — Facebook-style horizontal row (hidden on desktop) */}
-      <div className="sm:hidden flex items-center gap-3.5 px-4 py-3.5 bg-white rounded-xl border border-gray-100 active:bg-gray-50 transition-colors cursor-pointer">
-        <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: action.bg }}>
-          <action.icon className="w-5 h-5" style={{ color: action.color }} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-gray-900 text-[15px]">{action.title}</h3>
-            {action.badge && (
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                action.badge === 'New' ? 'bg-purple-600 text-white' : 
-                action.badge === 'AI' || action.badge === '✨ AI' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' :
-                'bg-purple-100 text-purple-700'
-              }`}>{action.badge}</span>
-            )}
+      {/* Mobile — Full-width feed-style card (hidden on desktop) */}
+      <div className="sm:hidden bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden active:bg-gray-50 transition-colors cursor-pointer">
+        {/* Colored header strip */}
+        <div className="h-2 w-full" style={{ backgroundColor: action.color }} />
+        <div className="p-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: action.bg }}>
+              <action.icon className="w-7 h-7" style={{ color: action.color }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <h3 className="font-bold text-gray-900 text-base">{action.title}</h3>
+                {action.badge && (
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    action.badge === 'New' ? 'bg-purple-600 text-white' : 
+                    action.badge === 'AI' || action.badge === '✨ AI' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' :
+                    'bg-purple-100 text-purple-700'
+                  }`}>{action.badge}</span>
+                )}
+              </div>
+              <p className="text-sm text-gray-500">{action.desc}</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
           </div>
-          <p className="text-xs text-gray-500 mt-0.5">{action.desc}</p>
         </div>
-        <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
       </div>
     </Link>
   );
@@ -542,7 +548,7 @@ export default function StudioPage() {
           <div className="mb-8">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
             {/* Mobile: vertical list, Desktop: grid */}
-            <div className="flex flex-col gap-2 sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-4">
+            <div className="flex flex-col gap-3 sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-4">
               {QUICK_ACTIONS.map(action => <QuickActionCard key={action.id} action={action} />)}
             </div>
           </div>
