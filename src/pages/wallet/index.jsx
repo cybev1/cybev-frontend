@@ -40,6 +40,19 @@ export default function WalletPage() {
   const [buyAmount, setBuyAmount] = useState('');
   const [processing, setProcessing] = useState(false);
 
+  // Auto-detect local currency from timezone
+  const detectCurrency = () => {
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      if (tz.includes('Accra') || tz.includes('Africa/Accra')) return 'GHS';
+      if (tz.includes('Lagos') || tz.includes('Africa/Lagos')) return 'NGN';
+      if (tz.includes('Nairobi') || tz.includes('Africa/Nairobi')) return 'KES';
+      if (tz.includes('Africa/')) return 'USD'; // other African countries default USD
+    } catch {}
+    return 'USD';
+  };
+  const [fundCurrency, setFundCurrency] = useState(detectCurrency);
+
   useEffect(() => { fetchWallet(); }, []);
 
   // Check for funded/subscribed callback
@@ -75,10 +88,10 @@ export default function WalletPage() {
 
   const handleFund = async () => {
     const amt = parseFloat(fundAmount);
-    if (!amt || amt < 1) return alert('Minimum $1');
+    if (!amt || amt < 1) return alert('Minimum amount is 1');
     try {
       setProcessing(true);
-      const { data } = await api.post('/api/wallet/fund', { amount: amt, currency: 'USD' });
+      const { data } = await api.post('/api/wallet/fund', { amount: amt, currency: fundCurrency });
       if (data.paymentLink) window.location.href = data.paymentLink;
       else alert(data.error || 'Failed');
     } catch (err) { alert(err?.response?.data?.error || 'Funding failed'); }
@@ -377,26 +390,57 @@ export default function WalletPage() {
       {showFund && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowFund(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Fund Wallet</h2>
-            <p className="text-sm text-gray-500 mb-4">Add USD to your wallet via card, mobile money, or bank transfer.</p>
+            <h2 className="text-lg font-bold text-gray-900 mb-2">Fund Wallet</h2>
+            <p className="text-sm text-gray-500 mb-4">Add funds via card, mobile money (MoMo), or bank transfer.</p>
+
+            {/* Currency Selector */}
             <div className="flex gap-2 mb-4">
-              {[5, 10, 25, 50, 100].map(amt => (
+              {[
+                { code: 'GHS', flag: '🇬🇭' },
+                { code: 'NGN', flag: '🇳🇬' },
+                { code: 'USD', flag: '🇺🇸' },
+                { code: 'KES', flag: '🇰🇪' },
+              ].map(c => (
+                <button key={c.code} onClick={() => { setFundCurrency(c.code); setFundAmount(''); }}
+                  className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition-colors ${
+                    fundCurrency === c.code ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}>
+                  {c.flag} {c.code}
+                </button>
+              ))}
+            </div>
+
+            {/* Quick Amounts */}
+            <div className="flex gap-2 mb-4">
+              {(fundCurrency === 'GHS' ? [20, 50, 100, 200, 500] :
+                fundCurrency === 'NGN' ? [2000, 5000, 10000, 25000, 50000] :
+                fundCurrency === 'KES' ? [500, 1000, 2500, 5000, 10000] :
+                [5, 10, 25, 50, 100]
+              ).map(amt => (
                 <button key={amt} onClick={() => setFundAmount(String(amt))}
                   className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
                     fundAmount === String(amt) ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                   }`}>
-                  ${amt}
+                  {fundCurrency === 'USD' ? '$' : ''}{amt.toLocaleString()}
                 </button>
               ))}
             </div>
-            <input type="number" min="1" step="0.01" placeholder="Or enter amount..."
+
+            <input type="number" min="1" step="0.01" placeholder={`Enter ${fundCurrency} amount...`}
               value={fundAmount} onChange={e => setFundAmount(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl mb-4 outline-none focus:ring-2 focus:ring-green-500" />
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl mb-2 outline-none focus:ring-2 focus:ring-green-500" />
+            {fundAmount && fundCurrency !== 'USD' && (
+              <p className="text-xs text-gray-500 mb-2 text-center">
+                ≈ ${(parseFloat(fundAmount) / (fundCurrency === 'GHS' ? 16 : fundCurrency === 'NGN' ? 1600 : fundCurrency === 'KES' ? 155 : 1)).toFixed(2)} USD
+              </p>
+            )}
+            {fundCurrency === 'GHS' && <p className="text-xs text-green-600 mb-3 text-center font-medium">📱 MoMo • 💳 Card • 🏦 Bank Transfer</p>}
+            {fundCurrency === 'NGN' && <p className="text-xs text-green-600 mb-3 text-center font-medium">💳 Card • 🏦 Bank Transfer • USSD</p>}
             <div className="flex gap-3">
               <button onClick={() => setShowFund(false)} className="flex-1 py-3 text-gray-600 font-medium">Cancel</button>
               <button onClick={handleFund} disabled={processing || !fundAmount}
                 className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium disabled:opacity-50 transition-colors">
-                {processing ? 'Processing...' : `Fund $${fundAmount || '0'}`}
+                {processing ? 'Processing...' : `Pay ${fundCurrency === 'USD' ? '$' : ''}${fundAmount || '0'} ${fundCurrency}`}
               </button>
             </div>
           </div>
