@@ -213,6 +213,9 @@ export default function WatchPartyIndex() {
     }
   };
 
+  // Check if user is logged in
+  const isLoggedIn = typeof window !== 'undefined' && !!localStorage.getItem('token');
+
   const fetchParties = useCallback(async () => {
     try {
       setLoading(true);
@@ -227,6 +230,15 @@ export default function WatchPartyIndex() {
   }, [filter]);
 
   useEffect(() => { fetchParties(); }, [fetchParties]);
+
+  // Auto-open create form when coming from Feed's Watch Party button
+  useEffect(() => {
+    if (router.query.create === 'true' && isLoggedIn) {
+      setShowCreate(true);
+      // Clean up the URL without reload
+      router.replace('/watch-party', undefined, { shallow: true });
+    }
+  }, [router.query.create, isLoggedIn]);
 
   const handleJoin = (partyId) => {
     router.push(`/watch-party/${partyId}`);
@@ -306,17 +318,26 @@ export default function WatchPartyIndex() {
             </h1>
             <p className="text-gray-500 mt-1">Watch together in real-time with friends</p>
           </div>
-          <button
-            onClick={() => setShowCreate(!showCreate)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-full font-medium transition-colors"
-          >
-            <Plus size={18} />
-            Create Party
-          </button>
+          {isLoggedIn ? (
+            <button
+              onClick={() => setShowCreate(!showCreate)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-full font-medium transition-colors"
+            >
+              <Plus size={18} />
+              Create Party
+            </button>
+          ) : (
+            <button
+              onClick={() => router.push('/auth/login')}
+              className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-full font-medium transition-colors"
+            >
+              Sign in to Create
+            </button>
+          )}
         </div>
 
         {/* Create Form */}
-        {showCreate && (
+        {showCreate && isLoggedIn && (
           <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 mb-6 shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Create a Watch Party</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
