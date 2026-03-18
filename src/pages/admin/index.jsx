@@ -44,7 +44,9 @@ import {
   Sparkles,
   UserPlus,
   Play,
-  Pause
+  Pause,
+  Wallet,
+  Navigation
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -149,6 +151,135 @@ function SystemHealthIndicator({ name, status, icon: Icon }) {
           <p className={`text-xs ${isHealthy ? 'text-green-600' : 'text-red-500'}`}>{status}</p>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── Traffic Simulation Panel ───
+function TrafficSimulationPanel() {
+  const [status, setStatus] = useState(null);
+  const [running, setRunning] = useState(false);
+  const [result, setResult] = useState(null);
+  const [articlesCount, setArticlesCount] = useState(10);
+  const [visitsPerArticle, setVisitsPerArticle] = useState(3);
+  const [cronRunning, setCronRunning] = useState(false);
+  const [cronInterval, setCronInterval] = useState(60);
+
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+  useEffect(() => {
+    axios.get(`${API_URL}/api/traffic/status`, { headers }).then(r => setStatus(r.data)).catch(() => {});
+  }, []);
+
+  const runSimulation = async () => {
+    setRunning(true); setResult(null);
+    try {
+      const { data } = await axios.post(`${API_URL}/api/traffic/run`, { articlesCount, visitsPerArticle, useProxy: true }, { headers });
+      setResult(data);
+    } catch (e) { alert(e?.response?.data?.error || 'Failed'); }
+    finally { setRunning(false); }
+  };
+
+  const testProxy = async () => {
+    try {
+      const { data } = await axios.post(`${API_URL}/api/traffic/test`, {}, { headers });
+      alert(data.proxyWorking ? `Proxy working! Response: ${data.elapsed}` : `Proxy failed: ${data.error}`);
+    } catch (e) { alert('Test failed: ' + (e?.response?.data?.error || e.message)); }
+  };
+
+  const startCron = async () => {
+    try {
+      await axios.post(`${API_URL}/api/traffic/cron/start`, { intervalMinutes: cronInterval }, { headers });
+      setCronRunning(true);
+      alert(`Traffic cron started — every ${cronInterval} minutes`);
+    } catch (e) { alert('Failed: ' + (e?.response?.data?.error || e.message)); }
+  };
+
+  const stopCron = async () => {
+    try {
+      await axios.post(`${API_URL}/api/traffic/cron/stop`, {}, { headers });
+      setCronRunning(false);
+      alert('Traffic cron stopped');
+    } catch (e) { alert('Failed'); }
+  };
+
+  return (
+    <div id="traffic-panel" className="bg-white rounded-2xl border border-gray-200 p-6">
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <Navigation className="w-5 h-5 text-cyan-500" />
+            Traffic Simulation (Brightdata)
+          </h3>
+          <p className="text-xs text-gray-500 mt-1">Special users visit articles through residential proxies — real traffic signals</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`w-2.5 h-2.5 rounded-full ${status?.proxyConfigured ? 'bg-emerald-500' : 'bg-red-500'}`} />
+          <span className="text-xs text-gray-500">{status?.proxyConfigured ? 'Proxy Connected' : 'Proxy Not Set'}</span>
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <div>
+          <label className="text-xs text-gray-500 mb-1 block">Articles to target</label>
+          <input type="number" value={articlesCount} onChange={e => setArticlesCount(Number(e.target.value))} min={1} max={100}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+        </div>
+        <div>
+          <label className="text-xs text-gray-500 mb-1 block">Visits per article</label>
+          <input type="number" value={visitsPerArticle} onChange={e => setVisitsPerArticle(Number(e.target.value))} min={1} max={20}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+        </div>
+        <div>
+          <label className="text-xs text-gray-500 mb-1 block">Total sessions</label>
+          <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold text-gray-900">{articlesCount * visitsPerArticle}</div>
+        </div>
+        <div>
+          <label className="text-xs text-gray-500 mb-1 block">Est. time</label>
+          <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">{Math.ceil(articlesCount * visitsPerArticle * 10 / 60)} min</div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <button onClick={runSimulation} disabled={running}
+          className="flex items-center gap-2 px-4 py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-sm font-medium disabled:opacity-50">
+          {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+          {running ? 'Running...' : 'Run Simulation Now'}
+        </button>
+        <button onClick={testProxy}
+          className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium">
+          <Zap className="w-4 h-4" /> Test Proxy
+        </button>
+        <div className="flex items-center gap-2 ml-auto">
+          <select value={cronInterval} onChange={e => setCronInterval(Number(e.target.value))}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
+            <option value={30}>Every 30 min</option>
+            <option value={60}>Every 1 hour</option>
+            <option value={90}>Every 90 min</option>
+            <option value={180}>Every 3 hours</option>
+          </select>
+          {!cronRunning ? (
+            <button onClick={startCron} className="flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium">
+              <Play className="w-4 h-4" /> Start Auto
+            </button>
+          ) : (
+            <button onClick={stopCron} className="flex items-center gap-1.5 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-medium">
+              <Pause className="w-4 h-4" /> Stop Auto
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Result */}
+      {result && (
+        <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-4">
+          <p className="text-sm font-medium text-cyan-800">{result.message}</p>
+          <p className="text-xs text-cyan-600 mt-1">Est: {result.estimatedTime}. Check Railway logs for live progress.</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -596,8 +727,25 @@ export default function AdminDashboard() {
                   color="bg-emerald-500" 
                   onClick={() => router.push('/admin/monetization')} 
                 />
+                <QuickAction 
+                  title="Add Fund / Credits" 
+                  description="Manage platform wallet" 
+                  icon={Wallet} 
+                  color="bg-gradient-to-br from-amber-500 to-orange-500" 
+                  onClick={() => router.push('/wallet')} 
+                />
+                <QuickAction 
+                  title="Traffic Simulation" 
+                  description="Brightdata-powered visits" 
+                  icon={Navigation} 
+                  color="bg-gradient-to-br from-cyan-500 to-blue-600" 
+                  onClick={() => document.getElementById('traffic-panel')?.scrollIntoView({ behavior: 'smooth' })} 
+                />
               </div>
             </div>
+
+            {/* ═══ Traffic Simulation Panel ═══ */}
+            <TrafficSimulationPanel />
 
             {/* Recent Users */}
             <div className="bg-white rounded-2xl border border-gray-200 p-6">
