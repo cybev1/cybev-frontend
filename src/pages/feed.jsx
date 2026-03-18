@@ -1268,6 +1268,17 @@ export default function Feed() {
         } catch {}
       }
       
+      // Filter out stale/ended livestream posts and soft-deleted posts
+      const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+      feedData = feedData.filter(item => {
+        // Remove soft-deleted items
+        if (item.isDeleted) return false;
+        // Remove stale LIVE posts older than 2 hours (abandoned streams)
+        const isLivePost = item.postType === 'live' || item.contentType === 'live' || item.type === 'livestream' || item.isLiveStream || (item.title && item.title.startsWith('🔴 LIVE:'));
+        if (isLivePost && new Date(item.createdAt) < twoHoursAgo) return false;
+        return true;
+      });
+
       setFeed(feedData);
     } catch (error) {
       console.error('Feed fetch error:', error);
