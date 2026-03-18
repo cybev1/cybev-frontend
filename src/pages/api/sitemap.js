@@ -1,84 +1,84 @@
 // ============================================
-// FILE: src/pages/api/sitemap.js
-// Dynamic Sitemap Generator
+// FILE: src/pages/api/sitemap.xml.js
+// Dynamic Sitemap for Google Search Console
+// VERSION: 2.0 — Uses direct fetch, not client-side API
 // ============================================
-
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cybev.io';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://cybev.io';
+
+function generateSiteMap(blogs, watchParties) {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.w3.org/2005/Atom" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <!-- Static pages -->
+  <url><loc>${SITE_URL}</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>${SITE_URL}/feed</loc><changefreq>hourly</changefreq><priority>0.9</priority></url>
+  <url><loc>${SITE_URL}/blog</loc><changefreq>hourly</changefreq><priority>0.9</priority></url>
+  <url><loc>${SITE_URL}/watch-party</loc><changefreq>hourly</changefreq><priority>0.9</priority></url>
+  <url><loc>${SITE_URL}/explore</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>${SITE_URL}/live</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
+  <url><loc>${SITE_URL}/tv</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>${SITE_URL}/vlog</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>${SITE_URL}/marketplace</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>${SITE_URL}/church</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>${SITE_URL}/auth/signup</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>${SITE_URL}/auth/login</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>${SITE_URL}/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>${SITE_URL}/privacy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <!-- Blog posts -->
+${blogs.map(b => `  <url>
+    <loc>${SITE_URL}/blog/${b.slug || b._id}</loc>
+    <lastmod>${new Date(b.updatedAt || b.createdAt).toISOString()}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>${b.featuredImage ? `
+    <image:image><image:loc>${b.featuredImage}</image:loc><image:title>${(b.title || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')}</image:title></image:image>` : ''}
+  </url>`).join('\n')}
+  <!-- Watch parties -->
+${watchParties.map(wp => `  <url>
+    <loc>${SITE_URL}/watch-party/${wp._id}</loc>
+    <lastmod>${new Date(wp.updatedAt || wp.createdAt).toISOString()}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>`).join('\n')}
+</urlset>`;
+}
 
 export default async function handler(req, res) {
   try {
-    // Fetch recent blogs
-    const blogsRes = await fetch(`${API_URL}/api/blogs?limit=100&status=published`).catch(() => null);
-    const blogsData = blogsRes ? await blogsRes.json() : { blogs: [] };
-    const blogs = blogsData.blogs || [];
+    // Fetch blogs directly from backend API (not client-side lib)
+    let blogs = [];
+    let watchParties = [];
 
-    // Fetch users for profiles
-    const usersRes = await fetch(`${API_URL}/api/users?limit=50`).catch(() => null);
-    const usersData = usersRes ? await usersRes.json() : { users: [] };
-    const users = usersData.users || [];
+    try {
+      const blogRes = await fetch(`${API_URL}/api/blogs?limit=1000&status=published`);
+      if (blogRes.ok) {
+        const data = await blogRes.json();
+        blogs = data.blogs || data.data?.blogs || [];
+      }
+    } catch (e) { console.error('Sitemap blog fetch error:', e.message); }
 
-    // Static pages
-    const staticPages = [
-      { url: '/', priority: '1.0', changefreq: 'daily' },
-      { url: '/feed', priority: '0.9', changefreq: 'hourly' },
-      { url: '/explore', priority: '0.8', changefreq: 'daily' },
-      { url: '/live', priority: '0.8', changefreq: 'hourly' },
-      { url: '/tv', priority: '0.8', changefreq: 'hourly' },
-      { url: '/auth/login', priority: '0.6', changefreq: 'monthly' },
-      { url: '/auth/signup', priority: '0.6', changefreq: 'monthly' },
-      { url: '/privacy', priority: '0.3', changefreq: 'yearly' },
-      { url: '/terms', priority: '0.3', changefreq: 'yearly' },
-      { url: '/about', priority: '0.5', changefreq: 'monthly' }
-    ];
+    try {
+      const wpRes = await fetch(`${API_URL}/api/watch-party?status=all&limit=200`);
+      if (wpRes.ok) {
+        const data = await wpRes.json();
+        watchParties = (data.parties || []).filter(p => p.status === 'live' || p.status === 'ended');
+      }
+    } catch (e) { console.error('Sitemap watch-party fetch error:', e.message); }
 
-    // Generate sitemap XML
-    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-  ${staticPages.map(page => `
-  <url>
-    <loc>${SITE_URL}${page.url}</loc>
-    <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>
-  </url>`).join('')}
-  ${blogs.map(blog => `
-  <url>
-    <loc>${SITE_URL}/blog/${blog._id}</loc>
-    <lastmod>${new Date(blog.updatedAt || blog.createdAt).toISOString()}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    ${blog.featuredImage ? `
-    <image:image>
-      <image:loc>${blog.featuredImage}</image:loc>
-      <image:title>${escapeXml(blog.title)}</image:title>
-    </image:image>` : ''}
-  </url>`).join('')}
-  ${users.map(user => `
-  <url>
-    <loc>${SITE_URL}/profile/${user.username || user._id}</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>`).join('')}
-</urlset>`;
+    const sitemap = generateSiteMap(blogs, watchParties);
 
-    res.setHeader('Content-Type', 'application/xml');
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
     res.status(200).send(sitemap);
   } catch (error) {
-    console.error('Sitemap error:', error);
-    res.status(500).send('Error generating sitemap');
+    console.error('Sitemap generation error:', error);
+    // Return minimal valid sitemap even on error
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.status(200).send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>${SITE_URL}</loc><priority>1.0</priority></url>
+  <url><loc>${SITE_URL}/feed</loc><priority>0.9</priority></url>
+  <url><loc>${SITE_URL}/blog</loc><priority>0.9</priority></url>
+  <url><loc>${SITE_URL}/watch-party</loc><priority>0.9</priority></url>
+</urlset>`);
   }
-}
-
-function escapeXml(str) {
-  if (!str) return '';
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
 }
