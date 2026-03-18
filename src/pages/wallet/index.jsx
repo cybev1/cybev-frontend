@@ -121,7 +121,7 @@ export default function WalletPage() {
   const handleSubscribe = async (plan) => {
     try {
       setProcessing(true);
-      const { data } = await api.post('/api/wallet/subscribe', { plan });
+      const { data } = await api.post('/api/wallet/subscribe', { plan, currency: fundCurrency });
       if (data.needsPayment && data.paymentLink) {
         window.location.href = data.paymentLink;
       } else if (data.ok) {
@@ -253,12 +253,19 @@ export default function WalletPage() {
                       </li>
                     ))}
                   </ul>
-                  {!isCurrent && plan.price > 0 && (
-                    <button onClick={() => handleSubscribe(key)} disabled={processing}
-                      className={`w-full py-2.5 rounded-xl font-medium text-sm transition-colors ${colors.btn}`}>
-                      {processing ? 'Processing...' : usd >= plan.price ? `Subscribe — $${plan.price}/mo` : `Pay $${plan.price} to Subscribe`}
-                    </button>
-                  )}
+                  {!isCurrent && plan.price > 0 && (() => {
+                    const rates = { USD: 1, GHS: 16, NGN: 1600, KES: 155 };
+                    const localPrice = Math.ceil(plan.price * (rates[fundCurrency] || 1) * 100) / 100;
+                    const priceLabel = fundCurrency === 'USD' 
+                      ? `$${plan.price}` 
+                      : `${localPrice.toLocaleString()} ${fundCurrency} (~$${plan.price})`;
+                    return (
+                      <button onClick={() => handleSubscribe(key)} disabled={processing}
+                        className={`w-full py-2.5 rounded-xl font-medium text-sm transition-colors ${colors.btn}`}>
+                        {processing ? 'Processing...' : `Subscribe — ${priceLabel}/mo`}
+                      </button>
+                    );
+                  })()}
                   {isCurrent && plan.price > 0 && (
                     <p className="text-center text-sm text-green-600 font-medium">✓ Active until {subscription?.expiresAt ? new Date(subscription.expiresAt).toLocaleDateString() : 'N/A'}</p>
                   )}
