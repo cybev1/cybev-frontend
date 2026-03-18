@@ -133,7 +133,7 @@ function SocialChannelManager({ channels, onChange, showSave = true }) {
 // ═══════════════════════════════════════════
 // TAB: DASHBOARD
 // ═══════════════════════════════════════════
-function DashboardTab() {
+function DashboardTab({ savedKeywords, setActiveTab }) {
   const [health, setHealth] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -228,12 +228,27 @@ function DashboardTab() {
 // ═══════════════════════════════════════════
 // TAB: KEYWORD RESEARCH
 // ═══════════════════════════════════════════
-function KeywordsTab() {
+function KeywordsTab({ savedKeywords, setSavedKeywords, savedClusters, setSavedClusters, setActiveTab }) {
   const [seed, setSeed] = useState('');
   const [niche, setNiche] = useState('');
   const [geoTarget, setGeoTarget] = useState({ type: 'global', value: '' });
   const [keywords, setKeywords] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // Show saved keywords if we have them and no fresh results
+  useEffect(() => {
+    if (!keywords && savedKeywords?.length > 0) {
+      const clusters = {};
+      savedKeywords.forEach(kw => { const c = kw.cluster || 'general'; if (!clusters[c]) clusters[c] = []; clusters[c].push(kw); });
+      setKeywords({
+        success: true, totalKeywords: savedKeywords.length, keywords: savedKeywords, clusters,
+        avgDifficulty: Math.round(savedKeywords.reduce((a, k) => a + (k.difficulty || 50), 0) / savedKeywords.length),
+        avgVolume: Math.round(savedKeywords.reduce((a, k) => a + (k.searchVolume || 0), 0) / savedKeywords.length),
+        quickWins: savedKeywords.filter(k => (k.difficulty || 50) < 30 && (k.searchVolume || 0) > 100).length,
+        _fromSaved: true
+      });
+    }
+  }, []);
 
   const research = async () => {
     if (!seed.trim()) return;
@@ -241,8 +256,35 @@ function KeywordsTab() {
     try {
       const { data } = await api.post('/api/seo/keywords/research', { seedKeyword: seed, niche, geoTarget: geoTarget.type !== 'global' ? geoTarget : undefined, count: 25 });
       setKeywords(data);
+      // Auto-save to shared state (merge with existing, deduplicate)
+      if (data.keywords?.length) {
+        const existing = new Set((savedKeywords || []).map(k => k.keyword?.toLowerCase()));
+        const newKws = data.keywords.filter(k => !existing.has(k.keyword?.toLowerCase()));
+        const merged = [...(savedKeywords || []), ...newKws];
+        setSavedKeywords(merged);
+        if (data.clusters) setSavedClusters(prev => ({ ...prev, ...data.clusters }));
+      }
     } catch (e) { alert(e?.response?.data?.error || 'Research failed. Check that DeepSeek API key is set.'); }
     finally { setLoading(false); }
+  };
+
+  const exportCSV = () => {
+    const kws = keywords?.keywords || savedKeywords || [];
+    if (!kws.length) return;
+    const header = 'Keyword,Search Volume,Difficulty,CPC,Intent,Cluster,SERP Feature\n';
+    const rows = kws.map(k => `"${k.keyword}",${k.searchVolume || 0},${k.difficulty || 0},${k.cpc || 0},"${k.intent || ''}","${k.cluster || ''}","${k.serpFeature || ''}"`).join('\n');
+    const blob = new Blob([header + rows], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `seo-keywords-${seed || 'all'}-${new Date().toISOString().split('T')[0]}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const clearSaved = () => {
+    if (confirm('Clear all saved keywords? This cannot be undone.')) {
+      setSavedKeywords([]); setSavedClusters({});
+      localStorage.removeItem('cybev_seo_keywords');
+      setKeywords(null);
+    }
   };
 
   const getDiffColor = (d) => d < 30 ? 'text-emerald-600 bg-emerald-50' : d < 60 ? 'text-amber-600 bg-amber-50' : 'text-red-600 bg-red-50';
@@ -271,6 +313,22 @@ function KeywordsTab() {
             <StatCard icon={TrendingUp} label="Avg Volume" value={keywords.avgVolume} color="blue" />
             <StatCard icon={Shield} label="Avg Difficulty" value={keywords.avgDifficulty} color="amber" />
             <StatCard icon={Zap} label="Quick Wins" value={keywords.quickWins} color="emerald" />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-gray-500 mr-1">Use keywords in:</span>
+              <button onClick={() => setActiveTab('content')} className="px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg text-xs font-medium flex items-center gap-1"><PenTool size={12} /> Content Engine</button>
+              <button onClick={() => setActiveTab('clusters')} className="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-medium flex items-center gap-1"><Layers size={12} /> Clusters</button>
+              <button onClick={() => setActiveTab('programmatic')} className="px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-xs font-medium flex items-center gap-1"><Map size={12} /> Programmatic</button>
+              <button onClick={() => setActiveTab('competitors')} className="px-3 py-1.5 bg-orange-50 text-orange-700 hover:bg-orange-100 rounded-lg text-xs font-medium flex items-center gap-1"><Crosshair size={12} /> Competitors</button>
+              <div className="ml-auto flex items-center gap-2">
+                <button onClick={exportCSV} className="px-3 py-1.5 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg text-xs font-medium flex items-center gap-1"><Download size={12} /> Export CSV</button>
+                <button onClick={clearSaved} className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-medium flex items-center gap-1"><Trash2 size={12} /> Clear</button>
+              </div>
+            </div>
+            {keywords._fromSaved && <p className="text-[10px] text-gray-400 mt-2">Showing {savedKeywords.length} saved keywords. Research new keywords to add more.</p>}
           </div>
 
           {/* Cluster View */}
@@ -323,7 +381,7 @@ function KeywordsTab() {
 // ═══════════════════════════════════════════
 // TAB: CONTENT ENGINE
 // ═══════════════════════════════════════════
-function ContentTab() {
+function ContentTab({ savedKeywords, setSavedKeywords, setActiveTab }) {
   const [mode, setMode] = useState('single'); // single | bulk
   const [keyword, setKeyword] = useState('');
   const [title, setTitle] = useState('');
@@ -383,6 +441,15 @@ function ContentTab() {
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-1 block">Target Keyword *</label>
                 <input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="e.g. best gospel songs 2026" className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 outline-none" />
+                {savedKeywords?.length > 0 && !keyword && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    <span className="text-[10px] text-gray-400">Saved:</span>
+                    {savedKeywords.slice(0, 8).map((k, i) => (
+                      <button key={i} onClick={() => setKeyword(k.keyword)} className="px-2 py-0.5 bg-purple-50 text-purple-600 rounded-full text-[10px] hover:bg-purple-100">{k.keyword}</button>
+                    ))}
+                    {savedKeywords.length > 8 && <span className="text-[10px] text-gray-400">+{savedKeywords.length - 8} more</span>}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-1 block">Custom Title (optional)</label>
@@ -407,7 +474,13 @@ function ContentTab() {
               <div className="md:col-span-2">
                 <label className="text-sm font-medium text-gray-700 mb-1 block">Keywords (one per line)</label>
                 <textarea value={bulkKeywords} onChange={e => setBulkKeywords(e.target.value)} rows={6} placeholder={"best gospel songs 2026\nhow to start a church ministry\nchristian content creation tips\npastor training online\nworship music production"} className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 outline-none resize-none font-mono" />
-                <p className="text-xs text-gray-400 mt-1">{bulkKeywords.split('\n').filter(k => k.trim()).length} keywords</p>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-xs text-gray-400">{bulkKeywords.split('\n').filter(k => k.trim()).length} keywords</p>
+                  {savedKeywords?.length > 0 && (
+                    <button onClick={() => setBulkKeywords(savedKeywords.map(k => k.keyword).join('\n'))}
+                      className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1"><Sparkles size={10} /> Fill from {savedKeywords.length} saved keywords</button>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-1 block">Niche</label>
@@ -482,7 +555,7 @@ function ContentTab() {
 // ═══════════════════════════════════════════
 // TAB: CONTENT CLUSTERS
 // ═══════════════════════════════════════════
-function ClustersTab() {
+function ClustersTab({ savedKeywords, setActiveTab }) {
   const [pillar, setPillar] = useState('');
   const [niche, setNiche] = useState('');
   const [count, setCount] = useState(10);
@@ -522,6 +595,13 @@ function ClustersTab() {
         <p className="text-sm text-gray-500">Build topical authority by deploying a pillar article + supporting articles all interlinked. Google rewards this structure.</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <input value={pillar} onChange={e => setPillar(e.target.value)} placeholder="Pillar keyword (e.g. worship music)" className="px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 outline-none" />
+          {savedKeywords?.length > 0 && !pillar && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {savedKeywords.filter(k => (k.searchVolume || 0) > 1000).slice(0, 6).map((k, i) => (
+                <button key={i} onClick={() => setPillar(k.keyword)} className="px-2 py-0.5 bg-purple-50 text-purple-600 rounded-full text-[10px] hover:bg-purple-100">{k.keyword}</button>
+              ))}
+            </div>
+          )}
           <input value={niche} onChange={e => setNiche(e.target.value)} placeholder="Niche (optional)" className="px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 outline-none" />
           <div className="flex items-center gap-2">
             <label className="text-sm text-gray-600 whitespace-nowrap">Articles:</label>
@@ -583,7 +663,7 @@ function ClustersTab() {
 // ═══════════════════════════════════════════
 // TAB: PROGRAMMATIC SEO
 // ═══════════════════════════════════════════
-function ProgrammaticTab() {
+function ProgrammaticTab({ savedKeywords, setActiveTab }) {
   const [titleTemplate, setTitleTemplate] = useState('');
   const [promptTemplate, setPromptTemplate] = useState('');
   const [variables, setVariables] = useState([{ name: 'city', values: '' }]);
@@ -686,7 +766,7 @@ function ProgrammaticTab() {
 // ═══════════════════════════════════════════
 // TAB: CONTENT REFRESH
 // ═══════════════════════════════════════════
-function RefreshTab() {
+function RefreshTab({ savedKeywords }) {
   const [candidates, setCandidates] = useState(null);
   const [scanning, setScanning] = useState(false);
   const [refreshing, setRefreshing] = useState({});
@@ -753,7 +833,7 @@ function RefreshTab() {
 // ═══════════════════════════════════════════
 // TAB: COMPETITORS
 // ═══════════════════════════════════════════
-function CompetitorsTab() {
+function CompetitorsTab({ savedKeywords, setActiveTab }) {
   const [domain, setDomain] = useState('');
   const [niche, setNiche] = useState('');
   const [gaps, setGaps] = useState(null);
@@ -776,6 +856,14 @@ function CompetitorsTab() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
           <input value={domain} onChange={e => setDomain(e.target.value)} placeholder="Competitor domain (e.g. competitor.com)" className="px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 outline-none" />
           <input value={niche} onChange={e => setNiche(e.target.value)} placeholder="Your niche" className="px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 outline-none" />
+          {savedKeywords?.length > 0 && !niche && (
+            <div className="md:col-span-3 flex flex-wrap gap-1">
+              <span className="text-[10px] text-gray-400">From saved keywords:</span>
+              {[...new Set(savedKeywords.map(k => k.cluster).filter(Boolean))].slice(0, 6).map((c, i) => (
+                <button key={i} onClick={() => setNiche(c)} className="px-2 py-0.5 bg-orange-50 text-orange-600 rounded-full text-[10px] hover:bg-orange-100">{c}</button>
+              ))}
+            </div>
+          )}
           <button onClick={analyze} disabled={loading || !domain.trim()} className="flex items-center justify-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-medium disabled:opacity-50">
             {loading ? <Loader2 size={16} className="animate-spin" /> : <Target size={16} />}
             {loading ? 'Analyzing...' : 'Find Gaps'}
@@ -821,7 +909,7 @@ function CompetitorsTab() {
 // ═══════════════════════════════════════════
 // TAB: INTERLINKS
 // ═══════════════════════════════════════════
-function InterlinksTab() {
+function InterlinksTab({ savedKeywords }) {
   const [opps, setOpps] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -869,7 +957,7 @@ function InterlinksTab() {
 // ═══════════════════════════════════════════
 // TAB: SCHEMA MARKUP
 // ═══════════════════════════════════════════
-function SchemaTab() {
+function SchemaTab({ savedKeywords }) {
   const [blogId, setBlogId] = useState('');
   const [types, setTypes] = useState(['article', 'faq', 'breadcrumb']);
   const [schemas, setSchemas] = useState(null);
@@ -926,6 +1014,29 @@ function SchemaTab() {
 export default function SEOCommandCenter() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [savedKeywords, setSavedKeywords] = useState([]); // Shared across all tabs
+  const [savedClusters, setSavedClusters] = useState({}); // Keyword clusters
+
+  // Load saved keywords from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('cybev_seo_keywords');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setSavedKeywords(parsed.keywords || []);
+        setSavedClusters(parsed.clusters || {});
+      }
+    } catch {}
+  }, []);
+
+  // Save keywords to localStorage whenever they change
+  useEffect(() => {
+    if (savedKeywords.length > 0) {
+      localStorage.setItem('cybev_seo_keywords', JSON.stringify({ keywords: savedKeywords, clusters: savedClusters, updatedAt: new Date().toISOString() }));
+    }
+  }, [savedKeywords, savedClusters]);
+
+  const sharedProps = { savedKeywords, setSavedKeywords, savedClusters, setSavedClusters, setActiveTab };
 
   const TAB_COMPONENTS = {
     dashboard: DashboardTab,
@@ -948,11 +1059,21 @@ export default function SEOCommandCenter() {
       <div className="max-w-7xl mx-auto px-4 py-4">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Globe className="text-purple-600" size={28} />
-            SEO Command Center
-          </h1>
-          <p className="text-gray-500 mt-1">Create, deploy, interlink, and track — the SEO weapon nobody else has</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <Globe className="text-purple-600" size={28} />
+                SEO Command Center
+              </h1>
+              <p className="text-gray-500 mt-1">Create, deploy, interlink, and track — the SEO weapon nobody else has</p>
+            </div>
+            {savedKeywords.length > 0 && (
+              <div className="hidden md:flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-xl px-3 py-1.5">
+                <Hash size={14} className="text-purple-500" />
+                <span className="text-xs font-medium text-purple-700">{savedKeywords.length} keywords saved</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Tab Navigation */}
@@ -974,7 +1095,7 @@ export default function SEOCommandCenter() {
         </div>
 
         {/* Active Tab Content */}
-        <ActiveComponent />
+        <ActiveComponent {...sharedProps} />
       </div>
     </AppLayout>
   );
