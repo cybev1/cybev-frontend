@@ -296,6 +296,37 @@ export default function WalletPage() {
               </div>
             </div>
 
+            {/* Quick Plans Overview */}
+            {plans && Object.keys(plans).length > 0 && (
+              <div className="bg-white rounded-xl border border-gray-200 p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-900">Upgrade Your Plan</h3>
+                  <button onClick={() => setActiveTab('plans')} className="text-purple-600 text-sm font-medium">See all plans</button>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {Object.entries(plans).map(([key, p]) => {
+                    const isCurrent = (subscription?.plan || 'free') === key;
+                    const colors = key === 'free' ? 'bg-gray-50 border-gray-200' : key === 'starter' ? 'bg-blue-50 border-blue-200' : key === 'pro' ? 'bg-purple-50 border-purple-200' : 'bg-amber-50 border-amber-200';
+                    return (
+                      <div key={key} className={`rounded-xl p-3 border-2 text-center ${isCurrent ? 'border-green-500 bg-green-50' : colors}`}>
+                        <p className="text-xs font-bold uppercase text-gray-500">{p.name}</p>
+                        <p className="text-lg font-black text-gray-900">{p.price === 0 ? 'Free' : `$${p.price}`}</p>
+                        {p.price > 0 && <p className="text-[10px] text-gray-400">/month</p>}
+                        {isCurrent ? (
+                          <span className="text-[10px] text-green-600 font-bold">✓ CURRENT</span>
+                        ) : p.price > 0 ? (
+                          <button onClick={() => { setActiveTab('plans'); }}
+                            className="mt-1 px-3 py-1 bg-purple-600 text-white rounded-full text-[10px] font-bold hover:bg-purple-700">
+                            Upgrade
+                          </button>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Recent transactions */}
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <div className="flex items-center justify-between mb-3">
