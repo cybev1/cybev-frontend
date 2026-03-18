@@ -17,7 +17,7 @@ import {
   PenTool, Video, Sparkles, FileText, Calendar, Users, Share2, Send,
   Church, ChevronRight, TrendingUp, Loader2, Clock, EyeOff, Copy, Check, Rss,
   Wand2, Edit, Image as ImageIcon, Home, BookOpenCheck, PlusCircle, BarChart2, BookOpen,
-  Film, Music, Tv, MessageCircle, Rocket, Radio
+  Film, Music, Tv, MessageCircle, Rocket, Radio, Bot
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
@@ -38,6 +38,7 @@ const QUICK_ACTIONS = [
   { id: 'campaigns', title: 'Campaigns', desc: 'Email & SMS', icon: Send, href: '/studio/campaigns', color: '#f97316', bg: '#ffedd5', badge: 'New' },
   { id: 'watch-party', title: 'Watch Party', desc: 'Watch together', icon: Film, href: '/watch-party', color: '#7c3aed', bg: '#ede9fe', badge: 'New' },
   { id: 'ai-studio', title: 'AI Studio', desc: 'Video, Music, Art', icon: Wand2, href: '/ai-studio', color: '#ec4899', bg: '#fce7f3', badge: '✨ AI' },
+  { id: 'auto-blog', title: 'Auto-Blog', desc: 'AI writes for you', icon: Bot, href: '/studio/auto-blog', color: '#2563eb', bg: '#dbeafe', badge: '✨ AI' },
 ];
 
 // Desktop: grid card. Mobile: full-width feed-style card like Facebook posts
