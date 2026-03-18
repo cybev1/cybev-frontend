@@ -575,6 +575,14 @@ export default function AdminDashboard() {
                   badge={0}
                 />
                 <QuickAction 
+                  title="Auto-Blog" 
+                  description="AI article campaigns"
+                  icon={FileText} 
+                  color="bg-gradient-to-br from-blue-500 to-purple-500" 
+                  onClick={() => router.push('/admin/auto-blog')} 
+                  badge={0}
+                />
+                <QuickAction 
                   title="Monetization" 
                   description="Subscriptions & ads" 
                   icon={TrendingUp} 
