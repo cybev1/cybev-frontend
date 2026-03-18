@@ -30,14 +30,15 @@ ${blogs.map(b => `  <url>
     <lastmod>${new Date(b.updatedAt || b.createdAt).toISOString()}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>${b.featuredImage ? `
-    <image:image><image:loc>${b.featuredImage}</image:loc><image:title>${(b.title || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')}</image:title></image:image>` : ''}
+    <image:image><image:loc>${b.featuredImage.replace(/&/g, '&amp;')}</image:loc><image:title>${(b.title || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</image:title></image:image>` : ''}
   </url>`).join('\n')}
   <!-- Watch parties -->
 ${watchParties.map(wp => `  <url>
     <loc>${SITE_URL}/watch-party/${wp._id}</loc>
     <lastmod>${new Date(wp.updatedAt || wp.createdAt).toISOString()}</lastmod>
     <changefreq>daily</changefreq>
-    <priority>0.7</priority>
+    <priority>0.7</priority>${wp.coverImage ? `
+    <image:image><image:loc>${wp.coverImage.replace(/&/g, '&amp;')}</image:loc><image:title>${(wp.title || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</image:title></image:image>` : ''}
   </url>`).join('\n')}
 </urlset>`;
 }
