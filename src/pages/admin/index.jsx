@@ -155,6 +155,201 @@ function SystemHealthIndicator({ name, status, icon: Icon }) {
   );
 }
 
+// ─── Admin Fund/Credit Management Panel ───
+function FundManagementPanel() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [walletInfo, setWalletInfo] = useState(null);
+  const [actionType, setActionType] = useState('add_usd');
+  const [amount, setAmount] = useState('');
+  const [reason, setReason] = useState('');
+  const [processing, setProcessing] = useState(false);
+  const [recentAdjustments, setRecentAdjustments] = useState([]);
+
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+  const searchUsers = async (q) => {
+    setSearchQuery(q);
+    if (q.length < 2) { setSearchResults([]); return; }
+    try {
+      const { data } = await axios.get(`${API_URL}/api/search?q=${encodeURIComponent(q)}&type=users&limit=8`, { headers });
+      setSearchResults(data.results?.users || data.users || []);
+    } catch { setSearchResults([]); }
+  };
+
+  const selectUser = async (user) => {
+    setSelectedUser(user);
+    setSearchResults([]);
+    setSearchQuery(user.name || user.username);
+    try {
+      const { data } = await axios.get(`${API_URL}/api/wallet/admin/user-wallet/${user._id}`, { headers });
+      setWalletInfo(data.wallet || { usdBalance: 0, credits: 0 });
+    } catch {
+      setWalletInfo({ usdBalance: 0, credits: 0 });
+    }
+  };
+
+  const executeAdjustment = async () => {
+    if (!selectedUser || !amount || Number(amount) <= 0) {
+      alert('Select a user and enter a valid amount');
+      return;
+    }
+    setProcessing(true);
+    try {
+      const { data } = await axios.post(`${API_URL}/api/wallet/admin/adjust`, {
+        userId: selectedUser._id,
+        type: actionType,
+        amount: Number(amount),
+        reason: reason || 'Admin manual adjustment'
+      }, { headers });
+
+      const label = actionType.includes('add') ? '+' : '-';
+      const curr = actionType.includes('usd') ? 'USD' : 'Credits';
+      const entry = {
+        user: selectedUser.name || selectedUser.username,
+        action: `${label}${amount} ${curr}`,
+        reason: reason || 'Manual',
+        time: new Date().toLocaleTimeString()
+      };
+      setRecentAdjustments(prev => [entry, ...prev].slice(0, 10));
+
+      // Refresh wallet from response
+      if (data.wallet) setWalletInfo(data.wallet);
+
+      alert(data.message || `Success!`);
+      setAmount('');
+      setReason('');
+    } catch (e) {
+      alert(e?.response?.data?.error || 'Adjustment failed');
+    } finally { setProcessing(false); }
+  };
+
+  const actionTypes = [
+    { id: 'add_usd', label: 'Add USD', color: 'bg-emerald-600', icon: '+$' },
+    { id: 'deduct_usd', label: 'Deduct USD', color: 'bg-red-600', icon: '-$' },
+    { id: 'add_credits', label: 'Add Credits', color: 'bg-blue-600', icon: '+C' },
+    { id: 'deduct_credits', label: 'Deduct Credits', color: 'bg-orange-600', icon: '-C' },
+  ];
+
+  return (
+    <div id="fund-panel" className="bg-white rounded-2xl border border-gray-200 p-6">
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <Wallet className="w-5 h-5 text-amber-500" />
+            Fund / Credit Management
+          </h3>
+          <p className="text-xs text-gray-500 mt-1">Manually add or remove USD and credits from any user's wallet</p>
+        </div>
+      </div>
+
+      {/* User Search */}
+      <div className="mb-4 relative">
+        <label className="text-xs text-gray-500 mb-1 block">Search user by name, username, or email</label>
+        <input
+          value={searchQuery}
+          onChange={e => searchUsers(e.target.value)}
+          placeholder="Type to search users..."
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+        />
+        {searchResults.length > 0 && (
+          <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+            {searchResults.map(u => (
+              <button key={u._id} onClick={() => selectUser(u)}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left border-b border-gray-100 last:border-0">
+                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-xs flex-shrink-0">
+                  {(u.name || u.username || '?')[0].toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{u.name || u.username}</p>
+                  <p className="text-xs text-gray-500 truncate">@{u.username}</p>
+                </div>
+                {u.isSynthetic && <span className="text-[10px] bg-violet-100 text-violet-600 px-1.5 py-0.5 rounded-full">Special</span>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Selected User + Wallet Info */}
+      {selectedUser && (
+        <div className="bg-gray-50 rounded-xl p-4 mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold">
+                {(selectedUser.name || selectedUser.username || '?')[0].toUpperCase()}
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900">{selectedUser.name || selectedUser.username}</p>
+                <p className="text-xs text-gray-500">@{selectedUser.username}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-bold text-gray-900">${(walletInfo?.usdBalance || 0).toFixed(2)} <span className="text-xs font-normal text-gray-500">USD</span></p>
+              <p className="text-sm font-bold text-blue-600">{(walletInfo?.credits || 0).toLocaleString()} <span className="text-xs font-normal text-gray-500">Credits</span></p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Action Type Selector */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+        {actionTypes.map(at => (
+          <button key={at.id} onClick={() => setActionType(at.id)}
+            className={`px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
+              actionType === at.id
+                ? `${at.color} text-white shadow-sm`
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}>
+            <span className="font-bold mr-1">{at.icon}</span> {at.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Amount + Reason */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+        <div>
+          <label className="text-xs text-gray-500 mb-1 block">Amount {actionType.includes('usd') ? '(USD)' : '(Credits)'}</label>
+          <input type="number" value={amount} onChange={e => setAmount(e.target.value)} min="0.01" step={actionType.includes('usd') ? '0.01' : '1'} placeholder={actionType.includes('usd') ? '10.00' : '500'}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 outline-none" />
+        </div>
+        <div className="md:col-span-2">
+          <label className="text-xs text-gray-500 mb-1 block">Reason / Note</label>
+          <input value={reason} onChange={e => setReason(e.target.value)} placeholder="e.g. Payment received via MoMo but gateway failed"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 outline-none" />
+        </div>
+      </div>
+
+      {/* Execute Button */}
+      <button onClick={executeAdjustment}
+        disabled={processing || !selectedUser || !amount || Number(amount) <= 0}
+        className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-medium text-white disabled:opacity-50 transition-colors ${
+          actionType.includes('deduct') ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'
+        }`}>
+        {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : <DollarSign className="w-4 h-4" />}
+        {processing ? 'Processing...' : `${actionType.includes('add') ? 'Add' : 'Deduct'} ${amount || '0'} ${actionType.includes('usd') ? 'USD' : 'Credits'} ${selectedUser ? 'for @' + selectedUser.username : ''}`}
+      </button>
+
+      {/* Recent Adjustments */}
+      {recentAdjustments.length > 0 && (
+        <div className="mt-4 border-t border-gray-200 pt-4">
+          <h4 className="text-xs font-medium text-gray-500 mb-2">Recent Adjustments (this session)</h4>
+          <div className="space-y-1.5">
+            {recentAdjustments.map((adj, i) => (
+              <div key={i} className="flex items-center justify-between text-xs bg-gray-50 rounded-lg px-3 py-2">
+                <span className="text-gray-700"><span className="font-medium">{adj.user}</span> — {adj.action}</span>
+                <span className="text-gray-400">{adj.reason} · {adj.time}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Traffic Simulation Panel ───
 function TrafficSimulationPanel() {
   const [status, setStatus] = useState(null);
@@ -729,10 +924,10 @@ export default function AdminDashboard() {
                 />
                 <QuickAction 
                   title="Add Fund / Credits" 
-                  description="Manage platform wallet" 
+                  description="Manage user wallets" 
                   icon={Wallet} 
                   color="bg-gradient-to-br from-amber-500 to-orange-500" 
-                  onClick={() => router.push('/wallet')} 
+                  onClick={() => document.getElementById('fund-panel')?.scrollIntoView({ behavior: 'smooth' })} 
                 />
                 <QuickAction 
                   title="Traffic Simulation" 
@@ -743,6 +938,9 @@ export default function AdminDashboard() {
                 />
               </div>
             </div>
+
+            {/* ═══ Fund / Credit Management Panel ═══ */}
+            <FundManagementPanel />
 
             {/* ═══ Traffic Simulation Panel ═══ */}
             <TrafficSimulationPanel />
