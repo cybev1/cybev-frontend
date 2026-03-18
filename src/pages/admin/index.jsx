@@ -583,6 +583,13 @@ export default function AdminDashboard() {
                   badge={0}
                 />
                 <QuickAction 
+                  title="SEO Command Center" 
+                  description="Rankings, campaigns, analytics"
+                  icon={Globe} 
+                  color="bg-gradient-to-br from-emerald-500 to-teal-500" 
+                  onClick={() => router.push('/admin/seo')} 
+                />
+                <QuickAction 
                   title="Monetization" 
                   description="Subscriptions & ads" 
                   icon={TrendingUp} 
