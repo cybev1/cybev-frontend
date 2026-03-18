@@ -79,7 +79,7 @@ const nextConfig = {
   
   async rewrites() {
     return [
-      { source: '/sitemap.xml', destination: '/api/sitemap' },
+      { source: '/sitemap.xml', destination: '/api/sitemap.xml' },
       { source: '/robots.txt', destination: '/api/robots' },
       { source: '/u/:username', destination: '/profile/:username' },
       { source: '/b/:id', destination: '/blog/:id' },
