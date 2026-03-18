@@ -58,8 +58,37 @@ function StatCard({ icon: Icon, label, value, trend, color = 'purple' }) {
   );
 }
 
-// ─── Social Channel Input ───
-function SocialChannelManager({ channels, onChange }) {
+// ─── Geo Target Selector ───
+function GeoTargetSelector({ value, onChange }) {
+  const types = [
+    { id: 'global', label: 'Global / Generic' },
+    { id: 'continent', label: 'Continent' },
+    { id: 'country', label: 'Country' },
+    { id: 'city', label: 'City' },
+    { id: 'town', label: 'Town / Village' },
+  ];
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium text-gray-700">Geo Targeting</label>
+      <div className="flex gap-2 flex-wrap">
+        {types.map(t => (
+          <button key={t.id} onClick={() => onChange({ ...value, type: t.id, value: t.id === 'global' ? '' : (value?.value || '') })}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${(value?.type || 'global') === t.id ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+          >{t.label}</button>
+        ))}
+      </div>
+      {value?.type && value.type !== 'global' && (
+        <input value={value?.value || ''} onChange={e => onChange({ ...value, value: e.target.value })}
+          placeholder={`Enter ${value.type} name (e.g. ${value.type === 'country' ? 'Ghana, Nigeria, UK' : value.type === 'city' ? 'Accra, Lagos, London' : value.type === 'continent' ? 'Africa, Europe' : 'Ho, Tema, Lekki'})`}
+          className="w-full px-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Social Channel Input (with persistent save) ───
+function SocialChannelManager({ channels, onChange, showSave = true }) {
   const platforms = ['youtube', 'facebook', 'instagram', 'tiktok', 'twitter', 'linkedin', 'website', 'podcast'];
   const addChannel = () => onChange([...channels, { platform: 'youtube', url: '', promotionStyle: 'moderate', enabled: true }]);
   const removeChannel = (i) => onChange(channels.filter((_, idx) => idx !== i));
@@ -83,6 +112,20 @@ function SocialChannelManager({ channels, onChange }) {
           <button onClick={() => removeChannel(i)} className="text-red-400 hover:text-red-600"><Trash2 size={14} /></button>
         </div>
       ))}
+      {showSave && channels.length > 0 && (
+        <div className="flex gap-2">
+          <button onClick={async () => {
+            try { await api.post('/api/seo/social-channels', { channels }); alert('Social channels saved! They will auto-load next time.'); } catch { alert('Failed to save'); }
+          }} className="text-xs text-emerald-600 hover:text-emerald-700 flex items-center gap-1 px-2 py-1 bg-emerald-50 rounded-lg">
+            <CheckCircle2 size={12} /> Save channels
+          </button>
+          <button onClick={async () => {
+            try { const { data } = await api.get('/api/seo/social-channels'); if (data.channels?.length) { onChange(data.channels); } else { alert('No saved channels found'); } } catch { alert('Failed to load'); }
+          }} className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 px-2 py-1 bg-blue-50 rounded-lg">
+            <RefreshCw size={12} /> Load saved
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -188,6 +231,7 @@ function DashboardTab() {
 function KeywordsTab() {
   const [seed, setSeed] = useState('');
   const [niche, setNiche] = useState('');
+  const [geoTarget, setGeoTarget] = useState({ type: 'global', value: '' });
   const [keywords, setKeywords] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -195,9 +239,9 @@ function KeywordsTab() {
     if (!seed.trim()) return;
     setLoading(true);
     try {
-      const { data } = await api.post('/api/seo/keywords/research', { seedKeyword: seed, niche, count: 30 });
+      const { data } = await api.post('/api/seo/keywords/research', { seedKeyword: seed, niche, geoTarget: geoTarget.type !== 'global' ? geoTarget : undefined, count: 25 });
       setKeywords(data);
-    } catch (e) { alert(e?.response?.data?.error || 'Research failed'); }
+    } catch (e) { alert(e?.response?.data?.error || 'Research failed. Check that DeepSeek API key is set.'); }
     finally { setLoading(false); }
   };
 
@@ -216,6 +260,7 @@ function KeywordsTab() {
             {loading ? 'Researching...' : 'Research Keywords'}
           </button>
         </div>
+        <GeoTargetSelector value={geoTarget} onChange={setGeoTarget} />
       </div>
 
       {keywords && (
@@ -284,17 +329,25 @@ function ContentTab() {
   const [title, setTitle] = useState('');
   const [niche, setNiche] = useState('');
   const [tone, setTone] = useState('professional');
+  const [geoTarget, setGeoTarget] = useState({ type: 'global', value: '' });
   const [socialChannels, setSocialChannels] = useState([]);
   const [bulkKeywords, setBulkKeywords] = useState('');
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState(null);
   const [bulkResult, setBulkResult] = useState(null);
 
+  // Load saved channels on mount
+  useEffect(() => {
+    api.get('/api/seo/social-channels').then(({ data }) => {
+      if (data.channels?.length) setSocialChannels(data.channels);
+    }).catch(() => {});
+  }, []);
+
   const generateSingle = async () => {
     if (!keyword.trim()) return;
     setGenerating(true); setResult(null);
     try {
-      const { data } = await api.post('/api/seo/content/generate', { keyword, title: title || undefined, niche, tone, socialChannels: socialChannels.filter(c => c.url), includeFAQ: true });
+      const { data } = await api.post('/api/seo/content/generate', { keyword, title: title || undefined, niche, tone, geoTarget: geoTarget.type !== 'global' ? geoTarget : undefined, socialChannels: socialChannels.filter(c => c.url), includeFAQ: true });
       setResult(data);
     } catch (e) { alert(e?.response?.data?.error || 'Generation failed'); }
     finally { setGenerating(false); }
@@ -305,7 +358,7 @@ function ContentTab() {
     if (!kws.length) return;
     setGenerating(true); setBulkResult(null);
     try {
-      const { data } = await api.post('/api/seo/content/bulk-generate', { keywords: kws, niche, tone, socialChannels: socialChannels.filter(c => c.url), count: kws.length });
+      const { data } = await api.post('/api/seo/content/bulk-generate', { keywords: kws, niche, tone, geoTarget: geoTarget.type !== 'global' ? geoTarget : undefined, socialChannels: socialChannels.filter(c => c.url), count: kws.length });
       setBulkResult(data);
     } catch (e) { alert(e?.response?.data?.error || 'Bulk generation failed'); }
     finally { setGenerating(false); }
@@ -370,6 +423,7 @@ function ContentTab() {
           </>
         )}
 
+        <GeoTargetSelector value={geoTarget} onChange={setGeoTarget} />
         <SocialChannelManager channels={socialChannels} onChange={setSocialChannels} />
 
         <div className="flex items-center justify-end pt-2">
@@ -384,17 +438,23 @@ function ContentTab() {
       </div>
 
       {/* Single Result */}
-      {result?.blog && (
+      {result?.success && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
           <div className="flex items-start gap-3">
             <CheckCircle2 size={20} className="text-emerald-600 mt-0.5" />
             <div>
-              <h4 className="font-bold text-emerald-800">{result.blog.title}</h4>
-              <p className="text-sm text-emerald-700 mt-1">{result.blog.excerpt}</p>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {result.blog.tags?.map(t => <span key={t} className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs">{t}</span>)}
-              </div>
-              <a href={result.blog.url} target="_blank" rel="noopener" className="text-sm text-emerald-700 hover:underline mt-2 inline-flex items-center gap-1"><ExternalLink size={12} /> View Article</a>
+              {result.blog ? (
+                <>
+                  <h4 className="font-bold text-emerald-800">{result.blog.title}</h4>
+                  <p className="text-sm text-emerald-700 mt-1">{result.blog.excerpt}</p>
+                  <a href={result.blog.url} target="_blank" rel="noopener" className="text-sm text-emerald-700 hover:underline mt-2 inline-flex items-center gap-1"><ExternalLink size={12} /> View Article</a>
+                </>
+              ) : (
+                <>
+                  <h4 className="font-bold text-emerald-800">Article generation started!</h4>
+                  <p className="text-sm text-emerald-700 mt-1">Keyword: "{result.keyword || keyword}". Estimated time: {result.estimatedTime || '60-90 seconds'}. The article will appear in your blog feed once ready.</p>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -426,19 +486,22 @@ function ClustersTab() {
   const [pillar, setPillar] = useState('');
   const [niche, setNiche] = useState('');
   const [count, setCount] = useState(10);
+  const [geoTarget, setGeoTarget] = useState({ type: 'global', value: '' });
   const [planning, setPlanning] = useState(false);
   const [deploying, setDeploying] = useState(false);
   const [plan, setPlan] = useState(null);
   const [socialChannels, setSocialChannels] = useState([]);
   const [deployResult, setDeployResult] = useState(null);
 
+  useEffect(() => { api.get('/api/seo/social-channels').then(({ data }) => { if (data.channels?.length) setSocialChannels(data.channels); }).catch(() => {}); }, []);
+
   const planCluster = async () => {
     if (!pillar.trim()) return;
     setPlanning(true); setPlan(null);
     try {
-      const { data } = await api.post('/api/seo/cluster/plan', { pillarKeyword: pillar, niche, articleCount: count });
+      const { data } = await api.post('/api/seo/cluster/plan', { pillarKeyword: pillar, niche, articleCount: count, geoTarget: geoTarget.type !== 'global' ? geoTarget : undefined });
       setPlan(data.plan);
-    } catch (e) { alert('Planning failed'); }
+    } catch (e) { alert(e?.response?.data?.error || 'Planning failed'); }
     finally { setPlanning(false); }
   };
 
@@ -446,9 +509,9 @@ function ClustersTab() {
     if (!plan) return;
     setDeploying(true);
     try {
-      const { data } = await api.post('/api/seo/cluster/deploy', { plan, socialChannels: socialChannels.filter(c => c.url) });
+      const { data } = await api.post('/api/seo/cluster/deploy', { plan, geoTarget: geoTarget.type !== 'global' ? geoTarget : undefined, socialChannels: socialChannels.filter(c => c.url) });
       setDeployResult(data);
-    } catch (e) { alert('Deploy failed'); }
+    } catch (e) { alert(e?.response?.data?.error || 'Deploy failed'); }
     finally { setDeploying(false); }
   };
 
@@ -467,6 +530,7 @@ function ClustersTab() {
             </select>
           </div>
         </div>
+        <GeoTargetSelector value={geoTarget} onChange={setGeoTarget} />
         <SocialChannelManager channels={socialChannels} onChange={setSocialChannels} />
         <button onClick={planCluster} disabled={planning || !pillar.trim()} className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-medium disabled:opacity-50">
           {planning ? <Loader2 size={16} className="animate-spin" /> : <Brain size={16} />}
@@ -524,10 +588,13 @@ function ProgrammaticTab() {
   const [promptTemplate, setPromptTemplate] = useState('');
   const [variables, setVariables] = useState([{ name: 'city', values: '' }]);
   const [category, setCategory] = useState('general');
+  const [geoTarget, setGeoTarget] = useState({ type: 'global', value: '' });
   const [socialChannels, setSocialChannels] = useState([]);
   const [batchSize, setBatchSize] = useState(10);
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState(null);
+
+  useEffect(() => { api.get('/api/seo/social-channels').then(({ data }) => { if (data.channels?.length) setSocialChannels(data.channels); }).catch(() => {}); }, []);
 
   const addVariable = () => setVariables([...variables, { name: '', values: '' }]);
   const updateVar = (i, field, val) => { const v = [...variables]; v[i] = { ...v[i], [field]: val }; setVariables(v); };
@@ -538,9 +605,10 @@ function ProgrammaticTab() {
     setGenerating(true);
     try {
       const vars = variables.filter(v => v.name && v.values).map(v => ({ name: v.name, values: v.values.split(',').map(s => s.trim()).filter(Boolean) }));
-      const { data } = await api.post('/api/seo/programmatic/generate', { titleTemplate, promptTemplate: promptTemplate || undefined, variables: vars, category, socialChannels: socialChannels.filter(c => c.url), batchSize });
+      if (vars.length === 0) { alert('Add at least one variable with comma-separated values'); setGenerating(false); return; }
+      const { data } = await api.post('/api/seo/programmatic/generate', { titleTemplate, promptTemplate: promptTemplate || undefined, variables: vars, category, geoTarget: geoTarget.type !== 'global' ? geoTarget : undefined, socialChannels: socialChannels.filter(c => c.url), batchSize });
       setResult(data);
-    } catch (e) { alert('Generation failed'); }
+    } catch (e) { alert(e?.response?.data?.error || 'Generation failed'); }
     finally { setGenerating(false); }
   };
 
@@ -590,6 +658,7 @@ function ProgrammaticTab() {
           </div>
         </div>
 
+        <GeoTargetSelector value={geoTarget} onChange={setGeoTarget} />
         <SocialChannelManager channels={socialChannels} onChange={setSocialChannels} />
 
         <button onClick={generate} disabled={generating || !titleTemplate} className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium disabled:opacity-50">
