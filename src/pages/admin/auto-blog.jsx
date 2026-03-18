@@ -108,9 +108,10 @@ export default function AutoBlogAdmin() {
     setRunning(id);
     try {
       const { data } = await api.post(`/api/auto-blog/campaigns/${id}/run-now`);
-      alert(`Generated! ${data.campaign?.lastRunArticles || 0} articles created, ${data.campaign?.lastRunErrors || 0} errors.`);
-      fetchData();
-    } catch (err) { alert(err.response?.data?.error || 'Failed'); }
+      alert(`✅ ${data.message || 'Articles are being generated in the background!'}\n\nRefresh the page in 5-10 minutes to see new articles.`);
+      // Auto-refresh stats after 15 seconds
+      setTimeout(() => fetchData(), 15000);
+    } catch (err) { alert(err.response?.data?.error || 'Failed to trigger generation'); }
     finally { setRunning(null); }
   };
 
