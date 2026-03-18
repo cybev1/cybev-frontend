@@ -46,7 +46,7 @@ Disallow: /onboarding
 Crawl-delay: 1
 
 # Sitemap location
-Sitemap: ${SITE_URL}/api/sitemap.xml
+Sitemap: ${SITE_URL}/sitemap.xml
 
 # Google specific
 User-agent: Googlebot
