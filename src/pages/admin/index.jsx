@@ -356,7 +356,7 @@ function TrafficSimulationPanel() {
   const [live, setLive] = useState(null);
   const [articlesCount, setArticlesCount] = useState(10);
   const [visitsPerArticle, setVisitsPerArticle] = useState(5);
-  const [concurrency, setConcurrency] = useState(15);
+  const [concurrency, setConcurrency] = useState(5);
   const [cronRunning, setCronRunning] = useState(false);
   const [cronInterval, setCronInterval] = useState(60);
   const pollRef = useRef(null);
@@ -409,7 +409,7 @@ function TrafficSimulationPanel() {
   };
 
   const totalSessions = articlesCount * visitsPerArticle;
-  const estMinutes = Math.ceil(totalSessions / concurrency * 1.5 / 60);
+  const estMinutes = Math.ceil(totalSessions / concurrency * 15 / 60); // ~15s per session with human delays
   const p = live?.progress || {};
   const r = live?.results || {};
   const pct = p.total > 0 ? Math.round(p.completed / p.total * 100) : 0;
@@ -448,9 +448,9 @@ function TrafficSimulationPanel() {
             <div className="text-center"><p className="text-lg font-bold text-blue-600">{r.totalClicks || 0}</p><p className="text-[10px] text-gray-500">Int. Links</p></div>
             <div className="text-center"><p className="text-lg font-bold text-purple-600">{r.socialClicks || 0}</p><p className="text-[10px] text-gray-500">Social Clicks</p></div>
             <div className="text-center"><p className="text-lg font-bold text-amber-600">{live?.speed?.sessionsPerMinute || 0}</p><p className="text-[10px] text-gray-500">Sess/min</p></div>
-            <div className="text-center"><p className="text-lg font-bold text-red-500">{p.errors || 0}</p><p className="text-[10px] text-gray-500">Errors</p></div>
+            <div className="text-center"><p className="text-lg font-bold text-cyan-600">{r.avgDwellMs ? Math.round(r.avgDwellMs / 1000) + 's' : '—'}</p><p className="text-[10px] text-gray-500">Avg Dwell</p></div>
           </div>
-          {live?.speed?.avgResponseMs > 0 && <p className="text-[10px] text-cyan-600 mt-2 text-center">Avg response: {live.speed.avgResponseMs}ms · Elapsed: {live.elapsed || 0}s</p>}
+          <p className="text-[10px] text-cyan-600 mt-2 text-center">Elapsed: {live.elapsed || 0}s · Errors: {p.errors || 0}{live?.speed?.avgResponseMs > 0 ? ` · Proxy: ${live.speed.avgResponseMs}ms` : ''}</p>
         </div>
       )}
 
@@ -470,7 +470,7 @@ function TrafficSimulationPanel() {
           <label className="text-xs text-gray-500 mb-1 block">Concurrency</label>
           <select value={concurrency} onChange={e => setConcurrency(Number(e.target.value))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
-            <option value={5}>5 (slow/safe)</option><option value={10}>10 (balanced)</option><option value={15}>15 (fast)</option><option value={25}>25 (aggressive)</option><option value={50}>50 (max)</option>
+            <option value={3}>3 (most human)</option><option value={5}>5 (quality)</option><option value={10}>10 (balanced)</option><option value={15}>15 (fast)</option><option value={25}>25 (aggressive)</option>
           </select>
         </div>
         <div>
@@ -518,8 +518,8 @@ function TrafficSimulationPanel() {
           <div className="space-y-1.5">
             {live.history.slice(0, 5).map((h, i) => (
               <div key={i} className="flex items-center justify-between text-xs bg-gray-50 rounded-lg px-3 py-2">
-                <span className="text-gray-700">{h.sessions} sessions · <span className="font-medium text-emerald-600">{h.totalViews} views</span> · {h.totalClicks} clicks · {h.socialClicks || 0} social</span>
-                <span className="text-gray-400">{h.elapsed}s · {h.sessionsPerMinute} sess/min · {h.errors} err</span>
+                <span className="text-gray-700">{h.sessions} sess · <span className="font-medium text-emerald-600">{h.totalViews} views</span> · {h.totalClicks} links · <span className="font-medium text-purple-600">{h.socialClicks || 0} social</span> · {h.avgDwellSec || '?'}s dwell</span>
+                <span className="text-gray-400">{h.elapsed}s · {h.sessionsPerMinute} s/m{h.errors ? ` · ${h.errors} err` : ''}</span>
               </div>
             ))}
           </div>
