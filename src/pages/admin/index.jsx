@@ -4,7 +4,7 @@
 // VERSION: 4.0 - Added Special Users Panel
 // ============================================
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -350,54 +350,69 @@ function FundManagementPanel() {
   );
 }
 
-// ─── Traffic Simulation Panel ───
+// ─── Traffic Simulation Panel v2 — Live Analytics ───
 function TrafficSimulationPanel() {
-  const [status, setStatus] = useState(null);
-  const [running, setRunning] = useState(false);
-  const [result, setResult] = useState(null);
+  const [proxyStatus, setProxyStatus] = useState(null);
+  const [live, setLive] = useState(null);
   const [articlesCount, setArticlesCount] = useState(10);
-  const [visitsPerArticle, setVisitsPerArticle] = useState(3);
+  const [visitsPerArticle, setVisitsPerArticle] = useState(5);
+  const [concurrency, setConcurrency] = useState(15);
   const [cronRunning, setCronRunning] = useState(false);
   const [cronInterval, setCronInterval] = useState(60);
+  const pollRef = useRef(null);
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
+  // Load proxy status on mount
   useEffect(() => {
-    axios.get(`${API_URL}/api/traffic/status`, { headers }).then(r => setStatus(r.data)).catch(() => {});
+    axios.get(`${API_URL}/api/traffic/status`, { headers }).then(r => setProxyStatus(r.data)).catch(() => {});
+    axios.get(`${API_URL}/api/traffic/live`, { headers }).then(r => setLive(r.data?.stats)).catch(() => {});
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, []);
 
+  // Poll live stats when running
+  useEffect(() => {
+    if (live?.isRunning && !pollRef.current) {
+      pollRef.current = setInterval(async () => {
+        try {
+          const { data } = await axios.get(`${API_URL}/api/traffic/live`, { headers });
+          setLive(data?.stats);
+          if (!data?.stats?.isRunning) { clearInterval(pollRef.current); pollRef.current = null; }
+        } catch {}
+      }, 2500);
+    }
+    return () => { if (!live?.isRunning && pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; } };
+  }, [live?.isRunning]);
+
   const runSimulation = async () => {
-    setRunning(true); setResult(null);
     try {
-      const { data } = await axios.post(`${API_URL}/api/traffic/run`, { articlesCount, visitsPerArticle, useProxy: true }, { headers });
-      setResult(data);
-    } catch (e) { alert(e?.response?.data?.error || 'Failed'); }
-    finally { setRunning(false); }
+      const { data } = await axios.post(`${API_URL}/api/traffic/run`, { articlesCount, visitsPerArticle, concurrency }, { headers });
+      if (data.error) { alert(data.error); return; }
+      // Start polling
+      setLive({ isRunning: true, progress: { completed: 0, total: data.totalSessions || articlesCount * visitsPerArticle, errors: 0 }, results: { totalVisits: 0, totalViews: 0, totalClicks: 0, socialClicks: 0 }, speed: { sessionsPerMinute: 0, avgResponseMs: 0 }, history: live?.history || [] });
+    } catch (e) { alert(e?.response?.data?.error || 'Failed to start'); }
   };
 
   const testProxy = async () => {
     try {
       const { data } = await axios.post(`${API_URL}/api/traffic/test`, {}, { headers });
-      alert(data.proxyWorking ? `Proxy working! Response: ${data.elapsed}` : `Proxy failed: ${data.error}`);
-    } catch (e) { alert('Test failed: ' + (e?.response?.data?.error || e.message)); }
+      alert(data.proxyWorking ? `Proxy working! IP responded in ${data.elapsed}` : `Proxy failed: ${data.error}`);
+    } catch (e) { alert('Test failed'); }
   };
 
   const startCron = async () => {
-    try {
-      await axios.post(`${API_URL}/api/traffic/cron/start`, { intervalMinutes: cronInterval }, { headers });
-      setCronRunning(true);
-      alert(`Traffic cron started — every ${cronInterval} minutes`);
-    } catch (e) { alert('Failed: ' + (e?.response?.data?.error || e.message)); }
+    try { await axios.post(`${API_URL}/api/traffic/cron/start`, { intervalMinutes: cronInterval }, { headers }); setCronRunning(true); } catch {}
+  };
+  const stopCron = async () => {
+    try { await axios.post(`${API_URL}/api/traffic/cron/stop`, {}, { headers }); setCronRunning(false); } catch {}
   };
 
-  const stopCron = async () => {
-    try {
-      await axios.post(`${API_URL}/api/traffic/cron/stop`, {}, { headers });
-      setCronRunning(false);
-      alert('Traffic cron stopped');
-    } catch (e) { alert('Failed'); }
-  };
+  const totalSessions = articlesCount * visitsPerArticle;
+  const estMinutes = Math.ceil(totalSessions / concurrency * 1.5 / 60);
+  const p = live?.progress || {};
+  const r = live?.results || {};
+  const pct = p.total > 0 ? Math.round(p.completed / p.total * 100) : 0;
 
   return (
     <div id="traffic-panel" className="bg-white rounded-2xl border border-gray-200 p-6">
@@ -407,42 +422,73 @@ function TrafficSimulationPanel() {
             <Navigation className="w-5 h-5 text-cyan-500" />
             Traffic Simulation (Brightdata)
           </h3>
-          <p className="text-xs text-gray-500 mt-1">Special users visit articles through residential proxies — real traffic signals</p>
+          <p className="text-xs text-gray-500 mt-1">Special users visit articles through residential proxies — concurrent sessions</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`w-2.5 h-2.5 rounded-full ${status?.proxyConfigured ? 'bg-emerald-500' : 'bg-red-500'}`} />
-          <span className="text-xs text-gray-500">{status?.proxyConfigured ? 'Proxy Connected' : 'Proxy Not Set'}</span>
+          <span className={`w-2.5 h-2.5 rounded-full ${proxyStatus?.proxyConfigured ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
+          <span className="text-xs text-gray-500">{proxyStatus?.proxyConfigured ? proxyStatus.proxyHost : 'Not Configured'}</span>
         </div>
       </div>
 
+      {/* Live Stats Bar (shows when running or has data) */}
+      {live?.isRunning && (
+        <div className="mb-4 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-xl p-4">
+          {/* Progress bar */}
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-cyan-800">Running: {p.completed || 0} / {p.total || 0} sessions</span>
+            <span className="text-xs font-bold text-cyan-700">{pct}%</span>
+          </div>
+          <div className="w-full bg-cyan-200 rounded-full h-2.5 mb-3">
+            <div className="bg-cyan-600 h-2.5 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+          </div>
+          {/* Live metrics */}
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+            <div className="text-center"><p className="text-lg font-bold text-gray-900">{r.totalVisits || 0}</p><p className="text-[10px] text-gray-500">Visits</p></div>
+            <div className="text-center"><p className="text-lg font-bold text-emerald-600">{r.totalViews || 0}</p><p className="text-[10px] text-gray-500">Views</p></div>
+            <div className="text-center"><p className="text-lg font-bold text-blue-600">{r.totalClicks || 0}</p><p className="text-[10px] text-gray-500">Int. Links</p></div>
+            <div className="text-center"><p className="text-lg font-bold text-purple-600">{r.socialClicks || 0}</p><p className="text-[10px] text-gray-500">Social Clicks</p></div>
+            <div className="text-center"><p className="text-lg font-bold text-amber-600">{live?.speed?.sessionsPerMinute || 0}</p><p className="text-[10px] text-gray-500">Sess/min</p></div>
+            <div className="text-center"><p className="text-lg font-bold text-red-500">{p.errors || 0}</p><p className="text-[10px] text-gray-500">Errors</p></div>
+          </div>
+          {live?.speed?.avgResponseMs > 0 && <p className="text-[10px] text-cyan-600 mt-2 text-center">Avg response: {live.speed.avgResponseMs}ms · Elapsed: {live.elapsed || 0}s</p>}
+        </div>
+      )}
+
       {/* Controls */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
         <div>
-          <label className="text-xs text-gray-500 mb-1 block">Articles to target</label>
-          <input type="number" value={articlesCount} onChange={e => setArticlesCount(Number(e.target.value))} min={1} max={100}
+          <label className="text-xs text-gray-500 mb-1 block">Articles</label>
+          <input type="number" value={articlesCount} onChange={e => setArticlesCount(Math.max(1, Number(e.target.value)))} min={1} max={200}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
         </div>
         <div>
-          <label className="text-xs text-gray-500 mb-1 block">Visits per article</label>
-          <input type="number" value={visitsPerArticle} onChange={e => setVisitsPerArticle(Number(e.target.value))} min={1} max={20}
+          <label className="text-xs text-gray-500 mb-1 block">Visits/article</label>
+          <input type="number" value={visitsPerArticle} onChange={e => setVisitsPerArticle(Math.max(1, Number(e.target.value)))} min={1} max={500}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+        </div>
+        <div>
+          <label className="text-xs text-gray-500 mb-1 block">Concurrency</label>
+          <select value={concurrency} onChange={e => setConcurrency(Number(e.target.value))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
+            <option value={5}>5 (slow/safe)</option><option value={10}>10 (balanced)</option><option value={15}>15 (fast)</option><option value={25}>25 (aggressive)</option><option value={50}>50 (max)</option>
+          </select>
         </div>
         <div>
           <label className="text-xs text-gray-500 mb-1 block">Total sessions</label>
-          <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold text-gray-900">{articlesCount * visitsPerArticle}</div>
+          <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold text-gray-900">{totalSessions.toLocaleString()}</div>
         </div>
         <div>
           <label className="text-xs text-gray-500 mb-1 block">Est. time</label>
-          <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">{Math.ceil(articlesCount * visitsPerArticle * 10 / 60)} min</div>
+          <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">{estMinutes < 1 ? '<1' : estMinutes} min</div>
         </div>
       </div>
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-2 mb-4">
-        <button onClick={runSimulation} disabled={running}
-          className="flex items-center gap-2 px-4 py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-sm font-medium disabled:opacity-50">
-          {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-          {running ? 'Running...' : 'Run Simulation Now'}
+        <button onClick={runSimulation} disabled={live?.isRunning}
+          className="flex items-center gap-2 px-5 py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-sm font-medium disabled:opacity-50">
+          {live?.isRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+          {live?.isRunning ? `Running ${pct}%...` : 'Run Simulation Now'}
         </button>
         <button onClick={testProxy}
           className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium">
@@ -451,28 +497,32 @@ function TrafficSimulationPanel() {
         <div className="flex items-center gap-2 ml-auto">
           <select value={cronInterval} onChange={e => setCronInterval(Number(e.target.value))}
             className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
-            <option value={30}>Every 30 min</option>
-            <option value={60}>Every 1 hour</option>
-            <option value={90}>Every 90 min</option>
-            <option value={180}>Every 3 hours</option>
+            <option value={30}>Every 30m</option><option value={60}>Every 1h</option><option value={90}>Every 90m</option><option value={180}>Every 3h</option>
           </select>
           {!cronRunning ? (
             <button onClick={startCron} className="flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium">
-              <Play className="w-4 h-4" /> Start Auto
+              <Play className="w-4 h-4" /> Auto
             </button>
           ) : (
             <button onClick={stopCron} className="flex items-center gap-1.5 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-medium">
-              <Pause className="w-4 h-4" /> Stop Auto
+              <Pause className="w-4 h-4" /> Stop
             </button>
           )}
         </div>
       </div>
 
-      {/* Result */}
-      {result && (
-        <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-4">
-          <p className="text-sm font-medium text-cyan-800">{result.message}</p>
-          <p className="text-xs text-cyan-600 mt-1">Est: {result.estimatedTime}. Check Railway logs for live progress.</p>
+      {/* History */}
+      {live?.history?.length > 0 && (
+        <div className="border-t border-gray-200 pt-4">
+          <h4 className="text-xs font-medium text-gray-500 mb-2">Recent Runs</h4>
+          <div className="space-y-1.5">
+            {live.history.slice(0, 5).map((h, i) => (
+              <div key={i} className="flex items-center justify-between text-xs bg-gray-50 rounded-lg px-3 py-2">
+                <span className="text-gray-700">{h.sessions} sessions · <span className="font-medium text-emerald-600">{h.totalViews} views</span> · {h.totalClicks} clicks · {h.socialClicks || 0} social</span>
+                <span className="text-gray-400">{h.elapsed}s · {h.sessionsPerMinute} sess/min · {h.errors} err</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
