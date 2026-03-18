@@ -46,8 +46,8 @@ const QUICK_ACTIONS = [
 function QuickActionCard({ action }) {
   return (
     <Link href={action.href}>
-      {/* Desktop — grid card (hidden on mobile) */}
-      <div className="hidden sm:block bg-white rounded-2xl p-5 border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group">
+      {/* Desktop — grid card (hidden on mobile/tablet) */}
+      <div className="hidden md:block bg-white rounded-2xl p-5 border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group">
         <div className="flex items-start justify-between mb-4">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110" style={{ backgroundColor: action.bg }}>
             <action.icon className="w-6 h-6" style={{ color: action.color }} />
@@ -56,6 +56,7 @@ function QuickActionCard({ action }) {
             <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
               action.badge === 'New' ? 'bg-purple-600 text-white' : 
               action.badge === 'AI' || action.badge === '✨ AI' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' :
+              action.badge.includes('🚀') ? 'bg-emerald-600 text-white' :
               'bg-purple-100 text-purple-700'
             }`}>{action.badge}</span>
           )}
@@ -64,8 +65,8 @@ function QuickActionCard({ action }) {
         <p className="text-sm text-gray-500">{action.desc}</p>
       </div>
 
-      {/* Mobile — Full-width feed-style card (hidden on desktop) */}
-      <div className="sm:hidden bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden active:bg-gray-50 transition-colors cursor-pointer">
+      {/* Mobile — Full-width card (shown on all screens below md/768px) */}
+      <div className="md:hidden bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden active:bg-gray-50 transition-colors cursor-pointer">
         {/* Colored header strip */}
         <div className="h-2 w-full" style={{ backgroundColor: action.color }} />
         <div className="p-4">
@@ -550,7 +551,7 @@ export default function StudioPage() {
           <div className="mb-8">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
             {/* Mobile: vertical list, Desktop: grid */}
-            <div className="flex flex-col gap-3 sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-4">
+            <div className="flex flex-col gap-3 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:gap-4">
               {QUICK_ACTIONS.map(action => <QuickActionCard key={action.id} action={action} />)}
             </div>
           </div>
