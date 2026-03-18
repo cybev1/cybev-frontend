@@ -21,6 +21,12 @@ Allow: /vlog/*
 Allow: /church
 Allow: /marketplace
 
+# Allow sitemap and RSS feed (before /api/ block)
+Allow: /api/sitemap.xml
+Allow: /api/sitemap
+Allow: /api/robots
+Allow: /api/blogs/feed/rss
+
 # Disallow private/auth pages from indexing
 Disallow: /api/
 Disallow: /admin/*
@@ -45,6 +51,8 @@ Sitemap: ${SITE_URL}/api/sitemap.xml
 # Google specific
 User-agent: Googlebot
 Allow: /
+Allow: /api/sitemap.xml
+Allow: /api/blogs/feed/rss
 Crawl-delay: 0
 
 # Bing specific
