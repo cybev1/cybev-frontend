@@ -26,6 +26,7 @@ function generateSiteMap(blogs, watchParties) {
   <url><loc>${SITE_URL}/church</loc><lastmod>${now}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>${SITE_URL}/auth/signup</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>${SITE_URL}/auth/login</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>${SITE_URL}/stories</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
   <url><loc>${SITE_URL}/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>${SITE_URL}/privacy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
 `;
