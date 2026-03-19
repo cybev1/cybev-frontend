@@ -40,6 +40,8 @@ const QUICK_ACTIONS = [
   { id: 'ai-studio', title: 'AI Studio', desc: 'Video, Music, Art', icon: Wand2, href: '/ai-studio', color: '#ec4899', bg: '#fce7f3', badge: '✨ AI' },
   { id: 'auto-blog', title: 'Auto-Blog', desc: 'AI writes for you', icon: Bot, href: '/studio/auto-blog', color: '#2563eb', bg: '#dbeafe', badge: '✨ AI' },
   { id: 'seo', title: 'SEO Command Center', desc: 'Rank & dominate', icon: Target, href: '/studio/seo', color: '#059669', bg: '#d1fae5', badge: '🚀 New' },
+  { id: 'ai-campaign', title: 'AI Campaign Planner', desc: '30-day AI calendars', icon: Calendar, href: '/studio/campaigns/ai', color: '#7c3aed', bg: '#f3e8ff', badge: '🔥 New' },
+  { id: 'publisher', title: 'Social Publisher', desc: 'Cross-platform posting', icon: Radio, href: '/studio/social/publisher', color: '#ec4899', bg: '#fce7f3', badge: '🔥 New' },
 ];
 
 // Desktop: grid card. Mobile: full-width feed-style card like Facebook posts
