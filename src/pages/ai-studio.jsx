@@ -172,7 +172,7 @@ function VideoMaker({ balance }) {
       setScript(data.script);
       setStep(2);
     } catch (err) {
-      setScriptError(err?.response?.data?.error || 'Failed to write script. Try again.');
+      setScriptError(err?.response?.data?.details || err?.response?.data?.error || err?.message || 'Failed to write script. Try again.');
       setStep(0);
     }
   };
@@ -566,7 +566,7 @@ function MusicComposer({ balance }) {
       setScript(data.script);
       setStep(2);
     } catch (err) {
-      setScriptError(err?.response?.data?.error || 'Failed to write script.');
+      setScriptError(err?.response?.data?.details || err?.response?.data?.error || err?.message || 'Failed to write script.');
       setStep(0);
     }
   };
@@ -881,7 +881,7 @@ function GraphicsGenerator({ balance }) {
       setScript(data.script);
       setStep(2);
     } catch (err) {
-      setScriptError(err?.response?.data?.error || 'Failed to write brief.');
+      setScriptError(err?.response?.data?.details || err?.response?.data?.error || err?.message || 'Failed to write brief.');
       setStep(0);
     }
   };
