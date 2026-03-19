@@ -28,6 +28,7 @@ Allow: /api/robots
 Allow: /api/blogs/feed/rss
 Allow: /api/web-stories/*
 Allow: /api/web-stories/sitemap.xml
+Allow: /api/web-stories-sitemap.xml
 
 # Disallow private/auth pages from indexing
 Disallow: /api/
@@ -49,7 +50,7 @@ Crawl-delay: 1
 
 # Sitemap location
 Sitemap: ${SITE_URL}/sitemap.xml
-Sitemap: https://api.cybev.io/api/web-stories/sitemap.xml
+Sitemap: ${SITE_URL}/api/web-stories-sitemap.xml
 
 # Google specific
 User-agent: Googlebot
