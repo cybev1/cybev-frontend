@@ -2,7 +2,7 @@
 // FILE: src/pages/studio/social/publisher.jsx
 // PATH: cybev-frontend/src/pages/studio/social/publisher.jsx
 // PURPOSE: Social Auto-Publisher — cross-platform scheduling & publishing
-// VERSION: 1.0.0
+// VERSION: 1.1.0 — White design system
 // ============================================
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
@@ -13,297 +13,170 @@ import {
   Send, Clock, Plus, Trash2, Loader2, ArrowLeft, CheckCircle, XCircle,
   AlertCircle, RefreshCw, ExternalLink, Link2, Unlink, Play, Pause,
   Calendar, BarChart3, Eye, Image, Video, Music, FileText, Share2,
-  Globe, Settings, Zap, Filter, ChevronDown, MoreVertical, Edit3,
-  Facebook, Instagram, Youtube, Twitter, Linkedin
+  Globe, Settings, Zap, Filter, Edit3, Radio
 } from 'lucide-react';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
 
 const PLATFORM_META = {
-  facebook:  { name: 'Facebook',     emoji: '📘', color: '#1877F2', icon: '📘' },
-  instagram: { name: 'Instagram',    emoji: '📸', color: '#E4405F', icon: '📸' },
-  youtube:   { name: 'YouTube',      emoji: '📺', color: '#FF0000', icon: '📺' },
-  tiktok:    { name: 'TikTok',       emoji: '🎵', color: '#000000', icon: '🎵' },
-  twitter:   { name: 'X / Twitter',  emoji: '🐦', color: '#1DA1F2', icon: '🐦' },
-  linkedin:  { name: 'LinkedIn',     emoji: '💼', color: '#0A66C2', icon: '💼' },
-  kingschat: { name: 'KingsChat',    emoji: '👑', color: '#FFD700', icon: '👑' },
-  ceflix:    { name: 'CeFlix',       emoji: '🎬', color: '#FF6B00', icon: '🎬' },
+  facebook:  { name: 'Facebook',    emoji: '📘', color: '#1877F2' },
+  instagram: { name: 'Instagram',   emoji: '📸', color: '#E4405F' },
+  youtube:   { name: 'YouTube',     emoji: '📺', color: '#FF0000' },
+  tiktok:    { name: 'TikTok',      emoji: '🎵', color: '#000000' },
+  twitter:   { name: 'X / Twitter', emoji: '🐦', color: '#1DA1F2' },
+  linkedin:  { name: 'LinkedIn',    emoji: '💼', color: '#0A66C2' },
+  kingschat: { name: 'KingsChat',   emoji: '👑', color: '#FFD700' },
+  ceflix:    { name: 'CeFlix',      emoji: '🎬', color: '#FF6B00' },
 };
 
-const STATUS_MAP = {
-  scheduled:  { color: '#3b82f6', bg: '#3b82f622', label: 'Scheduled' },
-  publishing: { color: '#f59e0b', bg: '#f59e0b22', label: 'Publishing' },
-  completed:  { color: '#10b981', bg: '#10b98122', label: 'Completed' },
-  partial:    { color: '#f59e0b', bg: '#f59e0b22', label: 'Partial' },
-  failed:     { color: '#ef4444', bg: '#ef444422', label: 'Failed' },
-  cancelled:  { color: '#6b7280', bg: '#6b728022', label: 'Cancelled' },
-  pending:    { color: '#3b82f6', bg: '#3b82f622', label: 'Pending' },
-  published:  { color: '#10b981', bg: '#10b98122', label: 'Published' },
-  skipped:    { color: '#6b7280', bg: '#6b728022', label: 'Skipped' },
+const STATUS_STYLES = {
+  scheduled:  'bg-blue-100 text-blue-700', publishing: 'bg-amber-100 text-amber-700',
+  completed:  'bg-green-100 text-green-700', partial: 'bg-amber-100 text-amber-700',
+  failed:     'bg-red-100 text-red-700', cancelled: 'bg-gray-100 text-gray-500',
+  pending:    'bg-blue-50 text-blue-600', published: 'bg-green-100 text-green-700',
+  skipped:    'bg-gray-100 text-gray-500',
 };
 
 export default function SocialPublisher() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('queue'); // queue, accounts, compose, analytics
+  const [activeTab, setActiveTab] = useState('queue');
   const [loading, setLoading] = useState(true);
   const [accounts, setAccounts] = useState([]);
   const [queue, setQueue] = useState([]);
-  const [platforms, setPlatforms] = useState([]);
   const [queueTotal, setQueueTotal] = useState(0);
   const [filterStatus, setFilterStatus] = useState('');
 
-  // Compose form state
-  const [compose, setCompose] = useState({
-    text: '', title: '', link: '', hashtags: '',
-    platforms: [], scheduledFor: '', mediaUrls: [],
-  });
+  const [compose, setCompose] = useState({ text: '', title: '', link: '', hashtags: '', platforms: [], scheduledFor: '' });
   const [composing, setComposing] = useState(false);
-
-  // Connect form state
-  const [connectForm, setConnectForm] = useState({
-    platform: '', accountName: '', accessToken: '', username: ''
-  });
+  const [connectForm, setConnectForm] = useState({ platform: '', accountName: '', accessToken: '', username: '' });
   const [connecting, setConnecting] = useState(false);
 
-  const getAuth = () => ({
-    headers: { Authorization: `Bearer ${localStorage.getItem('token') || localStorage.getItem('cybev_token')}` }
-  });
-  const authJson = () => ({
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('token') || localStorage.getItem('cybev_token')}`,
-      'Content-Type': 'application/json'
-    }
-  });
+  const getAuth = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem('token') || localStorage.getItem('cybev_token')}` } });
+  const authJson = () => ({ headers: { ...getAuth().headers, 'Content-Type': 'application/json' } });
 
   useEffect(() => {
     fetchAll();
-    // Check URL params for OAuth callback
     const params = new URLSearchParams(window.location.search);
-    if (params.get('connected')) {
-      setActiveTab('accounts');
-      fetchAccounts();
-    }
-    if (params.get('error')) {
-      alert(`Connection failed: ${params.get('error')}`);
-    }
+    if (params.get('connected')) { setActiveTab('accounts'); }
+    if (params.get('error')) { alert(`Connection failed: ${params.get('error')}`); }
   }, []);
 
-  const fetchAll = async () => {
-    setLoading(true);
-    await Promise.all([fetchAccounts(), fetchQueue(), fetchPlatforms()]);
-    setLoading(false);
-  };
+  const fetchAll = async () => { setLoading(true); await Promise.all([fetchAccounts(), fetchQueue()]); setLoading(false); };
 
   const fetchAccounts = async () => {
-    try {
-      const res = await fetch(`${API}/api/social-publisher/accounts`, getAuth());
-      const data = await res.json();
-      if (data.ok) setAccounts(data.accounts || []);
-    } catch (err) { console.error('Fetch accounts:', err); }
+    try { const r = await fetch(`${API}/api/social-publisher/accounts`, getAuth()); const d = await r.json(); if (d.ok) setAccounts(d.accounts || []); }
+    catch (e) { console.error(e); }
   };
 
   const fetchQueue = async () => {
-    try {
-      const url = filterStatus
-        ? `${API}/api/social-publisher/queue?status=${filterStatus}&limit=50`
-        : `${API}/api/social-publisher/queue?limit=50`;
-      const res = await fetch(url, getAuth());
-      const data = await res.json();
-      if (data.ok) { setQueue(data.posts || []); setQueueTotal(data.total || 0); }
-    } catch (err) { console.error('Fetch queue:', err); }
+    try { const url = filterStatus ? `${API}/api/social-publisher/queue?status=${filterStatus}&limit=50` : `${API}/api/social-publisher/queue?limit=50`;
+      const r = await fetch(url, getAuth()); const d = await r.json(); if (d.ok) { setQueue(d.posts || []); setQueueTotal(d.total || 0); }
+    } catch (e) { console.error(e); }
   };
 
-  const fetchPlatforms = async () => {
-    try {
-      const res = await fetch(`${API}/api/social-publisher/platforms`, getAuth());
-      const data = await res.json();
-      if (data.ok) setPlatforms(data.platforms || []);
-    } catch (err) { console.error('Fetch platforms:', err); }
-  };
-
-  useEffect(() => { fetchQueue(); }, [filterStatus]);
-
-  // ─── Actions ───
-
-  const connectPlatformOAuth = async (platform) => {
-    try {
-      const res = await fetch(`${API}/api/social-publisher/oauth/${platform}/url`, getAuth());
-      const data = await res.json();
-      if (data.ok && data.url) {
-        window.location.href = data.url;
-      } else {
-        alert(data.error || 'OAuth not configured for this platform. Use manual connection.');
-        setConnectForm(f => ({ ...f, platform }));
-        setActiveTab('accounts');
-      }
-    } catch (err) {
-      alert('Failed to start OAuth. Use manual connection instead.');
-    }
-  };
+  useEffect(() => { if (!loading) fetchQueue(); }, [filterStatus]);
 
   const connectManual = async () => {
     if (!connectForm.platform || !connectForm.accountName) return;
     setConnecting(true);
-    try {
-      const res = await fetch(`${API}/api/social-publisher/accounts`, {
-        method: 'POST', ...authJson(),
-        body: JSON.stringify(connectForm)
-      });
-      const data = await res.json();
-      if (data.ok) {
-        setConnectForm({ platform: '', accountName: '', accessToken: '', username: '' });
-        fetchAccounts();
-      } else {
-        alert(data.error);
-      }
-    } catch (err) { alert('Connection failed'); }
-    finally { setConnecting(false); }
+    try { const r = await fetch(`${API}/api/social-publisher/accounts`, { method: 'POST', ...authJson(), body: JSON.stringify(connectForm) });
+      const d = await r.json(); if (d.ok) { setConnectForm({ platform: '', accountName: '', accessToken: '', username: '' }); fetchAccounts(); } else alert(d.error);
+    } catch { alert('Connection failed'); } finally { setConnecting(false); }
   };
 
   const disconnectAccount = async (id) => {
     if (!confirm('Disconnect this account?')) return;
-    await fetch(`${API}/api/social-publisher/accounts/${id}`, { method: 'DELETE', ...getAuth() });
-    fetchAccounts();
+    await fetch(`${API}/api/social-publisher/accounts/${id}`, { method: 'DELETE', ...getAuth() }); fetchAccounts();
   };
 
   const testAccount = async (id) => {
-    const res = await fetch(`${API}/api/social-publisher/accounts/${id}/test`, { method: 'POST', ...getAuth() });
-    const data = await res.json();
-    alert(data.success ? `✅ ${data.message}` : `❌ ${data.message}`);
-    fetchAccounts();
+    const r = await fetch(`${API}/api/social-publisher/accounts/${id}/test`, { method: 'POST', ...getAuth() });
+    const d = await r.json(); alert(d.success ? `✅ ${d.message}` : `❌ ${d.message}`); fetchAccounts();
   };
 
   const schedulePost = async () => {
-    if (!compose.text) return;
-    if (compose.platforms.length === 0) return alert('Select at least one platform');
+    if (!compose.text || compose.platforms.length === 0) return alert('Enter content and select platforms');
     setComposing(true);
     try {
-      const res = await fetch(`${API}/api/social-publisher/queue`, {
-        method: 'POST', ...authJson(),
+      const r = await fetch(`${API}/api/social-publisher/queue`, { method: 'POST', ...authJson(),
         body: JSON.stringify({
           platforms: compose.platforms.map(p => ({ platform: p })),
-          content: {
-            text: compose.text,
-            title: compose.title,
-            link: compose.link,
-            hashtags: compose.hashtags ? compose.hashtags.split(/[,\s]+/).filter(Boolean).map(t => t.startsWith('#') ? t : `#${t}`) : [],
-          },
-          scheduledFor: compose.scheduledFor || new Date().toISOString(),
-          type: 'post',
+          content: { text: compose.text, title: compose.title, link: compose.link,
+            hashtags: compose.hashtags ? compose.hashtags.split(/[,\s]+/).filter(Boolean).map(t => t.startsWith('#') ? t : `#${t}`) : [] },
+          scheduledFor: compose.scheduledFor || new Date().toISOString(), type: 'post',
         })
       });
-      const data = await res.json();
-      if (data.ok) {
-        setCompose({ text: '', title: '', link: '', hashtags: '', platforms: [], scheduledFor: '', mediaUrls: [] });
-        setActiveTab('queue');
-        fetchQueue();
-      } else {
-        alert(data.error);
-      }
-    } catch (err) { alert('Failed to schedule'); }
-    finally { setComposing(false); }
+      const d = await r.json();
+      if (d.ok) { setCompose({ text: '', title: '', link: '', hashtags: '', platforms: [], scheduledFor: '' }); setActiveTab('queue'); fetchQueue(); }
+      else alert(d.error);
+    } catch { alert('Failed to schedule'); } finally { setComposing(false); }
   };
 
-  const publishNow = async (id) => {
-    await fetch(`${API}/api/social-publisher/queue/${id}/publish-now`, { method: 'POST', ...getAuth() });
-    fetchQueue();
-  };
+  const publishNow = async (id) => { await fetch(`${API}/api/social-publisher/queue/${id}/publish-now`, { method: 'POST', ...getAuth() }); fetchQueue(); };
+  const cancelPost = async (id) => { await fetch(`${API}/api/social-publisher/queue/${id}`, { method: 'DELETE', ...getAuth() }); fetchQueue(); };
 
-  const cancelPost = async (id) => {
-    await fetch(`${API}/api/social-publisher/queue/${id}`, { method: 'DELETE', ...getAuth() });
-    fetchQueue();
-  };
-
-  // ─── Tab: Queue ───
+  // ─── QUEUE TAB ───
   const renderQueue = () => (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-        <p style={{ color: '#9ca3af', margin: 0, fontSize: 13 }}>{queueTotal} total posts in queue</p>
-        <div style={{ display: 'flex', gap: 6 }}>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+        <p className="text-sm text-gray-500">{queueTotal} total posts</p>
+        <div className="flex gap-1.5">
           {['', 'scheduled', 'completed', 'failed'].map(s => (
-            <button key={s} onClick={() => setFilterStatus(s)} style={{
-              ...chipBtn, background: filterStatus === s ? '#8b5cf622' : '#2a2a4a',
-              color: filterStatus === s ? '#c4b5fd' : '#9ca3af',
-              border: `1px solid ${filterStatus === s ? '#8b5cf6' : '#3a3a5a'}`
-            }}>
+            <button key={s} onClick={() => setFilterStatus(s)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${filterStatus === s ? 'bg-purple-50 text-purple-700 border-purple-300' : 'bg-white text-gray-500 border-gray-300 hover:border-purple-300'}`}>
               {s || 'All'}
             </button>
           ))}
         </div>
       </div>
-
       {queue.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 48, background: '#1a1a2e', borderRadius: 14, border: '1px solid #2a2a4a' }}>
-          <Calendar size={40} style={{ color: '#6b7280', margin: '0 auto 12px', display: 'block' }} />
-          <p style={{ color: '#9ca3af' }}>No posts in queue. Compose a post or generate from a campaign.</p>
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 16 }}>
-            <button onClick={() => setActiveTab('compose')} style={btnPrimary}><Plus size={16} /> Compose Post</button>
-            <Link href="/studio/campaigns/ai" style={{ ...btnGhost, textDecoration: 'none' }}>
-              <Zap size={16} /> AI Campaign
-            </Link>
+        <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center shadow-sm">
+          <Calendar className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+          <p className="text-gray-500 mb-4">No posts in queue</p>
+          <div className="flex gap-2 justify-center">
+            <button onClick={() => setActiveTab('compose')} className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700"><Plus className="w-4 h-4" /> Compose</button>
+            <Link href="/studio/campaigns/ai" className="flex items-center gap-2 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 no-underline"><Zap className="w-4 h-4" /> AI Campaign</Link>
           </div>
         </div>
       ) : (
-        <div style={{ display: 'grid', gap: 10 }}>
+        <div className="space-y-2.5">
           {queue.map(post => {
-            const st = STATUS_MAP[post.status] || STATUS_MAP.scheduled;
+            const stClass = STATUS_STYLES[post.status] || 'bg-gray-100 text-gray-600';
             return (
-              <div key={post._id} style={{ background: '#1a1a2e', borderRadius: 12, padding: 16, border: '1px solid #2a2a4a' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    {post.content?.title && (
-                      <h4 style={{ color: '#fff', margin: '0 0 4px', fontSize: 14 }}>{post.content.title}</h4>
-                    )}
-                    <p style={{ color: '#d1d5db', fontSize: 13, margin: '0 0 8px', lineHeight: 1.5, whiteSpace: 'pre-wrap',
-                      overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
-                      {post.content?.text}
-                    </p>
-
-                    {/* Platform results */}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
+              <div key={post._id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition">
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    {post.content?.title && <h4 className="font-semibold text-gray-900 text-sm mb-1">{post.content.title}</h4>}
+                    <p className="text-sm text-gray-700 leading-relaxed line-clamp-3 whitespace-pre-wrap mb-2">{post.content?.text}</p>
+                    <div className="flex flex-wrap gap-1.5 mb-2">
                       {post.platforms?.map((p, i) => {
                         const meta = PLATFORM_META[p.platform] || { emoji: '🌐', name: p.platform };
-                        const pst = STATUS_MAP[p.status] || STATUS_MAP.pending;
+                        const pClass = STATUS_STYLES[p.status] || 'bg-gray-50 text-gray-500';
                         return (
-                          <span key={i} style={{
-                            display: 'inline-flex', alignItems: 'center', gap: 4,
-                            padding: '3px 10px', borderRadius: 16, fontSize: 11, fontWeight: 500,
-                            background: pst.bg, color: pst.color, border: `1px solid ${pst.color}33`
-                          }}>
+                          <span key={i} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${pClass}`}>
                             {meta.emoji} {meta.name}
-                            {p.status === 'published' && <CheckCircle size={10} />}
-                            {p.status === 'failed' && <XCircle size={10} />}
+                            {p.status === 'published' && <CheckCircle className="w-2.5 h-2.5" />}
+                            {p.status === 'failed' && <XCircle className="w-2.5 h-2.5" />}
                           </span>
                         );
                       })}
                     </div>
-
-                    <div style={{ display: 'flex', gap: 12, color: '#6b7280', fontSize: 11 }}>
-                      <span><Clock size={11} style={{ verticalAlign: 'middle' }} /> {new Date(post.scheduledFor).toLocaleString()}</span>
+                    <div className="flex gap-3 text-xs text-gray-400">
+                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {new Date(post.scheduledFor).toLocaleString()}</span>
                       {post.campaign && <span>From campaign</span>}
                     </div>
                   </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end', flexShrink: 0 }}>
-                    <span style={{
-                      padding: '3px 10px', borderRadius: 16, fontSize: 11, fontWeight: 600,
-                      background: st.bg, color: st.color
-                    }}>{st.label}</span>
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold capitalize ${stClass}`}>{post.status}</span>
                     {post.status === 'scheduled' && (
-                      <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
-                        <button onClick={() => publishNow(post._id)} style={{ ...btnSmall, color: '#10b981' }} title="Publish now">
-                          <Play size={13} />
-                        </button>
-                        <button onClick={() => cancelPost(post._id)} style={{ ...btnSmall, color: '#ef4444' }} title="Cancel">
-                          <Trash2 size={13} />
-                        </button>
+                      <div className="flex gap-1">
+                        <button onClick={() => publishNow(post._id)} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg border border-gray-200" title="Publish now"><Play className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => cancelPost(post._id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg border border-gray-200" title="Cancel"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     )}
                     {post.platforms?.some(p => p.postUrl) && (
                       <a href={post.platforms.find(p => p.postUrl)?.postUrl} target="_blank" rel="noopener noreferrer"
-                        style={{ color: '#8b5cf6', fontSize: 11, display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                        View <ExternalLink size={10} />
-                      </a>
+                        className="text-purple-600 text-xs flex items-center gap-1 hover:underline">View <ExternalLink className="w-3 h-3" /></a>
                     )}
                   </div>
                 </div>
@@ -315,41 +188,28 @@ export default function SocialPublisher() {
     </div>
   );
 
-  // ─── Tab: Accounts ───
+  // ─── ACCOUNTS TAB ───
   const renderAccounts = () => (
     <div>
-      <h3 style={{ color: '#fff', fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Connected Platforms</h3>
-
+      <h3 className="font-bold text-gray-900 mb-4">Connected Platforms</h3>
       {accounts.length > 0 && (
-        <div style={{ display: 'grid', gap: 10, marginBottom: 24 }}>
+        <div className="space-y-2.5 mb-6">
           {accounts.map(acc => {
             const meta = PLATFORM_META[acc.platform] || { emoji: '🌐', name: acc.platform, color: '#6b7280' };
             return (
-              <div key={acc._id} style={{
-                background: '#1a1a2e', borderRadius: 12, padding: 16, border: '1px solid #2a2a4a',
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: 10, background: meta.color + '22',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20
-                  }}>{meta.emoji}</div>
+              <div key={acc._id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: meta.color + '15' }}>{meta.emoji}</div>
                   <div>
-                    <div style={{ color: '#fff', fontWeight: 600, fontSize: 14 }}>{acc.accountName}</div>
-                    <div style={{ color: '#9ca3af', fontSize: 12 }}>
-                      {meta.name} {acc.username ? `• @${acc.username}` : ''} • <span style={{
-                        color: acc.status === 'active' ? '#10b981' : acc.status === 'error' ? '#ef4444' : '#f59e0b'
-                      }}>{acc.status}</span>
+                    <div className="font-semibold text-gray-900 text-sm">{acc.accountName}</div>
+                    <div className="text-xs text-gray-500">
+                      {meta.name} {acc.username ? `• @${acc.username}` : ''} • <span className={acc.status === 'active' ? 'text-green-600' : acc.status === 'error' ? 'text-red-500' : 'text-amber-500'}>{acc.status}</span>
                     </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <button onClick={() => testAccount(acc._id)} style={btnGhost} title="Test connection">
-                    <RefreshCw size={14} /> Test
-                  </button>
-                  <button onClick={() => disconnectAccount(acc._id)} style={{ ...btnGhost, color: '#ef4444', borderColor: '#ef444433' }}>
-                    <Unlink size={14} />
-                  </button>
+                <div className="flex gap-2">
+                  <button onClick={() => testAccount(acc._id)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"><RefreshCw className="w-3.5 h-3.5" /> Test</button>
+                  <button onClick={() => disconnectAccount(acc._id)} className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg border border-gray-200"><Unlink className="w-3.5 h-3.5" /></button>
                 </div>
               </div>
             );
@@ -357,70 +217,50 @@ export default function SocialPublisher() {
         </div>
       )}
 
-      {/* Add Platform */}
-      <h3 style={{ color: '#fff', fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Add Platform</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10, marginBottom: 24 }}>
+      <h3 className="font-bold text-gray-900 mb-3">Add Platform</h3>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-6">
         {Object.entries(PLATFORM_META).map(([id, meta]) => {
-          const isConnected = accounts.some(a => a.platform === id && a.status === 'active');
+          const connected = accounts.some(a => a.platform === id && a.status === 'active');
           return (
-            <button key={id} onClick={() => {
-              if (['facebook', 'youtube', 'twitter', 'tiktok', 'linkedin'].includes(id)) {
-                connectPlatformOAuth(id);
-              } else {
-                setConnectForm(f => ({ ...f, platform: id }));
-              }
-            }}
-              style={{
-                background: isConnected ? `${meta.color}11` : '#1a1a2e',
-                border: `1px solid ${isConnected ? meta.color + '44' : '#2a2a4a'}`,
-                borderRadius: 12, padding: 16, cursor: 'pointer', textAlign: 'center',
-                transition: 'all 0.2s'
-              }}
-              onMouseOver={e => { e.currentTarget.style.borderColor = meta.color; }}
-              onMouseOut={e => { e.currentTarget.style.borderColor = isConnected ? meta.color + '44' : '#2a2a4a'; }}>
-              <div style={{ fontSize: 28, marginBottom: 6 }}>{meta.emoji}</div>
-              <div style={{ color: '#fff', fontSize: 13, fontWeight: 500 }}>{meta.name}</div>
-              {isConnected && <div style={{ color: '#10b981', fontSize: 11, marginTop: 4 }}>✓ Connected</div>}
+            <button key={id} onClick={() => setConnectForm(f => ({ ...f, platform: id }))}
+              className={`rounded-xl border p-4 text-center transition hover:shadow-sm ${connected ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-white hover:border-purple-300'}`}>
+              <div className="text-2xl mb-1.5">{meta.emoji}</div>
+              <div className="text-sm font-medium text-gray-900">{meta.name}</div>
+              {connected && <div className="text-[10px] text-green-600 font-semibold mt-1">✓ Connected</div>}
             </button>
           );
         })}
       </div>
 
-      {/* Manual Connect Form */}
       {connectForm.platform && (
-        <div style={{ background: '#1a1a2e', borderRadius: 14, padding: 20, border: '1px solid #8b5cf644', maxWidth: 480 }}>
-          <h4 style={{ color: '#fff', margin: '0 0 12px' }}>
+        <div className="bg-white rounded-2xl border-2 border-purple-200 p-5 shadow-sm max-w-md">
+          <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
             {PLATFORM_META[connectForm.platform]?.emoji} Connect {PLATFORM_META[connectForm.platform]?.name}
           </h4>
-          <div style={{ display: 'grid', gap: 12 }}>
+          <div className="space-y-3">
             <div>
-              <label style={labelStyle}>Account Name</label>
+              <label className="text-xs font-semibold text-gray-600 uppercase block mb-1">Account Name</label>
               <input value={connectForm.accountName} onChange={e => setConnectForm(f => ({ ...f, accountName: e.target.value }))}
-                placeholder="e.g., My Page Name" style={inputStyle} />
+                placeholder="e.g., My Page Name" className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500 text-gray-900" />
             </div>
             <div>
-              <label style={labelStyle}>Username (optional)</label>
+              <label className="text-xs font-semibold text-gray-600 uppercase block mb-1">Username (optional)</label>
               <input value={connectForm.username} onChange={e => setConnectForm(f => ({ ...f, username: e.target.value }))}
-                placeholder="@username" style={inputStyle} />
+                placeholder="@username" className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500 text-gray-900" />
             </div>
             <div>
-              <label style={labelStyle}>Access Token / API Key</label>
-              <input type="password" value={connectForm.accessToken}
-                onChange={e => setConnectForm(f => ({ ...f, accessToken: e.target.value }))}
-                placeholder="Paste your token here" style={inputStyle} />
-              <p style={{ color: '#6b7280', fontSize: 11, marginTop: 4 }}>
-                For Facebook: use a Page Access Token. For Twitter: use a Bearer Token. For others: use an API key.
-              </p>
+              <label className="text-xs font-semibold text-gray-600 uppercase block mb-1">Access Token / API Key</label>
+              <input type="password" value={connectForm.accessToken} onChange={e => setConnectForm(f => ({ ...f, accessToken: e.target.value }))}
+                placeholder="Paste token here" className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500 text-gray-900" />
+              <p className="text-[11px] text-gray-400 mt-1">Facebook: Page Access Token. Twitter: Bearer Token. Others: API key.</p>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={connectManual} disabled={!connectForm.accountName || connecting} style={{
-                ...btnPrimary, opacity: !connectForm.accountName ? 0.5 : 1
-              }}>
-                {connecting ? <Loader2 size={16} className="animate-spin" /> : <Link2 size={16} />}
-                Connect
+            <div className="flex gap-2 pt-1">
+              <button onClick={connectManual} disabled={!connectForm.accountName || connecting}
+                className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 disabled:opacity-50">
+                {connecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />} Connect
               </button>
               <button onClick={() => setConnectForm({ platform: '', accountName: '', accessToken: '', username: '' })}
-                style={btnGhost}>Cancel</button>
+                className="px-4 py-2.5 text-sm text-gray-500 hover:text-gray-700">Cancel</button>
             </div>
           </div>
         </div>
@@ -428,133 +268,109 @@ export default function SocialPublisher() {
     </div>
   );
 
-  // ─── Tab: Compose ───
+  // ─── COMPOSE TAB ───
   const renderCompose = () => (
-    <div style={{ maxWidth: 600 }}>
-      <h3 style={{ color: '#fff', fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Compose & Schedule Post</h3>
-
-      <div style={{ display: 'grid', gap: 16 }}>
+    <div className="max-w-lg">
+      <h3 className="font-bold text-gray-900 mb-4">Compose & Schedule Post</h3>
+      <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
         <div>
-          <label style={labelStyle}>Post Title (optional)</label>
+          <label className="text-xs font-semibold text-gray-600 uppercase block mb-1">Title (optional)</label>
           <input value={compose.title} onChange={e => setCompose(f => ({ ...f, title: e.target.value }))}
-            placeholder="Title for blog shares" style={inputStyle} />
+            placeholder="Post title" className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500 text-gray-900" />
         </div>
-
         <div>
-          <label style={labelStyle}>Content *</label>
+          <label className="text-xs font-semibold text-gray-600 uppercase block mb-1">Content *</label>
           <textarea value={compose.text} onChange={e => setCompose(f => ({ ...f, text: e.target.value }))}
-            placeholder="Write your post content here..."
-            rows={6} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.6 }} />
-          <div style={{ textAlign: 'right', color: '#6b7280', fontSize: 11, marginTop: 4 }}>
-            {compose.text.length} chars {compose.text.length > 280 && '(exceeds Twitter limit)'}
-          </div>
+            placeholder="Write your post content here..." rows={5}
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500 resize-vertical text-gray-900" />
+          <p className="text-right text-[11px] text-gray-400 mt-0.5">{compose.text.length} chars {compose.text.length > 280 ? '(exceeds Twitter limit)' : ''}</p>
         </div>
-
         <div>
-          <label style={labelStyle}>Link (optional)</label>
+          <label className="text-xs font-semibold text-gray-600 uppercase block mb-1">Link (optional)</label>
           <input value={compose.link} onChange={e => setCompose(f => ({ ...f, link: e.target.value }))}
-            placeholder="https://cybev.io/blog/..." style={inputStyle} />
+            placeholder="https://cybev.io/blog/..." className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500 text-gray-900" />
         </div>
-
         <div>
-          <label style={labelStyle}>Hashtags (comma or space separated)</label>
+          <label className="text-xs font-semibold text-gray-600 uppercase block mb-1">Hashtags</label>
           <input value={compose.hashtags} onChange={e => setCompose(f => ({ ...f, hashtags: e.target.value }))}
-            placeholder="#CYBEV #WhereCreatorsConnect" style={inputStyle} />
+            placeholder="#CYBEV #WhereCreatorsConnect" className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500 text-gray-900" />
         </div>
-
         <div>
-          <label style={labelStyle}>Publish To</label>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <label className="text-xs font-semibold text-gray-600 uppercase block mb-1.5">Publish To</label>
+          <div className="flex flex-wrap gap-2">
             {Object.entries(PLATFORM_META).map(([id, meta]) => {
-              const isConnected = accounts.some(a => a.platform === id && a.status === 'active');
-              const isSelected = compose.platforms.includes(id);
+              const connected = accounts.some(a => a.platform === id && a.status === 'active');
+              const sel = compose.platforms.includes(id);
               return (
-                <button key={id}
-                  onClick={() => setCompose(f => ({
-                    ...f, platforms: isSelected ? f.platforms.filter(x => x !== id) : [...f.platforms, id]
-                  }))}
-                  style={{
-                    ...chipBtn,
-                    background: isSelected ? meta.color + '22' : '#2a2a4a',
-                    color: isSelected ? '#fff' : isConnected ? '#ccc' : '#6b7280',
-                    border: `1px solid ${isSelected ? meta.color : '#3a3a5a'}`,
-                    opacity: isConnected || id === 'cybev' ? 1 : 0.5
-                  }}>
-                  {meta.emoji} {meta.name}
-                  {!isConnected && id !== 'cybev' && <span style={{ fontSize: 10, color: '#f59e0b' }}> (not connected)</span>}
+                <button key={id} onClick={() => setCompose(f => ({ ...f, platforms: sel ? f.platforms.filter(x => x !== id) : [...f.platforms, id] }))}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${sel ? 'bg-purple-50 text-purple-700 border-purple-400' : connected ? 'bg-white text-gray-600 border-gray-300 hover:border-purple-300' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>
+                  {meta.emoji} {meta.name} {!connected && id !== 'cybev' && <span className="text-amber-500">(NC)</span>}
                 </button>
               );
             })}
           </div>
         </div>
-
         <div>
-          <label style={labelStyle}>Schedule For</label>
-          <input type="datetime-local" value={compose.scheduledFor}
-            onChange={e => setCompose(f => ({ ...f, scheduledFor: e.target.value }))}
-            style={inputStyle} />
-          <p style={{ color: '#6b7280', fontSize: 11, marginTop: 4 }}>Leave empty to publish immediately</p>
+          <label className="text-xs font-semibold text-gray-600 uppercase block mb-1">Schedule For</label>
+          <input type="datetime-local" value={compose.scheduledFor} onChange={e => setCompose(f => ({ ...f, scheduledFor: e.target.value }))}
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500 text-gray-900" />
+          <p className="text-[11px] text-gray-400 mt-0.5">Leave empty to publish immediately</p>
         </div>
-
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={schedulePost} disabled={!compose.text || compose.platforms.length === 0 || composing}
-            style={{ ...btnPrimary, flex: 1, justifyContent: 'center', opacity: (!compose.text || compose.platforms.length === 0) ? 0.5 : 1 }}>
-            {composing ? <Loader2 size={16} className="animate-spin" /> : compose.scheduledFor ? <Clock size={16} /> : <Send size={16} />}
-            {compose.scheduledFor ? 'Schedule Post' : 'Publish Now'}
-          </button>
-        </div>
+        <button onClick={schedulePost} disabled={!compose.text || compose.platforms.length === 0 || composing}
+          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 disabled:opacity-50">
+          {composing ? <Loader2 className="w-4 h-4 animate-spin" /> : compose.scheduledFor ? <Clock className="w-4 h-4" /> : <Send className="w-4 h-4" />}
+          {compose.scheduledFor ? 'Schedule Post' : 'Publish Now'}
+        </button>
       </div>
     </div>
   );
 
-  // ─── Tab: Analytics ───
+  // ─── ANALYTICS TAB ───
   const renderAnalytics = () => {
-    const published = queue.filter(p => p.status === 'completed' || p.status === 'partial');
-    const failed = queue.filter(p => p.status === 'failed');
-    const scheduled = queue.filter(p => p.status === 'scheduled');
-
+    const published = queue.filter(p => p.status === 'completed' || p.status === 'partial').length;
+    const failed = queue.filter(p => p.status === 'failed').length;
+    const scheduled = queue.filter(p => p.status === 'scheduled').length;
     const platformStats = {};
-    queue.forEach(post => {
-      post.platforms?.forEach(p => {
-        if (!platformStats[p.platform]) platformStats[p.platform] = { published: 0, failed: 0, total: 0 };
-        platformStats[p.platform].total++;
-        if (p.status === 'published') platformStats[p.platform].published++;
-        if (p.status === 'failed') platformStats[p.platform].failed++;
-      });
-    });
+    queue.forEach(post => { post.platforms?.forEach(p => {
+      if (!platformStats[p.platform]) platformStats[p.platform] = { published: 0, failed: 0, total: 0 };
+      platformStats[p.platform].total++; if (p.status === 'published') platformStats[p.platform].published++; if (p.status === 'failed') platformStats[p.platform].failed++;
+    }); });
 
     return (
       <div>
-        <h3 style={{ color: '#fff', fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Publishing Analytics</h3>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 24 }}>
-          <StatCard icon={Send} label="Total Posts" value={queue.length} color="#8b5cf6" />
-          <StatCard icon={CheckCircle} label="Published" value={published.length} color="#10b981" />
-          <StatCard icon={Clock} label="Scheduled" value={scheduled.length} color="#3b82f6" />
-          <StatCard icon={XCircle} label="Failed" value={failed.length} color="#ef4444" />
-          <StatCard icon={Globe} label="Platforms" value={accounts.length} color="#f59e0b" />
+        <h3 className="font-bold text-gray-900 mb-4">Publishing Analytics</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+          {[
+            { icon: Send, label: 'Total', value: queue.length, color: 'purple' },
+            { icon: CheckCircle, label: 'Published', value: published, color: 'green' },
+            { icon: Clock, label: 'Scheduled', value: scheduled, color: 'blue' },
+            { icon: XCircle, label: 'Failed', value: failed, color: 'red' },
+            { icon: Globe, label: 'Platforms', value: accounts.length, color: 'amber' },
+          ].map(s => (
+            <div key={s.label} className={`bg-white rounded-xl border border-gray-200 p-4 text-center shadow-sm`}>
+              <s.icon className={`w-5 h-5 mx-auto mb-2 text-${s.color}-500`} />
+              <div className="text-2xl font-bold text-gray-900">{s.value}</div>
+              <div className="text-xs text-gray-500">{s.label}</div>
+            </div>
+          ))}
         </div>
-
         {Object.keys(platformStats).length > 0 && (
           <>
-            <h4 style={{ color: '#fff', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Per Platform</h4>
-            <div style={{ display: 'grid', gap: 8 }}>
-              {Object.entries(platformStats).map(([platform, stats]) => {
-                const meta = PLATFORM_META[platform] || { emoji: '🌐', name: platform, color: '#6b7280' };
+            <h4 className="font-semibold text-gray-900 mb-3 text-sm">Per Platform</h4>
+            <div className="space-y-2">
+              {Object.entries(platformStats).map(([plat, stats]) => {
+                const meta = PLATFORM_META[plat] || { emoji: '🌐', name: plat, color: '#6b7280' };
                 const pct = stats.total > 0 ? Math.round((stats.published / stats.total) * 100) : 0;
                 return (
-                  <div key={platform} style={{
-                    background: '#1a1a2e', borderRadius: 10, padding: 14, border: '1px solid #2a2a4a',
-                    display: 'flex', alignItems: 'center', gap: 12
-                  }}>
-                    <span style={{ fontSize: 24 }}>{meta.emoji}</span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <span style={{ color: '#fff', fontWeight: 500, fontSize: 13 }}>{meta.name}</span>
-                        <span style={{ color: '#9ca3af', fontSize: 12 }}>{stats.published}/{stats.total} published</span>
+                  <div key={plat} className="bg-white rounded-xl border border-gray-200 p-3.5 flex items-center gap-3 shadow-sm">
+                    <span className="text-2xl">{meta.emoji}</span>
+                    <div className="flex-1">
+                      <div className="flex justify-between mb-1">
+                        <span className="text-sm font-medium text-gray-900">{meta.name}</span>
+                        <span className="text-xs text-gray-500">{stats.published}/{stats.total}</span>
                       </div>
-                      <div style={{ height: 6, background: '#2a2a4a', borderRadius: 3, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${pct}%`, background: meta.color, borderRadius: 3, transition: 'width 0.5s' }} />
+                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: meta.color }} />
                       </div>
                     </div>
                   </div>
@@ -567,7 +383,7 @@ export default function SocialPublisher() {
     );
   };
 
-  // ─── Main Render ───
+  // ─── MAIN ───
   const tabs = [
     { id: 'queue', label: 'Queue', icon: Clock, count: queueTotal },
     { id: 'compose', label: 'Compose', icon: Edit3 },
@@ -578,98 +394,37 @@ export default function SocialPublisher() {
   return (
     <AppLayout>
       <Head><title>Social Publisher | CYBEV Studio</title></Head>
-      <div style={{ maxWidth: 1000, margin: '0 auto', padding: '20px 16px' }}>
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+      <div className="max-w-4xl mx-auto px-4 py-5">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
           <div>
-            <h1 style={{ fontSize: 26, fontWeight: 700, color: '#fff', margin: 0 }}>Social Publisher</h1>
-            <p style={{ color: '#9ca3af', marginTop: 4, fontSize: 13 }}>Schedule & publish across all platforms</p>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2"><Radio className="w-7 h-7 text-pink-500" /> Social Publisher</h1>
+            <p className="text-sm text-gray-500 mt-1">Schedule & publish across all platforms</p>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <Link href="/studio/campaigns/ai" style={{ ...btnGhost, textDecoration: 'none' }}>
-              <Zap size={16} /> AI Campaigns
-            </Link>
-            <button onClick={() => setActiveTab('compose')} style={btnPrimary}>
-              <Plus size={16} /> New Post
-            </button>
+          <div className="flex gap-2">
+            <Link href="/studio/campaigns/ai" className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 no-underline"><Zap className="w-4 h-4" /> AI Campaigns</Link>
+            <button onClick={() => setActiveTab('compose')} className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700"><Plus className="w-4 h-4" /> New Post</button>
           </div>
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid #2a2a4a', paddingBottom: 4, overflowX: 'auto' }}>
+        <div className="flex gap-1 mb-5 border-b border-gray-200 overflow-x-auto">
           {tabs.map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px',
-              background: activeTab === tab.id ? '#8b5cf622' : 'transparent',
-              color: activeTab === tab.id ? '#c4b5fd' : '#9ca3af',
-              border: 'none', borderBottom: `2px solid ${activeTab === tab.id ? '#8b5cf6' : 'transparent'}`,
-              cursor: 'pointer', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap'
-            }}>
-              <tab.icon size={15} /> {tab.label}
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition ${
+                activeTab === tab.id ? 'text-purple-600 border-purple-600' : 'text-gray-500 border-transparent hover:text-gray-700'
+              }`}>
+              <tab.icon className="w-4 h-4" /> {tab.label}
               {tab.count !== undefined && (
-                <span style={{
-                  background: activeTab === tab.id ? '#8b5cf6' : '#2a2a4a',
-                  color: activeTab === tab.id ? '#fff' : '#9ca3af',
-                  padding: '1px 7px', borderRadius: 10, fontSize: 11, fontWeight: 600
-                }}>{tab.count}</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${activeTab === tab.id ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'}`}>{tab.count}</span>
               )}
             </button>
           ))}
         </div>
 
-        {/* Content */}
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: 60 }}>
-            <Loader2 size={32} className="animate-spin" style={{ color: '#8b5cf6' }} />
-          </div>
-        ) : (
-          <>
-            {activeTab === 'queue' && renderQueue()}
-            {activeTab === 'compose' && renderCompose()}
-            {activeTab === 'accounts' && renderAccounts()}
-            {activeTab === 'analytics' && renderAnalytics()}
-          </>
+        {loading ? <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-purple-600" /></div> : (
+          <>{activeTab === 'queue' && renderQueue()}{activeTab === 'compose' && renderCompose()}{activeTab === 'accounts' && renderAccounts()}{activeTab === 'analytics' && renderAnalytics()}</>
         )}
       </div>
     </AppLayout>
   );
 }
-
-// ─── Shared Components ───
-function StatCard({ icon: Icon, label, value, color }) {
-  return (
-    <div style={{
-      background: '#1a1a2e', borderRadius: 12, padding: 16,
-      border: `1px solid ${color}22`, textAlign: 'center'
-    }}>
-      <Icon size={20} style={{ color, margin: '0 auto 8px', display: 'block' }} />
-      <div style={{ color: '#fff', fontSize: 24, fontWeight: 700 }}>{value}</div>
-      <div style={{ color: '#9ca3af', fontSize: 12 }}>{label}</div>
-    </div>
-  );
-}
-
-// ─── Styles ───
-const btnPrimary = {
-  display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
-  background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: '#fff',
-  border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 600, fontSize: 14,
-};
-const btnGhost = {
-  display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px',
-  background: '#2a2a4a', color: '#ccc', border: '1px solid #3a3a5a',
-  borderRadius: 8, cursor: 'pointer', fontSize: 13,
-};
-const btnSmall = {
-  background: 'none', border: '1px solid #2a2a4a', borderRadius: 6,
-  cursor: 'pointer', padding: '4px 8px', display: 'flex', alignItems: 'center'
-};
-const chipBtn = {
-  padding: '6px 14px', borderRadius: 20, cursor: 'pointer', fontSize: 12,
-  fontWeight: 500, border: '1px solid #3a3a5a', background: '#2a2a4a', color: '#ccc',
-};
-const labelStyle = { display: 'block', color: '#9ca3af', fontSize: 13, marginBottom: 6, fontWeight: 500 };
-const inputStyle = {
-  width: '100%', padding: '10px 14px', background: '#12122a', border: '1px solid #2a2a4a',
-  borderRadius: 8, color: '#fff', fontSize: 14, outline: 'none', boxSizing: 'border-box',
-};
