@@ -32,7 +32,9 @@ import {
   Moon,
   Sun,
   Film,
-  Wand2
+  Wand2,
+  Calendar,
+  Radio
 } from 'lucide-react';
 import NotificationBell from '@/components/notificationBell';
 import MobileNav from '@/components/Navigation/MobileNav';
@@ -351,6 +353,32 @@ export default function AppLayout({ children }) {
                       </div>
                     </Link>
 
+                    <Link href="/studio/campaigns/ai">
+                      <div
+                        className="dropdown-item"
+                        onClick={() => setShowProfileMenu(false)}
+                      >
+                        <div className="w-9 h-9 rounded-full bg-violet-50 flex items-center justify-center">
+                          <Calendar className="w-5 h-5 text-violet-600" />
+                        </div>
+                        <span>AI Campaign Planner</span>
+                        <span className="ml-auto text-[10px] bg-violet-100 text-violet-600 px-1.5 py-0.5 rounded-full font-semibold">NEW</span>
+                      </div>
+                    </Link>
+
+                    <Link href="/studio/social/publisher">
+                      <div
+                        className="dropdown-item"
+                        onClick={() => setShowProfileMenu(false)}
+                      >
+                        <div className="w-9 h-9 rounded-full bg-pink-50 flex items-center justify-center">
+                          <Radio className="w-5 h-5 text-pink-600" />
+                        </div>
+                        <span>Social Publisher</span>
+                        <span className="ml-auto text-[10px] bg-pink-100 text-pink-600 px-1.5 py-0.5 rounded-full font-semibold">NEW</span>
+                      </div>
+                    </Link>
+
                     {isAdmin && (
                       <Link href="/admin">
                         <div
@@ -512,6 +540,34 @@ export default function AppLayout({ children }) {
                   </div>
                   <span className="font-medium">AI Studio</span>
                   <span className="ml-auto text-[10px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full font-semibold">NEW</span>
+                </div>
+              </Link>
+
+              {/* AI Campaign Planner */}
+              <Link href="/studio/campaigns/ai">
+                <div
+                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-violet-50 text-gray-700"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <div className="w-10 h-10 rounded-full bg-violet-50 flex items-center justify-center">
+                    <Calendar className="w-5 h-5 text-violet-600" />
+                  </div>
+                  <span className="font-medium">AI Campaign Planner</span>
+                  <span className="ml-auto text-[10px] bg-violet-100 text-violet-600 px-1.5 py-0.5 rounded-full font-semibold">NEW</span>
+                </div>
+              </Link>
+
+              {/* Social Publisher */}
+              <Link href="/studio/social/publisher">
+                <div
+                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-pink-50 text-gray-700"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <div className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center">
+                    <Radio className="w-5 h-5 text-pink-600" />
+                  </div>
+                  <span className="font-medium">Social Publisher</span>
+                  <span className="ml-auto text-[10px] bg-pink-100 text-pink-600 px-1.5 py-0.5 rounded-full font-semibold">NEW</span>
                 </div>
               </Link>
 
