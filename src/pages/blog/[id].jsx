@@ -592,12 +592,6 @@ export default function BlogPage({ blog, ogData }) {
                 <span>{formatDate(blog.createdAt)}</span>
                 <span>·</span>
                 <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{blog.readTime}</span>
-                {blog.isAIGenerated && (
-                  <>
-                    <span>·</span>
-                    <span className="flex items-center gap-1 text-purple-600">✨ AI Generated</span>
-                  </>
-                )}
               </div>
             </div>
           </div>
