@@ -1,9 +1,11 @@
 // ============================================
 // FILE: ai-studio.jsx
 // PATH: /src/pages/ai-studio.jsx
-// CYBEV AI Content Studio — Create with AI
+// CYBEV AI Content Studio v2.0 — Script Writer Flow
+// Step 1: Brief idea → Step 2: AI writes script →
+// Step 3: Edit script → Step 4: Generate with Replicate
 // ============================================
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import api from '@/lib/api';
@@ -13,14 +15,16 @@ import {
   Download, Share2, Loader2, ChevronRight, Coins,
   Video, Mic, Palette, Zap, Clock, RefreshCw,
   CheckCircle2, XCircle, ArrowLeft, Volume2, VolumeX,
-  Maximize2, Copy, Heart, Send
+  Maximize2, Copy, Heart, Send, Edit3, Eye, FileText,
+  ChevronLeft, ChevronDown, ChevronUp, Plus, Trash2,
+  Camera, Type, MessageSquare, Layers, PenTool
 } from 'lucide-react';
 
-// ─── Tabs ───
+// ─── Constants ───
 const TOOLS = [
-  { id: 'video', label: 'AI Video', icon: Film, color: 'from-purple-600 to-pink-600', desc: 'Generate videos from text prompts' },
-  { id: 'music', label: 'AI Music', icon: Music, color: 'from-blue-600 to-cyan-600', desc: 'Compose songs with AI' },
-  { id: 'graphics', label: 'AI Graphics', icon: Image, color: 'from-orange-500 to-red-500', desc: 'Create stunning visuals' },
+  { id: 'video', label: 'AI Video', icon: Film, color: 'from-purple-600 to-pink-600', accent: 'purple', desc: 'Generate videos from text prompts' },
+  { id: 'music', label: 'AI Music', icon: Music, color: 'from-blue-600 to-cyan-600', accent: 'blue', desc: 'Compose songs with AI' },
+  { id: 'graphics', label: 'AI Graphics', icon: Image, color: 'from-orange-500 to-red-500', accent: 'orange', desc: 'Create stunning visuals' },
 ];
 
 const VIDEO_STYLES = ['Cinematic', 'Anime', 'Realistic', '3D Animation', 'Watercolor', 'Vintage Film', 'Neon', 'Documentary'];
@@ -33,7 +37,18 @@ const ASPECT_RATIOS = [
   { value: '1:1', label: '1:1 Square' },
 ];
 
-// ─── Token Cost Display ───
+const VIDEO_DURATIONS = [
+  { val: 5, label: '5s', scenes: 1, cost: 100, key: 'short' },
+  { val: 15, label: '15s', scenes: 3, cost: 100, key: 'short' },
+  { val: 30, label: '30s', scenes: 6, cost: 200, key: 'medium' },
+  { val: 60, label: '60s', scenes: 12, cost: 500, key: 'long' },
+];
+
+
+// ═══════════════════════════════════════════
+// SHARED COMPONENTS
+// ═══════════════════════════════════════════
+
 function TokenCost({ cost, label }) {
   return (
     <div className="flex items-center gap-1.5 text-sm text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full">
@@ -45,7 +60,34 @@ function TokenCost({ cost, label }) {
   );
 }
 
-// ─── Generation Status ───
+function StepIndicator({ steps, current, accent = 'purple' }) {
+  const colors = {
+    purple: { active: 'bg-purple-600', done: 'bg-purple-500', line: 'bg-purple-200', lineDone: 'bg-purple-500' },
+    blue: { active: 'bg-blue-600', done: 'bg-blue-500', line: 'bg-blue-200', lineDone: 'bg-blue-500' },
+    orange: { active: 'bg-orange-500', done: 'bg-orange-500', line: 'bg-orange-200', lineDone: 'bg-orange-500' },
+  };
+  const c = colors[accent] || colors.purple;
+  return (
+    <div className="flex items-center gap-0 mb-6">
+      {steps.map((step, i) => (
+        <div key={i} className="flex items-center flex-1 last:flex-initial">
+          <div className="flex flex-col items-center">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+              i < current ? `${c.done} text-white` : i === current ? `${c.active} text-white ring-4 ring-${accent}-100` : 'bg-gray-200 text-gray-500'
+            }`}>
+              {i < current ? <CheckCircle2 size={16} /> : i + 1}
+            </div>
+            <span className={`text-[10px] mt-1 font-medium whitespace-nowrap ${i <= current ? 'text-gray-700' : 'text-gray-400'}`}>{step}</span>
+          </div>
+          {i < steps.length - 1 && (
+            <div className={`flex-1 h-0.5 mx-2 mt-[-14px] rounded-full ${i < current ? c.lineDone : c.line}`} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function GenerationStatus({ status, progress, onRetry }) {
   if (status === 'processing') {
     return (
@@ -76,166 +118,416 @@ function GenerationStatus({ status, progress, onRetry }) {
   return null;
 }
 
+// Pill tag selector
+function PillSelect({ options, value, onChange, accent = 'purple' }) {
+  const activeClass = {
+    purple: 'bg-purple-600 text-white',
+    blue: 'bg-blue-600 text-white',
+    orange: 'bg-orange-500 text-white',
+  };
+  return (
+    <div className="flex flex-wrap gap-2">
+      {options.map(opt => (
+        <button key={opt} onClick={() => onChange(value === opt ? '' : opt)}
+          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+            value === opt ? (activeClass[accent] || activeClass.purple) : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          {opt}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+
 // ═══════════════════════════════════════════
-// VIDEO MAKER TAB
+// VIDEO MAKER — with Script Writer
 // ═══════════════════════════════════════════
 function VideoMaker({ balance }) {
-  const [prompt, setPrompt] = useState('');
+  // Step: 0=idea, 1=script-loading, 2=script-editor, 3=generating, 4=result
+  const [step, setStep] = useState(0);
+  const [idea, setIdea] = useState('');
   const [style, setStyle] = useState('');
-  const [duration, setDuration] = useState('short');
+  const [duration, setDuration] = useState(30);
   const [aspectRatio, setAspectRatio] = useState('16:9');
-  const [generating, setGenerating] = useState(false);
-  const [status, setStatus] = useState(null); // null | 'processing' | 'completed' | 'failed'
+  const [script, setScript] = useState(null);
+  const [scriptError, setScriptError] = useState('');
+  const [genStatus, setGenStatus] = useState(null);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState(null);
   const pollRef = useRef(null);
 
-  const costs = { short: 100, medium: 200, long: 500 };
+  const durConfig = VIDEO_DURATIONS.find(d => d.val === duration) || VIDEO_DURATIONS[2];
 
-  const handleGenerate = async () => {
-    if (!prompt.trim()) return;
+  // Write Script
+  const handleWriteScript = async () => {
+    if (!idea.trim()) return;
+    setStep(1);
+    setScriptError('');
     try {
-      setGenerating(true);
-      setStatus('processing');
-      setProgress(0);
+      const { data } = await api.post('/api/ai-content/script/video', {
+        idea: idea.trim(), style, duration, aspectRatio
+      });
+      setScript(data.script);
+      setStep(2);
+    } catch (err) {
+      setScriptError(err?.response?.data?.error || 'Failed to write script. Try again.');
+      setStep(0);
+    }
+  };
 
+  // Update scene field
+  const updateScene = (idx, field, value) => {
+    setScript(prev => ({
+      ...prev,
+      scenes: prev.scenes.map((s, i) => i === idx ? { ...s, [field]: value } : s)
+    }));
+  };
+
+  // Add scene
+  const addScene = () => {
+    setScript(prev => ({
+      ...prev,
+      scenes: [...prev.scenes, {
+        sceneNumber: prev.scenes.length + 1,
+        duration: 5,
+        visual: '',
+        camera: 'Wide shot',
+        textOverlay: '',
+        narration: '',
+        transition: 'Cut'
+      }]
+    }));
+  };
+
+  // Remove scene
+  const removeScene = (idx) => {
+    if (script.scenes.length <= 1) return;
+    setScript(prev => ({
+      ...prev,
+      scenes: prev.scenes.filter((_, i) => i !== idx).map((s, i) => ({ ...s, sceneNumber: i + 1 }))
+    }));
+  };
+
+  // Generate video from script
+  const handleGenerate = async () => {
+    setStep(3);
+    setGenStatus('processing');
+    setProgress(0);
+    try {
       const { data } = await api.post('/api/ai-content/video/generate', {
-        prompt, style, duration, aspectRatio
+        prompt: idea,
+        style,
+        duration: durConfig.key,
+        aspectRatio,
+        script
       });
 
       if (data.status === 'completed') {
         setResult(data);
-        setStatus('completed');
+        setGenStatus('completed');
+        setStep(4);
       } else {
-        // Poll for status
         const provider = data.provider || 'replicate';
         pollRef.current = setInterval(async () => {
           try {
-            const { data: statusData } = await api.get(`/api/ai-content/video/status/${data.taskId}?provider=${provider}`);
-            setProgress(statusData.progress || Math.min(progress + 10, 90));
-            if (statusData.status === 'completed') {
+            const { data: s } = await api.get(`/api/ai-content/video/status/${data.taskId}?provider=${provider}`);
+            setProgress(s.progress || Math.min(progress + 8, 92));
+            if (s.status === 'completed') {
               clearInterval(pollRef.current);
-              setResult(statusData);
-              setStatus('completed');
-              setGenerating(false);
-            } else if (statusData.status === 'failed') {
+              setResult(s);
+              setGenStatus('completed');
+              setStep(4);
+            } else if (s.status === 'failed') {
               clearInterval(pollRef.current);
-              setStatus('failed');
-              setGenerating(false);
+              setGenStatus('failed');
             }
-          } catch { /* keep polling */ }
+          } catch {}
         }, 3000);
       }
     } catch (err) {
-      setStatus('failed');
-      alert(err?.response?.data?.error || 'Video generation failed');
-    } finally {
-      setGenerating(false);
+      setGenStatus('failed');
     }
   };
 
   useEffect(() => () => clearInterval(pollRef.current), []);
 
-  return (
-    <div className="space-y-6">
-      {/* Prompt */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Describe your video</label>
-        <textarea
-          rows={3} maxLength={1000}
-          placeholder="A majestic eagle soaring over a misty mountain range at sunrise, cinematic slow motion..."
-          value={prompt} onChange={e => setPrompt(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-none text-sm"
-        />
-      </div>
+  // ─── STEP 0: Idea Input ───
+  if (step === 0) {
+    return (
+      <div className="space-y-5">
+        <StepIndicator steps={['Idea', 'Script', 'Edit', 'Generate']} current={0} accent="purple" />
 
-      {/* Options row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Style */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Style</label>
-          <div className="flex flex-wrap gap-2">
-            {VIDEO_STYLES.map(s => (
-              <button key={s} onClick={() => setStyle(style === s ? '' : s)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                  style === s ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {s}
-              </button>
-            ))}
+          <label className="block text-sm font-medium text-gray-700 mb-2">What's your video about?</label>
+          <textarea rows={3} maxLength={500} placeholder='e.g. "Marketing video for CYBEV.IO — show how creators connect, earn, and build communities"'
+            value={idea} onChange={e => setIdea(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-none text-sm"
+          />
+          <p className="text-xs text-gray-400 mt-1">{idea.length}/500 — Be descriptive! AI will turn this into a scene-by-scene storyboard.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Visual Style</label>
+            <PillSelect options={VIDEO_STYLES} value={style} onChange={setStyle} accent="purple" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Aspect Ratio</label>
+            <div className="flex gap-2">
+              {ASPECT_RATIOS.map(ar => (
+                <button key={ar.value} onClick={() => setAspectRatio(ar.value)}
+                  className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${
+                    aspectRatio === ar.value ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >{ar.label}</button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Duration */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
-          <div className="flex gap-2">
-            {[
-              { val: 'short', label: '5 sec', cost: 100 },
-              { val: 'medium', label: '15 sec', cost: 200 },
-              { val: 'long', label: '30+ sec', cost: 500 }
-            ].map(d => (
+          <div className="grid grid-cols-4 gap-2">
+            {VIDEO_DURATIONS.map(d => (
               <button key={d.val} onClick={() => setDuration(d.val)}
-                className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${
-                  duration === d.val ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                className={`px-3 py-3 rounded-xl text-center border-2 transition-all ${
+                  duration === d.val ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
-                <div>{d.label}</div>
-                <div className="text-amber-500 text-[10px] mt-0.5">{d.cost} credits</div>
+                <div className={`text-lg font-bold ${duration === d.val ? 'text-purple-700' : 'text-gray-700'}`}>{d.label}</div>
+                <div className="text-[10px] text-gray-500 mt-0.5">{d.scenes} scene{d.scenes > 1 ? 's' : ''}</div>
+                <div className="text-[10px] text-amber-500 mt-0.5">{d.cost} credits</div>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Aspect Ratio */}
+        {scriptError && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{scriptError}</div>
+        )}
+
+        <div className="flex items-center justify-between pt-2">
+          <TokenCost cost={durConfig.cost} label={`${durConfig.scenes} scenes`} />
+          <button onClick={handleWriteScript} disabled={!idea.trim() || idea.trim().length < 3}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            <PenTool size={18} /> Write Script
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── STEP 1: Loading Script ───
+  if (step === 1) {
+    return (
+      <div className="space-y-5">
+        <StepIndicator steps={['Idea', 'Script', 'Edit', 'Generate']} current={1} accent="purple" />
+        <div className="flex flex-col items-center gap-4 py-16">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-purple-200 rounded-full" />
+            <div className="absolute inset-0 w-16 h-16 border-4 border-purple-600 rounded-full border-t-transparent animate-spin" />
+          </div>
+          <p className="text-gray-700 font-semibold text-lg">AI is writing your script...</p>
+          <p className="text-gray-400 text-sm">Creating a detailed scene-by-scene storyboard</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── STEP 2: Script Editor ───
+  if (step === 2 && script) {
+    return (
+      <div className="space-y-5">
+        <StepIndicator steps={['Idea', 'Script', 'Edit', 'Generate']} current={2} accent="purple" />
+
+        <div className="flex items-center justify-between">
+          <button onClick={() => setStep(0)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+            <ChevronLeft size={16} /> Back to idea
+          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-400">{script.scenes.length} scenes · {script.scenes.length * 5}s total</span>
+            <button onClick={addScene} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-purple-50 text-purple-600 rounded-full hover:bg-purple-100 font-medium">
+              <Plus size={12} /> Add Scene
+            </button>
+          </div>
+        </div>
+
+        {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Aspect Ratio</label>
-          <div className="flex gap-2">
-            {ASPECT_RATIOS.map(ar => (
-              <button key={ar.value} onClick={() => setAspectRatio(ar.value)}
-                className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${
-                  aspectRatio === ar.value ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-300 text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                {ar.label}
-              </button>
-            ))}
+          <label className="block text-xs font-medium text-gray-500 mb-1">Video Title</label>
+          <input type="text" value={script.title || ''} onChange={e => setScript(prev => ({ ...prev, title: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+          />
+        </div>
+
+        {/* Scenes */}
+        <div className="space-y-4">
+          {script.scenes.map((scene, idx) => (
+            <SceneCard key={idx} scene={scene} index={idx}
+              onUpdate={(field, val) => updateScene(idx, field, val)}
+              onRemove={() => removeScene(idx)}
+              canRemove={script.scenes.length > 1}
+            />
+          ))}
+        </div>
+
+        {/* Music suggestion */}
+        {script.musicSuggestion && (
+          <div className="p-3 bg-purple-50 rounded-lg">
+            <label className="block text-xs font-medium text-purple-600 mb-1">Background Music Suggestion</label>
+            <input type="text" value={script.musicSuggestion}
+              onChange={e => setScript(prev => ({ ...prev, musicSuggestion: e.target.value }))}
+              className="w-full px-3 py-1.5 border border-purple-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-purple-400 outline-none"
+            />
+          </div>
+        )}
+
+        {/* Generate */}
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+          <TokenCost cost={durConfig.cost} label="to generate" />
+          <div className="flex items-center gap-3">
+            <button onClick={handleWriteScript} className="flex items-center gap-1.5 px-4 py-2.5 border border-gray-300 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50">
+              <RefreshCw size={14} /> Rewrite
+            </button>
+            <button onClick={handleGenerate} disabled={balance < durConfig.cost}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold hover:shadow-lg disabled:opacity-50 transition-all"
+            >
+              <Sparkles size={18} /> Generate Video
+              <ChevronRight size={16} />
+            </button>
           </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Generate button */}
-      <div className="flex items-center justify-between">
-        <TokenCost cost={costs[duration]} label={duration} />
-        <button onClick={handleGenerate}
-          disabled={generating || !prompt.trim() || balance < costs[duration]}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-        >
-          {generating ? <Loader2 size={18} className="animate-spin" /> : <Wand2 size={18} />}
-          {generating ? 'Generating...' : 'Generate Video'}
-        </button>
+  // ─── STEP 3: Generating ───
+  if (step === 3) {
+    return (
+      <div className="space-y-5">
+        <StepIndicator steps={['Idea', 'Script', 'Edit', 'Generate']} current={3} accent="purple" />
+        <GenerationStatus status={genStatus} progress={progress} onRetry={() => { setStep(2); setGenStatus(null); }} />
       </div>
+    );
+  }
 
-      {/* Status */}
-      {status && status !== 'completed' && (
-        <GenerationStatus status={status} progress={progress} onRetry={handleGenerate} />
-      )}
-
-      {/* Result */}
-      {status === 'completed' && result && (
-        <div className="bg-gray-50 rounded-xl p-4">
+  // ─── STEP 4: Result ───
+  if (step === 4 && result) {
+    return (
+      <div className="space-y-5">
+        <StepIndicator steps={['Idea', 'Script', 'Edit', 'Generate']} current={4} accent="purple" />
+        <div className="bg-gray-50 rounded-xl p-5">
           <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
             <CheckCircle2 size={18} className="text-green-500" /> Video Ready!
           </h3>
-          <video src={result.videoUrl} controls className="w-full rounded-lg max-h-96" />
-          <div className="flex gap-3 mt-3">
+          <video src={result.videoUrl} controls className="w-full rounded-lg max-h-96 bg-black" />
+          <div className="flex flex-wrap gap-3 mt-4">
             <a href={result.videoUrl} download className="flex items-center gap-1.5 px-4 py-2 bg-purple-600 text-white rounded-full text-sm font-medium hover:bg-purple-700">
               <Download size={14} /> Download
             </a>
             <button className="flex items-center gap-1.5 px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
               <Share2 size={14} /> Post to CYBEV
             </button>
+            <button onClick={() => { setStep(0); setResult(null); setScript(null); setGenStatus(null); }}
+              className="flex items-center gap-1.5 px-4 py-2 border border-gray-300 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50"
+            >
+              <Plus size={14} /> Create Another
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+// ─── Scene Card (editable) ───
+function SceneCard({ scene, index, onUpdate, onRemove, canRemove }) {
+  const [expanded, setExpanded] = useState(true);
+  return (
+    <div className="border border-gray-200 rounded-xl overflow-hidden bg-white hover:shadow-sm transition-shadow">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-100 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold">{index + 1}</div>
+          <span className="text-sm font-medium text-gray-700">Scene {index + 1}</span>
+          <span className="text-xs text-gray-400">· {scene.duration || 5}s</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {canRemove && (
+            <button onClick={e => { e.stopPropagation(); onRemove(); }} className="p-1 text-gray-400 hover:text-red-500">
+              <Trash2 size={14} />
+            </button>
+          )}
+          {expanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="p-4 space-y-3">
+          {/* Visual */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1">
+              <Eye size={12} /> Visual Description
+            </label>
+            <textarea rows={2} value={scene.visual || ''} onChange={e => onUpdate('visual', e.target.value)}
+              placeholder="Detailed description of what appears on screen..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none resize-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Camera */}
+            <div>
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1">
+                <Camera size={12} /> Camera
+              </label>
+              <input type="text" value={scene.camera || ''} onChange={e => onUpdate('camera', e.target.value)}
+                placeholder="e.g. Wide shot, slow pan right"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none"
+              />
+            </div>
+
+            {/* Transition */}
+            <div>
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1">
+                <Layers size={12} /> Transition
+              </label>
+              <select value={scene.transition || 'Cut'} onChange={e => onUpdate('transition', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-400 outline-none bg-white"
+              >
+                {['Cut', 'Fade', 'Dissolve', 'Wipe', 'Zoom'].map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Text overlay */}
+            <div>
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1">
+                <Type size={12} /> Text Overlay
+              </label>
+              <input type="text" value={scene.textOverlay || ''} onChange={e => onUpdate('textOverlay', e.target.value)}
+                placeholder="On-screen text (optional)"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none"
+              />
+            </div>
+
+            {/* Narration */}
+            <div>
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1">
+                <MessageSquare size={12} /> Narration
+              </label>
+              <input type="text" value={scene.narration || ''} onChange={e => onUpdate('narration', e.target.value)}
+                placeholder="Voiceover text (optional)"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none"
+              />
+            </div>
           </div>
         </div>
       )}
@@ -243,167 +535,290 @@ function VideoMaker({ balance }) {
   );
 }
 
+
 // ═══════════════════════════════════════════
-// MUSIC COMPOSER TAB
+// MUSIC COMPOSER — with Script Writer
 // ═══════════════════════════════════════════
 function MusicComposer({ balance }) {
-  const [prompt, setPrompt] = useState('');
+  const [step, setStep] = useState(0);
+  const [idea, setIdea] = useState('');
   const [genre, setGenre] = useState('');
   const [mood, setMood] = useState('');
   const [duration, setDuration] = useState('short');
   const [instrumental, setInstrumental] = useState(false);
-  const [lyrics, setLyrics] = useState('');
-  const [showLyrics, setShowLyrics] = useState(false);
-  const [generating, setGenerating] = useState(false);
-  const [status, setStatus] = useState(null);
+  const [script, setScript] = useState(null);
+  const [scriptError, setScriptError] = useState('');
+  const [genStatus, setGenStatus] = useState(null);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState(null);
   const pollRef = useRef(null);
 
   const costs = { short: 50, full: 150 };
 
-  const handleGenerate = async () => {
-    if (!prompt.trim()) return;
+  const handleWriteScript = async () => {
+    if (!idea.trim()) return;
+    setStep(1);
+    setScriptError('');
     try {
-      setGenerating(true);
-      setStatus('processing');
-      setProgress(0);
-
-      const { data } = await api.post('/api/ai-content/music/generate', {
-        prompt, genre, mood, duration, instrumental,
-        lyrics: showLyrics && lyrics.trim() ? lyrics : undefined
+      const { data } = await api.post('/api/ai-content/script/music', {
+        idea: idea.trim(), genre, mood, duration, instrumental
       });
+      setScript(data.script);
+      setStep(2);
+    } catch (err) {
+      setScriptError(err?.response?.data?.error || 'Failed to write script.');
+      setStep(0);
+    }
+  };
 
+  const updateSection = (idx, field, value) => {
+    setScript(prev => ({
+      ...prev,
+      sections: prev.sections.map((s, i) => i === idx ? { ...s, [field]: value } : s)
+    }));
+  };
+
+  const addSection = () => {
+    setScript(prev => ({
+      ...prev,
+      sections: [...prev.sections, {
+        type: 'Verse',
+        duration: '8 bars',
+        lyrics: '',
+        vocalDirection: '',
+        productionNotes: '',
+      }]
+    }));
+  };
+
+  const removeSection = (idx) => {
+    if (script.sections.length <= 1) return;
+    setScript(prev => ({ ...prev, sections: prev.sections.filter((_, i) => i !== idx) }));
+  };
+
+  const handleGenerate = async () => {
+    setStep(3);
+    setGenStatus('processing');
+    setProgress(0);
+    try {
+      const { data } = await api.post('/api/ai-content/music/generate', {
+        prompt: idea, genre, mood, duration, instrumental, script
+      });
       if (data.status === 'completed') {
         setResult(data);
-        setStatus('completed');
+        setGenStatus('completed');
+        setStep(4);
       } else {
-        const musicProvider = data.provider || 'replicate';
+        const provider = data.provider || 'replicate';
         pollRef.current = setInterval(async () => {
           try {
-            const { data: statusData } = await api.get(`/api/ai-content/music/status/${data.taskId}?provider=${musicProvider}`);
+            const { data: s } = await api.get(`/api/ai-content/music/status/${data.taskId}?provider=${provider}`);
             setProgress(p => Math.min(p + 10, 90));
-            if (statusData.status === 'completed') {
-              clearInterval(pollRef.current);
-              setResult(statusData);
-              setStatus('completed');
-              setGenerating(false);
-            } else if (statusData.status === 'failed') {
-              clearInterval(pollRef.current);
-              setStatus('failed');
-              setGenerating(false);
-            }
+            if (s.status === 'completed') { clearInterval(pollRef.current); setResult(s); setGenStatus('completed'); setStep(4); }
+            else if (s.status === 'failed') { clearInterval(pollRef.current); setGenStatus('failed'); }
           } catch {}
         }, 3000);
       }
-    } catch (err) {
-      setStatus('failed');
-      alert(err?.response?.data?.error || 'Music generation failed');
-    } finally {
-      setGenerating(false);
-    }
+    } catch { setGenStatus('failed'); }
   };
 
   useEffect(() => () => clearInterval(pollRef.current), []);
 
-  return (
-    <div className="space-y-6">
-      {/* Prompt */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Describe your song</label>
-        <textarea
-          rows={2} maxLength={500}
-          placeholder="An upbeat gospel worship song with a powerful choir, drums, and electric guitar..."
-          value={prompt} onChange={e => setPrompt(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm"
-        />
-      </div>
+  // ─── STEP 0: Idea ───
+  if (step === 0) {
+    return (
+      <div className="space-y-5">
+        <StepIndicator steps={['Idea', 'Script', 'Edit', 'Generate']} current={0} accent="blue" />
 
-      {/* Genre */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Genre</label>
-        <div className="flex flex-wrap gap-2">
-          {MUSIC_GENRES.map(g => (
-            <button key={g} onClick={() => setGenre(genre === g ? '' : g)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                genre === g ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {g}
-            </button>
-          ))}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">What kind of song?</label>
+          <textarea rows={2} maxLength={500} placeholder='e.g. "An upbeat gospel worship song about grace, with a powerful choir and live band"'
+            value={idea} onChange={e => setIdea(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Genre</label>
+          <PillSelect options={MUSIC_GENRES} value={genre} onChange={setGenre} accent="blue" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Mood</label>
+          <PillSelect options={MUSIC_MOODS} value={mood} onChange={setMood} accent="blue" />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex gap-2">
+            {[{ val: 'short', label: '30 sec', cost: 50 }, { val: 'full', label: 'Full Song', cost: 150 }].map(d => (
+              <button key={d.val} onClick={() => setDuration(d.val)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  duration === d.val ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 text-gray-600'
+                }`}
+              >{d.label} · <span className="text-amber-500">{d.cost}</span></button>
+            ))}
+          </div>
+          <button onClick={() => setInstrumental(!instrumental)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+              instrumental ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 text-gray-600'
+            }`}
+          >🎵 Instrumental only</button>
+        </div>
+
+        {scriptError && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{scriptError}</div>}
+
+        <div className="flex items-center justify-between pt-2">
+          <TokenCost cost={costs[duration]} label={duration} />
+          <button onClick={handleWriteScript} disabled={!idea.trim() || idea.trim().length < 3}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full font-semibold hover:shadow-lg disabled:opacity-50 transition-all"
+          >
+            <PenTool size={18} /> Write Script <ChevronRight size={16} />
+          </button>
         </div>
       </div>
+    );
+  }
 
-      {/* Mood */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Mood</label>
-        <div className="flex flex-wrap gap-2">
-          {MUSIC_MOODS.map(m => (
-            <button key={m} onClick={() => setMood(mood === m ? '' : m)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                mood === m ? 'bg-cyan-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {m}
-            </button>
-          ))}
+  // ─── STEP 1: Loading ───
+  if (step === 1) {
+    return (
+      <div className="space-y-5">
+        <StepIndicator steps={['Idea', 'Script', 'Edit', 'Generate']} current={1} accent="blue" />
+        <div className="flex flex-col items-center gap-4 py-16">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-blue-200 rounded-full" />
+            <div className="absolute inset-0 w-16 h-16 border-4 border-blue-600 rounded-full border-t-transparent animate-spin" />
+          </div>
+          <p className="text-gray-700 font-semibold text-lg">AI is writing your {instrumental ? 'arrangement' : 'lyrics'}...</p>
+          <p className="text-gray-400 text-sm">Composing structure, {instrumental ? 'instruments' : 'verses, chorus'}, and production notes</p>
         </div>
       </div>
+    );
+  }
 
-      {/* Options */}
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="flex gap-2">
-          {[{ val: 'short', label: '30 sec', cost: 50 }, { val: 'full', label: 'Full Song', cost: 150 }].map(d => (
-            <button key={d.val} onClick={() => setDuration(d.val)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                duration === d.val ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 text-gray-600'
-              }`}
-            >
-              {d.label} · <span className="text-amber-500">{d.cost}</span>
-            </button>
+  // ─── STEP 2: Script Editor ───
+  if (step === 2 && script) {
+    return (
+      <div className="space-y-5">
+        <StepIndicator steps={['Idea', 'Script', 'Edit', 'Generate']} current={2} accent="blue" />
+
+        <div className="flex items-center justify-between">
+          <button onClick={() => setStep(0)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+            <ChevronLeft size={16} /> Back
+          </button>
+          <button onClick={addSection} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 font-medium">
+            <Plus size={12} /> Add Section
+          </button>
+        </div>
+
+        {/* Song Metadata */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Title</label>
+            <input type="text" value={script.title || ''} onChange={e => setScript(p => ({ ...p, title: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-400 outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Tempo</label>
+            <input type="text" value={script.tempo || ''} onChange={e => setScript(p => ({ ...p, tempo: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Key</label>
+            <input type="text" value={script.key || ''} onChange={e => setScript(p => ({ ...p, key: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Overall Vibe</label>
+            <input type="text" value={script.overallVibe || ''} onChange={e => setScript(p => ({ ...p, overallVibe: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+            />
+          </div>
+        </div>
+
+        {/* Sections */}
+        <div className="space-y-3">
+          {script.sections.map((section, idx) => (
+            <div key={idx} className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+              <div className="flex items-center justify-between px-4 py-2.5 bg-blue-50 border-b border-blue-100">
+                <div className="flex items-center gap-2">
+                  <Music size={14} className="text-blue-500" />
+                  <select value={section.type || 'Verse'} onChange={e => updateSection(idx, 'type', e.target.value)}
+                    className="text-sm font-semibold text-blue-700 bg-transparent outline-none cursor-pointer"
+                  >
+                    {['Intro', 'Verse 1', 'Verse 2', 'Verse 3', 'Pre-Chorus', 'Chorus', 'Bridge', 'Outro', 'Instrumental Break'].map(t =>
+                      <option key={t} value={t}>{t}</option>
+                    )}
+                  </select>
+                  <span className="text-xs text-gray-400">·</span>
+                  <input type="text" value={section.duration || ''} onChange={e => updateSection(idx, 'duration', e.target.value)}
+                    className="text-xs text-gray-500 bg-transparent outline-none w-20" placeholder="8 bars"
+                  />
+                </div>
+                {script.sections.length > 1 && (
+                  <button onClick={() => removeSection(idx)} className="p-1 text-gray-400 hover:text-red-500"><Trash2 size={14} /></button>
+                )}
+              </div>
+              <div className="p-4 space-y-3">
+                {/* Lyrics or instrumental notes */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                    {instrumental ? 'Instrumental Notes' : 'Lyrics'}
+                  </label>
+                  <textarea rows={3}
+                    value={instrumental ? (section.instrumentalNotes || '') : (section.lyrics || '')}
+                    onChange={e => updateSection(idx, instrumental ? 'instrumentalNotes' : 'lyrics', e.target.value)}
+                    placeholder={instrumental ? 'Describe the instrumentation, dynamics...' : 'Write the lyrics...'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none resize-none font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Production Notes</label>
+                  <input type="text" value={section.productionNotes || ''} onChange={e => updateSection(idx, 'productionNotes', e.target.value)}
+                    placeholder="Arrangement, effects, energy..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                  />
+                </div>
+              </div>
+            </div>
           ))}
         </div>
-        <button onClick={() => setInstrumental(!instrumental)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-            instrumental ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 text-gray-600'
-          }`}
-        >
-          🎵 Instrumental only
-        </button>
-        <button onClick={() => setShowLyrics(!showLyrics)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-            showLyrics ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 text-gray-600'
-          }`}
-        >
-          ✍️ Custom lyrics
-        </button>
+
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+          <TokenCost cost={costs[duration]} label="to generate" />
+          <div className="flex items-center gap-3">
+            <button onClick={handleWriteScript} className="flex items-center gap-1.5 px-4 py-2.5 border border-gray-300 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50">
+              <RefreshCw size={14} /> Rewrite
+            </button>
+            <button onClick={handleGenerate} disabled={balance < costs[duration]}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full font-semibold hover:shadow-lg disabled:opacity-50 transition-all"
+            >
+              <Sparkles size={18} /> Compose Song <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
       </div>
+    );
+  }
 
-      {/* Custom lyrics */}
-      {showLyrics && (
-        <textarea
-          rows={4} maxLength={2000} placeholder="Write your lyrics here..."
-          value={lyrics} onChange={e => setLyrics(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm"
-        />
-      )}
-
-      {/* Generate */}
-      <div className="flex items-center justify-between">
-        <TokenCost cost={costs[duration]} label={duration} />
-        <button onClick={handleGenerate}
-          disabled={generating || !prompt.trim() || balance < costs[duration]}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full font-semibold hover:shadow-lg disabled:opacity-50 transition-all"
-        >
-          {generating ? <Loader2 size={18} className="animate-spin" /> : <Music size={18} />}
-          {generating ? 'Composing...' : 'Compose Song'}
-        </button>
+  // ─── STEP 3: Generating ───
+  if (step === 3) {
+    return (
+      <div className="space-y-5">
+        <StepIndicator steps={['Idea', 'Script', 'Edit', 'Generate']} current={3} accent="blue" />
+        <GenerationStatus status={genStatus} progress={progress} onRetry={() => { setStep(2); setGenStatus(null); }} />
       </div>
+    );
+  }
 
-      {status && status !== 'completed' && <GenerationStatus status={status} progress={progress} onRetry={handleGenerate} />}
-
-      {status === 'completed' && result && (
+  // ─── STEP 4: Result ───
+  if (step === 4 && result) {
+    return (
+      <div className="space-y-5">
+        <StepIndicator steps={['Idea', 'Script', 'Edit', 'Generate']} current={4} accent="blue" />
         <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-5">
           <div className="flex items-start gap-4">
             <div className="w-24 h-24 rounded-xl bg-blue-200 overflow-hidden flex-shrink-0">
@@ -411,164 +826,329 @@ function MusicComposer({ balance }) {
                 <div className="w-full h-full flex items-center justify-center"><Music size={32} className="text-blue-400" /></div>}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-gray-900">{result.title || 'AI Generated Song'}</h3>
-              <p className="text-sm text-gray-500 mt-0.5">{genre || 'Various'} · {mood || 'Mixed'}</p>
+              <h3 className="font-semibold text-gray-900">{result.title || script?.title || 'AI Generated Song'}</h3>
+              <p className="text-sm text-gray-500 mt-0.5">{script?.genre || genre || 'Various'} · {script?.mood || mood || 'Mixed'}</p>
               <audio src={result.audioUrl} controls className="w-full mt-3" />
-              <div className="flex gap-3 mt-3">
+              <div className="flex flex-wrap gap-3 mt-3">
                 <a href={result.audioUrl} download className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700">
                   <Download size={14} /> Download
                 </a>
                 <button className="flex items-center gap-1.5 px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
                   <Share2 size={14} /> Share
                 </button>
+                <button onClick={() => { setStep(0); setResult(null); setScript(null); setGenStatus(null); }}
+                  className="flex items-center gap-1.5 px-4 py-2 border border-gray-300 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50"
+                >
+                  <Plus size={14} /> New Song
+                </button>
               </div>
             </div>
           </div>
         </div>
-      )}
-    </div>
-  );
+      </div>
+    );
+  }
+
+  return null;
 }
 
+
 // ═══════════════════════════════════════════
-// GRAPHICS GENERATOR TAB
+// GRAPHICS GENERATOR — with Script Writer
 // ═══════════════════════════════════════════
 function GraphicsGenerator({ balance }) {
-  const [prompt, setPrompt] = useState('');
+  const [step, setStep] = useState(0);
+  const [idea, setIdea] = useState('');
   const [style, setStyle] = useState('');
   const [size, setSize] = useState('1024x1024');
   const [count, setCount] = useState(1);
   const [quality, setQuality] = useState('basic');
+  const [script, setScript] = useState(null);
+  const [scriptError, setScriptError] = useState('');
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState(null);
 
   const cost = count > 1 ? 80 : quality === 'hd' ? 50 : 20;
 
-  const handleGenerate = async () => {
-    if (!prompt.trim()) return;
+  const handleWriteScript = async () => {
+    if (!idea.trim()) return;
+    setStep(1);
+    setScriptError('');
     try {
-      setGenerating(true);
-      setResult(null);
+      const { data } = await api.post('/api/ai-content/script/graphics', {
+        idea: idea.trim(), style, size
+      });
+      setScript(data.script);
+      setStep(2);
+    } catch (err) {
+      setScriptError(err?.response?.data?.error || 'Failed to write brief.');
+      setStep(0);
+    }
+  };
+
+  const handleGenerate = async () => {
+    setStep(3);
+    setGenerating(true);
+    setResult(null);
+    try {
       const { data } = await api.post('/api/ai-content/graphics/generate', {
-        prompt, style, size, count, quality
+        prompt: script?.prompt || idea, style: script?.style || style, size, count, quality, script
       });
       setResult(data);
+      setStep(4);
     } catch (err) {
-      alert(err?.response?.data?.error || 'Image generation failed');
+      alert(err?.response?.data?.error || 'Generation failed');
+      setStep(2);
     } finally {
       setGenerating(false);
     }
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Prompt */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Describe your image</label>
-        <textarea
-          rows={3} maxLength={1000}
-          placeholder="A futuristic city skyline at dusk with flying cars, neon lights reflecting on glass towers..."
-          value={prompt} onChange={e => setPrompt(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none resize-none text-sm"
-        />
-      </div>
+  // ─── STEP 0: Idea ───
+  if (step === 0) {
+    return (
+      <div className="space-y-5">
+        <StepIndicator steps={['Idea', 'Brief', 'Edit', 'Generate']} current={0} accent="orange" />
 
-      {/* Style */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Art Style</label>
-        <div className="flex flex-wrap gap-2">
-          {GRAPHIC_STYLES.map(s => (
-            <button key={s} onClick={() => setStyle(style === s ? '' : s)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                style === s ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">What image do you want to create?</label>
+          <textarea rows={3} maxLength={500}
+            placeholder='e.g. "A futuristic city skyline at dusk with flying cars, neon lights reflecting on glass towers"'
+            value={idea} onChange={e => setIdea(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none resize-none text-sm"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Art Style</label>
+          <PillSelect options={GRAPHIC_STYLES} value={style} onChange={setStyle} accent="orange" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
+            <select value={size} onChange={e => setSize(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-orange-500"
             >
-              {s}
+              <option value="1024x1024">1024×1024 (Square)</option>
+              <option value="1792x1024">1792×1024 (Landscape)</option>
+              <option value="1024x1792">1024×1792 (Portrait)</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Quality</label>
+            <div className="flex gap-2">
+              {['basic', 'hd'].map(q => (
+                <button key={q} onClick={() => setQuality(q)}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border ${
+                    quality === q ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-300 text-gray-600'
+                  }`}
+                >{q === 'hd' ? 'HD' : 'Standard'}</button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Count</label>
+            <div className="flex gap-2">
+              {[1, 4].map(c => (
+                <button key={c} onClick={() => setCount(c)}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border ${
+                    count === c ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-300 text-gray-600'
+                  }`}
+                >{c === 1 ? '1 Image' : '4 Images'}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {scriptError && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{scriptError}</div>}
+
+        <div className="flex items-center justify-between pt-2">
+          <TokenCost cost={cost} label={quality} />
+          <button onClick={handleWriteScript} disabled={!idea.trim() || idea.trim().length < 3}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full font-semibold hover:shadow-lg disabled:opacity-50 transition-all"
+          >
+            <PenTool size={18} /> Write Brief <ChevronRight size={16} />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── STEP 1: Loading ───
+  if (step === 1) {
+    return (
+      <div className="space-y-5">
+        <StepIndicator steps={['Idea', 'Brief', 'Edit', 'Generate']} current={1} accent="orange" />
+        <div className="flex flex-col items-center gap-4 py-16">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-orange-200 rounded-full" />
+            <div className="absolute inset-0 w-16 h-16 border-4 border-orange-500 rounded-full border-t-transparent animate-spin" />
+          </div>
+          <p className="text-gray-700 font-semibold text-lg">AI is writing your visual brief...</p>
+          <p className="text-gray-400 text-sm">Designing composition, colors, and detailed prompt</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── STEP 2: Script Editor ───
+  if (step === 2 && script) {
+    return (
+      <div className="space-y-5">
+        <StepIndicator steps={['Idea', 'Brief', 'Edit', 'Generate']} current={2} accent="orange" />
+
+        <div className="flex items-center justify-between">
+          <button onClick={() => setStep(0)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+            <ChevronLeft size={16} /> Back
+          </button>
+        </div>
+
+        {/* Title */}
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Title</label>
+          <input type="text" value={script.title || ''} onChange={e => setScript(p => ({ ...p, title: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-orange-400 outline-none"
+          />
+        </div>
+
+        {/* Main Prompt */}
+        <div>
+          <label className="block text-xs font-medium text-orange-600 mb-1">AI Generation Prompt (this is what the AI sees)</label>
+          <textarea rows={4} value={script.prompt || ''} onChange={e => setScript(p => ({ ...p, prompt: e.target.value }))}
+            className="w-full px-3 py-2 border-2 border-orange-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none resize-none bg-orange-50/30"
+          />
+        </div>
+
+        {/* Negative prompt */}
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Negative Prompt (things to avoid)</label>
+          <input type="text" value={script.negativePrompt || ''} onChange={e => setScript(p => ({ ...p, negativePrompt: e.target.value }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 outline-none"
+          />
+        </div>
+
+        {/* Composition */}
+        {script.composition && (
+          <div className="border border-gray-200 rounded-xl p-4 space-y-3">
+            <h4 className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Composition</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {['layout', 'foreground', 'midground', 'background', 'focusPoint'].map(field => (
+                <div key={field}>
+                  <label className="block text-xs text-gray-500 mb-1 capitalize">{field.replace(/([A-Z])/g, ' $1')}</label>
+                  <input type="text" value={script.composition[field] || ''}
+                    onChange={e => setScript(p => ({ ...p, composition: { ...p.composition, [field]: e.target.value } }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 outline-none"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Color Palette */}
+        {script.colorPalette && (
+          <div className="border border-gray-200 rounded-xl p-4 space-y-3">
+            <h4 className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Color Palette</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {['primary', 'secondary', 'accent', 'mood'].map(field => (
+                <div key={field}>
+                  <label className="block text-xs text-gray-500 mb-1 capitalize">{field}</label>
+                  <input type="text" value={script.colorPalette[field] || ''}
+                    onChange={e => setScript(p => ({ ...p, colorPalette: { ...p.colorPalette, [field]: e.target.value } }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 outline-none"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Variations */}
+        {script.variations && script.variations.length > 0 && (
+          <div className="bg-orange-50 rounded-lg p-3">
+            <h4 className="text-xs font-semibold text-orange-600 mb-2">Alternative Angles (click to use)</h4>
+            <div className="flex flex-wrap gap-2">
+              {script.variations.map((v, i) => (
+                <button key={i} onClick={() => setScript(p => ({ ...p, prompt: v }))}
+                  className="px-3 py-1.5 bg-white border border-orange-200 rounded-full text-xs text-gray-700 hover:border-orange-400 hover:bg-orange-50 transition-colors"
+                >{v.length > 60 ? v.substring(0, 60) + '...' : v}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+          <TokenCost cost={cost} label="to generate" />
+          <div className="flex items-center gap-3">
+            <button onClick={handleWriteScript} className="flex items-center gap-1.5 px-4 py-2.5 border border-gray-300 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50">
+              <RefreshCw size={14} /> Rewrite
             </button>
+            <button onClick={handleGenerate} disabled={balance < cost}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full font-semibold hover:shadow-lg disabled:opacity-50 transition-all"
+            >
+              <Sparkles size={18} /> Generate <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── STEP 3: Generating ───
+  if (step === 3) {
+    return (
+      <div className="space-y-5">
+        <StepIndicator steps={['Idea', 'Brief', 'Edit', 'Generate']} current={3} accent="orange" />
+        <div className="flex flex-col items-center gap-3 py-12">
+          <div className="relative w-20 h-20">
+            <div className="absolute inset-0 border-4 border-orange-200 rounded-full" />
+            <div className="absolute inset-0 border-4 border-orange-500 rounded-full border-t-transparent animate-spin" />
+          </div>
+          <p className="text-gray-600 font-medium">Creating your {count > 1 ? 'images' : 'image'}...</p>
+          <p className="text-gray-400 text-sm">This may take 15–60 seconds</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── STEP 4: Result ───
+  if (step === 4 && result?.images?.length > 0) {
+    return (
+      <div className="space-y-5">
+        <StepIndicator steps={['Idea', 'Brief', 'Edit', 'Generate']} current={4} accent="orange" />
+        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+          <CheckCircle2 size={18} className="text-green-500" /> Generated {result.images.length > 1 ? 'Images' : 'Image'}
+        </h3>
+        <div className={`grid gap-4 ${result.images.length > 1 ? 'grid-cols-2' : 'grid-cols-1 max-w-lg mx-auto'}`}>
+          {result.images.map((img, i) => (
+            <div key={i} className="relative group rounded-xl overflow-hidden bg-gray-100 shadow-sm">
+              <img src={img.url} alt={`Generated ${i + 1}`} className="w-full aspect-square object-cover" />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100">
+                <a href={img.url} download className="p-2.5 bg-white rounded-full shadow-lg hover:scale-110 transition-transform">
+                  <Download size={18} className="text-gray-700" />
+                </a>
+                <button className="p-2.5 bg-white rounded-full shadow-lg hover:scale-110 transition-transform">
+                  <Share2 size={18} className="text-gray-700" />
+                </button>
+              </div>
+            </div>
           ))}
         </div>
-      </div>
-
-      {/* Options */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
-          <select value={size} onChange={e => setSize(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-orange-500"
+        <div className="flex justify-center">
+          <button onClick={() => { setStep(0); setResult(null); setScript(null); }}
+            className="flex items-center gap-1.5 px-4 py-2 border border-gray-300 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50"
           >
-            <option value="1024x1024">1024×1024 (Square)</option>
-            <option value="1792x1024">1792×1024 (Landscape)</option>
-            <option value="1024x1792">1024×1792 (Portrait)</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Quality</label>
-          <div className="flex gap-2">
-            {['basic', 'hd'].map(q => (
-              <button key={q} onClick={() => setQuality(q)}
-                className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border ${
-                  quality === q ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-300 text-gray-600'
-                }`}
-              >
-                {q === 'hd' ? 'HD' : 'Standard'}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Count</label>
-          <div className="flex gap-2">
-            {[1, 4].map(c => (
-              <button key={c} onClick={() => setCount(c)}
-                className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border ${
-                  count === c ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-300 text-gray-600'
-                }`}
-              >
-                {c === 1 ? '1 Image' : '4 Images'}
-              </button>
-            ))}
-          </div>
+            <Plus size={14} /> Create Another
+          </button>
         </div>
       </div>
+    );
+  }
 
-      {/* Generate */}
-      <div className="flex items-center justify-between">
-        <TokenCost cost={cost} label={quality} />
-        <button onClick={handleGenerate}
-          disabled={generating || !prompt.trim() || balance < cost}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full font-semibold hover:shadow-lg disabled:opacity-50 transition-all"
-        >
-          {generating ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
-          {generating ? 'Creating...' : 'Generate'}
-        </button>
-      </div>
-
-      {/* Results */}
-      {result && result.images && result.images.length > 0 && (
-        <div>
-          <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-            <CheckCircle2 size={18} className="text-green-500" /> Generated Images
-          </h3>
-          <div className={`grid gap-4 ${result.images.length > 1 ? 'grid-cols-2' : 'grid-cols-1 max-w-lg'}`}>
-            {result.images.map((img, i) => (
-              <div key={i} className="relative group rounded-xl overflow-hidden bg-gray-100">
-                <img src={img.url} alt={`Generated ${i + 1}`} className="w-full aspect-square object-cover" />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100">
-                  <a href={img.url} download className="p-2 bg-white rounded-full shadow-lg hover:scale-110 transition-transform">
-                    <Download size={18} className="text-gray-700" />
-                  </a>
-                  <button className="p-2 bg-white rounded-full shadow-lg hover:scale-110 transition-transform">
-                    <Share2 size={18} className="text-gray-700" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  return null;
 }
+
 
 // ═══════════════════════════════════════════
 // MAIN AI STUDIO PAGE
@@ -609,7 +1189,7 @@ export default function AIStudio() {
               <Wand2 className="text-purple-600" size={28} />
               AI Studio
             </h1>
-            <p className="text-gray-500 mt-1">Create videos, music, and graphics with AI</p>
+            <p className="text-gray-500 mt-1 text-sm">Describe your idea → AI writes the script → You edit → Generate</p>
           </div>
           <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-full px-4 py-2">
             <Coins size={18} className="text-amber-500" />
@@ -619,7 +1199,7 @@ export default function AIStudio() {
         </div>
 
         {/* Tool Tabs */}
-        <div className="flex gap-3 mb-8">
+        <div className="flex gap-3 mb-6">
           {TOOLS.map(tool => (
             <button
               key={tool.id}
@@ -630,17 +1210,30 @@ export default function AIStudio() {
                   : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
               }`}
             >
-              <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${tool.color} flex items-center justify-center`}>
+              <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${tool.color} flex items-center justify-center flex-shrink-0`}>
                 <tool.icon size={20} className="text-white" />
               </div>
-              <div className="text-left">
+              <div className="text-left min-w-0">
                 <p className={`text-sm font-semibold ${activeTool === tool.id ? 'text-purple-700' : 'text-gray-700'}`}>
                   {tool.label}
                 </p>
-                <p className="text-xs text-gray-400 hidden md:block">{tool.desc}</p>
+                <p className="text-xs text-gray-400 hidden md:block truncate">{tool.desc}</p>
               </div>
             </button>
           ))}
+        </div>
+
+        {/* How it works — collapsed hint */}
+        <div className="mb-6 p-3 bg-gradient-to-r from-purple-50 via-blue-50 to-orange-50 rounded-xl border border-gray-100">
+          <div className="flex items-center gap-4 text-xs text-gray-500">
+            <div className="flex items-center gap-1.5"><span className="w-5 h-5 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-[10px] font-bold">1</span> Enter idea</div>
+            <ChevronRight size={12} className="text-gray-300" />
+            <div className="flex items-center gap-1.5"><span className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">2</span> AI writes script</div>
+            <ChevronRight size={12} className="text-gray-300" />
+            <div className="flex items-center gap-1.5"><span className="w-5 h-5 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center text-[10px] font-bold">3</span> Edit & refine</div>
+            <ChevronRight size={12} className="text-gray-300" />
+            <div className="flex items-center gap-1.5"><span className="w-5 h-5 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-[10px] font-bold">4</span> Generate!</div>
+          </div>
         </div>
 
         {/* Active Tool Content */}
