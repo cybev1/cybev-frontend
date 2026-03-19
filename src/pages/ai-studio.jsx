@@ -168,7 +168,7 @@ function VideoMaker({ balance }) {
     try {
       const { data } = await api.post('/api/ai-content/script/video', {
         idea: idea.trim(), style, duration, aspectRatio
-      });
+      }, { timeout: 120000 });
       setScript(data.script);
       setStep(2);
     } catch (err) {
@@ -562,7 +562,7 @@ function MusicComposer({ balance }) {
     try {
       const { data } = await api.post('/api/ai-content/script/music', {
         idea: idea.trim(), genre, mood, duration, instrumental
-      });
+      }, { timeout: 120000 });
       setScript(data.script);
       setStep(2);
     } catch (err) {
@@ -877,7 +877,7 @@ function GraphicsGenerator({ balance }) {
     try {
       const { data } = await api.post('/api/ai-content/script/graphics', {
         idea: idea.trim(), style, size
-      });
+      }, { timeout: 120000 });
       setScript(data.script);
       setStep(2);
     } catch (err) {
