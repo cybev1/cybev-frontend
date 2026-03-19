@@ -473,19 +473,27 @@ export default function BlogPage({ blog, ogData }) {
         {blog.seo?.keywords?.length > 0 && (
           <meta name="keywords" content={blog.seo.keywords.join(', ')} />
         )}
+        {/* Google Discover optimization */}
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         <meta property="og:type" content="article" />
         <meta property="og:title" content={ogData.title} />
         <meta property="og:description" content={ogData.description} />
         <meta property="og:image" content={ogData.image} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
         <meta property="og:url" content={ogData.url} />
         <meta property="og:site_name" content="CYBEV" />
+        <meta property="og:locale" content="en_US" />
         <meta property="article:published_time" content={blog.createdAt} />
         {blog.updatedAt && <meta property="article:modified_time" content={blog.updatedAt} />}
         {blog.author?.name && <meta property="article:author" content={blog.author.name} />}
+        <meta property="article:publisher" content="https://cybev.io" />
+        <meta property="article:section" content={blog.category || 'General'} />
         {(blog.tags || []).map((tag, i) => (
           <meta key={i} property="article:tag" content={tag} />
         ))}
         <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@cybev" />
         <meta name="twitter:title" content={ogData.title} />
         <meta name="twitter:description" content={ogData.description} />
         <meta name="twitter:image" content={ogData.image} />
@@ -494,10 +502,15 @@ export default function BlogPage({ blog, ogData }) {
         {/* JSON-LD Structured Data for Google Rich Results */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
           '@context': 'https://schema.org',
-          '@type': 'Article',
+          '@type': 'NewsArticle',
           headline: ogData.title,
           description: ogData.description,
-          image: ogData.image,
+          image: {
+            '@type': 'ImageObject',
+            url: ogData.image,
+            width: 1200,
+            height: 630
+          },
           url: ogData.url,
           datePublished: blog.createdAt,
           dateModified: blog.updatedAt || blog.createdAt,
@@ -510,12 +523,14 @@ export default function BlogPage({ blog, ogData }) {
             '@type': 'Organization',
             name: 'CYBEV',
             url: 'https://cybev.io',
-            logo: { '@type': 'ImageObject', url: 'https://cybev.io/logo.png' }
+            logo: { '@type': 'ImageObject', url: 'https://cybev.io/logo.png', width: 600, height: 60 }
           },
           mainEntityOfPage: { '@type': 'WebPage', '@id': ogData.url },
           keywords: (blog.seo?.keywords || blog.tags || []).join(', '),
           wordCount: (blog.content || '').replace(/<[^>]*>/g, '').split(/\s+/).length,
-          articleSection: blog.category || 'General'
+          articleSection: blog.category || 'General',
+          isAccessibleForFree: true,
+          inLanguage: 'en'
         })}} />
       </Head>
       
