@@ -316,3 +316,38 @@ export const campaignsAPI = {
   addContact: (data) => api.post('/api/contacts', data),
   importContacts: (data) => api.post('/api/contacts/import', data),
 };
+
+// ========== AI CAMPAIGN PLANNER APIs (v7.16.0) ==========
+export const aiCampaignAPI = {
+  list: (params) => api.get('/api/ai-campaigns', { params }),
+  get: (id) => api.get(`/api/ai-campaigns/${id}`),
+  create: (data) => api.post('/api/ai-campaigns', data),
+  update: (id, data) => api.put(`/api/ai-campaigns/${id}`, data),
+  delete: (id) => api.delete(`/api/ai-campaigns/${id}`),
+  generate: (id) => api.post(`/api/ai-campaigns/${id}/generate`),
+  activate: (id) => api.post(`/api/ai-campaigns/${id}/activate`),
+  pause: (id) => api.post(`/api/ai-campaigns/${id}/pause`),
+  generateAssets: (id) => api.post(`/api/ai-campaigns/${id}/generate-assets`),
+  editPiece: (id, dayNumber, contentId, data) => api.put(`/api/ai-campaigns/${id}/day/${dayNumber}/content/${contentId}`, data),
+  addPiece: (id, dayNumber, data) => api.post(`/api/ai-campaigns/${id}/day/${dayNumber}/content`, data),
+  deletePiece: (id, dayNumber, contentId) => api.delete(`/api/ai-campaigns/${id}/day/${dayNumber}/content/${contentId}`),
+  regeneratePiece: (id, dayNumber, contentId, data) => api.post(`/api/ai-campaigns/${id}/day/${dayNumber}/content/${contentId}/regenerate`, data),
+  statsOverview: () => api.get('/api/ai-campaigns/stats/overview'),
+};
+
+// ========== SOCIAL PUBLISHER APIs (v7.16.0) ==========
+export const socialPublisherAPI = {
+  // Platforms
+  getPlatforms: () => api.get('/api/social-publisher/platforms'),
+  getAccounts: () => api.get('/api/social-publisher/accounts'),
+  connectAccount: (data) => api.post('/api/social-publisher/accounts', data),
+  disconnectAccount: (id) => api.delete(`/api/social-publisher/accounts/${id}`),
+  testAccount: (id) => api.post(`/api/social-publisher/accounts/${id}/test`),
+  getOAuthUrl: (platform) => api.get(`/api/social-publisher/oauth/${platform}/url`),
+  // Queue
+  getQueue: (params) => api.get('/api/social-publisher/queue', { params }),
+  schedulePost: (data) => api.post('/api/social-publisher/queue', data),
+  scheduleBulk: (data) => api.post('/api/social-publisher/queue/bulk', data),
+  publishNow: (id) => api.post(`/api/social-publisher/queue/${id}/publish-now`),
+  cancelPost: (id) => api.delete(`/api/social-publisher/queue/${id}`),
+};
