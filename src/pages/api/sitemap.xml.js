@@ -50,6 +50,14 @@ function generateSiteMap(blogs, watchParties) {
     xml += `</url>\n`;
   }
 
+  // Web Stories — each blog with an image gets a story URL
+  for (const b of blogs) {
+    if (b.coverImage || b.featuredImage || b.thumbnail) {
+      const mod = new Date(b.updatedAt || b.createdAt || Date.now()).toISOString();
+      xml += `  <url><loc>${API_URL}/api/web-stories/${b._id}</loc><lastmod>${mod}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`;
+    }
+  }
+
   xml += `</urlset>`;
   return xml;
 }
