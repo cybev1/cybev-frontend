@@ -50,7 +50,6 @@ Crawl-delay: 1
 
 # Sitemap location
 Sitemap: ${SITE_URL}/sitemap.xml
-Sitemap: ${SITE_URL}/api/web-stories-sitemap.xml
 
 # Google specific
 User-agent: Googlebot
