@@ -142,6 +142,165 @@ function PillSelect({ options, value, onChange, accent = 'purple' }) {
 
 
 // ═══════════════════════════════════════════
+// VOICEOVER PANEL — Voice picker with preview
+// ═══════════════════════════════════════════
+const VOICES = [
+  { group: '🌍 Africa', voices: [
+    { id: 'nova-ng',    label: 'Amara',   accent: 'Nigerian',      gender: 'Female', flag: '🇳🇬' },
+    { id: 'echo-ng',    label: 'Emeka',   accent: 'Nigerian',      gender: 'Male',   flag: '🇳🇬' },
+    { id: 'onyx-ng',    label: 'Tunde',   accent: 'Nigerian',      gender: 'Male',   flag: '🇳🇬' },
+    { id: 'nova-gh',    label: 'Ama',     accent: 'Ghanaian',      gender: 'Female', flag: '🇬🇭' },
+    { id: 'echo-gh',    label: 'Kwame',   accent: 'Ghanaian',      gender: 'Male',   flag: '🇬🇭' },
+    { id: 'nova-za',    label: 'Naledi',  accent: 'South African',  gender: 'Female', flag: '🇿🇦' },
+    { id: 'onyx-za',    label: 'Sipho',   accent: 'South African',  gender: 'Male',   flag: '🇿🇦' },
+    { id: 'shimmer-ke', label: 'Wanjiku', accent: 'Kenyan',        gender: 'Female', flag: '🇰🇪' },
+    { id: 'echo-ke',    label: 'Otieno',  accent: 'Kenyan',        gender: 'Male',   flag: '🇰🇪' },
+    { id: 'nova-tz',    label: 'Amina',   accent: 'Tanzanian',     gender: 'Female', flag: '🇹🇿' },
+    { id: 'echo-et',    label: 'Dawit',   accent: 'Ethiopian',     gender: 'Male',   flag: '🇪🇹' },
+    { id: 'shimmer-cm', label: 'Ngozi',   accent: 'Cameroonian',   gender: 'Female', flag: '🇨🇲' },
+    { id: 'onyx-eg',    label: 'Ahmed',   accent: 'Egyptian',      gender: 'Male',   flag: '🇪🇬' },
+  ]},
+  { group: '🇺🇸 American', voices: [
+    { id: 'nova',     label: 'Nova',     accent: 'American',  gender: 'Female', flag: '🇺🇸' },
+    { id: 'shimmer',  label: 'Shimmer',  accent: 'American',  gender: 'Female', flag: '🇺🇸' },
+    { id: 'echo',     label: 'Echo',     accent: 'American',  gender: 'Male',   flag: '🇺🇸' },
+    { id: 'alloy',    label: 'Alloy',    accent: 'Neutral',   gender: 'Neutral', flag: '🌐' },
+  ]},
+  { group: '🇬🇧 British', voices: [
+    { id: 'fable-uk',    label: 'James',     accent: 'British', gender: 'Male',   flag: '🇬🇧' },
+    { id: 'shimmer-uk',  label: 'Charlotte', accent: 'British', gender: 'Female', flag: '🇬🇧' },
+    { id: 'onyx',        label: 'Onyx',      accent: 'Deep',    gender: 'Male',   flag: '🇬🇧' },
+    { id: 'fable',       label: 'Fable',     accent: 'British', gender: 'Male',   flag: '🇬🇧' },
+  ]},
+  { group: '🌏 International', voices: [
+    { id: 'nova-in',    label: 'Priya',   accent: 'Indian',     gender: 'Female', flag: '🇮🇳' },
+    { id: 'echo-fr',    label: 'Pierre',  accent: 'French',     gender: 'Male',   flag: '🇫🇷' },
+    { id: 'shimmer-br', label: 'Ana',     accent: 'Brazilian',  gender: 'Female', flag: '🇧🇷' },
+    { id: 'echo-jm',    label: 'Marcus',  accent: 'Jamaican',   gender: 'Male',   flag: '🇯🇲' },
+    { id: 'nova-au',    label: 'Sophie',  accent: 'Australian', gender: 'Female', flag: '🇦🇺' },
+  ]},
+];
+
+function VoiceoverPanel({ voice, setVoice, addVoiceover, setAddVoiceover }) {
+  const [playingId, setPlayingId] = useState(null);
+  const [loadingId, setLoadingId] = useState(null);
+  const audioRef = useRef(null);
+  const [expandedGroup, setExpandedGroup] = useState('🌍 Africa');
+
+  const handlePreview = async (voiceId) => {
+    // Stop current audio
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    if (playingId === voiceId) { setPlayingId(null); return; }
+
+    setLoadingId(voiceId);
+    setVoice(voiceId);
+    try {
+      const { data } = await api.post('/api/ai-content/voice/preview', { voiceId }, { timeout: 20000 });
+      if (data.audioBase64) {
+        const audio = new Audio(`data:audio/mp3;base64,${data.audioBase64}`);
+        audioRef.current = audio;
+        audio.onended = () => { setPlayingId(null); audioRef.current = null; };
+        audio.play();
+        setPlayingId(voiceId);
+      }
+    } catch {
+      // Silently fail preview
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  // Cleanup audio on unmount
+  useEffect(() => () => { if (audioRef.current) audioRef.current.pause(); }, []);
+
+  return (
+    <div className="border border-purple-200 rounded-xl p-4 bg-purple-50/50">
+      <div className="flex items-center justify-between mb-3">
+        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+          <Mic size={16} className="text-purple-500" /> Voiceover Narration
+        </label>
+        <button onClick={() => setAddVoiceover(!addVoiceover)}
+          className={`relative w-11 h-6 rounded-full transition-colors ${addVoiceover ? 'bg-purple-600' : 'bg-gray-300'}`}
+        >
+          <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${addVoiceover ? 'left-[22px]' : 'left-0.5'}`} />
+        </button>
+      </div>
+
+      {addVoiceover && (
+        <div className="space-y-3">
+          {/* Region tabs */}
+          <div className="flex flex-wrap gap-1.5">
+            {VOICES.map(group => (
+              <button key={group.group} onClick={() => setExpandedGroup(expandedGroup === group.group ? '' : group.group)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  expandedGroup === group.group ? 'bg-purple-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {group.group} ({group.voices.length})
+              </button>
+            ))}
+          </div>
+
+          {/* Voice cards for expanded group */}
+          {VOICES.filter(g => g.group === expandedGroup).map(group => (
+            <div key={group.group} className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {group.voices.map(v => {
+                const isSelected = voice === v.id;
+                const isPlaying = playingId === v.id;
+                const isLoading = loadingId === v.id;
+                return (
+                  <div key={v.id}
+                    className={`relative rounded-xl border-2 transition-all overflow-hidden ${
+                      isSelected ? 'border-purple-500 bg-purple-50 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
+                  >
+                    {/* Select on card click */}
+                    <button onClick={() => setVoice(v.id)} className="w-full px-3 py-2.5 text-left">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{v.flag}</span>
+                        <div className="min-w-0">
+                          <div className={`text-xs font-bold truncate ${isSelected ? 'text-purple-700' : 'text-gray-800'}`}>{v.label}</div>
+                          <div className="text-[10px] text-gray-400">{v.accent} · {v.gender}</div>
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Play preview button */}
+                    <button onClick={(e) => { e.stopPropagation(); handlePreview(v.id); }}
+                      className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                        isPlaying ? 'bg-purple-600 text-white scale-110' :
+                        isLoading ? 'bg-purple-100 text-purple-500' :
+                        'bg-gray-100 text-gray-500 hover:bg-purple-100 hover:text-purple-600'
+                      }`}
+                      title="Preview voice"
+                    >
+                      {isLoading ? <Loader2 size={12} className="animate-spin" /> :
+                       isPlaying ? <Pause size={12} /> : <Play size={12} />}
+                    </button>
+
+                    {/* Playing indicator */}
+                    {isPlaying && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500">
+                        <div className="h-full bg-purple-300 animate-pulse" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+
+          <p className="text-[10px] text-gray-400">
+            Click the play button to preview each voice. AI reads each scene's "Narration" field — scenes without narration text will be silent.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+// ═══════════════════════════════════════════
 // VIDEO MAKER — with Script Writer
 // ═══════════════════════════════════════════
 function VideoMaker({ balance }) {
@@ -465,49 +624,7 @@ function VideoMaker({ balance }) {
         )}
 
         {/* Voiceover Settings */}
-        <div className="border border-purple-200 rounded-xl p-4 bg-purple-50/50">
-          <div className="flex items-center justify-between mb-3">
-            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-              <Mic size={16} className="text-purple-500" /> Voiceover Narration
-            </label>
-            <button onClick={() => setAddVoiceover(!addVoiceover)}
-              className={`relative w-11 h-6 rounded-full transition-colors ${addVoiceover ? 'bg-purple-600' : 'bg-gray-300'}`}
-            >
-              <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${addVoiceover ? 'translate-x-5.5 left-[22px]' : 'left-0.5'}`} />
-            </button>
-          </div>
-
-          {addVoiceover && (
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-2">Voice</label>
-                <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-                  {[
-                    { id: 'nova', label: 'Nova', desc: 'Female, warm', flag: '🇺🇸' },
-                    { id: 'shimmer', label: 'Shimmer', desc: 'Female, soft', flag: '🇬🇧' },
-                    { id: 'alloy', label: 'Alloy', desc: 'Neutral, clear', flag: '🌐' },
-                    { id: 'echo', label: 'Echo', desc: 'Male, warm', flag: '🇺🇸' },
-                    { id: 'onyx', label: 'Onyx', desc: 'Male, deep', flag: '🇬🇧' },
-                    { id: 'fable', label: 'Fable', desc: 'Expressive', flag: '🇬🇧' },
-                  ].map(v => (
-                    <button key={v.id} onClick={() => setVoice(v.id)}
-                      className={`px-2 py-2 rounded-lg text-center border-2 transition-all ${
-                        voice === v.id ? 'border-purple-500 bg-purple-100' : 'border-gray-200 hover:border-gray-300 bg-white'
-                      }`}
-                    >
-                      <div className="text-base">{v.flag}</div>
-                      <div className={`text-xs font-semibold ${voice === v.id ? 'text-purple-700' : 'text-gray-700'}`}>{v.label}</div>
-                      <div className="text-[10px] text-gray-400">{v.desc}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <p className="text-[10px] text-gray-400">
-                AI will read each scene's "Narration" text aloud. Scenes without narration text will have no voiceover.
-              </p>
-            </div>
-          )}
-        </div>
+        <VoiceoverPanel voice={voice} setVoice={setVoice} addVoiceover={addVoiceover} setAddVoiceover={setAddVoiceover} />
 
         {/* Generate */}
         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
