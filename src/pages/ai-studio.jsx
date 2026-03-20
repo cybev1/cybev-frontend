@@ -2768,7 +2768,14 @@ function MovieMaker({ balance }) {
               try {
                 setError('');
                 const urls = ep.scenes.filter(s => s.videoUrl).map(s => s.videoUrl);
-                const narrations = ep.scenes.map(s => s.narration || '');
+                // For movies: compile dialogue as audio. For each scene, use dialogue if available, else narration.
+                const narrations = ep.scenes.map(s => {
+                  if (s.dialogue?.length > 0) {
+                    // Movie dialogue — compile character lines into speakable text
+                    return s.dialogue.map(d => d.line || '').join('. ');
+                  }
+                  return s.narration || '';
+                });
                 const textOverlays = ep.scenes.map(s => s.textOverlay || '');
                 const { data } = await api.post('/api/ai-content/video/merge', {
                   videoUrls: urls, title: `${p.title} - ${ep.title}`,
