@@ -230,7 +230,7 @@ function VideoMaker({ balance }) {
         duration: durConfig.key,
         aspectRatio,
         script
-      });
+      }, { timeout: 300000 }); // 5 min — multi-scene submission is sequential with rate-limit delays
 
       // ─── MULTI-SCENE response ───
       if (data.mode === 'multi' && data.tasks) {
@@ -486,6 +486,7 @@ function VideoMaker({ balance }) {
     const completedCount = sceneTasks.filter(t => t.status === 'completed').length;
     const totalCount = sceneTasks.length;
     const isMulti = totalCount > 1;
+    const isSubmitting = totalCount === 0 && genStatus === 'processing';
 
     return (
       <div className="space-y-5">
@@ -499,6 +500,18 @@ function VideoMaker({ balance }) {
             >
               <ArrowLeft size={14} /> Back to Script Editor
             </button>
+          </div>
+        ) : isSubmitting ? (
+          <div className="flex flex-col items-center gap-4 py-12">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-purple-200 rounded-full" />
+              <div className="absolute inset-0 w-16 h-16 border-4 border-purple-600 rounded-full border-t-transparent animate-spin" />
+            </div>
+            <p className="text-gray-700 font-semibold text-lg">Submitting scenes to AI...</p>
+            <p className="text-gray-400 text-sm text-center max-w-md">
+              Each scene is queued one at a time to stay within API limits.
+              {script?.scenes?.length > 3 && ` ${script.scenes.length} scenes ≈ ${Math.ceil(script.scenes.length * 11 / 60)} min to submit.`}
+            </p>
           </div>
         ) : isMulti ? (
           <div className="space-y-4">
