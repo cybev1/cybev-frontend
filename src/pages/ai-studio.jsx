@@ -2768,18 +2768,34 @@ function MovieMaker({ balance }) {
               try {
                 setError('');
                 const urls = ep.scenes.filter(s => s.videoUrl).map(s => s.videoUrl);
-                // For movies: compile dialogue as audio. For each scene, use dialogue if available, else narration.
+                // For movies: compile dialogue as audio
                 const narrations = ep.scenes.map(s => {
                   if (s.dialogue?.length > 0) {
-                    // Movie dialogue — compile character lines into speakable text
                     return s.dialogue.map(d => d.line || '').join('. ');
                   }
                   return s.narration || '';
                 });
                 const textOverlays = ep.scenes.map(s => s.textOverlay || '');
+
+                // Build voice recording URLs — match scene's primary character to their recording
+                const voiceRecordingUrls = ep.scenes.map(s => {
+                  // Find the first speaking character in this scene who has a voice recording
+                  const speakerNames = [
+                    ...(s.dialogue?.map(d => d.character) || []),
+                    ...(s.characters || [])
+                  ];
+                  for (const name of speakerNames) {
+                    if (!name) continue;
+                    const char = p.characters?.find(c =>
+                      c.voiceRecordingUrl && c.name.toLowerCase() === name.toLowerCase()
+                    );
+                    if (char) return char.voiceRecordingUrl;
+                  }
+                  return null;
+                });
                 const { data } = await api.post('/api/ai-content/video/merge', {
                   videoUrls: urls, title: `${p.title} - ${ep.title}`,
-                  narrations, textOverlays,
+                  narrations, textOverlays, voiceRecordingUrls,
                   voice: p.defaultVoiceId || 'onyx-narrator', addVoiceover: true, autoCaptions: p.autoCaptions !== false,
                   logoUrl: p.logoUrl || undefined, introImageUrl: p.introImageUrl || undefined, outroImageUrl: p.outroImageUrl || undefined
                 }, { timeout: 360000 });
