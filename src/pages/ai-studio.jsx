@@ -2394,8 +2394,16 @@ function MovieMaker({ balance }) {
                     if (!count) { btn.disabled = false; btn.textContent = 'AI Plan Season'; return; }
                     const { data } = await api.post(`/api/movie-projects/${p._id}/plan-season`, { episodeCount: count }, { timeout: 600000 });
                     loadProject(p._id);
-                    alert(`Season planned! ${data.episodesCreated} episodes created.`);
-                  } catch (e) { alert(e?.response?.data?.error || 'Planning failed'); }
+                    if (data.episodesCreated < data.requested) {
+                      alert(`Planned ${data.episodesCreated} of ${data.requested} episodes. Some batches failed — you can plan more to fill the gaps.`);
+                    } else {
+                      alert(`All ${data.episodesCreated} episodes planned!`);
+                    }
+                  } catch (err) {
+                    // Reload project — batches saved before the failure are still in DB
+                    loadProject(p._id);
+                    alert(err?.response?.data?.error || 'Planning may have partially completed — check your episodes list.');
+                  }
                   finally { btn.disabled = false; btn.textContent = 'AI Plan Season'; }
                 }} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-purple-50 text-purple-600 rounded-full hover:bg-purple-100 font-medium disabled:opacity-50">
                   <Sparkles size={12} /> AI Plan Season
