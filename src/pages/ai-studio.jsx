@@ -799,20 +799,48 @@ function VideoMaker({ balance }) {
           </div>
         )}
 
-        {/* ─── Merge / Action buttons ─── */}
-        <div className="flex flex-wrap items-center gap-3">
-          {canMerge && !mergedUrl && (
-            <button onClick={() => handleMerge(scenes)} disabled={merging}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-sm font-semibold hover:shadow-lg disabled:opacity-60 transition-all"
-            >
-              {merging ? <Loader2 size={16} className="animate-spin" /> : <Film size={16} />}
-              {merging ? 'Merging...' : `Merge${addVoiceover ? ' + Voiceover' : ''} (${scenes.length * 5}s)`}
-            </button>
-          )}
-          <button className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
-            <Share2 size={14} /> Post to CYBEV
-          </button>
-        </div>
+        {/* ─── STEP 1: MERGE + VOICEOVER (primary action) ─── */}
+        {canMerge && !mergedUrl && !merging && (
+          <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-5 text-white">
+            <div className="flex items-start gap-3">
+              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                <Volume2 size={24} />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-bold text-lg">Next: Add Voiceover & Merge</h4>
+                <p className="text-sm text-purple-100 mt-1">
+                  AI video clips are generated <strong>without audio</strong>. Click below to merge all {scenes.length} scenes into one {scenes.length * 5}s video
+                  {addVoiceover && ` with ${VOICES.flatMap(g => g.voices).find(v => v.id === voice)?.label || voice} narration`}.
+                </p>
+                <div className="flex flex-wrap items-center gap-3 mt-4">
+                  <button onClick={() => handleMerge(scenes)}
+                    className="flex items-center gap-2 px-6 py-3 bg-white text-purple-700 rounded-full font-bold hover:bg-purple-50 transition-colors shadow-lg"
+                  >
+                    <Film size={18} /> {addVoiceover ? 'Merge + Add Voiceover' : 'Merge All Scenes'}
+                  </button>
+                  <button onClick={() => setStep(2)}
+                    className="flex items-center gap-1.5 px-4 py-2.5 bg-white/20 text-white rounded-full text-sm font-medium hover:bg-white/30"
+                  >
+                    <Mic size={14} /> Change Voice
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── Merging progress ─── */}
+        {merging && (
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 text-center border border-purple-200">
+            <Loader2 size={32} className="animate-spin text-purple-500 mx-auto mb-3" />
+            <p className="text-base text-purple-700 font-bold">
+              {addVoiceover ? 'Generating voiceover & merging video...' : 'Merging scenes into one video...'}
+            </p>
+            <p className="text-sm text-purple-400 mt-1">
+              {addVoiceover ? `Creating ${VOICES.flatMap(g => g.voices).find(v => v.id === voice)?.label || voice} narration for each scene, then combining everything — 1-3 minutes` : '30-60 seconds'}
+            </p>
+          </div>
+        )}
 
         {mergeError && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
@@ -821,28 +849,43 @@ function VideoMaker({ balance }) {
           </div>
         )}
 
-        {merging && (
-          <div className="p-4 bg-purple-50 rounded-xl text-center">
-            <Loader2 size={24} className="animate-spin text-purple-500 mx-auto mb-2" />
-            <p className="text-sm text-purple-700 font-medium">
-              {addVoiceover ? `Generating ${voice} voiceover + merging ${scenes.length} clips...` : `Merging ${scenes.length} clips into one video...`}
-            </p>
-            <p className="text-xs text-purple-400 mt-1">
-              {addVoiceover ? 'Generating narration audio, then combining with video — may take 1-2 minutes' : 'This may take 30-60 seconds'}
-            </p>
+        {/* ─── Merged result (full video with audio) ─── */}
+        {mergedUrl && (
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-5 border border-purple-200">
+            <h4 className="text-sm font-bold text-purple-700 mb-3 flex items-center gap-2">
+              <CheckCircle2 size={16} className="text-green-500" />
+              Full Video with Audio ({scenes.length * 5}s)
+            </h4>
+            <video src={mergedUrl} controls autoPlay className="w-full rounded-lg max-h-96 bg-black" />
+            <div className="flex flex-wrap gap-3 mt-3">
+              <a href={mergedUrl} download={`${(result.title || 'cybev-video').replace(/\s+/g, '-')}.mp4`}
+                className="flex items-center gap-1.5 px-5 py-2.5 bg-purple-600 text-white rounded-full text-sm font-semibold hover:bg-purple-700"
+              >
+                <Download size={15} /> Download Full Video
+              </a>
+              <button className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
+                <Share2 size={14} /> Post to CYBEV
+              </button>
+            </div>
           </div>
         )}
 
-        {/* ─── Scene previews — ALWAYS VISIBLE ─── */}
-        {isMulti ? (
+        {/* ─── Individual scene clips (silent previews) ─── */}
+        {isMulti && (
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-700">Scene Clips ({scenes.length} × 5s each)</h4>
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-semibold text-gray-700">Scene Clips ({scenes.length} × 5s each)</h4>
+              <span className="flex items-center gap-1 text-[10px] text-gray-400 bg-gray-100 px-2 py-1 rounded-full">
+                <VolumeX size={10} /> Silent — audio added on merge
+              </span>
+            </div>
             {scenes.map((scene, i) => (
               <div key={i} className="bg-gray-50 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                     <div className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold">{scene.sceneNumber}</div>
                     Scene {scene.sceneNumber}
+                    <span className="text-[10px] text-gray-400 flex items-center gap-0.5"><VolumeX size={9} /> silent</span>
                   </span>
                   <a href={scene.videoUrl} download={`${(result.title || 'scene').replace(/\s+/g, '-')}-scene-${scene.sceneNumber}.mp4`}
                     className="flex items-center gap-1 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium hover:bg-purple-200"
@@ -850,11 +893,14 @@ function VideoMaker({ balance }) {
                     <Download size={12} /> Download
                   </a>
                 </div>
-                <video src={scene.videoUrl} controls className="w-full rounded-lg max-h-56 bg-black" />
+                <video src={scene.videoUrl} controls muted className="w-full rounded-lg max-h-56 bg-black" />
               </div>
             ))}
           </div>
-        ) : (
+        )}
+
+        {/* Single scene (non-multi) */}
+        {!isMulti && (
           <div className="bg-gray-50 rounded-xl p-5">
             <video src={result.videoUrl} controls className="w-full rounded-lg max-h-96 bg-black" />
             <a href={result.videoUrl} download={`${(result.title || 'cybev-video').replace(/\s+/g, '-')}.mp4`}
