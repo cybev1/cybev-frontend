@@ -211,10 +211,15 @@ function VideoMaker({ balance }) {
   };
 
   // Generate video from script
+  const [sceneTasks, setSceneTasks] = useState([]);
+  const [sceneResults, setSceneResults] = useState([]);
+
   const handleGenerate = async () => {
     setStep(3);
     setGenStatus('processing');
     setProgress(0);
+    setSceneTasks([]);
+    setSceneResults([]);
     try {
       const { data } = await api.post('/api/ai-content/video/generate', {
         prompt: idea,
@@ -224,7 +229,40 @@ function VideoMaker({ balance }) {
         script
       });
 
-      if (data.status === 'completed') {
+      // ─── MULTI-SCENE response ───
+      if (data.mode === 'multi' && data.tasks) {
+        const tasks = data.tasks;
+        setSceneTasks(tasks);
+        const taskIds = tasks.map(t => t.taskId).filter(Boolean);
+        if (!taskIds.length) { setGenStatus('failed'); return; }
+
+        // Poll batch endpoint
+        pollRef.current = setInterval(async () => {
+          try {
+            const { data: batch } = await api.post('/api/ai-content/video/status/batch', {
+              taskIds, provider: data.provider || 'replicate'
+            });
+            setProgress(batch.progress || 0);
+            // Update scene results
+            const updated = tasks.map(t => {
+              const r = batch.results.find(b => b.taskId === t.taskId);
+              return { ...t, status: r?.status || t.status, videoUrl: r?.videoUrl || t.videoUrl };
+            });
+            setSceneTasks(updated);
+
+            if (batch.allDone) {
+              clearInterval(pollRef.current);
+              const completedScenes = updated.filter(t => t.status === 'completed' && t.videoUrl);
+              setSceneResults(completedScenes);
+              setResult({ mode: 'multi', scenes: completedScenes, title: data.title });
+              setGenStatus('completed');
+              setStep(4);
+            }
+          } catch {}
+        }, 4000);
+      }
+      // ─── SINGLE response (5s / no script) ───
+      else if (data.status === 'completed') {
         setResult(data);
         setGenStatus('completed');
         setStep(4);
@@ -297,7 +335,7 @@ function VideoMaker({ balance }) {
                 }`}
               >
                 <div className={`text-lg font-bold ${duration === d.val ? 'text-purple-700' : 'text-gray-700'}`}>{d.label}</div>
-                <div className="text-[10px] text-gray-500 mt-0.5">{d.scenes} scene{d.scenes > 1 ? 's' : ''}</div>
+                <div className="text-[10px] text-gray-500 mt-0.5">{d.scenes} scene{d.scenes > 1 ? 's' : ''} × 5s each</div>
                 <div className="text-[10px] text-amber-500 mt-0.5">{d.cost} credits</div>
               </button>
             ))}
@@ -405,40 +443,122 @@ function VideoMaker({ balance }) {
     );
   }
 
-  // ─── STEP 3: Generating ───
+  // ─── STEP 3: Generating (with per-scene progress) ───
   if (step === 3) {
+    const completedCount = sceneTasks.filter(t => t.status === 'completed').length;
+    const totalCount = sceneTasks.length;
+    const isMulti = totalCount > 1;
+
     return (
       <div className="space-y-5">
         <StepIndicator steps={['Idea', 'Script', 'Edit', 'Generate']} current={3} accent="purple" />
-        <GenerationStatus status={genStatus} progress={progress} onRetry={() => { setStep(2); setGenStatus(null); }} />
+
+        {genStatus === 'failed' ? (
+          <GenerationStatus status="failed" progress={0} onRetry={() => { setStep(2); setGenStatus(null); }} />
+        ) : isMulti ? (
+          <div className="space-y-4">
+            <div className="text-center">
+              <p className="text-gray-700 font-semibold text-lg">Generating {totalCount} scenes...</p>
+              <p className="text-gray-400 text-sm mt-1">{completedCount}/{totalCount} scenes complete — each scene takes 30-90 seconds</p>
+            </div>
+
+            {/* Overall progress bar */}
+            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-700"
+                style={{ width: `${totalCount ? (completedCount / totalCount) * 100 : 0}%` }}
+              />
+            </div>
+
+            {/* Per-scene status */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {sceneTasks.map((t, i) => (
+                <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${
+                  t.status === 'completed' ? 'border-green-200 bg-green-50 text-green-700' :
+                  t.status === 'failed' ? 'border-red-200 bg-red-50 text-red-600' :
+                  'border-gray-200 bg-white text-gray-600'
+                }`}>
+                  {t.status === 'completed' ? <CheckCircle2 size={14} className="text-green-500 flex-shrink-0" /> :
+                   t.status === 'failed' ? <XCircle size={14} className="text-red-400 flex-shrink-0" /> :
+                   <Loader2 size={14} className="animate-spin text-purple-500 flex-shrink-0" />}
+                  <span className="font-medium">Scene {t.sceneNumber}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <GenerationStatus status={genStatus} progress={progress} onRetry={() => { setStep(2); setGenStatus(null); }} />
+        )}
       </div>
     );
   }
 
   // ─── STEP 4: Result ───
   if (step === 4 && result) {
+    const isMulti = result.mode === 'multi' && result.scenes?.length > 0;
+
     return (
       <div className="space-y-5">
         <StepIndicator steps={['Idea', 'Script', 'Edit', 'Generate']} current={4} accent="purple" />
-        <div className="bg-gray-50 rounded-xl p-5">
-          <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-            <CheckCircle2 size={18} className="text-green-500" /> Video Ready!
-          </h3>
-          <video src={result.videoUrl} controls className="w-full rounded-lg max-h-96 bg-black" />
-          <div className="flex flex-wrap gap-3 mt-4">
-            <a href={result.videoUrl} download className="flex items-center gap-1.5 px-4 py-2 bg-purple-600 text-white rounded-full text-sm font-medium hover:bg-purple-700">
-              <Download size={14} /> Download
-            </a>
-            <button className="flex items-center gap-1.5 px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
-              <Share2 size={14} /> Post to CYBEV
-            </button>
-            <button onClick={() => { setStep(0); setResult(null); setScript(null); setGenStatus(null); }}
-              className="flex items-center gap-1.5 px-4 py-2 border border-gray-300 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50"
-            >
-              <Plus size={14} /> Create Another
-            </button>
+
+        {isMulti ? (
+          <div className="space-y-4">
+            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+              <CheckCircle2 size={18} className="text-green-500" />
+              {result.title || 'Video'} — {result.scenes.length} Scenes Ready!
+            </h3>
+            <p className="text-sm text-gray-500">Each scene is a 5-second clip. Play them in order for your full {result.scenes.length * 5}s video.</p>
+
+            <div className="space-y-3">
+              {result.scenes.map((scene, i) => (
+                <div key={i} className="bg-gray-50 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                      <div className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold">{scene.sceneNumber}</div>
+                      Scene {scene.sceneNumber}
+                    </span>
+                    <a href={scene.videoUrl} download={`scene-${scene.sceneNumber}.mp4`}
+                      className="flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium hover:bg-purple-200"
+                    >
+                      <Download size={12} /> Download
+                    </a>
+                  </div>
+                  <video src={scene.videoUrl} controls className="w-full rounded-lg max-h-64 bg-black" />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-3 pt-2 border-t border-gray-100">
+              <button className="flex items-center gap-1.5 px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
+                <Share2 size={14} /> Post to CYBEV
+              </button>
+              <button onClick={() => { setStep(0); setResult(null); setScript(null); setGenStatus(null); setSceneTasks([]); setSceneResults([]); }}
+                className="flex items-center gap-1.5 px-4 py-2 border border-gray-300 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50"
+              >
+                <Plus size={14} /> Create Another
+              </button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-gray-50 rounded-xl p-5">
+            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <CheckCircle2 size={18} className="text-green-500" /> Video Ready!
+            </h3>
+            <video src={result.videoUrl} controls className="w-full rounded-lg max-h-96 bg-black" />
+            <div className="flex flex-wrap gap-3 mt-4">
+              <a href={result.videoUrl} download className="flex items-center gap-1.5 px-4 py-2 bg-purple-600 text-white rounded-full text-sm font-medium hover:bg-purple-700">
+                <Download size={14} /> Download
+              </a>
+              <button className="flex items-center gap-1.5 px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
+                <Share2 size={14} /> Post to CYBEV
+              </button>
+              <button onClick={() => { setStep(0); setResult(null); setScript(null); setGenStatus(null); }}
+                className="flex items-center gap-1.5 px-4 py-2 border border-gray-300 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50"
+              >
+                <Plus size={14} /> Create Another
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
