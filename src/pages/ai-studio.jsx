@@ -714,7 +714,7 @@ function VideoMaker({ balance }) {
                   <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                     const file = e.target.files?.[0]; if (!file) return;
                     try {
-                      const fd = new FormData(); fd.append('image', file);
+                      const fd = new FormData(); fd.append('file', file);
                       const { data } = await api.post('/api/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 });
                       setLogoUrl(data.url || data.imageUrl || data.secure_url || '');
                     } catch {}
@@ -749,7 +749,7 @@ function VideoMaker({ balance }) {
                   <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                     const file = e.target.files?.[0]; if (!file) return;
                     try {
-                      const fd = new FormData(); fd.append('image', file);
+                      const fd = new FormData(); fd.append('file', file);
                       const { data } = await api.post('/api/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 });
                       setIntroImageUrl(data.url || data.imageUrl || data.secure_url || '');
                     } catch {}
@@ -773,7 +773,7 @@ function VideoMaker({ balance }) {
                   <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                     const file = e.target.files?.[0]; if (!file) return;
                     try {
-                      const fd = new FormData(); fd.append('image', file);
+                      const fd = new FormData(); fd.append('file', file);
                       const { data } = await api.post('/api/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 });
                       setOutroImageUrl(data.url || data.imageUrl || data.secure_url || '');
                     } catch {}
@@ -997,7 +997,7 @@ function VideoMaker({ balance }) {
                   if (!file) return;
                   try {
                     const formData = new FormData();
-                    formData.append('image', file);
+                    formData.append('file', file);
                     const { data } = await api.post('/api/upload/image', formData, {
                       headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000
                     });
@@ -1872,7 +1872,7 @@ function MovieMaker({ balance }) {
   // Create form
   const [formTitle, setFormTitle] = useState('');
   const [formType, setFormType] = useState('series');
-  const [formGenre, setFormGenre] = useState('Drama');
+  const [formGenre, setFormGenre] = useState(['Drama']);
   const [formLogline, setFormLogline] = useState('');
   const [formStyle, setFormStyle] = useState('Cinematic');
 
@@ -1956,7 +1956,7 @@ function MovieMaker({ balance }) {
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-gray-900 truncate">{p.title}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{p.type} · {p.genre} · {p.totalEpisodes || 0} episode{p.totalEpisodes !== 1 ? 's' : ''}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{p.type} · {Array.isArray(p.genre) ? p.genre.join(', ') : p.genre} · {p.totalEpisodes || 0} episode{p.totalEpisodes !== 1 ? 's' : ''}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
                         p.status === 'published' ? 'bg-green-100 text-green-700' :
@@ -2007,11 +2007,11 @@ function MovieMaker({ balance }) {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Genre</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Genre (select multiple)</label>
             <div className="flex flex-wrap gap-1.5">
               {GENRES.map(g => (
-                <button key={g} onClick={() => setFormGenre(g)}
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium ${formGenre === g ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                <button key={g} onClick={() => setFormGenre(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g])}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium ${formGenre.includes(g) ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                 >{g}</button>
               ))}
             </div>
@@ -2062,7 +2062,7 @@ function MovieMaker({ balance }) {
           </div>
           <div className="flex-1">
             <h3 className="text-xl font-bold text-gray-900">{p.title}</h3>
-            <p className="text-sm text-gray-500">{p.type} · {p.genre} · {p.style}</p>
+            <p className="text-sm text-gray-500">{p.type} · {Array.isArray(p.genre) ? p.genre.join(', ') : p.genre} · {p.style}</p>
             {p.logline && <p className="text-sm text-gray-600 mt-1 italic">"{p.logline}"</p>}
           </div>
         </div>
@@ -2102,7 +2102,7 @@ function MovieMaker({ balance }) {
                       <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                         const file = e.target.files?.[0]; if (!file) return;
                         try {
-                          const fd = new FormData(); fd.append('image', file);
+                          const fd = new FormData(); fd.append('file', file);
                           const { data: up } = await api.post('/api/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
                           const url = up.url || up.imageUrl || up.secure_url;
                           await api.put(`/api/movie-projects/${p._id}/characters/${c._id}`, { faceImageUrl: url });
@@ -2123,14 +2123,17 @@ function MovieMaker({ balance }) {
             <h4 className="text-sm font-bold text-gray-700 flex items-center gap-2"><Film size={16} className="text-amber-500" /> Episodes ({p.episodes?.length || 0})</h4>
             <div className="flex gap-2">
               {p.type === 'series' && (
-                <button onClick={async () => {
+                <button onClick={async (e) => {
+                  const btn = e.currentTarget; btn.disabled = true; btn.textContent = 'Planning...';
                   try {
                     const count = parseInt(prompt('How many episodes?', '6')) || 6;
+                    if (!count) { btn.disabled = false; btn.textContent = 'AI Plan Season'; return; }
                     const { data } = await api.post(`/api/movie-projects/${p._id}/plan-season`, { episodeCount: count }, { timeout: 120000 });
                     loadProject(p._id);
                     alert(`Season planned! ${data.episodesCreated} episodes created.`);
                   } catch (e) { alert(e?.response?.data?.error || 'Planning failed'); }
-                }} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-purple-50 text-purple-600 rounded-full hover:bg-purple-100 font-medium">
+                  finally { btn.disabled = false; btn.textContent = 'AI Plan Season'; }
+                }} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-purple-50 text-purple-600 rounded-full hover:bg-purple-100 font-medium disabled:opacity-50">
                   <Sparkles size={12} /> AI Plan Season
                 </button>
               )}
@@ -2354,7 +2357,7 @@ function DubStudio({ balance }) {
     setError('');
     try {
       const formData = new FormData();
-      formData.append('video', file);
+      formData.append('file', file);
       const { data } = await api.post('/api/upload/video', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120000
       });
@@ -2372,7 +2375,7 @@ function DubStudio({ balance }) {
     if (!file) return;
     try {
       const formData = new FormData();
-      formData.append('video', file); // reuse video upload endpoint for audio
+      formData.append('file', file); // reuse video upload endpoint for audio
       const { data } = await api.post('/api/upload/video', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }, timeout: 60000
       });
@@ -2635,7 +2638,7 @@ function CharacterGenerator({ balance }) {
     reader.readAsDataURL(file);
     try {
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('file', file);
       const { data } = await api.post('/api/upload/image', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }, timeout: 60000
       });
