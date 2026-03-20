@@ -1880,6 +1880,11 @@ function MovieMaker({ balance }) {
   const [editMode, setEditMode] = useState(false);
   const [editFields, setEditFields] = useState({});
 
+  // Episode view
+  const [genProgress, setGenProgress] = useState(null);
+  const [merging, setMerging] = useState(false);
+  const epPollRef = useRef(null);
+
   // Load projects
   const loadProjects = async () => {
     try {
@@ -2507,74 +2512,140 @@ function MovieMaker({ balance }) {
   }
 
   // ─── EPISODE VIEW (Script + Generate + Preview) ───
+
+  // Auto-poll when episode is generating
+  useEffect(() => {
+    if (view === 'episode' && activeEpisode?.status === 'generating' && activeProject) {
+      const poll = setInterval(async () => {
+        try {
+          const { data: st } = await api.get(`/api/movie-projects/${activeProject._id}/episodes/${activeEpisode._id}/status`);
+          setGenProgress(st.summary);
+          if (st.allDone) {
+            clearInterval(poll);
+            const { data: pd } = await api.get(`/api/movie-projects/${activeProject._id}`);
+            const updatedEp = pd.project.episodes.find(e => e._id === activeEpisode._id);
+            if (updatedEp) setActiveEpisode(updatedEp);
+            setActiveProject(pd.project);
+            setGenProgress(null);
+          } else {
+            // Update scenes with video URLs as they come in
+            const completedScenes = st.scenes.filter(s => s.videoUrl);
+            if (completedScenes.length > 0) {
+              setActiveEpisode(prev => {
+                if (!prev?.scenes) return prev;
+                const updated = { ...prev, scenes: prev.scenes.map(s => {
+                  const match = st.scenes.find(r => r.sceneNumber === s.sceneNumber);
+                  return match ? { ...s, status: match.status, videoUrl: match.videoUrl || s.videoUrl } : s;
+                })};
+                return updated;
+              });
+            }
+          }
+        } catch {}
+      }, 5000);
+      epPollRef.current = poll;
+      return () => clearInterval(poll);
+    }
+  }, [view, activeEpisode?._id, activeEpisode?.status]);
+
   if (view === 'episode' && activeProject && activeEpisode) {
     const p = activeProject;
     const ep = activeEpisode;
+    const completedScenes = ep.scenes?.filter(s => s.status === 'completed' || s.videoUrl).length || 0;
+    const totalScenes = ep.scenes?.length || 0;
+
     return (
       <div className="space-y-5">
         <div className="flex items-center justify-between">
-          <button onClick={() => { setView('project'); setActiveEpisode(null); }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+          <button onClick={() => { setView('project'); setActiveEpisode(null); setGenProgress(null); clearInterval(epPollRef.current); }}
+            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+          >
             <ArrowLeft size={16} /> Back to {p.title}
           </button>
-          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-            ep.status === 'scripted' ? 'bg-purple-100 text-purple-700' :
-            ep.status === 'rendered' ? 'bg-green-100 text-green-700' :
-            'bg-gray-100 text-gray-500'
-          }`}>{ep.status}</span>
+          <div className="flex items-center gap-2">
+            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+              ep.status === 'merged' ? 'bg-green-100 text-green-700' :
+              ep.status === 'rendered' ? 'bg-blue-100 text-blue-700' :
+              ep.status === 'generating' ? 'bg-amber-100 text-amber-700' :
+              ep.status === 'scripted' ? 'bg-purple-100 text-purple-700' :
+              'bg-gray-100 text-gray-500'
+            }`}>{ep.status}</span>
+            {/* Edit episode title/synopsis */}
+            <button onClick={async () => {
+              const title = prompt('Episode title:', ep.title);
+              if (!title) return;
+              const synopsis = prompt('Synopsis:', ep.synopsis || '') || '';
+              try {
+                await api.put(`/api/movie-projects/${p._id}/episodes/${ep._id}`, { title, synopsis });
+                setActiveEpisode(prev => ({ ...prev, title, synopsis }));
+                loadProject(p._id);
+              } catch {}
+            }} className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center hover:bg-amber-50" title="Edit episode">
+              <Edit3 size={12} className="text-gray-500" />
+            </button>
+          </div>
         </div>
 
         <h3 className="font-bold text-gray-900">Ep {ep.episodeNumber}: {ep.title}</h3>
         {ep.synopsis && <p className="text-sm text-gray-500 italic">{ep.synopsis}</p>}
 
-        {/* Actions */}
+        {/* ─── PROGRESS BAR (during generation) ─── */}
+        {(ep.status === 'generating' || genProgress) && (
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-amber-700 flex items-center gap-2">
+                <Loader2 size={16} className="animate-spin" /> Generating Scenes...
+              </span>
+              <span className="text-sm font-bold text-amber-600">
+                {genProgress ? `${genProgress.completed}/${genProgress.total}` : `${completedScenes}/${totalScenes}`}
+              </span>
+            </div>
+            <div className="w-full h-3 bg-amber-200 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500"
+                style={{ width: `${genProgress ? genProgress.progress : (totalScenes > 0 ? Math.round(completedScenes / totalScenes * 100) : 0)}%` }}
+              />
+            </div>
+            <div className="flex justify-between mt-1.5 text-[10px] text-amber-500">
+              <span>{genProgress?.completed || completedScenes} completed</span>
+              {(genProgress?.failed || 0) > 0 && <span className="text-red-500">{genProgress.failed} failed</span>}
+              <span>{genProgress?.generating || (totalScenes - completedScenes)} in progress</span>
+            </div>
+          </div>
+        )}
+
+        {/* ─── ACTION BUTTONS ─── */}
         <div className="flex flex-wrap gap-2">
-          {/* Write Script */}
           {(!ep.scenes || ep.scenes.length === 0 || ep.status === 'draft') && (
-            <button onClick={async () => {
+            <button onClick={async (e) => {
+              const btn = e.currentTarget; btn.disabled = true;
               try {
                 setError('');
-                const btn = document.activeElement; btn.disabled = true; btn.textContent = 'Writing script...';
                 const { data } = await api.post(`/api/movie-projects/${p._id}/episodes/${ep._id}/write-script`, {}, { timeout: 120000 });
                 setActiveEpisode(data.episode);
-                // Refresh project
                 loadProject(p._id);
-                btn.disabled = false;
-              } catch (e) { setError(e?.response?.data?.error || 'Script failed'); }
-            }} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-sm font-semibold hover:shadow-lg">
+              } catch (err) { setError(err?.response?.data?.error || 'Script failed'); }
+              finally { btn.disabled = false; }
+            }} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-sm font-semibold hover:shadow-lg disabled:opacity-50">
               <PenTool size={16} /> AI Write Script
             </button>
           )}
 
-          {/* Generate Scenes */}
           {ep.scenes?.length > 0 && (ep.status === 'scripted' || ep.status === 'draft') && (
-            <button onClick={async () => {
+            <button onClick={async (e) => {
+              const btn = e.currentTarget; btn.disabled = true;
               try {
                 setError('');
-                const { data } = await api.post(`/api/movie-projects/${p._id}/episodes/${ep._id}/generate`, {}, { timeout: 300000 });
+                await api.post(`/api/movie-projects/${p._id}/episodes/${ep._id}/generate`, {}, { timeout: 300000 });
                 setActiveEpisode(prev => ({ ...prev, status: 'generating' }));
-                // Poll for completion
-                const poll = setInterval(async () => {
-                  try {
-                    const { data: st } = await api.get(`/api/movie-projects/${p._id}/episodes/${ep._id}/status`);
-                    if (st.allDone) {
-                      clearInterval(poll);
-                      loadProject(p._id);
-                      // Refresh episode
-                      const { data: pd } = await api.get(`/api/movie-projects/${p._id}`);
-                      const updatedEp = pd.project.episodes.find(e => e._id === ep._id);
-                      if (updatedEp) setActiveEpisode(updatedEp);
-                    }
-                  } catch {}
-                }, 5000);
-              } catch (e) { setError(e?.response?.data?.error || 'Generation failed'); }
-            }} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-red-600 text-white rounded-full text-sm font-semibold hover:shadow-lg">
+              } catch (err) { setError(err?.response?.data?.error || 'Generation failed'); btn.disabled = false; }
+            }} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-red-600 text-white rounded-full text-sm font-semibold hover:shadow-lg disabled:opacity-50">
               <Sparkles size={16} /> Generate All Scenes
             </button>
           )}
 
-          {/* Merge — triggers /ai-content/video/merge (existing) */}
-          {ep.status === 'rendered' && ep.scenes?.some(s => s.videoUrl) && (
-            <button onClick={async () => {
+          {(ep.status === 'rendered' || (completedScenes >= 2 && ep.status !== 'generating')) && (
+            <button onClick={async (e) => {
+              const btn = e.currentTarget; btn.disabled = true; setMerging(true);
               try {
                 setError('');
                 const urls = ep.scenes.filter(s => s.videoUrl).map(s => s.videoUrl);
@@ -2583,56 +2654,157 @@ function MovieMaker({ balance }) {
                 const { data } = await api.post('/api/ai-content/video/merge', {
                   videoUrls: urls, title: `${p.title} - ${ep.title}`,
                   narrations, textOverlays,
-                  voice: p.defaultVoiceId || 'onyx-narrator', addVoiceover: true, autoCaptions: p.autoCaptions,
+                  voice: p.defaultVoiceId || 'onyx-narrator', addVoiceover: true, autoCaptions: p.autoCaptions !== false,
                   logoUrl: p.logoUrl || undefined, introImageUrl: p.introImageUrl || undefined, outroImageUrl: p.outroImageUrl || undefined
                 }, { timeout: 360000 });
                 if (data.mergedUrl) {
                   await api.put(`/api/movie-projects/${p._id}/episodes/${ep._id}`, { status: 'merged' });
                   setActiveEpisode(prev => ({ ...prev, mergedVideoUrl: data.mergedUrl, status: 'merged', thumbnails: data.thumbnails || [] }));
                 }
-              } catch (e) { setError(e?.response?.data?.error || 'Merge failed'); }
-            }} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full text-sm font-semibold hover:shadow-lg">
-              <Film size={16} /> Merge + Voiceover
+              } catch (err) { setError(err?.response?.data?.error || 'Merge failed'); }
+              finally { btn.disabled = false; setMerging(false); }
+            }} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full text-sm font-semibold hover:shadow-lg disabled:opacity-50">
+              {merging ? <Loader2 size={16} className="animate-spin" /> : <Film size={16} />}
+              {merging ? 'Merging...' : 'Merge + Voiceover'}
+            </button>
+          )}
+
+          {/* Re-script */}
+          {ep.scenes?.length > 0 && ep.status !== 'generating' && (
+            <button onClick={async () => {
+              if (!confirm('Re-script this episode? All scenes will be erased.')) return;
+              try {
+                await api.post(`/api/movie-projects/${p._id}/episodes/${ep._id}/re-script`);
+                setActiveEpisode(prev => ({ ...prev, scenes: [], status: 'draft', mergedVideoUrl: '' }));
+                loadProject(p._id);
+              } catch {}
+            }} className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-100 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-200">
+              <RefreshCw size={14} /> Re-script
+            </button>
+          )}
+
+          {/* Delete all scenes */}
+          {ep.scenes?.length > 0 && ep.status !== 'generating' && (
+            <button onClick={async () => {
+              if (!confirm(`Delete all ${ep.scenes.length} scenes?`)) return;
+              try {
+                await api.delete(`/api/movie-projects/${p._id}/episodes/${ep._id}/scenes`);
+                setActiveEpisode(prev => ({ ...prev, scenes: [], status: 'draft', mergedVideoUrl: '' }));
+                loadProject(p._id);
+              } catch {}
+            }} className="flex items-center gap-1.5 px-4 py-2.5 bg-red-50 text-red-500 rounded-full text-sm font-medium hover:bg-red-100">
+              <Trash2 size={14} /> Delete All Scenes
             </button>
           )}
         </div>
 
-        {ep.status === 'generating' && (
-          <div className="bg-amber-50 rounded-xl p-4 text-center">
-            <Loader2 size={24} className="animate-spin text-amber-500 mx-auto mb-2" />
-            <p className="text-sm text-amber-700 font-medium">Generating scenes... (check back in a few minutes)</p>
+        {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{error}</div>}
+
+        {/* ─── Merging progress ─── */}
+        {merging && (
+          <div className="bg-green-50 rounded-xl p-4 text-center border border-green-200">
+            <Loader2 size={24} className="animate-spin text-green-500 mx-auto mb-2" />
+            <p className="text-sm text-green-700 font-medium">Merging {completedScenes} scenes + adding voiceover...</p>
+            <p className="text-xs text-green-400 mt-1">This may take 1-3 minutes</p>
           </div>
         )}
 
-        {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{error}</div>}
-
-        {/* Merged video */}
+        {/* ─── Merged video ─── */}
         {ep.mergedVideoUrl && (
           <div className="bg-green-50 rounded-xl p-4 border border-green-200">
             <h4 className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-2"><CheckCircle2 size={16} /> Full Episode with Audio</h4>
             <video src={ep.mergedVideoUrl} controls className="w-full rounded-lg max-h-80 bg-black" />
-            <a href={ep.mergedVideoUrl} download className="inline-flex items-center gap-1.5 px-4 py-2 mt-2 bg-green-600 text-white rounded-full text-sm font-medium hover:bg-green-700">
-              <Download size={14} /> Download Episode
-            </a>
+            <div className="flex gap-2 mt-2">
+              <a href={ep.mergedVideoUrl} download className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white rounded-full text-sm font-medium hover:bg-green-700">
+                <Download size={14} /> Download
+              </a>
+              <button className="flex items-center gap-1.5 px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
+                <Share2 size={14} /> Post to CYBEV
+              </button>
+            </div>
           </div>
         )}
 
-        {/* Scene list */}
+        {/* ─── SCENE LIST with edit/delete ─── */}
         {ep.scenes?.length > 0 && (
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-700">Scenes ({ep.scenes.length})</h4>
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-semibold text-gray-700">Scenes ({totalScenes}) — {completedScenes} rendered</h4>
+              {ep.status !== 'generating' && (
+                <span className="text-[10px] text-gray-400">Hover scenes to edit or delete</span>
+              )}
+            </div>
             {ep.scenes.map((scene, i) => (
-              <div key={i} className="border border-gray-200 rounded-xl p-3">
-                <div className="flex items-center justify-between mb-2">
+              <div key={i} className="border border-gray-200 rounded-xl p-3 group relative">
+                {/* Scene action buttons — top right */}
+                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* Edit scene */}
+                  <button onClick={async () => {
+                    const visual = prompt('Visual description:', scene.visual);
+                    if (visual === null) return;
+                    const narration = prompt('Narration:', scene.narration || '');
+                    const textOverlay = prompt('Text overlay (max 8 words):', scene.textOverlay || '');
+                    const camera = prompt('Camera:', scene.camera || '');
+                    try {
+                      await api.put(`/api/movie-projects/${p._id}/episodes/${ep._id}/scenes/${i}`, {
+                        visual: visual || scene.visual, narration, textOverlay, camera
+                      });
+                      setActiveEpisode(prev => {
+                        const scenes = [...prev.scenes];
+                        scenes[i] = { ...scenes[i], visual: visual || scenes[i].visual, narration, textOverlay, camera };
+                        return { ...prev, scenes };
+                      });
+                    } catch {}
+                  }} className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:bg-amber-50" title="Edit scene">
+                    <Edit3 size={10} className="text-gray-500" />
+                  </button>
+                  {/* Delete scene */}
+                  <button onClick={async () => {
+                    if (!confirm(`Delete Scene ${scene.sceneNumber}?`)) return;
+                    try {
+                      await api.delete(`/api/movie-projects/${p._id}/episodes/${ep._id}/scenes/${i}`);
+                      setActiveEpisode(prev => {
+                        const scenes = prev.scenes.filter((_, idx) => idx !== i).map((s, idx) => ({ ...s, sceneNumber: idx + 1 }));
+                        return { ...prev, scenes };
+                      });
+                    } catch {}
+                  }} className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:bg-red-50" title="Delete scene">
+                    <Trash2 size={10} className="text-red-400" />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between mb-2 pr-16">
                   <span className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                     <div className="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs font-bold">{scene.sceneNumber}</div>
                     Scene {scene.sceneNumber}
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${scene.status === 'completed' ? 'bg-green-100 text-green-600' : scene.status === 'generating' ? 'bg-amber-100 text-amber-600' : scene.status === 'failed' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-400'}`}>{scene.status}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                      scene.status === 'completed' || scene.videoUrl ? 'bg-green-100 text-green-600' :
+                      scene.status === 'generating' ? 'bg-amber-100 text-amber-600 animate-pulse' :
+                      scene.status === 'failed' ? 'bg-red-100 text-red-600' :
+                      'bg-gray-100 text-gray-400'
+                    }`}>{scene.videoUrl ? 'completed' : scene.status}</span>
                   </span>
+                  {scene.status === 'generating' && <Loader2 size={14} className="animate-spin text-amber-500" />}
                 </div>
-                <p className="text-xs text-gray-600 mb-1">{scene.visual?.substring(0, 120)}...</p>
-                {scene.narration && <p className="text-xs text-purple-600 italic">🎤 "{scene.narration.substring(0, 80)}..."</p>}
-                {scene.videoUrl && <video src={scene.videoUrl} controls muted className="w-full rounded-lg max-h-40 bg-black mt-2" />}
+
+                <p className="text-xs text-gray-600 mb-1"><span className="font-medium text-gray-500">Visual:</span> {scene.visual?.substring(0, 150)}{scene.visual?.length > 150 ? '...' : ''}</p>
+                {scene.camera && <p className="text-[10px] text-gray-400 mb-1">📷 {scene.camera}</p>}
+                {scene.narration && <p className="text-xs text-purple-600 italic mb-1">🎤 "{scene.narration}"</p>}
+                {scene.textOverlay && <p className="text-[10px] text-amber-600 mb-1">📝 "{scene.textOverlay}"</p>}
+                {scene.dialogue?.length > 0 && (
+                  <div className="text-[10px] text-blue-600 mb-1">
+                    {scene.dialogue.map((d, di) => <span key={di} className="block">💬 <strong>{d.character}:</strong> "{d.line}"</span>)}
+                  </div>
+                )}
+
+                {scene.videoUrl && (
+                  <div className="mt-2">
+                    <video src={scene.videoUrl} controls muted className="w-full rounded-lg max-h-40 bg-black" />
+                    <a href={scene.videoUrl} download className="inline-flex items-center gap-1 mt-1 text-[10px] text-amber-600 hover:text-amber-800">
+                      <Download size={10} /> Download clip
+                    </a>
+                  </div>
+                )}
               </div>
             ))}
           </div>
