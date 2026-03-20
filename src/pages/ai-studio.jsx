@@ -23,6 +23,7 @@ import {
 // ─── Constants ───
 const TOOLS = [
   { id: 'video', label: 'AI Video', icon: Film, color: 'from-purple-600 to-pink-600', accent: 'purple', desc: 'Script → scene-by-scene video' },
+  { id: 'movie', label: 'AI Movie', icon: Video, color: 'from-amber-500 to-red-600', accent: 'amber', desc: 'Movies, series & episodes' },
   { id: 'music', label: 'AI Music', icon: Music, color: 'from-blue-600 to-cyan-600', accent: 'blue', desc: 'Compose songs with AI' },
   { id: 'graphics', label: 'AI Graphics', icon: Image, color: 'from-orange-500 to-red-500', accent: 'orange', desc: 'Create stunning visuals' },
   { id: 'dub', label: 'AI Dub', icon: Languages, color: 'from-emerald-500 to-teal-600', accent: 'emerald', desc: 'Re-voice & translate videos' },
@@ -1855,6 +1856,469 @@ function GraphicsGenerator({ balance }) {
 // MAIN AI STUDIO PAGE
 // ═══════════════════════════════════════════
 // ═══════════════════════════════════════════
+// MOVIE MAKER — Full production pipeline
+// ═══════════════════════════════════════════
+const GENRES = ['Drama', 'Comedy', 'Action', 'Documentary', 'Horror', 'Sci-Fi', 'Romance', 'Thriller', 'Animation', 'Faith', 'Mystery', 'Fantasy'];
+
+function MovieMaker({ balance }) {
+  const [view, setView] = useState('list'); // list, create, project, episode
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeProject, setActiveProject] = useState(null);
+  const [activeEpisode, setActiveEpisode] = useState(null);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState('');
+
+  // Create form
+  const [formTitle, setFormTitle] = useState('');
+  const [formType, setFormType] = useState('series');
+  const [formGenre, setFormGenre] = useState('Drama');
+  const [formLogline, setFormLogline] = useState('');
+  const [formStyle, setFormStyle] = useState('Cinematic');
+
+  // Load projects
+  const loadProjects = async () => {
+    try {
+      setLoading(true);
+      const { data } = await api.get('/api/movie-projects');
+      setProjects(data.projects || []);
+    } catch {} finally { setLoading(false); }
+  };
+
+  const loadProject = async (id) => {
+    try {
+      const { data } = await api.get(`/api/movie-projects/${id}`);
+      setActiveProject(data.project);
+      setView('project');
+    } catch (e) { setError(e?.response?.data?.error || 'Failed to load project'); }
+  };
+
+  useEffect(() => { loadProjects(); }, []);
+
+  // Create project
+  const handleCreate = async () => {
+    if (!formTitle.trim()) return;
+    setCreating(true);
+    try {
+      const { data } = await api.post('/api/movie-projects', {
+        title: formTitle, type: formType, genre: formGenre, logline: formLogline, style: formStyle
+      });
+      setActiveProject(data.project);
+      setView('project');
+      setFormTitle(''); setFormLogline('');
+      loadProjects();
+    } catch (e) { setError(e?.response?.data?.error || 'Failed to create'); }
+    finally { setCreating(false); }
+  };
+
+  // ─── LIST VIEW ───
+  if (view === 'list') {
+    return (
+      <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <Video size={22} className="text-amber-500" /> AI Movie Studio
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">Create movies, series, and episodes with AI</p>
+          </div>
+          <button onClick={() => setView('create')}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-red-600 text-white rounded-full text-sm font-semibold hover:shadow-lg transition-all"
+          >
+            <Plus size={16} /> New Project
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-12"><Loader2 size={24} className="animate-spin text-amber-500 mx-auto" /></div>
+        ) : projects.length === 0 ? (
+          <div className="text-center py-16 space-y-4">
+            <Video size={56} className="mx-auto text-gray-300" />
+            <p className="text-gray-500 font-medium">No projects yet</p>
+            <p className="text-sm text-gray-400 max-w-md mx-auto">Create your first AI movie, series, or short film. Cast characters using your own photos and AI will generate every scene.</p>
+            <button onClick={() => setView('create')}
+              className="px-6 py-3 bg-gradient-to-r from-amber-500 to-red-600 text-white rounded-full font-semibold"
+            >Create Your First Project</button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {projects.map(p => (
+              <button key={p._id} onClick={() => loadProject(p._id)}
+                className="text-left p-4 border border-gray-200 rounded-xl hover:border-amber-300 hover:bg-amber-50/30 transition-all"
+              >
+                <div className="flex items-start gap-3">
+                  {p.coverImageUrl ? (
+                    <img src={p.coverImageUrl} className="w-16 h-16 rounded-lg object-cover flex-shrink-0" alt="" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-amber-100 to-red-100 flex items-center justify-center flex-shrink-0">
+                      <Film size={24} className="text-amber-500" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-gray-900 truncate">{p.title}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{p.type} · {p.genre} · {p.totalEpisodes || 0} episode{p.totalEpisodes !== 1 ? 's' : ''}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                        p.status === 'published' ? 'bg-green-100 text-green-700' :
+                        p.status === 'in-production' ? 'bg-amber-100 text-amber-700' :
+                        'bg-gray-100 text-gray-500'
+                      }`}>{p.status}</span>
+                      <span className="text-[10px] text-gray-400">{p.characters?.length || 0} characters</span>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-gray-300 flex-shrink-0 mt-4" />
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ─── CREATE VIEW ───
+  if (view === 'create') {
+    return (
+      <div className="space-y-5">
+        <button onClick={() => setView('list')} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+          <ArrowLeft size={16} /> Back to Projects
+        </button>
+        <h3 className="text-lg font-bold text-gray-900">New Movie Project</h3>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+          <input type="text" value={formTitle} onChange={e => setFormTitle(e.target.value)} placeholder='e.g. "The Last Prophet" or "Lagos Dreams"'
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+            <div className="flex gap-2">
+              {[{ v: 'series', l: '📺 Series', d: 'Multiple episodes' }, { v: 'movie', l: '🎬 Movie', d: 'Single feature' }, { v: 'short', l: '🎞️ Short Film', d: 'Under 5 min' }].map(t => (
+                <button key={t.v} onClick={() => setFormType(t.v)}
+                  className={`flex-1 px-3 py-2.5 rounded-xl text-center border-2 transition-all ${formType === t.v ? 'border-amber-500 bg-amber-50' : 'border-gray-200'}`}
+                >
+                  <div className="text-sm font-semibold">{t.l}</div>
+                  <div className="text-[10px] text-gray-400">{t.d}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Genre</label>
+            <div className="flex flex-wrap gap-1.5">
+              {GENRES.map(g => (
+                <button key={g} onClick={() => setFormGenre(g)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium ${formGenre === g ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                >{g}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Logline (one-sentence pitch)</label>
+          <input type="text" value={formLogline} onChange={e => setFormLogline(e.target.value)}
+            placeholder='e.g. "A young Nigerian programmer discovers she can hack into an alternate digital dimension"'
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Visual Style</label>
+          <PillSelect options={VIDEO_STYLES} value={formStyle} onChange={setFormStyle} accent="orange" />
+        </div>
+
+        {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{error}</div>}
+
+        <button onClick={handleCreate} disabled={!formTitle.trim() || creating}
+          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-red-600 text-white rounded-full font-semibold hover:shadow-lg disabled:opacity-50 transition-all"
+        >
+          {creating ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+          Create Project
+        </button>
+      </div>
+    );
+  }
+
+  // ─── PROJECT VIEW (Characters + Episodes) ───
+  if (view === 'project' && activeProject) {
+    const p = activeProject;
+    return (
+      <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <button onClick={() => { setView('list'); setActiveProject(null); }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+            <ArrowLeft size={16} /> All Projects
+          </button>
+          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${p.status === 'in-production' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>{p.status}</span>
+        </div>
+
+        {/* Project Header */}
+        <div className="flex items-start gap-4">
+          <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-amber-100 to-red-100 flex items-center justify-center flex-shrink-0">
+            {p.coverImageUrl ? <img src={p.coverImageUrl} className="w-full h-full rounded-xl object-cover" alt="" /> : <Film size={32} className="text-amber-500" />}
+          </div>
+          <div className="flex-1">
+            <h3 className="text-xl font-bold text-gray-900">{p.title}</h3>
+            <p className="text-sm text-gray-500">{p.type} · {p.genre} · {p.style}</p>
+            {p.logline && <p className="text-sm text-gray-600 mt-1 italic">"{p.logline}"</p>}
+          </div>
+        </div>
+
+        {/* CHARACTERS */}
+        <div className="border border-gray-200 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-bold text-gray-700 flex items-center gap-2"><UserCircle2 size={16} className="text-amber-500" /> Cast ({p.characters?.length || 0})</h4>
+            <button onClick={async () => {
+              const name = prompt('Character name:');
+              if (!name) return;
+              const role = prompt('Role (main/supporting/narrator):') || 'main';
+              const desc = prompt('Brief description:') || '';
+              try {
+                const { data } = await api.post(`/api/movie-projects/${p._id}/characters`, { name, role, description: desc });
+                setActiveProject(prev => ({ ...prev, characters: data.characters }));
+              } catch {}
+            }} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-amber-50 text-amber-600 rounded-full hover:bg-amber-100 font-medium">
+              <Plus size={12} /> Add Character
+            </button>
+          </div>
+
+          {(!p.characters || p.characters.length === 0) ? (
+            <p className="text-sm text-gray-400 text-center py-4">No characters yet. Add your cast — upload face photos so AI can generate them in scenes!</p>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {p.characters.map(c => (
+                <div key={c._id} className="border border-gray-200 rounded-xl p-3 text-center">
+                  <div className="w-16 h-16 mx-auto rounded-full overflow-hidden bg-gray-100 mb-2">
+                    {c.faceImageUrl ? <img src={c.faceImageUrl} className="w-full h-full object-cover" alt="" /> : <UserCircle2 size={40} className="text-gray-300 mx-auto mt-3" />}
+                  </div>
+                  <p className="text-sm font-semibold text-gray-800 truncate">{c.name}</p>
+                  <p className="text-[10px] text-gray-400">{c.role}</p>
+                  {!c.faceImageUrl && (
+                    <label className="mt-2 flex items-center justify-center gap-1 px-2 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-medium cursor-pointer hover:bg-amber-100">
+                      <Camera size={10} /> Upload Face
+                      <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                        const file = e.target.files?.[0]; if (!file) return;
+                        try {
+                          const fd = new FormData(); fd.append('image', file);
+                          const { data: up } = await api.post('/api/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                          const url = up.url || up.imageUrl || up.secure_url;
+                          await api.put(`/api/movie-projects/${p._id}/characters/${c._id}`, { faceImageUrl: url });
+                          loadProject(p._id);
+                        } catch {}
+                      }} />
+                    </label>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* EPISODES */}
+        <div className="border border-gray-200 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-bold text-gray-700 flex items-center gap-2"><Film size={16} className="text-amber-500" /> Episodes ({p.episodes?.length || 0})</h4>
+            <div className="flex gap-2">
+              {p.type === 'series' && (
+                <button onClick={async () => {
+                  try {
+                    const count = parseInt(prompt('How many episodes?', '6')) || 6;
+                    const { data } = await api.post(`/api/movie-projects/${p._id}/plan-season`, { episodeCount: count }, { timeout: 120000 });
+                    loadProject(p._id);
+                    alert(`Season planned! ${data.episodesCreated} episodes created.`);
+                  } catch (e) { alert(e?.response?.data?.error || 'Planning failed'); }
+                }} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-purple-50 text-purple-600 rounded-full hover:bg-purple-100 font-medium">
+                  <Sparkles size={12} /> AI Plan Season
+                </button>
+              )}
+              <button onClick={async () => {
+                const title = prompt('Episode title:') || `Episode ${(p.episodes?.length || 0) + 1}`;
+                try {
+                  await api.post(`/api/movie-projects/${p._id}/episodes`, { title, duration: 60 });
+                  loadProject(p._id);
+                } catch {}
+              }} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-amber-50 text-amber-600 rounded-full hover:bg-amber-100 font-medium">
+                <Plus size={12} /> Add Episode
+              </button>
+            </div>
+          </div>
+
+          {(!p.episodes || p.episodes.length === 0) ? (
+            <p className="text-sm text-gray-400 text-center py-4">No episodes. Add one manually or let AI plan your entire season!</p>
+          ) : (
+            <div className="space-y-2">
+              {p.episodes.map((ep, i) => (
+                <button key={ep._id} onClick={() => { setActiveEpisode(ep); setView('episode'); }}
+                  className="w-full text-left flex items-center gap-3 p-3 border border-gray-100 rounded-xl hover:border-amber-200 hover:bg-amber-50/30 transition-all"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0 text-sm font-bold text-amber-600">{ep.episodeNumber}</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-800 truncate">{ep.title}</p>
+                    <p className="text-[10px] text-gray-400 truncate">{ep.synopsis || 'No synopsis'}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                      ep.status === 'merged' || ep.status === 'published' ? 'bg-green-100 text-green-700' :
+                      ep.status === 'rendered' ? 'bg-blue-100 text-blue-700' :
+                      ep.status === 'generating' ? 'bg-amber-100 text-amber-700' :
+                      ep.status === 'scripted' ? 'bg-purple-100 text-purple-700' :
+                      'bg-gray-100 text-gray-500'
+                    }`}>{ep.status}</span>
+                    <span className="text-[10px] text-gray-400">{ep.scenes?.length || 0} scenes</span>
+                    <ChevronRight size={14} className="text-gray-300" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── EPISODE VIEW (Script + Generate + Preview) ───
+  if (view === 'episode' && activeProject && activeEpisode) {
+    const p = activeProject;
+    const ep = activeEpisode;
+    return (
+      <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <button onClick={() => { setView('project'); setActiveEpisode(null); }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+            <ArrowLeft size={16} /> Back to {p.title}
+          </button>
+          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+            ep.status === 'scripted' ? 'bg-purple-100 text-purple-700' :
+            ep.status === 'rendered' ? 'bg-green-100 text-green-700' :
+            'bg-gray-100 text-gray-500'
+          }`}>{ep.status}</span>
+        </div>
+
+        <h3 className="font-bold text-gray-900">Ep {ep.episodeNumber}: {ep.title}</h3>
+        {ep.synopsis && <p className="text-sm text-gray-500 italic">{ep.synopsis}</p>}
+
+        {/* Actions */}
+        <div className="flex flex-wrap gap-2">
+          {/* Write Script */}
+          {(!ep.scenes || ep.scenes.length === 0 || ep.status === 'draft') && (
+            <button onClick={async () => {
+              try {
+                setError('');
+                const btn = document.activeElement; btn.disabled = true; btn.textContent = 'Writing script...';
+                const { data } = await api.post(`/api/movie-projects/${p._id}/episodes/${ep._id}/write-script`, {}, { timeout: 120000 });
+                setActiveEpisode(data.episode);
+                // Refresh project
+                loadProject(p._id);
+                btn.disabled = false;
+              } catch (e) { setError(e?.response?.data?.error || 'Script failed'); }
+            }} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-sm font-semibold hover:shadow-lg">
+              <PenTool size={16} /> AI Write Script
+            </button>
+          )}
+
+          {/* Generate Scenes */}
+          {ep.scenes?.length > 0 && (ep.status === 'scripted' || ep.status === 'draft') && (
+            <button onClick={async () => {
+              try {
+                setError('');
+                const { data } = await api.post(`/api/movie-projects/${p._id}/episodes/${ep._id}/generate`, {}, { timeout: 300000 });
+                setActiveEpisode(prev => ({ ...prev, status: 'generating' }));
+                // Poll for completion
+                const poll = setInterval(async () => {
+                  try {
+                    const { data: st } = await api.get(`/api/movie-projects/${p._id}/episodes/${ep._id}/status`);
+                    if (st.allDone) {
+                      clearInterval(poll);
+                      loadProject(p._id);
+                      // Refresh episode
+                      const { data: pd } = await api.get(`/api/movie-projects/${p._id}`);
+                      const updatedEp = pd.project.episodes.find(e => e._id === ep._id);
+                      if (updatedEp) setActiveEpisode(updatedEp);
+                    }
+                  } catch {}
+                }, 5000);
+              } catch (e) { setError(e?.response?.data?.error || 'Generation failed'); }
+            }} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-red-600 text-white rounded-full text-sm font-semibold hover:shadow-lg">
+              <Sparkles size={16} /> Generate All Scenes
+            </button>
+          )}
+
+          {/* Merge — triggers /ai-content/video/merge (existing) */}
+          {ep.status === 'rendered' && ep.scenes?.some(s => s.videoUrl) && (
+            <button onClick={async () => {
+              try {
+                setError('');
+                const urls = ep.scenes.filter(s => s.videoUrl).map(s => s.videoUrl);
+                const narrations = ep.scenes.map(s => s.narration || '');
+                const textOverlays = ep.scenes.map(s => s.textOverlay || '');
+                const { data } = await api.post('/api/ai-content/video/merge', {
+                  videoUrls: urls, title: `${p.title} - ${ep.title}`,
+                  narrations, textOverlays,
+                  voice: p.defaultVoiceId || 'onyx-narrator', addVoiceover: true, autoCaptions: p.autoCaptions,
+                  logoUrl: p.logoUrl || undefined, introImageUrl: p.introImageUrl || undefined, outroImageUrl: p.outroImageUrl || undefined
+                }, { timeout: 360000 });
+                if (data.mergedUrl) {
+                  await api.put(`/api/movie-projects/${p._id}/episodes/${ep._id}`, { status: 'merged' });
+                  setActiveEpisode(prev => ({ ...prev, mergedVideoUrl: data.mergedUrl, status: 'merged', thumbnails: data.thumbnails || [] }));
+                }
+              } catch (e) { setError(e?.response?.data?.error || 'Merge failed'); }
+            }} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full text-sm font-semibold hover:shadow-lg">
+              <Film size={16} /> Merge + Voiceover
+            </button>
+          )}
+        </div>
+
+        {ep.status === 'generating' && (
+          <div className="bg-amber-50 rounded-xl p-4 text-center">
+            <Loader2 size={24} className="animate-spin text-amber-500 mx-auto mb-2" />
+            <p className="text-sm text-amber-700 font-medium">Generating scenes... (check back in a few minutes)</p>
+          </div>
+        )}
+
+        {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{error}</div>}
+
+        {/* Merged video */}
+        {ep.mergedVideoUrl && (
+          <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+            <h4 className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-2"><CheckCircle2 size={16} /> Full Episode with Audio</h4>
+            <video src={ep.mergedVideoUrl} controls className="w-full rounded-lg max-h-80 bg-black" />
+            <a href={ep.mergedVideoUrl} download className="inline-flex items-center gap-1.5 px-4 py-2 mt-2 bg-green-600 text-white rounded-full text-sm font-medium hover:bg-green-700">
+              <Download size={14} /> Download Episode
+            </a>
+          </div>
+        )}
+
+        {/* Scene list */}
+        {ep.scenes?.length > 0 && (
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-gray-700">Scenes ({ep.scenes.length})</h4>
+            {ep.scenes.map((scene, i) => (
+              <div key={i} className="border border-gray-200 rounded-xl p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <div className="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs font-bold">{scene.sceneNumber}</div>
+                    Scene {scene.sceneNumber}
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${scene.status === 'completed' ? 'bg-green-100 text-green-600' : scene.status === 'generating' ? 'bg-amber-100 text-amber-600' : scene.status === 'failed' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-400'}`}>{scene.status}</span>
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600 mb-1">{scene.visual?.substring(0, 120)}...</p>
+                {scene.narration && <p className="text-xs text-purple-600 italic">🎤 "{scene.narration.substring(0, 80)}..."</p>}
+                {scene.videoUrl && <video src={scene.videoUrl} controls muted className="w-full rounded-lg max-h-40 bg-black mt-2" />}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return null;
+}
+
+
+// ═══════════════════════════════════════════
 // DUB STUDIO — Upload video → AI re-voices it
 // ═══════════════════════════════════════════
 function DubStudio({ balance }) {
@@ -2475,6 +2939,7 @@ export default function AIStudio() {
         {/* Active Tool Content */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
           {activeTool === 'video' && <VideoMaker balance={balance} />}
+          {activeTool === 'movie' && <MovieMaker balance={balance} />}
           {activeTool === 'music' && <MusicComposer balance={balance} />}
           {activeTool === 'graphics' && <GraphicsGenerator balance={balance} />}
           {activeTool === 'dub' && <DubStudio balance={balance} />}
