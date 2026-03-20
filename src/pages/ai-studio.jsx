@@ -162,6 +162,8 @@ function VideoMaker({ balance }) {
   const [mergedUrl, setMergedUrl] = useState(null);
   const [mergeError, setMergeError] = useState('');
   const [showAllScenes, setShowAllScenes] = useState(false);
+  const [voice, setVoice] = useState('nova');
+  const [addVoiceover, setAddVoiceover] = useState(true);
   const pollRef = useRef(null);
 
   const durConfig = VIDEO_DURATIONS.find(d => d.val === duration) || VIDEO_DURATIONS[2];
@@ -462,6 +464,51 @@ function VideoMaker({ balance }) {
           </div>
         )}
 
+        {/* Voiceover Settings */}
+        <div className="border border-purple-200 rounded-xl p-4 bg-purple-50/50">
+          <div className="flex items-center justify-between mb-3">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <Mic size={16} className="text-purple-500" /> Voiceover Narration
+            </label>
+            <button onClick={() => setAddVoiceover(!addVoiceover)}
+              className={`relative w-11 h-6 rounded-full transition-colors ${addVoiceover ? 'bg-purple-600' : 'bg-gray-300'}`}
+            >
+              <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${addVoiceover ? 'translate-x-5.5 left-[22px]' : 'left-0.5'}`} />
+            </button>
+          </div>
+
+          {addVoiceover && (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-2">Voice</label>
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                  {[
+                    { id: 'nova', label: 'Nova', desc: 'Female, warm', flag: '🇺🇸' },
+                    { id: 'shimmer', label: 'Shimmer', desc: 'Female, soft', flag: '🇬🇧' },
+                    { id: 'alloy', label: 'Alloy', desc: 'Neutral, clear', flag: '🌐' },
+                    { id: 'echo', label: 'Echo', desc: 'Male, warm', flag: '🇺🇸' },
+                    { id: 'onyx', label: 'Onyx', desc: 'Male, deep', flag: '🇬🇧' },
+                    { id: 'fable', label: 'Fable', desc: 'Expressive', flag: '🇬🇧' },
+                  ].map(v => (
+                    <button key={v.id} onClick={() => setVoice(v.id)}
+                      className={`px-2 py-2 rounded-lg text-center border-2 transition-all ${
+                        voice === v.id ? 'border-purple-500 bg-purple-100' : 'border-gray-200 hover:border-gray-300 bg-white'
+                      }`}
+                    >
+                      <div className="text-base">{v.flag}</div>
+                      <div className={`text-xs font-semibold ${voice === v.id ? 'text-purple-700' : 'text-gray-700'}`}>{v.label}</div>
+                      <div className="text-[10px] text-gray-400">{v.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <p className="text-[10px] text-gray-400">
+                AI will read each scene's "Narration" text aloud. Scenes without narration text will have no voiceover.
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* Generate */}
         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
           <TokenCost cost={durConfig.cost} label="to generate" />
@@ -555,9 +602,14 @@ function VideoMaker({ balance }) {
     setMerging(true);
     setMergeError('');
     try {
+      // Extract narrations from script for each scene
+      const narrations = script?.scenes?.map(s => s.narration || '') || [];
       const { data } = await api.post('/api/ai-content/video/merge', {
         videoUrls: scenes.map(s => s.videoUrl),
-        title: result?.title || 'CYBEV-video'
+        title: result?.title || 'CYBEV-video',
+        narrations,
+        voice,
+        addVoiceover
       }, { timeout: 300000 });
       if (data.mergedUrl) {
         setMergedUrl(data.mergedUrl);
@@ -624,7 +676,7 @@ function VideoMaker({ balance }) {
               className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-sm font-semibold hover:shadow-lg disabled:opacity-60 transition-all"
             >
               {merging ? <Loader2 size={16} className="animate-spin" /> : <Film size={16} />}
-              {merging ? 'Merging clips...' : `Merge into One Video (${scenes.length * 5}s)`}
+              {merging ? 'Merging...' : `Merge${addVoiceover ? ' + Voiceover' : ''} (${scenes.length * 5}s)`}
             </button>
           )}
           <button className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
@@ -642,8 +694,12 @@ function VideoMaker({ balance }) {
         {merging && (
           <div className="p-4 bg-purple-50 rounded-xl text-center">
             <Loader2 size={24} className="animate-spin text-purple-500 mx-auto mb-2" />
-            <p className="text-sm text-purple-700 font-medium">Merging {scenes.length} clips into one video...</p>
-            <p className="text-xs text-purple-400 mt-1">This may take 30-60 seconds</p>
+            <p className="text-sm text-purple-700 font-medium">
+              {addVoiceover ? `Generating ${voice} voiceover + merging ${scenes.length} clips...` : `Merging ${scenes.length} clips into one video...`}
+            </p>
+            <p className="text-xs text-purple-400 mt-1">
+              {addVoiceover ? 'Generating narration audio, then combining with video — may take 1-2 minutes' : 'This may take 30-60 seconds'}
+            </p>
           </div>
         )}
 
