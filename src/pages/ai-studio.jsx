@@ -347,6 +347,7 @@ function VideoMaker({ balance }) {
   const [addVoiceover, setAddVoiceover] = useState(true);
   const [thumbnails, setThumbnails] = useState([]);
   const [selectedThumb, setSelectedThumb] = useState(null);
+  const [autoCaptions, setAutoCaptions] = useState(false);
   const pollRef = useRef(null);
 
   const durConfig = VIDEO_DURATIONS.find(d => d.val === duration) || VIDEO_DURATIONS[2];
@@ -657,6 +658,24 @@ function VideoMaker({ balance }) {
         {/* Voiceover Settings */}
         <VoiceoverPanel voice={voice} setVoice={setVoice} addVoiceover={addVoiceover} setAddVoiceover={setAddVoiceover} />
 
+        {/* Auto-Captions toggle */}
+        {addVoiceover && (
+          <div className="flex items-center justify-between p-3 border border-gray-200 rounded-xl bg-white">
+            <div className="flex items-center gap-2">
+              <MessageSquare size={16} className="text-blue-500" />
+              <div>
+                <p className="text-sm font-medium text-gray-700">Auto-Captions</p>
+                <p className="text-[10px] text-gray-400">Display voiceover text as synced captions on the video</p>
+              </div>
+            </div>
+            <button onClick={() => setAutoCaptions(!autoCaptions)}
+              className={`relative w-11 h-6 rounded-full transition-colors ${autoCaptions ? 'bg-blue-600' : 'bg-gray-300'}`}
+            >
+              <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${autoCaptions ? 'left-[22px]' : 'left-0.5'}`} />
+            </button>
+          </div>
+        )}
+
         {/* Generate */}
         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
           <TokenCost cost={durConfig.cost} label="to generate" />
@@ -759,7 +778,8 @@ function VideoMaker({ balance }) {
         narrations,
         textOverlays,
         voice,
-        addVoiceover
+        addVoiceover,
+        autoCaptions
       }, { timeout: 300000 });
       if (data.mergedUrl) {
         setMergedUrl(data.mergedUrl);
@@ -888,13 +908,33 @@ function VideoMaker({ balance }) {
                 <h4 className="font-bold text-lg">Next: Add Voiceover & Merge</h4>
                 <p className="text-sm text-purple-100 mt-1">
                   AI video clips are generated <strong>without audio</strong>. Click below to merge all {scenes.length} scenes into one {scenes.length * 5}s video
-                  {addVoiceover && ` with ${VOICES.flatMap(g => g.voices).find(v => v.id === voice)?.label || voice} narration`}.
+                  {addVoiceover && ` with ${VOICES.flatMap(g => g.voices).find(v => v.id === voice)?.label || voice} narration`}
+                  {autoCaptions && ' + auto-captions'}.
                 </p>
-                <div className="flex flex-wrap items-center gap-3 mt-4">
+
+                {/* Quick toggles */}
+                <div className="flex flex-wrap items-center gap-2 mt-3">
+                  <button onClick={() => setAutoCaptions(!autoCaptions)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      autoCaptions ? 'bg-white text-purple-700' : 'bg-white/20 text-white hover:bg-white/30'
+                    }`}
+                  >
+                    <MessageSquare size={12} /> {autoCaptions ? 'Captions ON' : 'Captions OFF'}
+                  </button>
+                  <button onClick={() => setAddVoiceover(!addVoiceover)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      addVoiceover ? 'bg-white text-purple-700' : 'bg-white/20 text-white hover:bg-white/30'
+                    }`}
+                  >
+                    <Volume2 size={12} /> {addVoiceover ? 'Voice ON' : 'Voice OFF'}
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 mt-3">
                   <button onClick={() => handleMerge(scenes)}
                     className="flex items-center gap-2 px-6 py-3 bg-white text-purple-700 rounded-full font-bold hover:bg-purple-50 transition-colors shadow-lg"
                   >
-                    <Film size={18} /> {addVoiceover ? 'Merge + Add Voiceover' : 'Merge All Scenes'}
+                    <Film size={18} /> {addVoiceover ? 'Merge + Voiceover' : 'Merge All Scenes'}{autoCaptions ? ' + Captions' : ''}
                   </button>
                   <button onClick={() => setStep(2)}
                     className="flex items-center gap-1.5 px-4 py-2.5 bg-white/20 text-white rounded-full text-sm font-medium hover:bg-white/30"
