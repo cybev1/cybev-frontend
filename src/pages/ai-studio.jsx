@@ -1904,6 +1904,40 @@ function MovieMaker({ balance }) {
 
   useEffect(() => { loadProjects(); }, []);
 
+  // Auto-poll when episode is generating
+  useEffect(() => {
+    if (view === 'episode' && activeEpisode?.status === 'generating' && activeProject) {
+      const poll = setInterval(async () => {
+        try {
+          const { data: st } = await api.get(`/api/movie-projects/${activeProject._id}/episodes/${activeEpisode._id}/status`);
+          setGenProgress(st.summary);
+          if (st.allDone) {
+            clearInterval(poll);
+            const { data: pd } = await api.get(`/api/movie-projects/${activeProject._id}`);
+            const updatedEp = pd.project.episodes.find(e => e._id === activeEpisode._id);
+            if (updatedEp) setActiveEpisode(updatedEp);
+            setActiveProject(pd.project);
+            setGenProgress(null);
+          } else {
+            const completedScenes = st.scenes.filter(s => s.videoUrl);
+            if (completedScenes.length > 0) {
+              setActiveEpisode(prev => {
+                if (!prev?.scenes) return prev;
+                const updated = { ...prev, scenes: prev.scenes.map(s => {
+                  const match = st.scenes.find(r => r.sceneNumber === s.sceneNumber);
+                  return match ? { ...s, status: match.status, videoUrl: match.videoUrl || s.videoUrl } : s;
+                })};
+                return updated;
+              });
+            }
+          }
+        } catch {}
+      }, 5000);
+      epPollRef.current = poll;
+      return () => clearInterval(poll);
+    }
+  }, [view, activeEpisode?._id, activeEpisode?.status]);
+
   // Create project
   const handleCreate = async () => {
     if (!formTitle.trim()) return;
@@ -2615,41 +2649,6 @@ function MovieMaker({ balance }) {
   }
 
   // ─── EPISODE VIEW (Script + Generate + Preview) ───
-
-  // Auto-poll when episode is generating
-  useEffect(() => {
-    if (view === 'episode' && activeEpisode?.status === 'generating' && activeProject) {
-      const poll = setInterval(async () => {
-        try {
-          const { data: st } = await api.get(`/api/movie-projects/${activeProject._id}/episodes/${activeEpisode._id}/status`);
-          setGenProgress(st.summary);
-          if (st.allDone) {
-            clearInterval(poll);
-            const { data: pd } = await api.get(`/api/movie-projects/${activeProject._id}`);
-            const updatedEp = pd.project.episodes.find(e => e._id === activeEpisode._id);
-            if (updatedEp) setActiveEpisode(updatedEp);
-            setActiveProject(pd.project);
-            setGenProgress(null);
-          } else {
-            // Update scenes with video URLs as they come in
-            const completedScenes = st.scenes.filter(s => s.videoUrl);
-            if (completedScenes.length > 0) {
-              setActiveEpisode(prev => {
-                if (!prev?.scenes) return prev;
-                const updated = { ...prev, scenes: prev.scenes.map(s => {
-                  const match = st.scenes.find(r => r.sceneNumber === s.sceneNumber);
-                  return match ? { ...s, status: match.status, videoUrl: match.videoUrl || s.videoUrl } : s;
-                })};
-                return updated;
-              });
-            }
-          }
-        } catch {}
-      }, 5000);
-      epPollRef.current = poll;
-      return () => clearInterval(poll);
-    }
-  }, [view, activeEpisode?._id, activeEpisode?.status]);
 
   if (view === 'episode' && activeProject && activeEpisode) {
     const p = activeProject;
