@@ -2315,7 +2315,9 @@ function MovieMaker({ balance }) {
             <p className="text-sm text-gray-400 text-center py-4">No characters yet. Add your cast — upload face photos so AI can generate them in scenes!</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {p.characters.map(c => (
+              {p.characters.map(c => {
+                const projId = activeProject._id; // Always use fresh ref
+                return (
                 <div key={c._id} className="border border-gray-200 rounded-xl p-3 relative group">
                   {/* Action buttons — top right */}
                   <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
@@ -2324,20 +2326,19 @@ function MovieMaker({ balance }) {
                       if (!name) return;
                       const role = prompt('Role (main/supporting/narrator/extra):', c.role) || c.role;
                       const desc = prompt('Description:', c.description) || c.description;
-                      const update = { name, role, description: desc };
                       try {
-                        await api.put(`/api/movie-projects/${p._id}/characters/${c._id}`, update);
-                        loadProject(p._id);
-                      } catch {}
+                        await api.put(`/api/movie-projects/${projId}/characters/${c._id}`, { name, role, description: desc });
+                        loadProject(projId);
+                      } catch (err) { alert(err?.response?.data?.error || 'Update failed'); }
                     }} className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:bg-amber-50" title="Edit">
                       <Edit3 size={10} className="text-gray-500" />
                     </button>
                     <button onClick={async () => {
                       if (!confirm(`Remove ${c.name} from cast?`)) return;
                       try {
-                        await api.delete(`/api/movie-projects/${p._id}/characters/${c._id}`);
-                        loadProject(p._id);
-                      } catch {}
+                        await api.delete(`/api/movie-projects/${projId}/characters/${c._id}`);
+                        loadProject(projId);
+                      } catch (err) { alert(err?.response?.data?.error || 'Delete failed'); }
                     }} className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:bg-red-50" title="Delete">
                       <Trash2 size={10} className="text-red-400" />
                     </button>
@@ -2346,13 +2347,12 @@ function MovieMaker({ balance }) {
                   <div className="flex items-center gap-3">
                     {/* Face */}
                     <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
-                      {c.faceImageUrl ? <img src={c.faceImageUrl} className="w-full h-full object-cover" alt="" /> : <UserCircle2 size={36} className="text-gray-300 mx-auto mt-2" />}
+                      {c.faceImageUrl ? <img src={c.faceImageUrl} className="w-full h-full object-cover" alt={c.name} /> : <UserCircle2 size={36} className="text-gray-300 mx-auto mt-2" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-800 truncate">{c.name}</p>
                       <p className="text-[10px] text-gray-400 capitalize">{c.role}</p>
                       {c.description && <p className="text-[10px] text-gray-400 truncate mt-0.5">{c.description}</p>}
-                      {/* Voice indicator */}
                       <div className="flex items-center gap-1 mt-1">
                         {c.voiceRecordingUrl ? (
                           <span className="text-[10px] bg-green-100 text-green-600 px-1.5 py-0.5 rounded-full flex items-center gap-0.5"><Mic size={8} /> Custom voice</span>
@@ -2365,9 +2365,30 @@ function MovieMaker({ balance }) {
                     </div>
                   </div>
 
-                  {/* Face + Voice uploads */}
+                  {/* Reference images gallery (wife, family, etc.) */}
+                  {c.referenceImages?.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-[10px] text-gray-400 mb-1">Reference photos ({c.referenceImages.length})</p>
+                      <div className="flex gap-1.5 overflow-x-auto pb-1">
+                        {c.referenceImages.map((img, ri) => (
+                          <div key={ri} className="relative flex-shrink-0">
+                            <img src={img} alt={`Ref ${ri + 1}`} className="w-12 h-12 rounded-lg object-cover border border-gray-200" />
+                            <button onClick={async () => {
+                              const updated = c.referenceImages.filter((_, idx) => idx !== ri);
+                              try {
+                                await api.put(`/api/movie-projects/${projId}/characters/${c._id}`, { referenceImages: updated });
+                                loadProject(projId);
+                              } catch {}
+                            }} className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-[8px]">×</button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Uploads section */}
                   <div className="mt-2.5 space-y-2">
-                    {/* Face upload row */}
+                    {/* Face + Reference images row */}
                     <div className="flex gap-1.5">
                       <label className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-medium cursor-pointer hover:bg-amber-100">
                         <Camera size={10} /> {c.faceImageUrl ? 'Change Face' : 'Upload Face'}
@@ -2375,16 +2396,42 @@ function MovieMaker({ balance }) {
                           const file = e.target.files?.[0]; if (!file) return;
                           try {
                             const fd = new FormData(); fd.append('file', file);
-                            const { data: up } = await api.post('/api/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                            const { data: up } = await api.post('/api/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 });
                             const url = up.url || up.imageUrl || up.secure_url;
-                            await api.put(`/api/movie-projects/${p._id}/characters/${c._id}`, { faceImageUrl: url });
-                            loadProject(p._id);
-                          } catch {}
+                            if (!url) throw new Error('No URL returned');
+                            await api.put(`/api/movie-projects/${projId}/characters/${c._id}`, { faceImageUrl: url });
+                            loadProject(projId);
+                          } catch (err) { alert(`Face upload failed: ${err?.response?.data?.error || err.message}`); }
+                        }} />
+                      </label>
+                      {/* Add reference image (wife, family, etc.) */}
+                      <label className="flex items-center justify-center gap-1 px-2 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-medium cursor-pointer hover:bg-indigo-100" title="Add reference photo (family, wife, etc.)">
+                        <Plus size={10} /> Ref Photo
+                        <input type="file" accept="image/*" multiple className="hidden" onChange={async (e) => {
+                          const files = Array.from(e.target.files || []);
+                          if (!files.length) return;
+                          const newUrls = [];
+                          for (const file of files) {
+                            try {
+                              const fd = new FormData(); fd.append('file', file);
+                              const { data: up } = await api.post('/api/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 });
+                              const url = up.url || up.imageUrl || up.secure_url;
+                              if (url) newUrls.push(url);
+                            } catch (err) { console.error('Ref upload failed:', err.message); }
+                          }
+                          if (newUrls.length > 0) {
+                            try {
+                              await api.put(`/api/movie-projects/${projId}/characters/${c._id}`, {
+                                referenceImages: [...(c.referenceImages || []), ...newUrls]
+                              });
+                              loadProject(projId);
+                            } catch (err) { alert(`Save failed: ${err?.response?.data?.error || err.message}`); }
+                          }
                         }} />
                       </label>
                       {c.faceImageUrl && (
                         <button onClick={async () => {
-                          try { await api.put(`/api/movie-projects/${p._id}/characters/${c._id}`, { faceImageUrl: '' }); loadProject(p._id); } catch {}
+                          try { await api.put(`/api/movie-projects/${projId}/characters/${c._id}`, { faceImageUrl: '' }); loadProject(projId); } catch {}
                         }} className="px-2 py-1.5 bg-red-50 text-red-500 rounded-lg text-[10px] font-medium hover:bg-red-100" title="Remove face">
                           <Trash2 size={10} />
                         </button>
@@ -2394,38 +2441,39 @@ function MovieMaker({ balance }) {
                     {/* Voice recording upload row */}
                     <div className="flex gap-1.5">
                       <label className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-medium cursor-pointer hover:bg-blue-100">
-                        <Mic size={10} /> {c.voiceRecordingUrl ? 'Change Voice Recording' : 'Upload Voice Recording'}
+                        <Mic size={10} /> {c.voiceRecordingUrl ? 'Change Voice' : 'Upload Voice'}
                         <input type="file" accept="audio/*,video/*" className="hidden" onChange={async (e) => {
                           const file = e.target.files?.[0]; if (!file) return;
                           try {
                             const fd = new FormData(); fd.append('file', file);
                             const { data: up } = await api.post('/api/upload/video', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 60000 });
                             const url = up.url || up.videoUrl || up.secure_url;
-                            await api.put(`/api/movie-projects/${p._id}/characters/${c._id}`, { voiceRecordingUrl: url });
-                            loadProject(p._id);
-                          } catch {}
+                            if (!url) throw new Error('No URL returned');
+                            await api.put(`/api/movie-projects/${projId}/characters/${c._id}`, { voiceRecordingUrl: url });
+                            loadProject(projId);
+                          } catch (err) { alert(`Voice upload failed: ${err?.response?.data?.error || err.message}`); }
                         }} />
                       </label>
                       {c.voiceRecordingUrl && (
                         <button onClick={async () => {
-                          try { await api.put(`/api/movie-projects/${p._id}/characters/${c._id}`, { voiceRecordingUrl: '' }); loadProject(p._id); } catch {}
-                        }} className="px-2 py-1.5 bg-red-50 text-red-500 rounded-lg text-[10px] font-medium hover:bg-red-100" title="Remove voice recording">
+                          try { await api.put(`/api/movie-projects/${projId}/characters/${c._id}`, { voiceRecordingUrl: '' }); loadProject(projId); } catch {}
+                        }} className="px-2 py-1.5 bg-red-50 text-red-500 rounded-lg text-[10px] font-medium hover:bg-red-100" title="Remove voice">
                           <Trash2 size={10} />
                         </button>
                       )}
                     </div>
 
-                    {/* Voice preview (if recording uploaded) */}
+                    {/* Voice preview */}
                     {c.voiceRecordingUrl && (
                       <audio src={c.voiceRecordingUrl} controls className="w-full h-8 mt-1" />
                     )}
 
-                    {/* TTS voice selector (used when no recording uploaded) */}
+                    {/* TTS voice selector (fallback) */}
                     {!c.voiceRecordingUrl && (
                       <select value={c.voiceId || 'nova'} onChange={async (e) => {
                         try {
-                          await api.put(`/api/movie-projects/${p._id}/characters/${c._id}`, { voiceId: e.target.value });
-                          loadProject(p._id);
+                          await api.put(`/api/movie-projects/${projId}/characters/${c._id}`, { voiceId: e.target.value });
+                          loadProject(projId);
                         } catch {}
                       }} className="w-full px-2 py-1 border border-gray-200 rounded-lg text-[10px] text-gray-500 outline-none focus:ring-1 focus:ring-amber-400">
                         {VOICES.flatMap(g => g.voices).map(v => (
@@ -2435,7 +2483,8 @@ function MovieMaker({ balance }) {
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
