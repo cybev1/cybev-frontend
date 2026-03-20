@@ -1876,6 +1876,10 @@ function MovieMaker({ balance }) {
   const [formLogline, setFormLogline] = useState('');
   const [formStyle, setFormStyle] = useState('Cinematic');
 
+  // Edit project
+  const [editMode, setEditMode] = useState(false);
+  const [editFields, setEditFields] = useState({});
+
   // Load projects
   const loadProjects = async () => {
     try {
@@ -2044,28 +2048,245 @@ function MovieMaker({ balance }) {
   }
 
   // ─── PROJECT VIEW (Characters + Episodes) ───
+
+  const startEdit = () => {
+    setEditFields({
+      title: activeProject.title,
+      logline: activeProject.logline || '',
+      synopsis: activeProject.synopsis || '',
+      type: activeProject.type,
+      genre: activeProject.genre || ['Drama'],
+      style: activeProject.style || 'Cinematic',
+      targetAudience: activeProject.targetAudience || '',
+      language: activeProject.language || 'en',
+      defaultVoiceId: activeProject.defaultVoiceId || 'onyx-narrator',
+      autoCaptions: activeProject.autoCaptions ?? true,
+      logoUrl: activeProject.logoUrl || '',
+      introImageUrl: activeProject.introImageUrl || '',
+      outroImageUrl: activeProject.outroImageUrl || '',
+      coverImageUrl: activeProject.coverImageUrl || '',
+    });
+    setEditMode(true);
+  };
+
+  const saveEdit = async () => {
+    try {
+      const { data } = await api.put(`/api/movie-projects/${activeProject._id}`, editFields);
+      setActiveProject(data.project);
+      setEditMode(false);
+    } catch (e) { setError(e?.response?.data?.error || 'Save failed'); }
+  };
+
+  const uploadForField = async (file, field) => {
+    try {
+      const fd = new FormData(); fd.append('file', file);
+      const { data } = await api.post('/api/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 });
+      const url = data.url || data.imageUrl || data.secure_url || '';
+      setEditFields(prev => ({ ...prev, [field]: url }));
+    } catch {}
+  };
+
   if (view === 'project' && activeProject) {
     const p = activeProject;
     return (
       <div className="space-y-5">
         <div className="flex items-center justify-between">
-          <button onClick={() => { setView('list'); setActiveProject(null); }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+          <button onClick={() => { setView('list'); setActiveProject(null); setEditMode(false); }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
             <ArrowLeft size={16} /> All Projects
           </button>
-          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${p.status === 'in-production' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>{p.status}</span>
+          <div className="flex items-center gap-2">
+            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${p.status === 'in-production' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>{p.status}</span>
+            {!editMode ? (
+              <button onClick={startEdit} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 font-medium">
+                <Edit3 size={12} /> Edit Project
+              </button>
+            ) : (
+              <div className="flex gap-1.5">
+                <button onClick={saveEdit} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-amber-500 text-white rounded-full hover:bg-amber-600 font-medium">
+                  <CheckCircle2 size={12} /> Save
+                </button>
+                <button onClick={() => setEditMode(false)} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 font-medium">
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Project Header */}
-        <div className="flex items-start gap-4">
-          <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-amber-100 to-red-100 flex items-center justify-center flex-shrink-0">
-            {p.coverImageUrl ? <img src={p.coverImageUrl} className="w-full h-full rounded-xl object-cover" alt="" /> : <Film size={32} className="text-amber-500" />}
+        {/* Project Header — Edit mode or Display mode */}
+        {editMode ? (
+          <div className="border-2 border-amber-300 rounded-xl p-5 bg-amber-50/30 space-y-4">
+            <h4 className="text-sm font-bold text-amber-700 flex items-center gap-2"><Edit3 size={14} /> Edit Project Details</h4>
+
+            {/* Title */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Title</label>
+              <input type="text" value={editFields.title || ''} onChange={e => setEditFields(prev => ({ ...prev, title: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-amber-400 outline-none"
+              />
+            </div>
+
+            {/* Type + Style */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
+                <div className="flex gap-2">
+                  {['series', 'movie', 'short'].map(t => (
+                    <button key={t} onClick={() => setEditFields(prev => ({ ...prev, type: t }))}
+                      className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-medium border ${editFields.type === t ? 'border-amber-500 bg-amber-100 text-amber-700' : 'border-gray-200 text-gray-600'}`}
+                    >{t === 'series' ? '📺 Series' : t === 'movie' ? '🎬 Movie' : '🎞️ Short'}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Style</label>
+                <div className="flex flex-wrap gap-1">
+                  {VIDEO_STYLES.map(s => (
+                    <button key={s} onClick={() => setEditFields(prev => ({ ...prev, style: s }))}
+                      className={`px-2 py-1 rounded-full text-[10px] font-medium ${editFields.style === s ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500'}`}
+                    >{s}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Genre — multi-select */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Genre (select multiple)</label>
+              <div className="flex flex-wrap gap-1.5">
+                {GENRES.map(g => (
+                  <button key={g} onClick={() => setEditFields(prev => {
+                    const genres = prev.genre || [];
+                    return { ...prev, genre: genres.includes(g) ? genres.filter(x => x !== g) : [...genres, g] };
+                  })}
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium ${(editFields.genre || []).includes(g) ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'}`}
+                  >{g}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Logline */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Logline (one-sentence pitch)</label>
+              <input type="text" value={editFields.logline || ''} onChange={e => setEditFields(prev => ({ ...prev, logline: e.target.value }))}
+                placeholder="A young programmer discovers she can hack into an alternate dimension..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-400 outline-none"
+              />
+            </div>
+
+            {/* Synopsis */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Full Synopsis</label>
+              <textarea rows={3} value={editFields.synopsis || ''} onChange={e => setEditFields(prev => ({ ...prev, synopsis: e.target.value }))}
+                placeholder="Describe the overall story arc, main conflicts, and themes..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-400 outline-none resize-none"
+              />
+            </div>
+
+            {/* Target Audience + Language */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Target Audience</label>
+                <input type="text" value={editFields.targetAudience || ''} onChange={e => setEditFields(prev => ({ ...prev, targetAudience: e.target.value }))}
+                  placeholder="e.g. Young adults, Church community, Tech enthusiasts"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-400 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Language</label>
+                <select value={editFields.language || 'en'} onChange={e => setEditFields(prev => ({ ...prev, language: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-amber-400"
+                >
+                  {[['en','English'],['yo','Yoruba'],['ig','Igbo'],['ha','Hausa'],['tw','Twi'],['sw','Swahili'],['fr','French'],['es','Spanish'],['pt','Portuguese'],['ar','Arabic'],['zh','Chinese']].map(([c,l]) => (
+                    <option key={c} value={c}>{l}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Branding: Cover, Logo, Intro, Outro */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-2">Project Branding</label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  { field: 'coverImageUrl', label: 'Cover Image' },
+                  { field: 'logoUrl', label: 'Logo' },
+                  { field: 'introImageUrl', label: 'Intro Slide' },
+                  { field: 'outroImageUrl', label: 'Outro Slide' },
+                ].map(({ field, label }) => (
+                  <div key={field}>
+                    <span className="text-[10px] text-gray-400">{label}</span>
+                    {editFields[field] ? (
+                      <div className="relative mt-1">
+                        <img src={editFields[field]} alt={label} className="w-full h-16 object-cover rounded-lg border border-gray-200" />
+                        <button onClick={() => setEditFields(prev => ({ ...prev, [field]: '' }))}
+                          className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs">×</button>
+                      </div>
+                    ) : (
+                      <label className="mt-1 flex flex-col items-center gap-0.5 p-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-amber-400 text-center">
+                        <Upload size={14} className="text-gray-400" />
+                        <span className="text-[9px] text-gray-400">Upload</span>
+                        <input type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && uploadForField(e.target.files[0], field)} />
+                      </label>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Settings: Voice, Captions */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Default Narrator Voice</label>
+                <select value={editFields.defaultVoiceId || 'onyx-narrator'} onChange={e => setEditFields(prev => ({ ...prev, defaultVoiceId: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-amber-400"
+                >
+                  {VOICES.flatMap(g => g.voices).map(v => (
+                    <option key={v.id} value={v.id}>{v.flag} {v.label} ({v.accent})</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Auto-Captions</label>
+                <button onClick={() => setEditFields(prev => ({ ...prev, autoCaptions: !prev.autoCaptions }))}
+                  className={`w-full px-3 py-2 rounded-lg text-sm font-medium border ${editFields.autoCaptions ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-gray-300 text-gray-600'}`}
+                >{editFields.autoCaptions ? '✅ Captions ON' : 'Captions OFF'}</button>
+              </div>
+            </div>
+
+            {/* Delete project */}
+            <div className="pt-3 border-t border-gray-200">
+              <button onClick={async () => {
+                if (!confirm(`Delete "${p.title}"? This cannot be undone.`)) return;
+                try {
+                  await api.delete(`/api/movie-projects/${p._id}`);
+                  setView('list'); setActiveProject(null); setEditMode(false); loadProjects();
+                } catch {}
+              }} className="text-xs text-red-500 hover:text-red-700 font-medium">
+                Delete this project
+              </button>
+            </div>
           </div>
-          <div className="flex-1">
-            <h3 className="text-xl font-bold text-gray-900">{p.title}</h3>
-            <p className="text-sm text-gray-500">{p.type} · {Array.isArray(p.genre) ? p.genre.join(', ') : p.genre} · {p.style}</p>
-            {p.logline && <p className="text-sm text-gray-600 mt-1 italic">"{p.logline}"</p>}
+        ) : (
+          <div className="flex items-start gap-4">
+            <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-amber-100 to-red-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              {p.coverImageUrl ? <img src={p.coverImageUrl} className="w-full h-full rounded-xl object-cover" alt="" /> : <Film size={32} className="text-amber-500" />}
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-gray-900">{p.title}</h3>
+              <p className="text-sm text-gray-500">{p.type} · {Array.isArray(p.genre) ? p.genre.join(', ') : p.genre} · {p.style}</p>
+              {p.logline && <p className="text-sm text-gray-600 mt-1 italic">"{p.logline}"</p>}
+              {p.synopsis && <p className="text-xs text-gray-400 mt-1 line-clamp-2">{p.synopsis}</p>}
+              {p.targetAudience && <p className="text-[10px] text-gray-400 mt-1">Audience: {p.targetAudience}</p>}
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {p.logoUrl && <span className="text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full">🏷️ Logo</span>}
+                {p.introImageUrl && <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">🎬 Intro</span>}
+                {p.outroImageUrl && <span className="text-[10px] bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full">🎬 Outro</span>}
+                {p.autoCaptions && <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full">💬 Captions</span>}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* CHARACTERS */}
         <div className="border border-gray-200 rounded-xl p-4">
