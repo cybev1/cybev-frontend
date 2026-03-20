@@ -2309,17 +2309,53 @@ function MovieMaker({ balance }) {
           {(!p.characters || p.characters.length === 0) ? (
             <p className="text-sm text-gray-400 text-center py-4">No characters yet. Add your cast — upload face photos so AI can generate them in scenes!</p>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {p.characters.map(c => (
-                <div key={c._id} className="border border-gray-200 rounded-xl p-3 text-center">
-                  <div className="w-16 h-16 mx-auto rounded-full overflow-hidden bg-gray-100 mb-2">
-                    {c.faceImageUrl ? <img src={c.faceImageUrl} className="w-full h-full object-cover" alt="" /> : <UserCircle2 size={40} className="text-gray-300 mx-auto mt-3" />}
+                <div key={c._id} className="border border-gray-200 rounded-xl p-3 relative group">
+                  {/* Action buttons — top right */}
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={async () => {
+                      const name = prompt('Character name:', c.name);
+                      if (!name) return;
+                      const role = prompt('Role (main/supporting/narrator/extra):', c.role) || c.role;
+                      const desc = prompt('Description:', c.description) || c.description;
+                      const voiceId = prompt('Voice ID (leave blank to keep):', c.voiceId);
+                      const update = { name, role, description: desc };
+                      if (voiceId) update.voiceId = voiceId;
+                      try {
+                        await api.put(`/api/movie-projects/${p._id}/characters/${c._id}`, update);
+                        loadProject(p._id);
+                      } catch {}
+                    }} className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:bg-amber-50" title="Edit">
+                      <Edit3 size={10} className="text-gray-500" />
+                    </button>
+                    <button onClick={async () => {
+                      if (!confirm(`Remove ${c.name} from cast?`)) return;
+                      try {
+                        await api.delete(`/api/movie-projects/${p._id}/characters/${c._id}`);
+                        loadProject(p._id);
+                      } catch {}
+                    }} className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:bg-red-50" title="Delete">
+                      <Trash2 size={10} className="text-red-400" />
+                    </button>
                   </div>
-                  <p className="text-sm font-semibold text-gray-800 truncate">{c.name}</p>
-                  <p className="text-[10px] text-gray-400">{c.role}</p>
-                  {!c.faceImageUrl && (
-                    <label className="mt-2 flex items-center justify-center gap-1 px-2 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-medium cursor-pointer hover:bg-amber-100">
-                      <Camera size={10} /> Upload Face
+
+                  <div className="flex items-center gap-3">
+                    {/* Face */}
+                    <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
+                      {c.faceImageUrl ? <img src={c.faceImageUrl} className="w-full h-full object-cover" alt="" /> : <UserCircle2 size={36} className="text-gray-300 mx-auto mt-2" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-800 truncate">{c.name}</p>
+                      <p className="text-[10px] text-gray-400 capitalize">{c.role}</p>
+                      {c.description && <p className="text-[10px] text-gray-400 truncate mt-0.5">{c.description}</p>}
+                    </div>
+                  </div>
+
+                  {/* Upload / Change face */}
+                  <div className="mt-2 flex gap-1.5">
+                    <label className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-medium cursor-pointer hover:bg-amber-100">
+                      <Camera size={10} /> {c.faceImageUrl ? 'Change Face' : 'Upload Face'}
                       <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                         const file = e.target.files?.[0]; if (!file) return;
                         try {
@@ -2331,7 +2367,14 @@ function MovieMaker({ balance }) {
                         } catch {}
                       }} />
                     </label>
-                  )}
+                    {c.faceImageUrl && (
+                      <button onClick={async () => {
+                        try { await api.put(`/api/movie-projects/${p._id}/characters/${c._id}`, { faceImageUrl: '' }); loadProject(p._id); } catch {}
+                      }} className="px-2 py-1.5 bg-red-50 text-red-500 rounded-lg text-[10px] font-medium hover:bg-red-100" title="Remove face photo">
+                        <Trash2 size={10} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -2349,7 +2392,7 @@ function MovieMaker({ balance }) {
                   try {
                     const count = parseInt(prompt('How many episodes?', '6')) || 6;
                     if (!count) { btn.disabled = false; btn.textContent = 'AI Plan Season'; return; }
-                    const { data } = await api.post(`/api/movie-projects/${p._id}/plan-season`, { episodeCount: count }, { timeout: 120000 });
+                    const { data } = await api.post(`/api/movie-projects/${p._id}/plan-season`, { episodeCount: count }, { timeout: 600000 });
                     loadProject(p._id);
                     alert(`Season planned! ${data.episodesCreated} episodes created.`);
                   } catch (e) { alert(e?.response?.data?.error || 'Planning failed'); }
