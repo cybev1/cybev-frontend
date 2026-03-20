@@ -2385,7 +2385,7 @@ function MovieMaker({ balance }) {
         <div className="border border-gray-200 rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-bold text-gray-700 flex items-center gap-2"><Film size={16} className="text-amber-500" /> Episodes ({p.episodes?.length || 0})</h4>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {p.type === 'series' && (
                 <button onClick={async (e) => {
                   const btn = e.currentTarget; btn.disabled = true; btn.textContent = 'Planning...';
@@ -2410,6 +2410,17 @@ function MovieMaker({ balance }) {
               }} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-amber-50 text-amber-600 rounded-full hover:bg-amber-100 font-medium">
                 <Plus size={12} /> Add Episode
               </button>
+              {p.episodes?.length > 0 && (
+                <button onClick={async () => {
+                  if (!confirm(`Delete ALL ${p.episodes.length} episodes? This cannot be undone.`)) return;
+                  try {
+                    await api.delete(`/api/movie-projects/${p._id}/episodes`);
+                    loadProject(p._id);
+                  } catch (e) { alert(e?.response?.data?.error || 'Failed'); }
+                }} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-red-50 text-red-500 rounded-full hover:bg-red-100 font-medium">
+                  <Trash2 size={12} /> Delete All
+                </button>
+              )}
             </div>
           </div>
 
@@ -2418,26 +2429,67 @@ function MovieMaker({ balance }) {
           ) : (
             <div className="space-y-2">
               {p.episodes.map((ep, i) => (
-                <button key={ep._id} onClick={() => { setActiveEpisode(ep); setView('episode'); }}
-                  className="w-full text-left flex items-center gap-3 p-3 border border-gray-100 rounded-xl hover:border-amber-200 hover:bg-amber-50/30 transition-all"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0 text-sm font-bold text-amber-600">{ep.episodeNumber}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-800 truncate">{ep.title}</p>
-                    <p className="text-[10px] text-gray-400 truncate">{ep.synopsis || 'No synopsis'}</p>
+                <div key={ep._id} className="flex items-center gap-2 p-3 border border-gray-100 rounded-xl hover:border-amber-200 hover:bg-amber-50/30 transition-all group">
+                  {/* Click to open episode */}
+                  <button onClick={() => { setActiveEpisode(ep); setView('episode'); }} className="flex-1 flex items-center gap-3 text-left min-w-0">
+                    <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0 text-sm font-bold text-amber-600">{ep.episodeNumber}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-800 truncate">{ep.title}</p>
+                      <p className="text-[10px] text-gray-400 truncate">{ep.synopsis || 'No synopsis'}</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                        ep.status === 'merged' || ep.status === 'published' ? 'bg-green-100 text-green-700' :
+                        ep.status === 'rendered' ? 'bg-blue-100 text-blue-700' :
+                        ep.status === 'generating' ? 'bg-amber-100 text-amber-700' :
+                        ep.status === 'scripted' ? 'bg-purple-100 text-purple-700' :
+                        'bg-gray-100 text-gray-500'
+                      }`}>{ep.status}</span>
+                      <span className="text-[10px] text-gray-400">{ep.scenes?.length || 0} scenes</span>
+                    </div>
+                  </button>
+
+                  {/* Episode action buttons */}
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                    {/* Edit title/synopsis */}
+                    <button onClick={async (e) => {
+                      e.stopPropagation();
+                      const title = prompt('Episode title:', ep.title);
+                      if (!title) return;
+                      const synopsis = prompt('Synopsis:', ep.synopsis || '');
+                      try {
+                        await api.put(`/api/movie-projects/${p._id}/episodes/${ep._id}`, { title, synopsis });
+                        loadProject(p._id);
+                      } catch {}
+                    }} className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-amber-50" title="Edit episode">
+                      <Edit3 size={11} className="text-gray-500" />
+                    </button>
+                    {/* Re-script (reset to draft) */}
+                    {(ep.status === 'scripted' || ep.status === 'rendered' || ep.status === 'failed') && (
+                      <button onClick={async (e) => {
+                        e.stopPropagation();
+                        if (!confirm(`Re-script "${ep.title}"? This will erase current scenes.`)) return;
+                        try {
+                          await api.post(`/api/movie-projects/${p._id}/episodes/${ep._id}/re-script`);
+                          loadProject(p._id);
+                        } catch {}
+                      }} className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-purple-50" title="Re-script episode">
+                        <RefreshCw size={11} className="text-purple-500" />
+                      </button>
+                    )}
+                    {/* Delete episode */}
+                    <button onClick={async (e) => {
+                      e.stopPropagation();
+                      if (!confirm(`Delete Ep ${ep.episodeNumber}: "${ep.title}"?`)) return;
+                      try {
+                        await api.delete(`/api/movie-projects/${p._id}/episodes/${ep._id}`);
+                        loadProject(p._id);
+                      } catch {}
+                    }} className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-red-50" title="Delete episode">
+                      <Trash2 size={11} className="text-red-400" />
+                    </button>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                      ep.status === 'merged' || ep.status === 'published' ? 'bg-green-100 text-green-700' :
-                      ep.status === 'rendered' ? 'bg-blue-100 text-blue-700' :
-                      ep.status === 'generating' ? 'bg-amber-100 text-amber-700' :
-                      ep.status === 'scripted' ? 'bg-purple-100 text-purple-700' :
-                      'bg-gray-100 text-gray-500'
-                    }`}>{ep.status}</span>
-                    <span className="text-[10px] text-gray-400">{ep.scenes?.length || 0} scenes</span>
-                    <ChevronRight size={14} className="text-gray-300" />
-                  </div>
-                </button>
+                </div>
               ))}
             </div>
           )}
