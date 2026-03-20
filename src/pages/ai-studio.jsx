@@ -1883,6 +1883,7 @@ function MovieMaker({ balance }) {
   // Episode view
   const [genProgress, setGenProgress] = useState(null);
   const [merging, setMerging] = useState(false);
+  const [scriptLoading, setScriptLoading] = useState(false);
   const epPollRef = useRef(null);
 
   // Load projects
@@ -2720,17 +2721,38 @@ function MovieMaker({ balance }) {
           {(!ep.scenes || ep.scenes.length === 0 || ep.status === 'draft') && (
             <button onClick={async (e) => {
               const btn = e.currentTarget; btn.disabled = true;
+              setScriptLoading(true);
               try {
                 setError('');
                 const { data } = await api.post(`/api/movie-projects/${p._id}/episodes/${ep._id}/write-script`, {}, { timeout: 120000 });
                 setActiveEpisode(data.episode);
                 loadProject(p._id);
               } catch (err) { setError(err?.response?.data?.error || 'Script failed'); }
-              finally { btn.disabled = false; }
-            }} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-sm font-semibold hover:shadow-lg disabled:opacity-50">
-              <PenTool size={16} /> AI Write Script
+              finally { btn.disabled = false; setScriptLoading(false); }
+            }} disabled={scriptLoading} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-sm font-semibold hover:shadow-lg disabled:opacity-50">
+              {scriptLoading ? <Loader2 size={16} className="animate-spin" /> : <PenTool size={16} />}
+              {scriptLoading ? 'Writing Script...' : 'AI Write Script'}
             </button>
           )}
+
+        {/* ─── Script writing progress ─── */}
+        {scriptLoading && (
+          <div className="w-full bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-5 border border-purple-200">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="relative">
+                <div className="w-10 h-10 border-3 border-purple-200 rounded-full" />
+                <div className="absolute inset-0 w-10 h-10 border-3 border-purple-500 rounded-full border-t-transparent animate-spin" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-purple-700">AI is writing the script...</p>
+                <p className="text-xs text-purple-400">DeepSeek is crafting scenes, dialogue, and narration — 15-30 seconds</p>
+              </div>
+            </div>
+            <div className="w-full h-2 bg-purple-200 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse" style={{ width: '60%' }} />
+            </div>
+          </div>
+        )}
 
           {ep.scenes?.length > 0 && (ep.status === 'scripted' || ep.status === 'draft') && (
             <button onClick={async (e) => {
