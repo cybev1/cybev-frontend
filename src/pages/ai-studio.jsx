@@ -493,6 +493,31 @@ function VideoMaker({ balance }) {
   }
 
   // ─── STEP 4: Result ───
+  const [merging, setMerging] = useState(false);
+  const [mergedUrl, setMergedUrl] = useState(null);
+  const [mergeError, setMergeError] = useState('');
+  const [showAllScenes, setShowAllScenes] = useState(false);
+
+  const handleMerge = async (scenes) => {
+    setMerging(true);
+    setMergeError('');
+    try {
+      const { data } = await api.post('/api/ai-content/video/merge', {
+        videoUrls: scenes.map(s => s.videoUrl),
+        title: result?.title || 'CYBEV-video'
+      }, { timeout: 300000 }); // 5 min — merging takes time
+      if (data.mergedUrl) {
+        setMergedUrl(data.mergedUrl);
+      } else {
+        setMergeError('Merge completed but no URL returned.');
+      }
+    } catch (err) {
+      setMergeError(err?.response?.data?.error || err?.message || 'Merge failed');
+    } finally {
+      setMerging(false);
+    }
+  };
+
   if (step === 4 && result) {
     const isMulti = result.mode === 'multi' && result.scenes?.length > 0;
 
@@ -506,37 +531,85 @@ function VideoMaker({ balance }) {
               <CheckCircle2 size={18} className="text-green-500" />
               {result.title || 'Video'} — {result.scenes.length} Scenes Ready!
             </h3>
-            <p className="text-sm text-gray-500">Each scene is a 5-second clip. Play them in order for your full {result.scenes.length * 5}s video.</p>
 
-            <div className="space-y-3">
-              {result.scenes.map((scene, i) => (
-                <div key={i} className="bg-gray-50 rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                      <div className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold">{scene.sceneNumber}</div>
-                      Scene {scene.sceneNumber}
-                    </span>
-                    <a href={scene.videoUrl} download={`scene-${scene.sceneNumber}.mp4`}
-                      className="flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium hover:bg-purple-200"
-                    >
-                      <Download size={12} /> Download
-                    </a>
-                  </div>
-                  <video src={scene.videoUrl} controls className="w-full rounded-lg max-h-64 bg-black" />
-                </div>
-              ))}
-            </div>
+            {/* Merged video (if available) */}
+            {mergedUrl && (
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200">
+                <h4 className="text-sm font-semibold text-purple-700 mb-2 flex items-center gap-2">
+                  <Film size={16} /> Full Merged Video ({result.scenes.length * 5}s)
+                </h4>
+                <video src={mergedUrl} controls className="w-full rounded-lg max-h-96 bg-black" />
+                <a href={mergedUrl} download={`${(result.title || 'cybev-video').replace(/\s+/g, '-')}.mp4`}
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 mt-3 bg-purple-600 text-white rounded-full text-sm font-semibold hover:bg-purple-700 transition-colors"
+                >
+                  <Download size={15} /> Download Full Video
+                </a>
+              </div>
+            )}
 
-            <div className="flex flex-wrap gap-3 pt-2 border-t border-gray-100">
-              <button className="flex items-center gap-1.5 px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
+            {/* Download / Merge actions */}
+            <div className="flex flex-wrap items-center gap-3">
+              {!mergedUrl && (
+                <button onClick={() => handleMerge(result.scenes)} disabled={merging}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-sm font-semibold hover:shadow-lg disabled:opacity-60 transition-all"
+                >
+                  {merging ? <Loader2 size={16} className="animate-spin" /> : <Film size={16} />}
+                  {merging ? 'Merging clips...' : `Merge & Download (${result.scenes.length * 5}s video)`}
+                </button>
+              )}
+              <button onClick={() => setShowAllScenes(!showAllScenes)}
+                className="flex items-center gap-1.5 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-50"
+              >
+                {showAllScenes ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                {showAllScenes ? 'Hide Scenes' : `Download Scenes Separately (${result.scenes.length})`}
+              </button>
+              <button className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
                 <Share2 size={14} /> Post to CYBEV
               </button>
-              <button onClick={() => { setStep(0); setResult(null); setScript(null); setGenStatus(null); setSceneTasks([]); setSceneResults([]); }}
-                className="flex items-center gap-1.5 px-4 py-2 border border-gray-300 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50"
+              <button onClick={() => { setStep(0); setResult(null); setScript(null); setGenStatus(null); setSceneTasks([]); setSceneResults([]); setMergedUrl(null); setMergeError(''); }}
+                className="flex items-center gap-1.5 px-4 py-2.5 border border-gray-300 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50"
               >
                 <Plus size={14} /> Create Another
               </button>
             </div>
+
+            {mergeError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+                {mergeError}
+                <button onClick={() => handleMerge(result.scenes)} className="ml-2 underline hover:no-underline">Retry</button>
+              </div>
+            )}
+
+            {merging && (
+              <div className="p-4 bg-purple-50 rounded-xl text-center">
+                <Loader2 size={24} className="animate-spin text-purple-500 mx-auto mb-2" />
+                <p className="text-sm text-purple-700 font-medium">Merging {result.scenes.length} clips into one video...</p>
+                <p className="text-xs text-purple-400 mt-1">This may take 30-60 seconds depending on clip count</p>
+              </div>
+            )}
+
+            {/* Individual scenes (expandable) */}
+            {showAllScenes && (
+              <div className="space-y-3 pt-2 border-t border-gray-100">
+                <p className="text-xs text-gray-400">Each scene is a 5-second clip. Download individually below.</p>
+                {result.scenes.map((scene, i) => (
+                  <div key={i} className="bg-gray-50 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                        <div className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold">{scene.sceneNumber}</div>
+                        Scene {scene.sceneNumber}
+                      </span>
+                      <a href={scene.videoUrl} download={`${(result.title || 'scene').replace(/\s+/g, '-')}-scene-${scene.sceneNumber}.mp4`}
+                        className="flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium hover:bg-purple-200"
+                      >
+                        <Download size={12} /> Download
+                      </a>
+                    </div>
+                    <video src={scene.videoUrl} controls className="w-full rounded-lg max-h-48 bg-black" />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <div className="bg-gray-50 rounded-xl p-5">
