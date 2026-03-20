@@ -2737,19 +2737,14 @@ function MovieMaker({ balance }) {
 
         {/* ─── Script writing progress ─── */}
         {scriptLoading && (
-          <div className="w-full bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-5 border border-purple-200">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="relative">
-                <div className="w-10 h-10 border-3 border-purple-200 rounded-full" />
-                <div className="absolute inset-0 w-10 h-10 border-3 border-purple-500 rounded-full border-t-transparent animate-spin" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-purple-700">AI is writing the script...</p>
-                <p className="text-xs text-purple-400">DeepSeek is crafting scenes, dialogue, and narration — 15-30 seconds</p>
-              </div>
+          <div className="w-full bg-purple-50 rounded-xl p-4 border border-purple-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-purple-700 flex items-center gap-2">
+                <Loader2 size={14} className="animate-spin" /> Writing script...
+              </span>
             </div>
-            <div className="w-full h-2 bg-purple-200 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse" style={{ width: '60%' }} />
+            <div className="w-full h-2.5 bg-purple-200 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse" style={{ width: '70%' }} />
             </div>
           </div>
         )}
