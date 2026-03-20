@@ -2446,7 +2446,7 @@ function MovieMaker({ balance }) {
                           const file = e.target.files?.[0]; if (!file) return;
                           try {
                             const fd = new FormData(); fd.append('file', file);
-                            const { data: up } = await api.post('/api/upload/video', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 60000 });
+                            const { data: up } = await api.post('/api/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 60000 });
                             const url = up.url || up.videoUrl || up.secure_url;
                             if (!url) throw new Error('No URL returned');
                             await api.put(`/api/movie-projects/${projId}/characters/${c._id}`, { voiceRecordingUrl: url });
@@ -2957,7 +2957,7 @@ function DubStudio({ balance }) {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const { data } = await api.post('/api/upload/video', formData, {
+      const { data } = await api.post('/api/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120000
       });
       setUploadedUrl(data.url || data.videoUrl || data.secure_url);
@@ -2975,7 +2975,7 @@ function DubStudio({ balance }) {
     try {
       const formData = new FormData();
       formData.append('file', file); // reuse video upload endpoint for audio
-      const { data } = await api.post('/api/upload/video', formData, {
+      const { data } = await api.post('/api/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }, timeout: 60000
       });
       setRecordedUrl(data.url || data.videoUrl || data.secure_url);
