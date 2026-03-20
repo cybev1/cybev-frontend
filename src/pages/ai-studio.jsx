@@ -237,17 +237,26 @@ function VideoMaker({ balance }) {
         const tasks = data.tasks;
         setSceneTasks(tasks);
         const taskIds = tasks.map(t => t.taskId).filter(Boolean);
-        if (!taskIds.length) { setGenStatus('failed'); return; }
 
-        // Poll batch endpoint
+        // If all scenes failed to create, show failure immediately
+        if (!taskIds.length) {
+          setGenStatus('failed');
+          return;
+        }
+
+        // If some already failed but others are processing, still poll
+        let pollErrors = 0;
         pollRef.current = setInterval(async () => {
           try {
             const { data: batch } = await api.post('/api/ai-content/video/status/batch', {
               taskIds, provider: data.provider || 'replicate'
             });
+            pollErrors = 0; // reset on success
             setProgress(batch.progress || 0);
-            // Update scene results
+
+            // Merge batch results with original tasks (preserving failed ones)
             const updated = tasks.map(t => {
+              if (!t.taskId) return t; // keep pre-failed tasks as-is
               const r = batch.results.find(b => b.taskId === t.taskId);
               return { ...t, status: r?.status || t.status, videoUrl: r?.videoUrl || t.videoUrl };
             });
@@ -257,23 +266,43 @@ function VideoMaker({ balance }) {
               clearInterval(pollRef.current);
               const completedScenes = updated.filter(t => t.status === 'completed' && t.videoUrl);
               setSceneResults(completedScenes);
-              setResult({ mode: 'multi', scenes: completedScenes, title: data.title });
-              setGenStatus('completed');
-              setStep(4);
+              if (completedScenes.length > 0) {
+                setResult({ mode: 'multi', scenes: completedScenes, title: data.title });
+                setGenStatus('completed');
+                setStep(4);
+              } else {
+                setGenStatus('failed');
+              }
             }
-          } catch {}
-        }, 4000);
+          } catch {
+            pollErrors++;
+            if (pollErrors > 10) {
+              clearInterval(pollRef.current);
+              setGenStatus('failed');
+            }
+          }
+        }, 5000); // poll every 5s (not 4) to be gentler on the API
+        return; // IMPORTANT: prevent falling through to single-scene path
       }
+
       // ─── SINGLE response (5s / no script) ───
-      else if (data.status === 'completed') {
+      if (!data.taskId) {
+        // No task ID means generation failed silently
+        setGenStatus('failed');
+        return;
+      }
+
+      if (data.status === 'completed') {
         setResult(data);
         setGenStatus('completed');
         setStep(4);
       } else {
         const provider = data.provider || 'replicate';
+        let singlePollErrors = 0;
         pollRef.current = setInterval(async () => {
           try {
             const { data: s } = await api.get(`/api/ai-content/video/status/${data.taskId}?provider=${provider}`);
+            singlePollErrors = 0;
             setProgress(s.progress || Math.min(progress + 8, 92));
             if (s.status === 'completed') {
               clearInterval(pollRef.current);
@@ -284,7 +313,13 @@ function VideoMaker({ balance }) {
               clearInterval(pollRef.current);
               setGenStatus('failed');
             }
-          } catch {}
+          } catch {
+            singlePollErrors++;
+            if (singlePollErrors > 10) {
+              clearInterval(pollRef.current);
+              setGenStatus('failed');
+            }
+          }
         }, 3000);
       }
     } catch (err) {
