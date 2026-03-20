@@ -192,6 +192,15 @@ const VOICES = [
     { id: 'onyx-ng-deep',    label: 'Obinna',   accent: 'Nigerian Deep', gender: 'Male',   flag: '🇳🇬' },
     { id: 'onyx-za-deep',    label: 'Mandla',   accent: 'SA Deep',       gender: 'Male',   flag: '🇿🇦' },
   ]},
+  { group: '👶 Children', voices: [
+    { id: 'shimmer-child',  label: 'Lily',   accent: 'Girl',            gender: 'Girl',    flag: '👧' },
+    { id: 'nova-child',     label: 'Zara',   accent: 'Girl',            gender: 'Girl',    flag: '👧🏽' },
+    { id: 'alloy-child',    label: 'Sam',    accent: 'Kid',             gender: 'Neutral', flag: '🧒' },
+    { id: 'echo-child',     label: 'Max',    accent: 'Boy',             gender: 'Boy',     flag: '👦' },
+    { id: 'fable-child',    label: 'Oliver', accent: 'British Boy',     gender: 'Boy',     flag: '👦🏻' },
+    { id: 'nova-child-ng',  label: 'Amaka',  accent: 'Nigerian Girl',   gender: 'Girl',    flag: '👧🏿' },
+    { id: 'echo-child-gh',  label: 'Kofi',   accent: 'Ghanaian Boy',    gender: 'Boy',     flag: '👦🏿' },
+  ]},
 ];
 
 function VoiceoverPanel({ voice, setVoice, addVoiceover, setAddVoiceover }) {
@@ -334,8 +343,10 @@ function VideoMaker({ balance }) {
   const [mergedUrl, setMergedUrl] = useState(null);
   const [mergeError, setMergeError] = useState('');
   const [showAllScenes, setShowAllScenes] = useState(false);
-  const [voice, setVoice] = useState('nova');
+  const [voice, setVoice] = useState('onyx-narrator');
   const [addVoiceover, setAddVoiceover] = useState(true);
+  const [thumbnails, setThumbnails] = useState([]);
+  const [selectedThumb, setSelectedThumb] = useState(null);
   const pollRef = useRef(null);
 
   const durConfig = VIDEO_DURATIONS.find(d => d.val === duration) || VIDEO_DURATIONS[2];
@@ -595,9 +606,16 @@ function VideoMaker({ balance }) {
         <StepIndicator steps={['Idea', 'Script', 'Edit', 'Generate']} current={2} accent="purple" />
 
         <div className="flex items-center justify-between">
-          <button onClick={() => setStep(0)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
-            <ChevronLeft size={16} /> Back to idea
-          </button>
+          <div className="flex items-center gap-3">
+            <button onClick={() => setStep(0)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+              <ChevronLeft size={16} /> Back to idea
+            </button>
+            {result && (
+              <button onClick={() => setStep(4)} className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-800 font-medium">
+                <Film size={14} /> View Video Results
+              </button>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-400">{script.scenes.length} scenes · {script.scenes.length * 5}s total</span>
             <button onClick={addScene} className="flex items-center gap-1 px-3 py-1.5 text-xs bg-purple-50 text-purple-600 rounded-full hover:bg-purple-100 font-medium">
@@ -731,18 +749,21 @@ function VideoMaker({ balance }) {
   const handleMerge = async (scenes) => {
     setMerging(true);
     setMergeError('');
+    setThumbnails([]);
     try {
-      // Extract narrations from script for each scene
       const narrations = script?.scenes?.map(s => s.narration || '') || [];
+      const textOverlays = script?.scenes?.map(s => s.textOverlay || '') || [];
       const { data } = await api.post('/api/ai-content/video/merge', {
         videoUrls: scenes.map(s => s.videoUrl),
         title: result?.title || 'CYBEV-video',
         narrations,
+        textOverlays,
         voice,
         addVoiceover
       }, { timeout: 300000 });
       if (data.mergedUrl) {
         setMergedUrl(data.mergedUrl);
+        if (data.thumbnails?.length) setThumbnails(data.thumbnails);
       } else {
         setMergeError('Merge completed but no URL returned.');
       }
@@ -755,7 +776,8 @@ function VideoMaker({ balance }) {
 
   const resetAll = () => {
     setStep(0); setResult(null); setScript(null); setGenStatus(null);
-    setSceneTasks([]); setSceneResults([]); setMergedUrl(null); setMergeError(''); setShowAllScenes(false);
+    setSceneTasks([]); setSceneResults([]); setMergedUrl(null); setMergeError('');
+    setShowAllScenes(false); setThumbnails([]); setSelectedThumb(null);
   };
 
   if (step === 4 && result) {
@@ -769,10 +791,10 @@ function VideoMaker({ balance }) {
 
         {/* Back + title row */}
         <div className="flex items-center justify-between">
-          <button onClick={() => { setStep(2); setGenStatus(null); setResult(null); setMergedUrl(null); setMergeError(''); }}
+          <button onClick={() => { setStep(2); setGenStatus(null); }}
             className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
           >
-            <ArrowLeft size={16} /> Back to Script Editor
+            <ArrowLeft size={16} /> Edit Script
           </button>
           <button onClick={resetAll} className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-800">
             <Plus size={14} /> New Video
@@ -788,14 +810,70 @@ function VideoMaker({ balance }) {
         {mergedUrl && (
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200">
             <h4 className="text-sm font-semibold text-purple-700 mb-2 flex items-center gap-2">
-              <Film size={16} /> Full Merged Video ({scenes.length * 5}s)
+              <CheckCircle2 size={16} className="text-green-500" />
+              Full Video with Audio ({scenes.length * 5}s)
             </h4>
             <video src={mergedUrl} controls className="w-full rounded-lg max-h-96 bg-black" />
-            <a href={mergedUrl} download={`${(result.title || 'cybev-video').replace(/\s+/g, '-')}.mp4`}
-              className="inline-flex items-center gap-1.5 px-5 py-2.5 mt-3 bg-purple-600 text-white rounded-full text-sm font-semibold hover:bg-purple-700 transition-colors"
-            >
-              <Download size={15} /> Download Full Video
-            </a>
+            <div className="flex flex-wrap gap-3 mt-3">
+              <a href={mergedUrl} download={`${(result.title || 'cybev-video').replace(/\s+/g, '-')}.mp4`}
+                className="flex items-center gap-1.5 px-5 py-2.5 bg-purple-600 text-white rounded-full text-sm font-semibold hover:bg-purple-700"
+              >
+                <Download size={15} /> Download Full Video
+              </a>
+              <button className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
+                <Share2 size={14} /> Post to CYBEV
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ─── Thumbnail selector (after merge) ─── */}
+        {mergedUrl && (thumbnails.length > 0 || true) && (
+          <div className="border border-gray-200 rounded-xl p-4">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">Video Thumbnail</h4>
+            {thumbnails.length > 0 ? (
+              <div className="space-y-3">
+                <p className="text-xs text-gray-400">Select a thumbnail or upload your own:</p>
+                <div className="grid grid-cols-4 gap-2">
+                  {thumbnails.map((t, i) => (
+                    <button key={i} onClick={() => setSelectedThumb(t.url)}
+                      className={`relative rounded-lg overflow-hidden border-2 transition-all aspect-video ${
+                        selectedThumb === t.url ? 'border-purple-500 ring-2 ring-purple-200' : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <img src={t.url} alt={`Thumb ${i + 1}`} className="w-full h-full object-cover" />
+                      {selectedThumb === t.url && (
+                        <div className="absolute top-1 right-1 w-5 h-5 bg-purple-600 rounded-full flex items-center justify-center">
+                          <CheckCircle2 size={12} className="text-white" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400">Thumbnails are being generated...</p>
+            )}
+            {/* Upload custom thumbnail */}
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer hover:text-purple-600">
+                <Upload size={14} />
+                <span>Upload custom thumbnail</span>
+                <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  try {
+                    const formData = new FormData();
+                    formData.append('image', file);
+                    const { data } = await api.post('/api/upload/image', formData, {
+                      headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000
+                    });
+                    const url = data.url || data.imageUrl || data.secure_url;
+                    if (url) { setThumbnails(prev => [{ url, timestamp: 0 }, ...prev]); setSelectedThumb(url); }
+                  } catch {}
+                }} />
+              </label>
+            </div>
           </div>
         )}
 
