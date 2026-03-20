@@ -201,6 +201,17 @@ const VOICES = [
     { id: 'nova-child-ng',  label: 'Amaka',  accent: 'Nigerian Girl',   gender: 'Girl',    flag: '👧🏿' },
     { id: 'echo-child-gh',  label: 'Kofi',   accent: 'Ghanaian Boy',    gender: 'Boy',     flag: '👦🏿' },
   ]},
+  { group: '🎉 Happy & Energetic', voices: [
+    { id: 'nova-happy',     label: 'Joy',     accent: 'Happy',          gender: 'Female', flag: '😊' },
+    { id: 'shimmer-happy',  label: 'Sunny',   accent: 'Cheerful',       gender: 'Female', flag: '☀️' },
+    { id: 'echo-happy',     label: 'Blaze',   accent: 'Energetic',      gender: 'Male',   flag: '🔥' },
+    { id: 'alloy-happy',    label: 'Spark',   accent: 'Upbeat',         gender: 'Neutral', flag: '✨' },
+    { id: 'fable-happy',    label: 'Winston', accent: 'British Happy',  gender: 'Male',   flag: '🎩' },
+    { id: 'nova-hype',      label: 'Hype',    accent: 'Hype',           gender: 'Female', flag: '🚀' },
+    { id: 'echo-motivate',  label: 'Coach',   accent: 'Motivational',   gender: 'Male',   flag: '💪' },
+    { id: 'nova-ng-happy',  label: 'Chioma',  accent: 'Nigerian Happy', gender: 'Female', flag: '🇳🇬' },
+    { id: 'echo-gh-happy',  label: 'Yaw',     accent: 'Ghanaian Happy', gender: 'Male',   flag: '🇬🇭' },
+  ]},
 ];
 
 function VoiceoverPanel({ voice, setVoice, addVoiceover, setAddVoiceover }) {
@@ -348,6 +359,10 @@ function VideoMaker({ balance }) {
   const [thumbnails, setThumbnails] = useState([]);
   const [selectedThumb, setSelectedThumb] = useState(null);
   const [autoCaptions, setAutoCaptions] = useState(false);
+  const [logoUrl, setLogoUrl] = useState('');
+  const [logoPosition, setLogoPosition] = useState('top-right');
+  const [introImageUrl, setIntroImageUrl] = useState('');
+  const [outroImageUrl, setOutroImageUrl] = useState('');
   const pollRef = useRef(null);
 
   const durConfig = VIDEO_DURATIONS.find(d => d.val === duration) || VIDEO_DURATIONS[2];
@@ -676,6 +691,99 @@ function VideoMaker({ balance }) {
           </div>
         )}
 
+        {/* Media Uploads — Logo, Intro, Outro */}
+        <div className="border border-gray-200 rounded-xl p-4 space-y-4">
+          <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <Image size={16} className="text-purple-500" /> Custom Media (Optional)
+          </h4>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Logo Upload */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Logo Watermark</label>
+              {logoUrl ? (
+                <div className="relative">
+                  <img src={logoUrl} alt="Logo" className="w-full h-20 object-contain bg-gray-50 rounded-lg border border-gray-200 p-1" />
+                  <button onClick={() => setLogoUrl('')} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600">×</button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center gap-1 p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-400 hover:bg-purple-50/30 transition-colors">
+                  <Upload size={16} className="text-gray-400" />
+                  <span className="text-[10px] text-gray-400">PNG or SVG</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                    const file = e.target.files?.[0]; if (!file) return;
+                    try {
+                      const fd = new FormData(); fd.append('image', file);
+                      const { data } = await api.post('/api/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 });
+                      setLogoUrl(data.url || data.imageUrl || data.secure_url || '');
+                    } catch {}
+                  }} />
+                </label>
+              )}
+              {logoUrl && (
+                <select value={logoPosition} onChange={e => setLogoPosition(e.target.value)}
+                  className="w-full mt-1.5 px-2 py-1 border border-gray-200 rounded text-[10px] text-gray-500 outline-none"
+                >
+                  <option value="top-right">Top Right</option>
+                  <option value="top-left">Top Left</option>
+                  <option value="bottom-right">Bottom Right</option>
+                  <option value="bottom-left">Bottom Left</option>
+                  <option value="center">Center</option>
+                </select>
+              )}
+            </div>
+
+            {/* Intro Image */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Intro Slide (3s)</label>
+              {introImageUrl ? (
+                <div className="relative">
+                  <img src={introImageUrl} alt="Intro" className="w-full h-20 object-cover bg-gray-50 rounded-lg border border-gray-200" />
+                  <button onClick={() => setIntroImageUrl('')} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600">×</button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center gap-1 p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-400 hover:bg-purple-50/30 transition-colors">
+                  <Upload size={16} className="text-gray-400" />
+                  <span className="text-[10px] text-gray-400">Intro image</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                    const file = e.target.files?.[0]; if (!file) return;
+                    try {
+                      const fd = new FormData(); fd.append('image', file);
+                      const { data } = await api.post('/api/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 });
+                      setIntroImageUrl(data.url || data.imageUrl || data.secure_url || '');
+                    } catch {}
+                  }} />
+                </label>
+              )}
+            </div>
+
+            {/* Outro Image */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Outro Slide (3s)</label>
+              {outroImageUrl ? (
+                <div className="relative">
+                  <img src={outroImageUrl} alt="Outro" className="w-full h-20 object-cover bg-gray-50 rounded-lg border border-gray-200" />
+                  <button onClick={() => setOutroImageUrl('')} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600">×</button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center gap-1 p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-400 hover:bg-purple-50/30 transition-colors">
+                  <Upload size={16} className="text-gray-400" />
+                  <span className="text-[10px] text-gray-400">Outro image</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                    const file = e.target.files?.[0]; if (!file) return;
+                    try {
+                      const fd = new FormData(); fd.append('image', file);
+                      const { data } = await api.post('/api/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 });
+                      setOutroImageUrl(data.url || data.imageUrl || data.secure_url || '');
+                    } catch {}
+                  }} />
+                </label>
+              )}
+            </div>
+          </div>
+          <p className="text-[10px] text-gray-400">Logo appears as watermark on every frame. Intro/outro show as 3-second still slides before/after the video.</p>
+        </div>
+
         {/* Generate */}
         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
           <TokenCost cost={durConfig.cost} label="to generate" />
@@ -779,8 +887,12 @@ function VideoMaker({ balance }) {
         textOverlays,
         voice,
         addVoiceover,
-        autoCaptions
-      }, { timeout: 300000 });
+        autoCaptions,
+        logoUrl: logoUrl || undefined,
+        logoPosition,
+        introImageUrl: introImageUrl || undefined,
+        outroImageUrl: outroImageUrl || undefined
+      }, { timeout: 360000 });
       if (data.mergedUrl) {
         setMergedUrl(data.mergedUrl);
         if (data.thumbnails?.length) setThumbnails(data.thumbnails);
