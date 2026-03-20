@@ -457,7 +457,14 @@ function VideoMaker({ balance }) {
         <StepIndicator steps={['Idea', 'Script', 'Edit', 'Generate']} current={3} accent="purple" />
 
         {genStatus === 'failed' ? (
-          <GenerationStatus status="failed" progress={0} onRetry={() => { setStep(2); setGenStatus(null); }} />
+          <div className="space-y-4">
+            <GenerationStatus status="failed" progress={0} onRetry={() => { setStep(2); setGenStatus(null); }} />
+            <button onClick={() => { clearInterval(pollRef.current); setStep(2); setGenStatus(null); }}
+              className="flex items-center gap-1.5 mx-auto px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+            >
+              <ArrowLeft size={14} /> Back to Script Editor
+            </button>
+          </div>
         ) : isMulti ? (
           <div className="space-y-4">
             <div className="text-center">
@@ -503,7 +510,7 @@ function VideoMaker({ balance }) {
       const { data } = await api.post('/api/ai-content/video/merge', {
         videoUrls: scenes.map(s => s.videoUrl),
         title: result?.title || 'CYBEV-video'
-      }, { timeout: 300000 }); // 5 min — merging takes time
+      }, { timeout: 300000 });
       if (data.mergedUrl) {
         setMergedUrl(data.mergedUrl);
       } else {
@@ -516,118 +523,111 @@ function VideoMaker({ balance }) {
     }
   };
 
+  const resetAll = () => {
+    setStep(0); setResult(null); setScript(null); setGenStatus(null);
+    setSceneTasks([]); setSceneResults([]); setMergedUrl(null); setMergeError(''); setShowAllScenes(false);
+  };
+
   if (step === 4 && result) {
     const isMulti = result.mode === 'multi' && result.scenes?.length > 0;
+    const scenes = isMulti ? result.scenes : [];
+    const canMerge = scenes.length >= 2;
 
     return (
       <div className="space-y-5">
         <StepIndicator steps={['Idea', 'Script', 'Edit', 'Generate']} current={4} accent="purple" />
 
+        {/* Back + title row */}
+        <div className="flex items-center justify-between">
+          <button onClick={() => { setStep(2); setGenStatus(null); setResult(null); setMergedUrl(null); setMergeError(''); }}
+            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+          >
+            <ArrowLeft size={16} /> Back to Script Editor
+          </button>
+          <button onClick={resetAll} className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-800">
+            <Plus size={14} /> New Video
+          </button>
+        </div>
+
+        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+          <CheckCircle2 size={18} className="text-green-500" />
+          {result.title || 'Video'} — {isMulti ? `${scenes.length} Scenes Ready!` : 'Ready!'}
+        </h3>
+
+        {/* ─── Merged video (if merged) ─── */}
+        {mergedUrl && (
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200">
+            <h4 className="text-sm font-semibold text-purple-700 mb-2 flex items-center gap-2">
+              <Film size={16} /> Full Merged Video ({scenes.length * 5}s)
+            </h4>
+            <video src={mergedUrl} controls className="w-full rounded-lg max-h-96 bg-black" />
+            <a href={mergedUrl} download={`${(result.title || 'cybev-video').replace(/\s+/g, '-')}.mp4`}
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 mt-3 bg-purple-600 text-white rounded-full text-sm font-semibold hover:bg-purple-700 transition-colors"
+            >
+              <Download size={15} /> Download Full Video
+            </a>
+          </div>
+        )}
+
+        {/* ─── Merge / Action buttons ─── */}
+        <div className="flex flex-wrap items-center gap-3">
+          {canMerge && !mergedUrl && (
+            <button onClick={() => handleMerge(scenes)} disabled={merging}
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-sm font-semibold hover:shadow-lg disabled:opacity-60 transition-all"
+            >
+              {merging ? <Loader2 size={16} className="animate-spin" /> : <Film size={16} />}
+              {merging ? 'Merging clips...' : `Merge into One Video (${scenes.length * 5}s)`}
+            </button>
+          )}
+          <button className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
+            <Share2 size={14} /> Post to CYBEV
+          </button>
+        </div>
+
+        {mergeError && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+            {mergeError}
+            <button onClick={() => handleMerge(scenes)} className="ml-2 underline hover:no-underline font-medium">Retry</button>
+          </div>
+        )}
+
+        {merging && (
+          <div className="p-4 bg-purple-50 rounded-xl text-center">
+            <Loader2 size={24} className="animate-spin text-purple-500 mx-auto mb-2" />
+            <p className="text-sm text-purple-700 font-medium">Merging {scenes.length} clips into one video...</p>
+            <p className="text-xs text-purple-400 mt-1">This may take 30-60 seconds</p>
+          </div>
+        )}
+
+        {/* ─── Scene previews — ALWAYS VISIBLE ─── */}
         {isMulti ? (
-          <div className="space-y-4">
-            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-              <CheckCircle2 size={18} className="text-green-500" />
-              {result.title || 'Video'} — {result.scenes.length} Scenes Ready!
-            </h3>
-
-            {/* Merged video (if available) */}
-            {mergedUrl && (
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200">
-                <h4 className="text-sm font-semibold text-purple-700 mb-2 flex items-center gap-2">
-                  <Film size={16} /> Full Merged Video ({result.scenes.length * 5}s)
-                </h4>
-                <video src={mergedUrl} controls className="w-full rounded-lg max-h-96 bg-black" />
-                <a href={mergedUrl} download={`${(result.title || 'cybev-video').replace(/\s+/g, '-')}.mp4`}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 mt-3 bg-purple-600 text-white rounded-full text-sm font-semibold hover:bg-purple-700 transition-colors"
-                >
-                  <Download size={15} /> Download Full Video
-                </a>
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-gray-700">Scene Clips ({scenes.length} × 5s each)</h4>
+            {scenes.map((scene, i) => (
+              <div key={i} className="bg-gray-50 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <div className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold">{scene.sceneNumber}</div>
+                    Scene {scene.sceneNumber}
+                  </span>
+                  <a href={scene.videoUrl} download={`${(result.title || 'scene').replace(/\s+/g, '-')}-scene-${scene.sceneNumber}.mp4`}
+                    className="flex items-center gap-1 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium hover:bg-purple-200"
+                  >
+                    <Download size={12} /> Download
+                  </a>
+                </div>
+                <video src={scene.videoUrl} controls className="w-full rounded-lg max-h-56 bg-black" />
               </div>
-            )}
-
-            {/* Download / Merge actions */}
-            <div className="flex flex-wrap items-center gap-3">
-              {!mergedUrl && (
-                <button onClick={() => handleMerge(result.scenes)} disabled={merging}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-sm font-semibold hover:shadow-lg disabled:opacity-60 transition-all"
-                >
-                  {merging ? <Loader2 size={16} className="animate-spin" /> : <Film size={16} />}
-                  {merging ? 'Merging clips...' : `Merge & Download (${result.scenes.length * 5}s video)`}
-                </button>
-              )}
-              <button onClick={() => setShowAllScenes(!showAllScenes)}
-                className="flex items-center gap-1.5 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-50"
-              >
-                {showAllScenes ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                {showAllScenes ? 'Hide Scenes' : `Download Scenes Separately (${result.scenes.length})`}
-              </button>
-              <button className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
-                <Share2 size={14} /> Post to CYBEV
-              </button>
-              <button onClick={() => { setStep(0); setResult(null); setScript(null); setGenStatus(null); setSceneTasks([]); setSceneResults([]); setMergedUrl(null); setMergeError(''); }}
-                className="flex items-center gap-1.5 px-4 py-2.5 border border-gray-300 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50"
-              >
-                <Plus size={14} /> Create Another
-              </button>
-            </div>
-
-            {mergeError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
-                {mergeError}
-                <button onClick={() => handleMerge(result.scenes)} className="ml-2 underline hover:no-underline">Retry</button>
-              </div>
-            )}
-
-            {merging && (
-              <div className="p-4 bg-purple-50 rounded-xl text-center">
-                <Loader2 size={24} className="animate-spin text-purple-500 mx-auto mb-2" />
-                <p className="text-sm text-purple-700 font-medium">Merging {result.scenes.length} clips into one video...</p>
-                <p className="text-xs text-purple-400 mt-1">This may take 30-60 seconds depending on clip count</p>
-              </div>
-            )}
-
-            {/* Individual scenes (expandable) */}
-            {showAllScenes && (
-              <div className="space-y-3 pt-2 border-t border-gray-100">
-                <p className="text-xs text-gray-400">Each scene is a 5-second clip. Download individually below.</p>
-                {result.scenes.map((scene, i) => (
-                  <div key={i} className="bg-gray-50 rounded-xl p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                        <div className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold">{scene.sceneNumber}</div>
-                        Scene {scene.sceneNumber}
-                      </span>
-                      <a href={scene.videoUrl} download={`${(result.title || 'scene').replace(/\s+/g, '-')}-scene-${scene.sceneNumber}.mp4`}
-                        className="flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium hover:bg-purple-200"
-                      >
-                        <Download size={12} /> Download
-                      </a>
-                    </div>
-                    <video src={scene.videoUrl} controls className="w-full rounded-lg max-h-48 bg-black" />
-                  </div>
-                ))}
-              </div>
-            )}
+            ))}
           </div>
         ) : (
           <div className="bg-gray-50 rounded-xl p-5">
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <CheckCircle2 size={18} className="text-green-500" /> Video Ready!
-            </h3>
             <video src={result.videoUrl} controls className="w-full rounded-lg max-h-96 bg-black" />
-            <div className="flex flex-wrap gap-3 mt-4">
-              <a href={result.videoUrl} download className="flex items-center gap-1.5 px-4 py-2 bg-purple-600 text-white rounded-full text-sm font-medium hover:bg-purple-700">
-                <Download size={14} /> Download
-              </a>
-              <button className="flex items-center gap-1.5 px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
-                <Share2 size={14} /> Post to CYBEV
-              </button>
-              <button onClick={() => { setStep(0); setResult(null); setScript(null); setGenStatus(null); }}
-                className="flex items-center gap-1.5 px-4 py-2 border border-gray-300 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50"
-              >
-                <Plus size={14} /> Create Another
-              </button>
-            </div>
+            <a href={result.videoUrl} download={`${(result.title || 'cybev-video').replace(/\s+/g, '-')}.mp4`}
+              className="inline-flex items-center gap-1.5 px-4 py-2 mt-3 bg-purple-600 text-white rounded-full text-sm font-medium hover:bg-purple-700"
+            >
+              <Download size={14} /> Download
+            </a>
           </div>
         )}
       </div>
