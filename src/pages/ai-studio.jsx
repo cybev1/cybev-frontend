@@ -156,6 +156,12 @@ function VideoMaker({ balance }) {
   const [genStatus, setGenStatus] = useState(null);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState(null);
+  const [sceneTasks, setSceneTasks] = useState([]);
+  const [sceneResults, setSceneResults] = useState([]);
+  const [merging, setMerging] = useState(false);
+  const [mergedUrl, setMergedUrl] = useState(null);
+  const [mergeError, setMergeError] = useState('');
+  const [showAllScenes, setShowAllScenes] = useState(false);
   const pollRef = useRef(null);
 
   const durConfig = VIDEO_DURATIONS.find(d => d.val === duration) || VIDEO_DURATIONS[2];
@@ -211,9 +217,6 @@ function VideoMaker({ balance }) {
   };
 
   // Generate video from script
-  const [sceneTasks, setSceneTasks] = useState([]);
-  const [sceneResults, setSceneResults] = useState([]);
-
   const handleGenerate = async () => {
     setStep(3);
     setGenStatus('processing');
@@ -493,11 +496,6 @@ function VideoMaker({ balance }) {
   }
 
   // ─── STEP 4: Result ───
-  const [merging, setMerging] = useState(false);
-  const [mergedUrl, setMergedUrl] = useState(null);
-  const [mergeError, setMergeError] = useState('');
-  const [showAllScenes, setShowAllScenes] = useState(false);
-
   const handleMerge = async (scenes) => {
     setMerging(true);
     setMergeError('');
