@@ -2314,19 +2314,17 @@ function MovieMaker({ balance }) {
           {(!p.characters || p.characters.length === 0) ? (
             <p className="text-sm text-gray-400 text-center py-4">No characters yet. Add your cast — upload face photos so AI can generate them in scenes!</p>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {p.characters.map(c => (
                 <div key={c._id} className="border border-gray-200 rounded-xl p-3 relative group">
                   {/* Action buttons — top right */}
-                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     <button onClick={async () => {
                       const name = prompt('Character name:', c.name);
                       if (!name) return;
                       const role = prompt('Role (main/supporting/narrator/extra):', c.role) || c.role;
                       const desc = prompt('Description:', c.description) || c.description;
-                      const voiceId = prompt('Voice ID (leave blank to keep):', c.voiceId);
                       const update = { name, role, description: desc };
-                      if (voiceId) update.voiceId = voiceId;
                       try {
                         await api.put(`/api/movie-projects/${p._id}/characters/${c._id}`, update);
                         loadProject(p._id);
@@ -2354,30 +2352,86 @@ function MovieMaker({ balance }) {
                       <p className="text-sm font-semibold text-gray-800 truncate">{c.name}</p>
                       <p className="text-[10px] text-gray-400 capitalize">{c.role}</p>
                       {c.description && <p className="text-[10px] text-gray-400 truncate mt-0.5">{c.description}</p>}
+                      {/* Voice indicator */}
+                      <div className="flex items-center gap-1 mt-1">
+                        {c.voiceRecordingUrl ? (
+                          <span className="text-[10px] bg-green-100 text-green-600 px-1.5 py-0.5 rounded-full flex items-center gap-0.5"><Mic size={8} /> Custom voice</span>
+                        ) : (
+                          <span className="text-[10px] bg-purple-50 text-purple-500 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                            <Volume2 size={8} /> {VOICES.flatMap(g => g.voices).find(v => v.id === c.voiceId)?.label || c.voiceId || 'Nova'}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Upload / Change face */}
-                  <div className="mt-2 flex gap-1.5">
-                    <label className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-medium cursor-pointer hover:bg-amber-100">
-                      <Camera size={10} /> {c.faceImageUrl ? 'Change Face' : 'Upload Face'}
-                      <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                        const file = e.target.files?.[0]; if (!file) return;
+                  {/* Face + Voice uploads */}
+                  <div className="mt-2.5 space-y-2">
+                    {/* Face upload row */}
+                    <div className="flex gap-1.5">
+                      <label className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-medium cursor-pointer hover:bg-amber-100">
+                        <Camera size={10} /> {c.faceImageUrl ? 'Change Face' : 'Upload Face'}
+                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                          const file = e.target.files?.[0]; if (!file) return;
+                          try {
+                            const fd = new FormData(); fd.append('file', file);
+                            const { data: up } = await api.post('/api/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                            const url = up.url || up.imageUrl || up.secure_url;
+                            await api.put(`/api/movie-projects/${p._id}/characters/${c._id}`, { faceImageUrl: url });
+                            loadProject(p._id);
+                          } catch {}
+                        }} />
+                      </label>
+                      {c.faceImageUrl && (
+                        <button onClick={async () => {
+                          try { await api.put(`/api/movie-projects/${p._id}/characters/${c._id}`, { faceImageUrl: '' }); loadProject(p._id); } catch {}
+                        }} className="px-2 py-1.5 bg-red-50 text-red-500 rounded-lg text-[10px] font-medium hover:bg-red-100" title="Remove face">
+                          <Trash2 size={10} />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Voice recording upload row */}
+                    <div className="flex gap-1.5">
+                      <label className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-medium cursor-pointer hover:bg-blue-100">
+                        <Mic size={10} /> {c.voiceRecordingUrl ? 'Change Voice Recording' : 'Upload Voice Recording'}
+                        <input type="file" accept="audio/*,video/*" className="hidden" onChange={async (e) => {
+                          const file = e.target.files?.[0]; if (!file) return;
+                          try {
+                            const fd = new FormData(); fd.append('file', file);
+                            const { data: up } = await api.post('/api/upload/video', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 60000 });
+                            const url = up.url || up.videoUrl || up.secure_url;
+                            await api.put(`/api/movie-projects/${p._id}/characters/${c._id}`, { voiceRecordingUrl: url });
+                            loadProject(p._id);
+                          } catch {}
+                        }} />
+                      </label>
+                      {c.voiceRecordingUrl && (
+                        <button onClick={async () => {
+                          try { await api.put(`/api/movie-projects/${p._id}/characters/${c._id}`, { voiceRecordingUrl: '' }); loadProject(p._id); } catch {}
+                        }} className="px-2 py-1.5 bg-red-50 text-red-500 rounded-lg text-[10px] font-medium hover:bg-red-100" title="Remove voice recording">
+                          <Trash2 size={10} />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Voice preview (if recording uploaded) */}
+                    {c.voiceRecordingUrl && (
+                      <audio src={c.voiceRecordingUrl} controls className="w-full h-8 mt-1" />
+                    )}
+
+                    {/* TTS voice selector (used when no recording uploaded) */}
+                    {!c.voiceRecordingUrl && (
+                      <select value={c.voiceId || 'nova'} onChange={async (e) => {
                         try {
-                          const fd = new FormData(); fd.append('file', file);
-                          const { data: up } = await api.post('/api/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-                          const url = up.url || up.imageUrl || up.secure_url;
-                          await api.put(`/api/movie-projects/${p._id}/characters/${c._id}`, { faceImageUrl: url });
+                          await api.put(`/api/movie-projects/${p._id}/characters/${c._id}`, { voiceId: e.target.value });
                           loadProject(p._id);
                         } catch {}
-                      }} />
-                    </label>
-                    {c.faceImageUrl && (
-                      <button onClick={async () => {
-                        try { await api.put(`/api/movie-projects/${p._id}/characters/${c._id}`, { faceImageUrl: '' }); loadProject(p._id); } catch {}
-                      }} className="px-2 py-1.5 bg-red-50 text-red-500 rounded-lg text-[10px] font-medium hover:bg-red-100" title="Remove face photo">
-                        <Trash2 size={10} />
-                      </button>
+                      }} className="w-full px-2 py-1 border border-gray-200 rounded-lg text-[10px] text-gray-500 outline-none focus:ring-1 focus:ring-amber-400">
+                        {VOICES.flatMap(g => g.voices).map(v => (
+                          <option key={v.id} value={v.id}>{v.flag} {v.label} — {v.accent}</option>
+                        ))}
+                      </select>
                     )}
                   </div>
                 </div>
