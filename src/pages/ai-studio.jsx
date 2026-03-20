@@ -1,9 +1,8 @@
 // ============================================
 // FILE: ai-studio.jsx
 // PATH: /src/pages/ai-studio.jsx
-// CYBEV AI Content Studio v2.0 — Script Writer Flow
-// Step 1: Brief idea → Step 2: AI writes script →
-// Step 3: Edit script → Step 4: Generate with Replicate
+// CYBEV AI Content Studio v3.0 — World Creators Center
+// Video + Music + Graphics + DUB + Character Generator
 // ============================================
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
@@ -17,14 +16,17 @@ import {
   CheckCircle2, XCircle, ArrowLeft, Volume2, VolumeX,
   Maximize2, Copy, Heart, Send, Edit3, Eye, FileText,
   ChevronLeft, ChevronDown, ChevronUp, Plus, Trash2,
-  Camera, Type, MessageSquare, Layers, PenTool
+  Camera, Type, MessageSquare, Layers, PenTool,
+  Languages, UserCircle2, Upload, Square, Globe
 } from 'lucide-react';
 
 // ─── Constants ───
 const TOOLS = [
-  { id: 'video', label: 'AI Video', icon: Film, color: 'from-purple-600 to-pink-600', accent: 'purple', desc: 'Generate videos from text prompts' },
+  { id: 'video', label: 'AI Video', icon: Film, color: 'from-purple-600 to-pink-600', accent: 'purple', desc: 'Script → scene-by-scene video' },
   { id: 'music', label: 'AI Music', icon: Music, color: 'from-blue-600 to-cyan-600', accent: 'blue', desc: 'Compose songs with AI' },
   { id: 'graphics', label: 'AI Graphics', icon: Image, color: 'from-orange-500 to-red-500', accent: 'orange', desc: 'Create stunning visuals' },
+  { id: 'dub', label: 'AI Dub', icon: Languages, color: 'from-emerald-500 to-teal-600', accent: 'emerald', desc: 'Re-voice & translate videos' },
+  { id: 'character', label: 'AI Character', icon: UserCircle2, color: 'from-rose-500 to-violet-600', accent: 'rose', desc: 'Your face in AI videos' },
 ];
 
 const VIDEO_STYLES = ['Cinematic', 'Anime', 'Realistic', '3D Animation', 'Watercolor', 'Vintage Film', 'Neon', 'Documentary'];
@@ -178,6 +180,17 @@ const VOICES = [
     { id: 'shimmer-br', label: 'Ana',     accent: 'Brazilian',  gender: 'Female', flag: '🇧🇷' },
     { id: 'echo-jm',    label: 'Marcus',  accent: 'Jamaican',   gender: 'Male',   flag: '🇯🇲' },
     { id: 'nova-au',    label: 'Sophie',  accent: 'Australian', gender: 'Female', flag: '🇦🇺' },
+  ]},
+  { group: '🎬 Deep & Narrator', voices: [
+    { id: 'onyx-narrator',   label: 'Morgan',   accent: 'Cinematic',     gender: 'Male',   flag: '🎬' },
+    { id: 'onyx-doc',        label: 'Atlas',    accent: 'Documentary',   gender: 'Male',   flag: '🌍' },
+    { id: 'echo-narrator',   label: 'David',    accent: 'Narrator',      gender: 'Male',   flag: '🎙️' },
+    { id: 'fable-narrator',  label: 'Benedict', accent: 'British Deep',  gender: 'Male',   flag: '🇬🇧' },
+    { id: 'onyx-epic',       label: 'Titan',    accent: 'Epic Trailer',  gender: 'Male',   flag: '⚡' },
+    { id: 'nova-narrator',   label: 'Maya',     accent: 'Female Narrator',gender: 'Female', flag: '🎙️' },
+    { id: 'shimmer-narrator',label: 'Elena',    accent: 'Reflective',    gender: 'Female', flag: '🌙' },
+    { id: 'onyx-ng-deep',    label: 'Obinna',   accent: 'Nigerian Deep', gender: 'Male',   flag: '🇳🇬' },
+    { id: 'onyx-za-deep',    label: 'Mandla',   accent: 'SA Deep',       gender: 'Male',   flag: '🇿🇦' },
   ]},
 ];
 
@@ -1565,6 +1578,541 @@ function GraphicsGenerator({ balance }) {
 // ═══════════════════════════════════════════
 // MAIN AI STUDIO PAGE
 // ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+// DUB STUDIO — Upload video → AI re-voices it
+// ═══════════════════════════════════════════
+function DubStudio({ balance }) {
+  const [step, setStep] = useState(0); // 0=upload, 1=configure, 2=processing, 3=result
+  const [videoUrl, setVideoUrl] = useState('');
+  const [videoFile, setVideoFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedUrl, setUploadedUrl] = useState('');
+  const [voice, setVoice] = useState('onyx-narrator');
+  const [addVoiceover, setAddVoiceover] = useState(true);
+  const [targetLang, setTargetLang] = useState('en');
+  const [customScript, setCustomScript] = useState('');
+  const [useRecorded, setUseRecorded] = useState(false);
+  const [recordedUrl, setRecordedUrl] = useState('');
+  const [recordedFile, setRecordedFile] = useState(null);
+  const [processing, setProcessing] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState('');
+
+  const LANGUAGES = [
+    { code: 'en', label: 'English (keep original)' }, { code: 'es', label: 'Spanish' }, { code: 'fr', label: 'French' },
+    { code: 'pt', label: 'Portuguese' }, { code: 'de', label: 'German' }, { code: 'ar', label: 'Arabic' },
+    { code: 'hi', label: 'Hindi' }, { code: 'sw', label: 'Swahili' }, { code: 'yo', label: 'Yoruba' },
+    { code: 'ig', label: 'Igbo' }, { code: 'ha', label: 'Hausa' }, { code: 'zu', label: 'Zulu' },
+    { code: 'am', label: 'Amharic' }, { code: 'tw', label: 'Twi' }, { code: 'zh', label: 'Chinese' },
+    { code: 'ja', label: 'Japanese' }, { code: 'ko', label: 'Korean' }, { code: 'it', label: 'Italian' },
+    { code: 'ru', label: 'Russian' }, { code: 'tr', label: 'Turkish' },
+  ];
+
+  const handleUploadVideo = async (file) => {
+    if (!file) return;
+    setUploading(true);
+    setError('');
+    try {
+      const formData = new FormData();
+      formData.append('video', file);
+      const { data } = await api.post('/api/upload/video', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120000
+      });
+      setUploadedUrl(data.url || data.videoUrl || data.secure_url);
+      setVideoFile(file);
+      setStep(1);
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleUploadRecording = async (file) => {
+    if (!file) return;
+    try {
+      const formData = new FormData();
+      formData.append('video', file); // reuse video upload endpoint for audio
+      const { data } = await api.post('/api/upload/video', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }, timeout: 60000
+      });
+      setRecordedUrl(data.url || data.videoUrl || data.secure_url);
+      setRecordedFile(file);
+    } catch {
+      setError('Failed to upload voice recording');
+    }
+  };
+
+  const handleProcess = async () => {
+    setStep(2);
+    setProcessing(true);
+    setError('');
+    try {
+      const { data } = await api.post('/api/ai-content/dub/process', {
+        videoUrl: uploadedUrl || videoUrl,
+        voiceId: voice,
+        targetLang,
+        customScript: customScript.trim() || undefined,
+        useRecordedVoice: useRecorded,
+        recordedAudioUrl: recordedUrl || undefined
+      }, { timeout: 300000 });
+      setResult(data);
+      setStep(3);
+    } catch (err) {
+      setError(err?.response?.data?.error || err?.response?.data?.details || 'Dubbing failed');
+      setStep(1);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  // ─── STEP 0: Upload ───
+  if (step === 0) {
+    return (
+      <div className="space-y-5">
+        <div className="text-center py-8">
+          <Languages size={48} className="mx-auto text-emerald-500 mb-3" />
+          <h3 className="text-lg font-bold text-gray-900">AI Dub Studio</h3>
+          <p className="text-sm text-gray-500 mt-1 max-w-md mx-auto">Upload a video and AI will re-voice it in any accent, voice, or language. Perfect for translations, voiceovers, and content localization.</p>
+        </div>
+
+        {/* Upload area */}
+        <div className="border-2 border-dashed border-emerald-300 rounded-xl p-8 text-center bg-emerald-50/30 hover:bg-emerald-50 transition-colors">
+          <input type="file" accept="video/*" id="dub-video-upload" className="hidden"
+            onChange={e => e.target.files?.[0] && handleUploadVideo(e.target.files[0])}
+          />
+          <label htmlFor="dub-video-upload" className="cursor-pointer">
+            {uploading ? (
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 size={32} className="animate-spin text-emerald-500" />
+                <p className="text-sm text-emerald-600 font-medium">Uploading video...</p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2">
+                <Upload size={32} className="text-emerald-400" />
+                <p className="text-sm font-semibold text-gray-700">Click to upload a video</p>
+                <p className="text-xs text-gray-400">MP4, MOV, WebM — up to 100MB</p>
+              </div>
+            )}
+          </label>
+        </div>
+
+        {/* Or paste URL */}
+        <div className="flex items-center gap-2">
+          <div className="flex-1 h-px bg-gray-200" /><span className="text-xs text-gray-400">or paste URL</span><div className="flex-1 h-px bg-gray-200" />
+        </div>
+        <div className="flex gap-2">
+          <input type="text" value={videoUrl} onChange={e => setVideoUrl(e.target.value)}
+            placeholder="https://example.com/video.mp4"
+            className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+          />
+          <button onClick={() => { if (videoUrl.trim()) { setUploadedUrl(videoUrl.trim()); setStep(1); } }}
+            disabled={!videoUrl.trim()} className="px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium disabled:opacity-50 hover:bg-emerald-700"
+          >Use URL</button>
+        </div>
+
+        {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{error}</div>}
+      </div>
+    );
+  }
+
+  // ─── STEP 1: Configure ───
+  if (step === 1) {
+    return (
+      <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <button onClick={() => { setStep(0); setUploadedUrl(''); setVideoFile(null); }}
+            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+          ><ArrowLeft size={16} /> Change video</button>
+          <span className="text-xs text-emerald-600 font-medium flex items-center gap-1"><CheckCircle2 size={14} /> Video uploaded</span>
+        </div>
+
+        {/* Video preview */}
+        <video src={uploadedUrl} controls className="w-full rounded-lg max-h-48 bg-black" />
+
+        {/* Mode selector */}
+        <div className="space-y-3">
+          <label className="block text-sm font-semibold text-gray-700">How should AI get the narration?</label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {[
+              { mode: 'transcribe', icon: Volume2, label: 'From video audio', desc: 'AI transcribes existing audio and re-voices it' },
+              { mode: 'script', icon: Edit3, label: 'Custom script', desc: 'Write your own narration text' },
+              { mode: 'record', icon: Mic, label: 'Upload voice', desc: 'Upload a voice recording to use' },
+            ].map(m => (
+              <button key={m.mode} onClick={() => { setUseRecorded(m.mode === 'record'); setCustomScript(m.mode === 'script' ? customScript : ''); }}
+                className={`p-3 rounded-xl border-2 text-left transition-all ${
+                  (m.mode === 'record' && useRecorded) || (m.mode === 'script' && customScript !== '' && !useRecorded) || (m.mode === 'transcribe' && !useRecorded && !customScript)
+                    ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <m.icon size={20} className="text-emerald-500 mb-1" />
+                <div className="text-sm font-semibold text-gray-800">{m.label}</div>
+                <div className="text-[10px] text-gray-400 mt-0.5">{m.desc}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Custom script input */}
+        {!useRecorded && (
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Custom Script (leave blank to auto-transcribe video audio)</label>
+            <textarea rows={3} value={customScript} onChange={e => setCustomScript(e.target.value)}
+              placeholder="Type your narration script here... AI will speak this text over the video."
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none resize-none"
+            />
+          </div>
+        )}
+
+        {/* Voice recording upload */}
+        {useRecorded && (
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Upload voice recording</label>
+            <input type="file" accept="audio/*,video/*" onChange={e => e.target.files?.[0] && handleUploadRecording(e.target.files[0])}
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm"
+            />
+            {recordedUrl && <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1"><CheckCircle2 size={12} /> Recording uploaded</p>}
+          </div>
+        )}
+
+        {/* Language */}
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Target Language</label>
+          <select value={targetLang} onChange={e => setTargetLang(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
+          </select>
+        </div>
+
+        {/* Voice selection */}
+        <VoiceoverPanel voice={voice} setVoice={setVoice} addVoiceover={addVoiceover} setAddVoiceover={setAddVoiceover} />
+
+        {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{error}</div>}
+
+        <button onClick={handleProcess} disabled={processing || (useRecorded && !recordedUrl)}
+          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-full font-semibold hover:shadow-lg disabled:opacity-50 transition-all"
+        >
+          <Languages size={18} /> Dub Video
+        </button>
+      </div>
+    );
+  }
+
+  // ─── STEP 2: Processing ───
+  if (step === 2) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-16">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-emerald-200 rounded-full" />
+          <div className="absolute inset-0 w-16 h-16 border-4 border-emerald-500 rounded-full border-t-transparent animate-spin" />
+        </div>
+        <p className="text-gray-700 font-semibold text-lg">Dubbing your video...</p>
+        <p className="text-gray-400 text-sm text-center max-w-sm">Transcribing → {targetLang !== 'en' ? 'Translating → ' : ''}Generating voiceover → Replacing audio</p>
+        <p className="text-xs text-gray-300">This may take 1-3 minutes</p>
+      </div>
+    );
+  }
+
+  // ─── STEP 3: Result ───
+  if (step === 3 && result) {
+    return (
+      <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <button onClick={() => setStep(1)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+            <ArrowLeft size={16} /> Back
+          </button>
+          <button onClick={() => { setStep(0); setResult(null); setUploadedUrl(''); setVideoUrl(''); setCustomScript(''); }}
+            className="flex items-center gap-1 text-sm text-emerald-600 hover:text-emerald-800"
+          ><Plus size={14} /> Dub Another</button>
+        </div>
+
+        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+          <CheckCircle2 size={18} className="text-green-500" /> Dubbed Video Ready!
+        </h3>
+
+        <video src={result.dubbedUrl} controls className="w-full rounded-lg max-h-96 bg-black" />
+
+        {result.transcript && (
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <label className="block text-xs font-medium text-gray-500 mb-1">Narration Text</label>
+            <p className="text-sm text-gray-700">{result.transcript}</p>
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-3">
+          <a href={result.dubbedUrl} download className="flex items-center gap-1.5 px-5 py-2.5 bg-emerald-600 text-white rounded-full text-sm font-semibold hover:bg-emerald-700">
+            <Download size={14} /> Download
+          </a>
+          <button className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
+            <Share2 size={14} /> Post to CYBEV
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+
+// ═══════════════════════════════════════════
+// CHARACTER GENERATOR — Your face in AI videos
+// ═══════════════════════════════════════════
+function CharacterGenerator({ balance }) {
+  const [step, setStep] = useState(0); // 0=upload, 1=prompt, 2=generating, 3=result
+  const [imageUrl, setImageUrl] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [prompt, setPrompt] = useState('');
+  const [style, setStyle] = useState('');
+  const [duration, setDuration] = useState('short');
+  const [generating, setGenerating] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState('');
+  const pollRef = useRef(null);
+
+  const CHAR_STYLES = ['Realistic', 'Cinematic', 'Anime', '3D Animation', 'Comic Book', 'Watercolor', 'Professional', 'Fantasy'];
+  const CHAR_PROMPTS = [
+    'Person speaking confidently to camera in a professional office',
+    'Person walking through a vibrant city street, smiling',
+    'Person presenting on a stage with an audience',
+    'Person in a cozy living room, having a warm conversation',
+    'Person standing in nature, wind blowing, inspirational mood',
+    'Person dancing energetically at a party',
+    'Person working at a desk, focused and productive',
+    'Person waving hello to the camera with a friendly smile',
+  ];
+
+  const handleUploadImage = async (file) => {
+    if (!file) return;
+    setUploading(true);
+    setError('');
+    // Show local preview
+    const reader = new FileReader();
+    reader.onload = (e) => setImagePreview(e.target.result);
+    reader.readAsDataURL(file);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const { data } = await api.post('/api/upload/image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }, timeout: 60000
+      });
+      setImageUrl(data.url || data.imageUrl || data.secure_url);
+      setImageFile(file);
+      setStep(1);
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleGenerate = async () => {
+    if (!prompt.trim() || !imageUrl) return;
+    setStep(2);
+    setGenerating(true);
+    setError('');
+    try {
+      const { data } = await api.post('/api/ai-content/character/generate', {
+        imageUrl, prompt: prompt.trim(), style, duration
+      });
+      if (data.status === 'completed') {
+        setResult(data);
+        setStep(3);
+      } else if (data.taskId) {
+        const provider = data.provider || 'replicate';
+        pollRef.current = setInterval(async () => {
+          try {
+            const { data: s } = await api.get(`/api/ai-content/video/status/${data.taskId}?provider=${provider}`);
+            if (s.status === 'completed') {
+              clearInterval(pollRef.current);
+              setResult(s);
+              setStep(3);
+            } else if (s.status === 'failed') {
+              clearInterval(pollRef.current);
+              setError('Generation failed. Try a different prompt or image.');
+              setStep(1);
+            }
+          } catch {}
+        }, 4000);
+      }
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Generation failed');
+      setStep(1);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  useEffect(() => () => clearInterval(pollRef.current), []);
+
+  const cost = duration === 'short' ? 100 : 200;
+
+  // ─── STEP 0: Upload face ───
+  if (step === 0) {
+    return (
+      <div className="space-y-5">
+        <div className="text-center py-8">
+          <UserCircle2 size={48} className="mx-auto text-rose-500 mb-3" />
+          <h3 className="text-lg font-bold text-gray-900">AI Character Generator</h3>
+          <p className="text-sm text-gray-500 mt-1 max-w-md mx-auto">Upload a photo of yourself (or anyone) and AI will create a video featuring that person. Great for personalized content, avatars, and creative storytelling.</p>
+        </div>
+
+        <div className="border-2 border-dashed border-rose-300 rounded-xl p-8 text-center bg-rose-50/30 hover:bg-rose-50 transition-colors">
+          <input type="file" accept="image/*" id="char-image-upload" className="hidden"
+            onChange={e => e.target.files?.[0] && handleUploadImage(e.target.files[0])}
+          />
+          <label htmlFor="char-image-upload" className="cursor-pointer">
+            {uploading ? (
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 size={32} className="animate-spin text-rose-500" />
+                <p className="text-sm text-rose-600 font-medium">Uploading...</p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2">
+                <Camera size={32} className="text-rose-400" />
+                <p className="text-sm font-semibold text-gray-700">Upload a clear face photo</p>
+                <p className="text-xs text-gray-400">Front-facing, well-lit — JPG, PNG, WebP</p>
+              </div>
+            )}
+          </label>
+        </div>
+
+        {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{error}</div>}
+
+        <div className="bg-rose-50 rounded-lg p-3">
+          <p className="text-xs text-rose-600 font-medium mb-1">Tips for best results:</p>
+          <p className="text-[10px] text-gray-500">Clear, front-facing photo with good lighting. One person only. Neutral or simple background. No sunglasses or heavy shadows on face.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── STEP 1: Prompt + Style ───
+  if (step === 1) {
+    return (
+      <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <button onClick={() => { setStep(0); setImageUrl(''); setImagePreview(''); }}
+            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+          ><ArrowLeft size={16} /> Change photo</button>
+        </div>
+
+        {/* Face preview */}
+        {imagePreview && (
+          <div className="flex justify-center">
+            <img src={imagePreview} alt="Face" className="w-32 h-32 rounded-full object-cover border-4 border-rose-200 shadow-lg" />
+          </div>
+        )}
+
+        {/* Prompt */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">What should this person do in the video?</label>
+          <textarea rows={3} maxLength={500} value={prompt} onChange={e => setPrompt(e.target.value)}
+            placeholder="e.g. Person speaking confidently to camera in a professional office..."
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 outline-none resize-none"
+          />
+        </div>
+
+        {/* Quick prompts */}
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-2">Quick ideas</label>
+          <div className="flex flex-wrap gap-2">
+            {CHAR_PROMPTS.map((p, i) => (
+              <button key={i} onClick={() => setPrompt(p)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  prompt === p ? 'bg-rose-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >{p.length > 40 ? p.substring(0, 40) + '...' : p}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* Style */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Visual Style</label>
+          <PillSelect options={CHAR_STYLES} value={style} onChange={setStyle} accent="orange" />
+        </div>
+
+        {/* Duration */}
+        <div className="flex gap-3">
+          {[{ val: 'short', label: '5 sec', cost: 100 }, { val: 'medium', label: '10 sec', cost: 200 }].map(d => (
+            <button key={d.val} onClick={() => setDuration(d.val)}
+              className={`flex-1 px-4 py-3 rounded-xl text-center border-2 transition-all ${
+                duration === d.val ? 'border-rose-500 bg-rose-50' : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className={`text-sm font-bold ${duration === d.val ? 'text-rose-700' : 'text-gray-700'}`}>{d.label}</div>
+              <div className="text-[10px] text-amber-500">{d.cost} credits</div>
+            </button>
+          ))}
+        </div>
+
+        {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{error}</div>}
+
+        <div className="flex items-center justify-between pt-2">
+          <TokenCost cost={cost} />
+          <button onClick={handleGenerate} disabled={!prompt.trim() || balance < cost}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-violet-600 text-white rounded-full font-semibold hover:shadow-lg disabled:opacity-50 transition-all"
+          >
+            <Sparkles size={18} /> Generate Character Video
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── STEP 2: Generating ───
+  if (step === 2) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-16">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-rose-200 rounded-full" />
+          <div className="absolute inset-0 w-16 h-16 border-4 border-rose-500 rounded-full border-t-transparent animate-spin" />
+        </div>
+        <p className="text-gray-700 font-semibold text-lg">Creating your character video...</p>
+        <p className="text-gray-400 text-sm">AI is animating the face with your prompt — 30-90 seconds</p>
+      </div>
+    );
+  }
+
+  // ─── STEP 3: Result ───
+  if (step === 3 && result) {
+    return (
+      <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <button onClick={() => { setStep(1); setResult(null); }}
+            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+          ><ArrowLeft size={16} /> Edit prompt</button>
+          <button onClick={() => { setStep(0); setResult(null); setImageUrl(''); setImagePreview(''); setPrompt(''); }}
+            className="flex items-center gap-1 text-sm text-rose-600"
+          ><Plus size={14} /> New Character</button>
+        </div>
+
+        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+          <CheckCircle2 size={18} className="text-green-500" /> Character Video Ready!
+        </h3>
+
+        <video src={result.videoUrl} controls className="w-full rounded-lg max-h-96 bg-black" />
+
+        <div className="flex flex-wrap gap-3">
+          <a href={result.videoUrl} download className="flex items-center gap-1.5 px-5 py-2.5 bg-rose-600 text-white rounded-full text-sm font-semibold hover:bg-rose-700">
+            <Download size={14} /> Download
+          </a>
+          <button className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
+            <Share2 size={14} /> Post to CYBEV
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+
 export default function AIStudio() {
   const router = useRouter();
   const [activeTool, setActiveTool] = useState('video');
@@ -1611,25 +2159,25 @@ export default function AIStudio() {
         </div>
 
         {/* Tool Tabs */}
-        <div className="flex gap-3 mb-6">
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
           {TOOLS.map(tool => (
             <button
               key={tool.id}
               onClick={() => setActiveTool(tool.id)}
-              className={`flex-1 flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all ${
+              className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 transition-all whitespace-nowrap flex-shrink-0 ${
                 activeTool === tool.id
                   ? 'border-purple-500 bg-purple-50 shadow-sm'
                   : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
               }`}
             >
-              <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${tool.color} flex items-center justify-center flex-shrink-0`}>
-                <tool.icon size={20} className="text-white" />
+              <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${tool.color} flex items-center justify-center flex-shrink-0`}>
+                <tool.icon size={18} className="text-white" />
               </div>
               <div className="text-left min-w-0">
-                <p className={`text-sm font-semibold ${activeTool === tool.id ? 'text-purple-700' : 'text-gray-700'}`}>
+                <p className={`text-xs font-semibold ${activeTool === tool.id ? 'text-purple-700' : 'text-gray-700'}`}>
                   {tool.label}
                 </p>
-                <p className="text-xs text-gray-400 hidden md:block truncate">{tool.desc}</p>
+                <p className="text-[10px] text-gray-400 hidden lg:block truncate">{tool.desc}</p>
               </div>
             </button>
           ))}
@@ -1653,6 +2201,8 @@ export default function AIStudio() {
           {activeTool === 'video' && <VideoMaker balance={balance} />}
           {activeTool === 'music' && <MusicComposer balance={balance} />}
           {activeTool === 'graphics' && <GraphicsGenerator balance={balance} />}
+          {activeTool === 'dub' && <DubStudio balance={balance} />}
+          {activeTool === 'character' && <CharacterGenerator balance={balance} />}
         </div>
       </div>
     </AppLayout>
