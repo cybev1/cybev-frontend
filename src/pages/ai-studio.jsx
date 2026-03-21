@@ -2777,37 +2777,42 @@ function MovieMaker({ balance }) {
                 });
                 const textOverlays = ep.scenes.map(s => s.textOverlay || '');
 
-                // Build per-scene voice IDs — match characters to their TTS voices
-                const voiceRecordingUrls = ep.scenes.map((s, idx) => {
-                  // Collect all possible character names from this scene
+                // Build per-scene voice data — recording URLs for cloning + voice IDs for TTS fallback
+                const voiceRecordingUrls = ep.scenes.map(s => {
                   const speakerNames = [
                     ...(s.dialogue?.map(d => d.character) || []),
-                    ...(s.characters || []),
+                    ...(s.characters || [])
                   ];
-                  // Also check visual text for character name mentions
                   const vizLower = (s.visual || '').toLowerCase();
-                  const narLower = (s.narration || '').toLowerCase();
-
+                  for (const char of (p.characters || [])) {
+                    if (!char.name || !char.voiceRecordingUrl) continue;
+                    const nameLower = char.name.toLowerCase();
+                    const mentioned = speakerNames.some(n => n && n.toLowerCase().includes(nameLower)) || vizLower.includes(nameLower);
+                    if (mentioned) return char.voiceRecordingUrl;
+                  }
+                  return null;
+                });
+                const perSceneVoiceIds = ep.scenes.map(s => {
+                  const speakerNames = [
+                    ...(s.dialogue?.map(d => d.character) || []),
+                    ...(s.characters || [])
+                  ];
+                  const vizLower = (s.visual || '').toLowerCase();
                   for (const char of (p.characters || [])) {
                     if (!char.name) continue;
                     const nameLower = char.name.toLowerCase();
-                    // Check if this character is mentioned anywhere in the scene
-                    const inSpeakers = speakerNames.some(n => n && n.toLowerCase().includes(nameLower));
-                    const inVisual = vizLower.includes(nameLower);
-                    const inNarration = narLower.includes(nameLower);
-                    if (inSpeakers || inVisual || inNarration) {
-                      return char.voiceId || null;
-                    }
+                    const mentioned = speakerNames.some(n => n && n.toLowerCase().includes(nameLower)) || vizLower.includes(nameLower);
+                    if (mentioned && char.voiceId) return char.voiceId;
                   }
-                  return null; // falls back to project default
+                  return null;
                 });
-                console.log('Per-scene voices:', voiceRecordingUrls);
                 const { data } = await api.post('/api/ai-content/video/merge', {
                   videoUrls: urls, title: `${p.title} - ${ep.title}`,
-                  narrations, textOverlays, voiceRecordingUrls,
+                  narrations, textOverlays, voiceRecordingUrls, perSceneVoiceIds,
                   voice: p.defaultVoiceId || 'onyx-narrator', addVoiceover: true, autoCaptions: p.autoCaptions !== false,
-                  logoUrl: p.logoUrl || undefined, introImageUrl: p.introImageUrl || undefined, outroImageUrl: p.outroImageUrl || undefined
-                }, { timeout: 360000 });
+                  logoUrl: p.logoUrl || undefined, introImageUrl: p.introImageUrl || undefined, outroImageUrl: p.outroImageUrl || undefined,
+                  language: p.language || 'en'
+                }, { timeout: 600000 });
                 if (data.mergedUrl) {
                   await api.put(`/api/movie-projects/${p._id}/episodes/${ep._id}`, { status: 'merged' });
                   setActiveEpisode(prev => ({ ...prev, mergedVideoUrl: data.mergedUrl, status: 'merged', thumbnails: data.thumbnails || [] }));
