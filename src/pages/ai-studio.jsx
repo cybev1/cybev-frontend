@@ -2777,21 +2777,31 @@ function MovieMaker({ balance }) {
                 });
                 const textOverlays = ep.scenes.map(s => s.textOverlay || '');
 
-                // Build per-scene voice IDs — each character speaks in their own TTS voice
-                const voiceRecordingUrls = ep.scenes.map(s => {
+                // Build per-scene voice IDs — match characters to their TTS voices
+                const voiceRecordingUrls = ep.scenes.map((s, idx) => {
+                  // Collect all possible character names from this scene
                   const speakerNames = [
                     ...(s.dialogue?.map(d => d.character) || []),
-                    ...(s.characters || [])
+                    ...(s.characters || []),
                   ];
-                  for (const name of speakerNames) {
-                    if (!name) continue;
-                    const char = p.characters?.find(c =>
-                      c.name.toLowerCase() === name.toLowerCase()
-                    );
-                    if (char?.voiceId) return char.voiceId;
+                  // Also check visual text for character name mentions
+                  const vizLower = (s.visual || '').toLowerCase();
+                  const narLower = (s.narration || '').toLowerCase();
+
+                  for (const char of (p.characters || [])) {
+                    if (!char.name) continue;
+                    const nameLower = char.name.toLowerCase();
+                    // Check if this character is mentioned anywhere in the scene
+                    const inSpeakers = speakerNames.some(n => n && n.toLowerCase().includes(nameLower));
+                    const inVisual = vizLower.includes(nameLower);
+                    const inNarration = narLower.includes(nameLower);
+                    if (inSpeakers || inVisual || inNarration) {
+                      return char.voiceId || null;
+                    }
                   }
-                  return null; // falls back to project default voice
+                  return null; // falls back to project default
                 });
+                console.log('Per-scene voices:', voiceRecordingUrls);
                 const { data } = await api.post('/api/ai-content/video/merge', {
                   videoUrls: urls, title: `${p.title} - ${ep.title}`,
                   narrations, textOverlays, voiceRecordingUrls,
