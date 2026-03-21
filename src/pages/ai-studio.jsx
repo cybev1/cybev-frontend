@@ -2777,9 +2777,8 @@ function MovieMaker({ balance }) {
                 });
                 const textOverlays = ep.scenes.map(s => s.textOverlay || '');
 
-                // Build voice recording URLs — match scene's primary character to their recording
+                // Build per-scene voice IDs — each character speaks in their own TTS voice
                 const voiceRecordingUrls = ep.scenes.map(s => {
-                  // Find the first speaking character in this scene who has a voice recording
                   const speakerNames = [
                     ...(s.dialogue?.map(d => d.character) || []),
                     ...(s.characters || [])
@@ -2787,11 +2786,11 @@ function MovieMaker({ balance }) {
                   for (const name of speakerNames) {
                     if (!name) continue;
                     const char = p.characters?.find(c =>
-                      c.voiceRecordingUrl && c.name.toLowerCase() === name.toLowerCase()
+                      c.name.toLowerCase() === name.toLowerCase()
                     );
-                    if (char) return char.voiceRecordingUrl;
+                    if (char?.voiceId) return char.voiceId;
                   }
-                  return null;
+                  return null; // falls back to project default voice
                 });
                 const { data } = await api.post('/api/ai-content/video/merge', {
                   videoUrls: urls, title: `${p.title} - ${ep.title}`,
