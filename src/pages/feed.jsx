@@ -764,19 +764,25 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh }) {
     setFollowLoading(false);
   };
 
-  // Track view
+  // Track view — only when scrolled into view, with 5s delay
+  const cardRef = useRef(null);
   useEffect(() => {
-    const trackView = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        await api.post(`/api/blogs/${item._id}/view`, {}, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        });
-      } catch {}
-    };
-    
-    const timer = setTimeout(trackView, 2000);
-    return () => clearTimeout(timer);
+    let timer;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        timer = setTimeout(async () => {
+          try {
+            const token = localStorage.getItem('token');
+            await api.post(`/api/blogs/${item._id}/view`, {}, {
+              headers: token ? { Authorization: `Bearer ${token}` } : {}
+            });
+          } catch {}
+        }, 5000); // 5s in view before counting
+        observer.disconnect();
+      }
+    }, { threshold: 0.5 });
+    if (cardRef.current) observer.observe(cardRef.current);
+    return () => { clearTimeout(timer); observer.disconnect(); };
   }, [item._id]);
 
   const getReactionDisplay = () => {
@@ -813,7 +819,7 @@ function FeedCard({ item, currentUserId, isAdmin, onRefresh }) {
   const contentPreview = stripMarkdown(item.content || item.excerpt || '');
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 overflow-hidden">
+    <div ref={cardRef} className="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 overflow-hidden">
       {/* Header */}
       <div className="p-4 flex items-center justify-between relative">
         <div className="flex items-center gap-3">
