@@ -1388,57 +1388,70 @@ function SceneCard({ scene, index, onUpdate, onRemove, canRemove }) {
 // MUSIC COMPOSER — with Script Writer
 // ═══════════════════════════════════════════
 function MusicComposer({ balance, creditGate }) {
-  const [step, setStep] = useState(0);
-  const [idea, setIdea] = useState('');
-  const [genre, setGenre] = useState('');
-  const [mood, setMood] = useState('');
-  const [duration, setDuration] = useState('short');
-  const [instrumental, setInstrumental] = useState(false);
-  const [script, setScript] = useState(null);
-  const [scriptError, setScriptError] = useState('');
-  const [genStatus, setGenStatus] = useState(null);
-  const [progress, setProgress] = useState(0);
-  const [result, setResult] = useState(null);
-  const [showShare, setShowShare] = useState(false);
-  const pollRef = useRef(null);
+  const DRAFT_KEY = 'cybev_music_draft';
 
-  // Vocals state
-  const [selectedVoice, setSelectedVoice] = useState('nova');
-  const [voiceRecording, setVoiceRecording] = useState(null);
-  const [voiceRecordingUrl, setVoiceRecordingUrl] = useState('');
-  const [voiceLang, setVoiceLang] = useState('en');
-  const [addingVocals, setAddingVocals] = useState(false);
-  const [vocalResult, setVocalResult] = useState(null);
-  const [vocalError, setVocalError] = useState('');
-  const [previewingVoice, setPreviewingVoice] = useState(null);
-  const previewAudioRef = useRef(null);
+  // Restore draft from localStorage
+  const loadDraft = () => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return null;
+  };
+  const draft = useRef(loadDraft()).current;
+
+  const [step, setStep] = useState(draft?.step || 0);
+  const [idea, setIdea] = useState(draft?.idea || '');
+  const [genre, setGenre] = useState(draft?.genre || '');
+  const [mood, setMood] = useState(draft?.mood || '');
+  const [duration, setDuration] = useState(draft?.duration || 'short');
+  const [instrumental, setInstrumental] = useState(draft?.instrumental || false);
+  const [script, setScript] = useState(draft?.script || null);
+  const [scriptError, setScriptError] = useState('');
+  const [genStatus, setGenStatus] = useState(draft?.result ? 'completed' : null);
+  const [progress, setProgress] = useState(0);
+  const [result, setResult] = useState(draft?.result || null);
+  const [showShare, setShowShare] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(!!draft);
+  const pollRef = useRef(null);
 
   // Music video state
   const [shootingVideo, setShootingVideo] = useState(false);
-  const [videoResult, setVideoResult] = useState(null);
-  const [videoScenes, setVideoScenes] = useState([]);
+  const [videoResult, setVideoResult] = useState(draft?.videoResult || null);
+  const [videoScenes, setVideoScenes] = useState(draft?.videoScenes || []);
   const [videoError, setVideoError] = useState('');
-  const [videoMergedUrl, setVideoMergedUrl] = useState('');
+  const [videoMergedUrl, setVideoMergedUrl] = useState(draft?.videoMergedUrl || '');
   const [merging, setMerging] = useState(false);
   const videoPollRef = useRef(null);
 
-  const VOICES = [
-    { id: 'nova', label: '🇺🇸 Nova (Female, US)', lang: 'en' },
-    { id: 'alloy', label: '🇺🇸 Alloy (Neutral, US)', lang: 'en' },
-    { id: 'echo', label: '🇬🇧 Echo (Male, UK)', lang: 'en' },
-    { id: 'fable', label: '🇬🇧 Fable (Female, UK)', lang: 'en' },
-    { id: 'onyx', label: '🇺🇸 Onyx (Deep Male)', lang: 'en' },
-    { id: 'shimmer', label: '🇺🇸 Shimmer (Bright Female)', lang: 'en' },
-  ];
+  // Autosave draft on meaningful changes
+  useEffect(() => {
+    if (!idea && !script && !result) return; // Don't save empty state
+    const save = {
+      step, idea, genre, mood, duration, instrumental, script, result,
+      videoResult, videoScenes: videoScenes.filter(s => s.status === 'completed'),
+      videoMergedUrl,
+      savedAt: Date.now()
+    };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(save));
+  }, [step, idea, genre, mood, duration, instrumental, script, result, videoResult, videoScenes, videoMergedUrl]);
 
-  const LANGUAGES = [
-    { code: 'en', label: '🇬🇧 English' }, { code: 'es', label: '🇪🇸 Spanish' }, { code: 'fr', label: '🇫🇷 French' },
-    { code: 'pt', label: '🇧🇷 Portuguese' }, { code: 'de', label: '🇩🇪 German' }, { code: 'ar', label: '🇸🇦 Arabic' },
-    { code: 'hi', label: '🇮🇳 Hindi' }, { code: 'sw', label: '🇰🇪 Swahili' }, { code: 'yo', label: '🇳🇬 Yoruba' },
-    { code: 'zh', label: '🇨🇳 Chinese' }, { code: 'ja', label: '🇯🇵 Japanese' }, { code: 'ko', label: '🇰🇷 Korean' },
-    { code: 'tw', label: '🇬🇭 Twi' }, { code: 'ig', label: '🇳🇬 Igbo' }, { code: 'ha', label: '🇳🇬 Hausa' },
-    { code: 'it', label: '🇮🇹 Italian' }, { code: 'ru', label: '🇷🇺 Russian' }, { code: 'am', label: '🇪🇹 Amharic' },
-  ];
+  // Clear draft helper
+  const clearDraft = () => {
+    localStorage.removeItem(DRAFT_KEY);
+    setDraftRestored(false);
+  };
+
+  // Dismiss draft notice after 5s
+  useEffect(() => {
+    if (draftRestored) {
+      const t = setTimeout(() => setDraftRestored(false), 5000);
+      return () => clearTimeout(t);
+    }
+  }, [draftRestored]);
+
+  // Cleanup intervals on unmount
+  useEffect(() => () => { clearInterval(pollRef.current); clearInterval(videoPollRef.current); }, []);
 
   const costs = { short: 50, full: 150 };
 
@@ -1516,6 +1529,22 @@ function MusicComposer({ balance, creditGate }) {
     return (
       <div className="space-y-5">
         <StepIndicator steps={['Idea', 'Script', 'Edit', 'Generate']} current={0} accent="blue" />
+
+        {/* Draft restored notice */}
+        {draftRestored && (
+          <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm">
+            <span className="text-blue-700">📝 Draft restored from your last session</span>
+            <div className="flex gap-2">
+              {(script || result) && (
+                <button onClick={() => setStep(result ? 4 : script ? 2 : 0)} className="text-blue-600 font-medium hover:underline">
+                  {result ? 'View Result' : 'Continue Editing'}
+                </button>
+              )}
+              <button onClick={() => { clearDraft(); setIdea(''); setGenre(''); setMood(''); setScript(null); setResult(null); setDraftRestored(false); }}
+                className="text-gray-500 hover:text-gray-700">Discard</button>
+            </div>
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">What kind of song?</label>
@@ -1701,72 +1730,6 @@ function MusicComposer({ balance, creditGate }) {
     );
   }
 
-  // ─── STEP 4: Result ───
-  // Upload voice recording for cloning
-  const handleVoiceUpload = async (file) => {
-    setVoiceRecording(file);
-    try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const { data } = await api.post('/api/upload', fd);
-      setVoiceRecordingUrl(data.url || data.secure_url);
-    } catch (err) {
-      setVocalError('Failed to upload voice recording');
-    }
-  };
-
-  // Preview voice sample
-  const handlePreviewVoice = async (voiceId) => {
-    if (previewingVoice === voiceId) {
-      // Stop playing
-      if (previewAudioRef.current) { previewAudioRef.current.pause(); previewAudioRef.current = null; }
-      setPreviewingVoice(null);
-      return;
-    }
-    setPreviewingVoice(voiceId);
-    try {
-      const token = localStorage.getItem('token');
-      const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
-      const resp = await fetch(`${API}/api/ai-content/music/preview-voice`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ voice: voiceId })
-      });
-      if (!resp.ok) throw new Error('Preview failed');
-      const blob = await resp.blob();
-      const url = URL.createObjectURL(blob);
-      if (previewAudioRef.current) previewAudioRef.current.pause();
-      const audio = new Audio(url);
-      previewAudioRef.current = audio;
-      audio.onended = () => setPreviewingVoice(null);
-      audio.play();
-    } catch {
-      setPreviewingVoice(null);
-    }
-  };
-
-  // Add vocals to instrumental
-  const handleAddVocals = async () => {
-    const lyrics = script?.sections?.map(s => s.lyrics || s.content || '').filter(Boolean).join('\n') || idea;
-    if (!lyrics.trim()) { setVocalError('No lyrics found in script'); return; }
-    if (!creditGate('music_short', 50)) return;
-    setAddingVocals(true);
-    setVocalError('');
-    try {
-      const { data } = await api.post('/api/ai-content/music/add-vocals', {
-        instrumentalUrl: result.audioUrl,
-        lyrics,
-        voice: selectedVoice,
-        voiceRecordingUrl: voiceRecordingUrl || undefined,
-        language: voiceLang,
-        title: result.title || script?.title || 'Song'
-      }, { timeout: 300000 }); // 5 min — 47 lyric lines takes ~2 min
-      setVocalResult(data);
-    } catch (err) {
-      setVocalError(err?.response?.data?.error || err?.message || 'Failed to add vocals');
-    } finally { setAddingVocals(false); }
-  };
-
   // Shoot music video
   const handleShootVideo = async () => {
     const sceneCount = duration === 'full' ? 8 : 4;
@@ -1829,8 +1792,6 @@ function MusicComposer({ balance, creditGate }) {
     } finally { setMerging(false); }
   };
 
-  useEffect(() => () => { clearInterval(pollRef.current); clearInterval(videoPollRef.current); }, []);
-
   if (step === 4 && result) {
     return (
       <div className="space-y-5">
@@ -1857,7 +1818,7 @@ function MusicComposer({ balance, creditGate }) {
                 <button onClick={() => setStep(2)} className="flex items-center gap-1.5 px-4 py-2 border border-blue-300 text-blue-600 rounded-full text-sm font-medium hover:bg-blue-50">
                   <ArrowLeft size={14} /> Back to Edit
                 </button>
-                <button onClick={() => { setStep(0); setResult(null); setScript(null); setGenStatus(null); setVideoResult(null); setVideoScenes([]); }}
+                <button onClick={() => { clearDraft(); setStep(0); setResult(null); setScript(null); setGenStatus(null); setVideoResult(null); setVideoScenes([]); setVideoMergedUrl(''); setIdea(''); setGenre(''); setMood(''); }}
                   className="flex items-center gap-1.5 px-4 py-2 border border-gray-300 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50"
                 >
                   <Plus size={14} /> New Song
