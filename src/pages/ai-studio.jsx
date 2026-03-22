@@ -337,7 +337,7 @@ function VoiceoverPanel({ voice, setVoice, addVoiceover, setAddVoiceover }) {
 // ═══════════════════════════════════════════
 // VIDEO MAKER — with Script Writer
 // ═══════════════════════════════════════════
-function VideoMaker({ balance }) {
+function VideoMaker({ balance, creditGate }) {
   // Step: 0=idea, 1=script-loading, 2=script-editor, 3=generating, 4=result
   const [step, setStep] = useState(0);
   const [idea, setIdea] = useState('');
@@ -420,6 +420,7 @@ function VideoMaker({ balance }) {
 
   // Generate video from script
   const handleGenerate = async () => {
+    if (creditGate && !creditGate('video generation', durConfig?.cost || 100)) return;
     setStep(3);
     setGenStatus('processing');
     setProgress(0);
@@ -792,10 +793,10 @@ function VideoMaker({ balance }) {
             <button onClick={handleWriteScript} className="flex items-center gap-1.5 px-4 py-2.5 border border-gray-300 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50">
               <RefreshCw size={14} /> Rewrite
             </button>
-            <button onClick={handleGenerate} disabled={balance < durConfig.cost}
+            <button onClick={handleGenerate} disabled={!creditGate && balance < durConfig.cost}
               className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold hover:shadow-lg disabled:opacity-50 transition-all"
             >
-              <Sparkles size={18} /> Generate Video
+              <Sparkles size={18} /> Generate Video ({durConfig?.cost || 100} credits)
               <ChevronRight size={16} />
             </button>
           </div>
@@ -1241,7 +1242,7 @@ function SceneCard({ scene, index, onUpdate, onRemove, canRemove }) {
 // ═══════════════════════════════════════════
 // MUSIC COMPOSER — with Script Writer
 // ═══════════════════════════════════════════
-function MusicComposer({ balance }) {
+function MusicComposer({ balance, creditGate }) {
   const [step, setStep] = useState(0);
   const [idea, setIdea] = useState('');
   const [genre, setGenre] = useState('');
@@ -1299,6 +1300,8 @@ function MusicComposer({ balance }) {
   };
 
   const handleGenerate = async () => {
+    const cost = costs[duration] || 50;
+    if (creditGate && !creditGate('music generation', cost)) return;
     setStep(3);
     setGenStatus('processing');
     setProgress(0);
@@ -1558,7 +1561,7 @@ function MusicComposer({ balance }) {
 // ═══════════════════════════════════════════
 // GRAPHICS GENERATOR — with Script Writer
 // ═══════════════════════════════════════════
-function GraphicsGenerator({ balance }) {
+function GraphicsGenerator({ balance, creditGate }) {
   const [step, setStep] = useState(0);
   const [idea, setIdea] = useState('');
   const [style, setStyle] = useState('');
@@ -1589,6 +1592,7 @@ function GraphicsGenerator({ balance }) {
   };
 
   const handleGenerate = async () => {
+    if (creditGate && !creditGate('image generation', cost || 20)) return;
     setStep(3);
     setGenerating(true);
     setResult(null);
@@ -1860,7 +1864,7 @@ function GraphicsGenerator({ balance }) {
 // ═══════════════════════════════════════════
 const GENRES = ['Drama', 'Comedy', 'Action', 'Documentary', 'Horror', 'Sci-Fi', 'Romance', 'Thriller', 'Animation', 'Faith', 'Mystery', 'Fantasy'];
 
-function MovieMaker({ balance }) {
+function MovieMaker({ balance, creditGate }) {
   const [view, setView] = useState('list'); // list, create, project, episode
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -2720,6 +2724,7 @@ function MovieMaker({ balance }) {
         <div className="flex flex-wrap gap-2">
           {(!ep.scenes || ep.scenes.length === 0 || ep.status === 'draft') && (
             <button onClick={async (e) => {
+              // Script writing is free but check if they'll have enough for generation
               const btn = e.currentTarget; btn.disabled = true;
               setScriptLoading(true);
               try {
@@ -2751,14 +2756,24 @@ function MovieMaker({ balance }) {
 
           {ep.scenes?.length > 0 && (ep.status === 'scripted' || ep.status === 'draft') && (
             <button onClick={async (e) => {
+              const sceneCost = (ep.scenes?.length || 12) * 100; // ~100 credits per scene
+              if (creditGate && !creditGate('generating scenes', sceneCost)) return;
               const btn = e.currentTarget; btn.disabled = true;
+              // Show progress immediately
+              setActiveEpisode(prev => ({ ...prev, status: 'generating' }));
+              setGenProgress({ completed: 0, total: ep.scenes?.length || 0, progress: 0, generating: ep.scenes?.length || 0, failed: 0 });
               try {
                 setError('');
                 await api.post(`/api/movie-projects/${p._id}/episodes/${ep._id}/generate`, {}, { timeout: 300000 });
-                setActiveEpisode(prev => ({ ...prev, status: 'generating' }));
-              } catch (err) { setError(err?.response?.data?.error || 'Generation failed'); btn.disabled = false; }
+              } catch (err) { 
+                setError(err?.response?.data?.error || 'Generation failed'); 
+                btn.disabled = false;
+                setActiveEpisode(prev => ({ ...prev, status: 'scripted' }));
+                setGenProgress(null);
+              }
             }} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-red-600 text-white rounded-full text-sm font-semibold hover:shadow-lg disabled:opacity-50">
               <Sparkles size={16} /> Generate All Scenes
+              {!creditGate && <span className="text-[10px] opacity-75 ml-1">~{(ep.scenes?.length || 12) * 100} credits</span>}
             </button>
           )}
 
@@ -2976,7 +2991,7 @@ function MovieMaker({ balance }) {
 // ═══════════════════════════════════════════
 // DUB STUDIO — Upload video → AI re-voices it
 // ═══════════════════════════════════════════
-function DubStudio({ balance }) {
+function DubStudio({ balance, creditGate }) {
   const [step, setStep] = useState(0); // 0=upload, 1=configure, 2=processing, 3=result
   const [videoUrl, setVideoUrl] = useState('');
   const [videoFile, setVideoFile] = useState(null);
@@ -3254,7 +3269,7 @@ function DubStudio({ balance }) {
 // ═══════════════════════════════════════════
 // CHARACTER GENERATOR — Your face in AI videos
 // ═══════════════════════════════════════════
-function CharacterGenerator({ balance }) {
+function CharacterGenerator({ balance, creditGate }) {
   const [step, setStep] = useState(0); // 0=upload, 1=prompt, 2=generating, 3=result
   const [imageUrl, setImageUrl] = useState('');
   const [imageFile, setImageFile] = useState(null);
@@ -3513,6 +3528,9 @@ export default function AIStudio() {
   const [activeTool, setActiveTool] = useState('video');
   const [balance, setBalance] = useState(0);
   const [loadingBalance, setLoadingBalance] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [userPlan, setUserPlan] = useState('free');
+  const [costs, setCosts] = useState({});
 
   // Read ?tab= query param to pre-select tool
   useEffect(() => {
@@ -3527,6 +3545,9 @@ export default function AIStudio() {
       try {
         const { data } = await api.get('/api/ai-content/balance');
         setBalance(data.balance || 0);
+        setIsAdmin(data.isAdmin || false);
+        setUserPlan(data.plan || 'free');
+        setCosts(data.costs || {});
       } catch {
         setBalance(0);
       } finally {
@@ -3535,6 +3556,19 @@ export default function AIStudio() {
     };
     fetchBalance();
   }, []);
+
+  // Smart credit gate — returns true if OK to proceed, false if blocked
+  const creditGate = (action, cost) => {
+    if (isAdmin) return true; // Admins bypass
+    if (balance >= cost) return true;
+    // Not enough credits — show upgrade prompt
+    const deficit = cost - balance;
+    const msg = `You need ${cost} credits for ${action} but only have ${balance}.\n\nYou're ${deficit} credits short.\n\n💡 Upgrade your plan for more monthly credits, or buy credits from your wallet.`;
+    if (confirm(msg + '\n\nGo to Wallet to get credits?')) {
+      router.push('/wallet');
+    }
+    return false;
+  };
 
   const activeConfig = TOOLS.find(t => t.id === activeTool);
 
@@ -3560,6 +3594,35 @@ export default function AIStudio() {
             <span className="text-amber-500 text-sm">credits</span>
           </div>
         </div>
+
+        {/* Low credit warning */}
+        {!loadingBalance && !isAdmin && balance < 100 && (
+          <div className="bg-gradient-to-r from-red-50 to-amber-50 border border-red-200 rounded-xl p-3 mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">⚠️</span>
+              <div>
+                <p className="text-sm font-semibold text-red-700">Low credits — {balance} remaining</p>
+                <p className="text-xs text-red-500">You need credits to generate videos, music, and graphics</p>
+              </div>
+            </div>
+            <button onClick={() => router.push('/wallet')} className="px-4 py-1.5 bg-red-600 text-white text-xs font-bold rounded-full hover:bg-red-700 transition-colors flex-shrink-0">
+              Get Credits
+            </button>
+          </div>
+        )}
+
+        {/* Upgrade prompt for free users */}
+        {!loadingBalance && !isAdmin && userPlan === 'free' && balance >= 100 && (
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-3 mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">✨</span>
+              <p className="text-sm text-purple-700"><span className="font-semibold">Upgrade to Starter</span> — 1,000 credits/month + 7-day free trial</p>
+            </div>
+            <button onClick={() => router.push('/wallet?tab=plans')} className="px-4 py-1.5 bg-purple-600 text-white text-xs font-bold rounded-full hover:bg-purple-700 transition-colors flex-shrink-0">
+              Upgrade
+            </button>
+          </div>
+        )}
 
         {/* Tool Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
@@ -3601,12 +3664,12 @@ export default function AIStudio() {
 
         {/* Active Tool Content */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-          {activeTool === 'video' && <VideoMaker balance={balance} />}
-          {activeTool === 'movie' && <MovieMaker balance={balance} />}
-          {activeTool === 'music' && <MusicComposer balance={balance} />}
-          {activeTool === 'graphics' && <GraphicsGenerator balance={balance} />}
-          {activeTool === 'dub' && <DubStudio balance={balance} />}
-          {activeTool === 'character' && <CharacterGenerator balance={balance} />}
+          {activeTool === 'video' && <VideoMaker balance={balance} creditGate={creditGate} />}
+          {activeTool === 'movie' && <MovieMaker balance={balance} creditGate={creditGate} />}
+          {activeTool === 'music' && <MusicComposer balance={balance} creditGate={creditGate} />}
+          {activeTool === 'graphics' && <GraphicsGenerator balance={balance} creditGate={creditGate} />}
+          {activeTool === 'dub' && <DubStudio balance={balance} creditGate={creditGate} />}
+          {activeTool === 'character' && <CharacterGenerator balance={balance} creditGate={creditGate} />}
         </div>
       </div>
     </AppLayout>
