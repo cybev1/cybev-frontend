@@ -1410,6 +1410,8 @@ function MusicComposer({ balance, creditGate }) {
   const [addingVocals, setAddingVocals] = useState(false);
   const [vocalResult, setVocalResult] = useState(null);
   const [vocalError, setVocalError] = useState('');
+  const [previewingVoice, setPreviewingVoice] = useState(null);
+  const previewAudioRef = useRef(null);
 
   // Music video state
   const [shootingVideo, setShootingVideo] = useState(false);
@@ -1712,6 +1714,36 @@ function MusicComposer({ balance, creditGate }) {
     }
   };
 
+  // Preview voice sample
+  const handlePreviewVoice = async (voiceId) => {
+    if (previewingVoice === voiceId) {
+      // Stop playing
+      if (previewAudioRef.current) { previewAudioRef.current.pause(); previewAudioRef.current = null; }
+      setPreviewingVoice(null);
+      return;
+    }
+    setPreviewingVoice(voiceId);
+    try {
+      const token = localStorage.getItem('token');
+      const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
+      const resp = await fetch(`${API}/api/ai-content/music/preview-voice`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ voice: voiceId })
+      });
+      if (!resp.ok) throw new Error('Preview failed');
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      if (previewAudioRef.current) previewAudioRef.current.pause();
+      const audio = new Audio(url);
+      previewAudioRef.current = audio;
+      audio.onended = () => setPreviewingVoice(null);
+      audio.play();
+    } catch {
+      setPreviewingVoice(null);
+    }
+  };
+
   // Add vocals to instrumental
   const handleAddVocals = async () => {
     const lyrics = script?.sections?.map(s => s.lyrics || s.content || '').filter(Boolean).join('\n') || idea;
@@ -1727,7 +1759,7 @@ function MusicComposer({ balance, creditGate }) {
         voiceRecordingUrl: voiceRecordingUrl || undefined,
         language: voiceLang,
         title: result.title || script?.title || 'Song'
-      }, { timeout: 180000 });
+      }, { timeout: 300000 }); // 5 min — 47 lyric lines takes ~2 min
       setVocalResult(data);
     } catch (err) {
       setVocalError(err?.response?.data?.error || err?.message || 'Failed to add vocals');
@@ -1802,13 +1834,20 @@ function MusicComposer({ balance, creditGate }) {
 
             {/* Voice Selection */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-2">AI Voice</label>
+              <label className="block text-xs font-medium text-gray-600 mb-2">AI Voice <span className="text-gray-400">(tap to select, click 🔊 to preview)</span></label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {VOICES.map(v => (
-                  <button key={v.id} onClick={() => { setSelectedVoice(v.id); setVoiceRecordingUrl(''); setVoiceRecording(null); }}
-                    className={`px-3 py-2 rounded-lg text-xs font-medium border transition-all ${
-                      selectedVoice === v.id && !voiceRecordingUrl ? 'bg-blue-50 border-blue-400 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300'
-                    }`}>{v.label}</button>
+                  <div key={v.id} className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                    selectedVoice === v.id && !voiceRecordingUrl ? 'bg-blue-50 border-blue-400 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300'
+                  }`} onClick={() => { setSelectedVoice(v.id); setVoiceRecordingUrl(''); setVoiceRecording(null); }}>
+                    <span className="truncate mr-1">{v.label}</span>
+                    <button onClick={(e) => { e.stopPropagation(); handlePreviewVoice(v.id); }}
+                      className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                        previewingVoice === v.id ? 'bg-blue-600 text-white animate-pulse' : 'bg-white text-gray-500 hover:bg-blue-100 hover:text-blue-600'
+                      }`} title={`Preview ${v.label}`}>
+                      {previewingVoice === v.id ? <Square size={10} /> : <Play size={10} />}
+                    </button>
+                  </div>
                 ))}
               </div>
             </div>
