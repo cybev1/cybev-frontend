@@ -39,6 +39,7 @@ export default function WalletPage() {
   const [fundAmount, setFundAmount] = useState('');
   const [buyAmount, setBuyAmount] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [fundProvider, setFundProvider] = useState('flutterwave'); // 'flutterwave' or 'espees'
 
   // Auto-detect local currency from timezone
   const detectCurrency = () => {
@@ -57,9 +58,11 @@ export default function WalletPage() {
 
   // Check for funded/subscribed callback
   useEffect(() => {
-    const { funded, transaction_id, tx_ref, subscribed } = router.query;
-    if (funded && (transaction_id || tx_ref)) {
-      verifyFunding(transaction_id || tx_ref);
+    const { funded, transaction_id, tx_ref, subscribed, provider, payment_ref } = router.query;
+    if (funded && (transaction_id || tx_ref || payment_ref)) {
+      const ref = payment_ref || transaction_id || tx_ref;
+      const prov = provider || 'flutterwave';
+      verifyFunding(ref, prov);
     }
   }, [router.query]);
 
@@ -77,10 +80,10 @@ export default function WalletPage() {
     finally { setLoading(false); }
   };
 
-  const verifyFunding = async (ref) => {
+  const verifyFunding = async (ref, prov = 'flutterwave') => {
     try {
       setProcessing(true);
-      const { data } = await api.post('/api/wallet/fund/verify', { reference: ref, transactionId: ref });
+      const { data } = await api.post('/api/wallet/fund/verify', { reference: ref, transactionId: ref, provider: prov });
       if (data.ok) { alert(data.message || 'Wallet funded!'); fetchWallet(); }
     } catch (err) { console.error('Verify error:', err); }
     finally { setProcessing(false); router.replace('/wallet', undefined, { shallow: true }); }
@@ -91,7 +94,7 @@ export default function WalletPage() {
     if (!amt || amt < 1) return alert('Minimum amount is 1');
     try {
       setProcessing(true);
-      const { data } = await api.post('/api/wallet/fund', { amount: amt, currency: fundCurrency });
+      const { data } = await api.post('/api/wallet/fund', { amount: amt, currency: fundCurrency, provider: fundProvider });
       if (data.paymentLink) window.location.href = data.paymentLink;
       else alert(data.error || 'Failed');
     } catch (err) { alert(err?.response?.data?.error || 'Funding failed'); }
@@ -429,9 +432,26 @@ export default function WalletPage() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowFund(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-gray-900 mb-2">Fund Wallet</h2>
-            <p className="text-sm text-gray-500 mb-4">Add funds via card, mobile money (MoMo), or bank transfer.</p>
+            <p className="text-sm text-gray-500 mb-4">Add funds via card, mobile money (MoMo), bank transfer, or Espees.</p>
 
-            {/* Currency Selector */}
+            {/* Payment Gateway Selector */}
+            <div className="flex gap-2 mb-4">
+              <button onClick={() => setFundProvider('flutterwave')}
+                className={`flex-1 py-2.5 rounded-xl text-xs font-semibold border-2 transition-all flex items-center justify-center gap-2 ${
+                  fundProvider === 'flutterwave' ? 'border-orange-500 bg-orange-50 text-orange-700 shadow-sm' : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                }`}>
+                <span className="text-base">💳</span> Card / MoMo
+              </button>
+              <button onClick={() => setFundProvider('espees')}
+                className={`flex-1 py-2.5 rounded-xl text-xs font-semibold border-2 transition-all flex items-center justify-center gap-2 ${
+                  fundProvider === 'espees' ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm' : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                }`}>
+                <span className="text-base">🪙</span> Pay with Espees
+              </button>
+            </div>
+
+            {/* Currency Selector (only for Flutterwave) */}
+            {fundProvider === 'flutterwave' && (
             <div className="flex gap-2 mb-4">
               {[
                 { code: 'GHS', flag: '🇬🇭' },
@@ -447,38 +467,53 @@ export default function WalletPage() {
                 </button>
               ))}
             </div>
+            )} {/* end flutterwave currency selector */}
 
             {/* Quick Amounts */}
             <div className="flex gap-2 mb-4">
-              {(fundCurrency === 'GHS' ? [20, 50, 100, 200, 500] :
-                fundCurrency === 'NGN' ? [2000, 5000, 10000, 25000, 50000] :
-                fundCurrency === 'KES' ? [500, 1000, 2500, 5000, 10000] :
-                [5, 10, 25, 50, 100]
-              ).map(amt => (
-                <button key={amt} onClick={() => setFundAmount(String(amt))}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                    fundAmount === String(amt) ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                  }`}>
-                  {fundCurrency === 'USD' ? '$' : ''}{amt.toLocaleString()}
-                </button>
-              ))}
+              {fundProvider === 'espees' ? (
+                [5, 10, 25, 50, 100].map(amt => (
+                  <button key={amt} onClick={() => setFundAmount(String(amt))}
+                    className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                      fundAmount === String(amt) ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}>
+                    ${amt}
+                  </button>
+                ))
+              ) : (
+                (fundCurrency === 'GHS' ? [20, 50, 100, 200, 500] :
+                  fundCurrency === 'NGN' ? [2000, 5000, 10000, 25000, 50000] :
+                  fundCurrency === 'KES' ? [500, 1000, 2500, 5000, 10000] :
+                  [5, 10, 25, 50, 100]
+                ).map(amt => (
+                  <button key={amt} onClick={() => setFundAmount(String(amt))}
+                    className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                      fundAmount === String(amt) ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}>
+                    {fundCurrency === 'USD' ? '$' : ''}{amt.toLocaleString()}
+                  </button>
+                ))
+              )}
             </div>
 
-            <input type="number" min="1" step="0.01" placeholder={`Enter ${fundCurrency} amount...`}
+            <input type="number" min="1" step="0.01" placeholder={fundProvider === 'espees' ? 'Enter USD amount...' : `Enter ${fundCurrency} amount...`}
               value={fundAmount} onChange={e => setFundAmount(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl mb-2 outline-none focus:ring-2 focus:ring-green-500" />
-            {fundAmount && fundCurrency !== 'USD' && (
+            {fundProvider !== 'espees' && fundAmount && fundCurrency !== 'USD' && (
               <p className="text-xs text-gray-500 mb-2 text-center">
                 ≈ ${(parseFloat(fundAmount) / (fundCurrency === 'GHS' ? 16 : fundCurrency === 'NGN' ? 1600 : fundCurrency === 'KES' ? 155 : 1)).toFixed(2)} USD
               </p>
             )}
-            {fundCurrency === 'GHS' && <p className="text-xs text-green-600 mb-3 text-center font-medium">📱 MoMo • 💳 Card • 🏦 Bank Transfer</p>}
-            {fundCurrency === 'NGN' && <p className="text-xs text-green-600 mb-3 text-center font-medium">💳 Card • 🏦 Bank Transfer • USSD</p>}
+            {fundProvider === 'espees' && <p className="text-xs text-blue-600 mb-3 text-center font-medium">🪙 Pay with Espees digital currency</p>}
+            {fundProvider !== 'espees' && fundCurrency === 'GHS' && <p className="text-xs text-green-600 mb-3 text-center font-medium">📱 MoMo • 💳 Card • 🏦 Bank Transfer</p>}
+            {fundProvider !== 'espees' && fundCurrency === 'NGN' && <p className="text-xs text-green-600 mb-3 text-center font-medium">💳 Card • 🏦 Bank Transfer • USSD</p>}
             <div className="flex gap-3">
               <button onClick={() => setShowFund(false)} className="flex-1 py-3 text-gray-600 font-medium">Cancel</button>
               <button onClick={handleFund} disabled={processing || !fundAmount}
                 className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium disabled:opacity-50 transition-colors">
-                {processing ? 'Processing...' : `Pay ${fundCurrency === 'USD' ? '$' : ''}${fundAmount || '0'} ${fundCurrency}`}
+                {processing ? 'Processing...' : fundProvider === 'espees' 
+                  ? `Pay $${fundAmount || '0'} with Espees` 
+                  : `Pay ${fundCurrency === 'USD' ? '$' : ''}${fundAmount || '0'} ${fundCurrency}`}
               </button>
             </div>
           </div>
