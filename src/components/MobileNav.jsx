@@ -1,5 +1,5 @@
 // ============================================
-// FILE: src/components/Navigation/MobileNav.jsx
+// FILE: src/components/MobileNav.jsx
 // PATH: cybev-frontend/src/components/Navigation/MobileNav.jsx
 // PURPOSE: Mobile Bottom Navigation - Clean White Design
 // VERSION: 7.0.0 - Facebook-style clean white design
@@ -80,9 +80,10 @@ export default function MobileNav() {
   const [showCreateMenu, setShowCreateMenu] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Fetch unread notifications
+  // Fetch unread notifications — poll every 2 min, only when tab visible
   useEffect(() => {
     const fetchUnread = async () => {
+      if (document.hidden) return; // Skip when tab not visible
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
@@ -93,11 +94,11 @@ export default function MobileNav() {
         const data = await res.json();
         if (data.ok) setUnreadCount(data.count || 0);
       } catch (err) {
-        console.error('Error fetching unread count:', err);
+        // Silent fail — don't spam console
       }
     };
     fetchUnread();
-    const interval = setInterval(fetchUnread, 30000);
+    const interval = setInterval(fetchUnread, 120000); // 2 min instead of 30s
     return () => clearInterval(interval);
   }, []);
 
