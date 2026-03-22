@@ -41,7 +41,11 @@ export default function WalletPage() {
   const [buyAmount, setBuyAmount] = useState('');
   const [processing, setProcessing] = useState(false);
   const [fundProvider, setFundProvider] = useState('flutterwave');
-  const [subscribingPlan, setSubscribingPlan] = useState(null); // per-plan processing // 'flutterwave' or 'espees'
+  const [subscribingPlan, setSubscribingPlan] = useState(null);
+  const [showTransfer, setShowTransfer] = useState(false);
+  const [transferTo, setTransferTo] = useState('');
+  const [transferAmount, setTransferAmount] = useState('');
+  const [transferNote, setTransferNote] = useState(''); // per-plan processing // 'flutterwave' or 'espees'
 
   // Auto-detect local currency from timezone
   const detectCurrency = () => {
@@ -123,6 +127,25 @@ export default function WalletPage() {
     } catch (err) { alert(err?.response?.data?.error || 'Already claimed today!'); }
   };
 
+  const handleTransfer = async () => {
+    if (!transferTo.trim()) return alert('Enter a username or email');
+    const amt = parseInt(transferAmount);
+    if (!amt || amt < 10) return alert('Minimum transfer is 10 credits');
+    if (amt > (wallet?.credits || 0)) return alert(`You only have ${wallet?.credits || 0} credits`);
+    if (!confirm(`Send ${amt.toLocaleString()} credits to "${transferTo}"?`)) return;
+    try {
+      setProcessing(true);
+      const { data } = await api.post('/api/wallet/transfer', { recipient: transferTo.trim(), amount: amt, note: transferNote.trim() });
+      if (data.ok) {
+        alert(data.message);
+        fetchWallet();
+        setShowTransfer(false);
+        setTransferTo(''); setTransferAmount(''); setTransferNote('');
+      } else alert(data.error);
+    } catch (err) { alert(err?.response?.data?.error || 'Transfer failed'); }
+    finally { setProcessing(false); }
+  };
+
   const handleSubscribe = async (plan) => {
     try {
       setSubscribingPlan(plan);
@@ -184,14 +207,18 @@ export default function WalletPage() {
             <p className="text-purple-100 text-sm font-medium mb-1 flex items-center gap-1"><Coins size={14} /> Credits</p>
             <p className="text-3xl font-bold">{credits.toLocaleString()}</p>
             <p className="text-purple-200 text-xs mt-1">1 USD = {rates.creditRate || 100} credits</p>
-            <div className="flex gap-2 mt-4">
+            <div className="flex flex-wrap gap-2 mt-4">
               <button onClick={() => setShowBuyCredits(true)}
                 className="flex items-center gap-1.5 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-full text-sm font-medium transition-colors">
-                <Plus size={14} /> Buy Credits
+                <Plus size={14} /> Buy
+              </button>
+              <button onClick={() => setShowTransfer(true)}
+                className="flex items-center gap-1.5 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-full text-sm font-medium transition-colors">
+                <Send size={14} /> Send
               </button>
               <button onClick={handleDailyClaim} disabled={!canClaimDaily()}
                 className="flex items-center gap-1.5 px-4 py-2 bg-white/10 hover:bg-white/20 disabled:opacity-40 rounded-full text-sm font-medium transition-colors">
-                <Gift size={14} /> {canClaimDaily() ? 'Claim Daily' : 'Claimed ✓'}
+                <Gift size={14} /> {canClaimDaily() ? 'Daily' : '✓'}
               </button>
             </div>
           </div>
@@ -588,6 +615,55 @@ export default function WalletPage() {
               <button onClick={handleBuyCredits} disabled={processing || !buyAmount || parseFloat(buyAmount) > usd}
                 className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium disabled:opacity-50 transition-colors">
                 {processing ? 'Processing...' : 'Buy Credits'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Transfer Credits Modal ─── */}
+      {showTransfer && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowTransfer(false)}>
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-2 mb-2">
+              <Send size={20} className="text-purple-600" />
+              <h2 className="text-lg font-bold text-gray-900">Send Credits</h2>
+            </div>
+            <p className="text-sm text-gray-500 mb-4">Transfer credits to another CYBEV user. Min 10 credits.</p>
+
+            {/* Recipient */}
+            <label className="text-xs font-semibold text-gray-500 mb-1 block">Recipient username or email</label>
+            <input type="text" placeholder="@username or email..."
+              value={transferTo} onChange={e => setTransferTo(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl mb-3 outline-none focus:ring-2 focus:ring-purple-500" />
+
+            {/* Quick Amounts */}
+            <label className="text-xs font-semibold text-gray-500 mb-1 block">Amount</label>
+            <div className="flex gap-2 mb-3">
+              {[50, 100, 500, 1000].map(amt => (
+                <button key={amt} onClick={() => setTransferAmount(String(amt))}
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                    transferAmount === String(amt) ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}>
+                  {amt.toLocaleString()}
+                </button>
+              ))}
+            </div>
+            <input type="number" min="10" step="1" placeholder="Enter amount..."
+              value={transferAmount} onChange={e => setTransferAmount(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl mb-1 outline-none focus:ring-2 focus:ring-purple-500" />
+            <p className="text-xs text-gray-400 mb-3">Your balance: {credits.toLocaleString()} credits</p>
+
+            {/* Note */}
+            <input type="text" placeholder="Add a note (optional)" maxLength={100}
+              value={transferNote} onChange={e => setTransferNote(e.target.value)}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl mb-4 outline-none focus:ring-2 focus:ring-purple-500 text-sm" />
+
+            <div className="flex gap-3">
+              <button onClick={() => setShowTransfer(false)} className="flex-1 py-3 text-gray-600 font-medium">Cancel</button>
+              <button onClick={handleTransfer} disabled={processing || !transferTo || !transferAmount || parseInt(transferAmount) > credits}
+                className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
+                {processing ? <><Loader2 size={16} className="animate-spin" /> Sending...</> : <><Send size={16} /> Send {transferAmount ? parseInt(transferAmount).toLocaleString() : ''} Credits</>}
               </button>
             </div>
           </div>
