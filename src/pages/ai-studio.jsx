@@ -1454,7 +1454,7 @@ function MusicComposer({ balance, creditGate }) {
     try {
       const { data } = await api.post('/api/ai-content/music/generate', {
         prompt: idea, genre, mood, duration, instrumental, script
-      });
+      }, { timeout: 120000 });
       if (data.status === 'completed') {
         setResult(data);
         setGenStatus('completed');
