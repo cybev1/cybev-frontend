@@ -1257,29 +1257,13 @@ export default function Feed() {
       
       let feedData = [];
       
-      // Try feed endpoint first
-      try {
-        const res = await api.get('/api/feed?tab=latest', { headers });
-        feedData = res.data.feed || res.data.posts || res.data.items || [];
-      } catch (feedError) {
-        console.log('Feed endpoint failed, trying blogs');
-      }
-      
-      // Fallback to blogs
-      if (feedData.length === 0) {
-        try {
-          const blogsRes = await api.get('/api/blogs?status=published&limit=50', { headers });
-          feedData = (blogsRes.data.data?.blogs || blogsRes.data.blogs || blogsRes.data || [])
-            .map(blog => ({ ...blog, contentType: 'blog' }));
-        } catch {}
-      }
+      const res = await api.get('/api/feed?tab=latest&limit=20', { headers });
+      feedData = res.data.feed || res.data.posts || res.data.items || [];
       
       // Filter out stale/ended livestream posts and soft-deleted posts
       const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
       feedData = feedData.filter(item => {
-        // Remove soft-deleted items
         if (item.isDeleted) return false;
-        // Remove stale LIVE posts older than 2 hours (abandoned streams)
         const isLivePost = item.postType === 'live' || item.contentType === 'live' || item.type === 'livestream' || item.isLiveStream || (item.title && item.title.startsWith('🔴 LIVE:'));
         if (isLivePost && new Date(item.createdAt) < twoHoursAgo) return false;
         return true;
