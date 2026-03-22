@@ -1402,6 +1402,39 @@ function MusicComposer({ balance, creditGate }) {
   const [showShare, setShowShare] = useState(false);
   const pollRef = useRef(null);
 
+  // Vocals state
+  const [selectedVoice, setSelectedVoice] = useState('nova');
+  const [voiceRecording, setVoiceRecording] = useState(null);
+  const [voiceRecordingUrl, setVoiceRecordingUrl] = useState('');
+  const [voiceLang, setVoiceLang] = useState('en');
+  const [addingVocals, setAddingVocals] = useState(false);
+  const [vocalResult, setVocalResult] = useState(null);
+  const [vocalError, setVocalError] = useState('');
+
+  // Music video state
+  const [shootingVideo, setShootingVideo] = useState(false);
+  const [videoResult, setVideoResult] = useState(null);
+  const [videoScenes, setVideoScenes] = useState([]);
+  const [videoError, setVideoError] = useState('');
+
+  const VOICES = [
+    { id: 'nova', label: '🇺🇸 Nova (Female, US)', lang: 'en' },
+    { id: 'alloy', label: '🇺🇸 Alloy (Neutral, US)', lang: 'en' },
+    { id: 'echo', label: '🇬🇧 Echo (Male, UK)', lang: 'en' },
+    { id: 'fable', label: '🇬🇧 Fable (Female, UK)', lang: 'en' },
+    { id: 'onyx', label: '🇺🇸 Onyx (Deep Male)', lang: 'en' },
+    { id: 'shimmer', label: '🇺🇸 Shimmer (Bright Female)', lang: 'en' },
+  ];
+
+  const LANGUAGES = [
+    { code: 'en', label: '🇬🇧 English' }, { code: 'es', label: '🇪🇸 Spanish' }, { code: 'fr', label: '🇫🇷 French' },
+    { code: 'pt', label: '🇧🇷 Portuguese' }, { code: 'de', label: '🇩🇪 German' }, { code: 'ar', label: '🇸🇦 Arabic' },
+    { code: 'hi', label: '🇮🇳 Hindi' }, { code: 'sw', label: '🇰🇪 Swahili' }, { code: 'yo', label: '🇳🇬 Yoruba' },
+    { code: 'zh', label: '🇨🇳 Chinese' }, { code: 'ja', label: '🇯🇵 Japanese' }, { code: 'ko', label: '🇰🇷 Korean' },
+    { code: 'tw', label: '🇬🇭 Twi' }, { code: 'ig', label: '🇳🇬 Igbo' }, { code: 'ha', label: '🇳🇬 Hausa' },
+    { code: 'it', label: '🇮🇹 Italian' }, { code: 'ru', label: '🇷🇺 Russian' }, { code: 'am', label: '🇪🇹 Amharic' },
+  ];
+
   const costs = { short: 50, full: 150 };
 
   const handleWriteScript = async () => {
@@ -1666,10 +1699,72 @@ function MusicComposer({ balance, creditGate }) {
   }
 
   // ─── STEP 4: Result ───
+  // Upload voice recording for cloning
+  const handleVoiceUpload = async (file) => {
+    setVoiceRecording(file);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const { data } = await api.post('/api/upload', fd);
+      setVoiceRecordingUrl(data.url || data.secure_url);
+    } catch (err) {
+      setVocalError('Failed to upload voice recording');
+    }
+  };
+
+  // Add vocals to instrumental
+  const handleAddVocals = async () => {
+    const lyrics = script?.sections?.map(s => s.lyrics || s.content || '').filter(Boolean).join('\n') || idea;
+    if (!lyrics.trim()) { setVocalError('No lyrics found in script'); return; }
+    if (!creditGate('music_short', 50)) return;
+    setAddingVocals(true);
+    setVocalError('');
+    try {
+      const { data } = await api.post('/api/ai-content/music/add-vocals', {
+        instrumentalUrl: result.audioUrl,
+        lyrics,
+        voice: selectedVoice,
+        voiceRecordingUrl: voiceRecordingUrl || undefined,
+        language: voiceLang,
+        title: result.title || script?.title || 'Song'
+      }, { timeout: 180000 });
+      setVocalResult(data);
+    } catch (err) {
+      setVocalError(err?.response?.data?.error || err?.message || 'Failed to add vocals');
+    } finally { setAddingVocals(false); }
+  };
+
+  // Shoot music video
+  const handleShootVideo = async () => {
+    const sceneCount = duration === 'full' ? 8 : 4;
+    if (!creditGate('video_long', sceneCount * 100)) return;
+    setShootingVideo(true);
+    setVideoError('');
+    try {
+      const lyrics = script?.sections?.map(s => s.lyrics || s.content || '').filter(Boolean).join('\n');
+      const { data } = await api.post('/api/ai-content/music/video', {
+        audioUrl: vocalResult?.audioUrl || result.audioUrl,
+        title: result.title || script?.title || 'Song',
+        genre: script?.genre || genre,
+        mood: script?.mood || mood,
+        lyrics,
+        style: 'Cinematic',
+        sceneCount
+      }, { timeout: 120000 });
+      setVideoScenes(data.taskIds || []);
+      setVideoResult(data);
+    } catch (err) {
+      setVideoError(err?.response?.data?.error || err?.message || 'Failed to generate video');
+    } finally { setShootingVideo(false); }
+  };
+
   if (step === 4 && result) {
+    const currentAudio = vocalResult?.audioUrl || result.audioUrl;
     return (
       <div className="space-y-5">
         <StepIndicator steps={['Idea', 'Script', 'Edit', 'Generate']} current={4} accent="blue" />
+
+        {/* ─── Instrumental Result ─── */}
         <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-5">
           <div className="flex items-start gap-4">
             <div className="w-24 h-24 rounded-xl bg-blue-200 overflow-hidden flex-shrink-0">
@@ -1678,16 +1773,16 @@ function MusicComposer({ balance, creditGate }) {
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-gray-900">{result.title || script?.title || 'AI Generated Song'}</h3>
-              <p className="text-sm text-gray-500 mt-0.5">{script?.genre || genre || 'Various'} · {script?.mood || mood || 'Mixed'}</p>
-              <audio src={result.audioUrl} controls className="w-full mt-3" />
-              <div className="flex flex-wrap gap-3 mt-3">
-                <a href={result.audioUrl} download className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700">
+              <p className="text-sm text-gray-500 mt-0.5">{script?.genre || genre || 'Various'} · {script?.mood || mood || 'Mixed'}{vocalResult ? ' · With Vocals' : ' · Instrumental'}</p>
+              <audio src={currentAudio} controls className="w-full mt-3" />
+              <div className="flex flex-wrap gap-2 mt-3">
+                <a href={currentAudio} download className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700">
                   <Download size={14} /> Download
                 </a>
                 <button onClick={() => setShowShare(true)} className="flex items-center gap-1.5 px-4 py-2 bg-purple-600 text-white rounded-full text-sm font-medium hover:bg-purple-700">
-                  <Share2 size={14} /> Share
+                  <Share2 size={14} /> Post to CYBEV
                 </button>
-                <button onClick={() => { setStep(0); setResult(null); setScript(null); setGenStatus(null); }}
+                <button onClick={() => { setStep(0); setResult(null); setScript(null); setGenStatus(null); setVocalResult(null); setVideoResult(null); }}
                   className="flex items-center gap-1.5 px-4 py-2 border border-gray-300 text-gray-600 rounded-full text-sm font-medium hover:bg-gray-50"
                 >
                   <Plus size={14} /> New Song
@@ -1696,8 +1791,111 @@ function MusicComposer({ balance, creditGate }) {
             </div>
           </div>
         </div>
+
+        {/* ─── Add Vocals Panel ─── */}
+        {!instrumental && !vocalResult && (
+          <div className="bg-white rounded-xl border border-blue-200 p-5 space-y-4">
+            <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+              <Mic size={18} className="text-blue-500" /> Add Vocals to Your Song
+            </h4>
+            <p className="text-sm text-gray-500">The instrumental is ready! Choose a voice to add lyrics over the beat.</p>
+
+            {/* Voice Selection */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-2">AI Voice</label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {VOICES.map(v => (
+                  <button key={v.id} onClick={() => { setSelectedVoice(v.id); setVoiceRecordingUrl(''); setVoiceRecording(null); }}
+                    className={`px-3 py-2 rounded-lg text-xs font-medium border transition-all ${
+                      selectedVoice === v.id && !voiceRecordingUrl ? 'bg-blue-50 border-blue-400 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300'
+                    }`}>{v.label}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* OR Clone Your Voice */}
+            <div className="border-t border-gray-100 pt-4">
+              <label className="block text-xs font-medium text-gray-600 mb-2">Or Clone a Voice (upload a recording)</label>
+              <div className="flex items-center gap-3">
+                <label className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border cursor-pointer text-sm transition-all ${
+                  voiceRecordingUrl ? 'bg-green-50 border-green-400 text-green-700' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300'
+                }`}>
+                  <Upload size={14} /> {voiceRecordingUrl ? '✓ Voice uploaded' : 'Upload voice (.mp3/.ogg)'}
+                  <input type="file" accept="audio/*" className="hidden" onChange={e => e.target.files[0] && handleVoiceUpload(e.target.files[0])} />
+                </label>
+                {voiceRecordingUrl && (
+                  <button onClick={() => { setVoiceRecordingUrl(''); setVoiceRecording(null); }} className="text-xs text-red-500 hover:underline">Remove</button>
+                )}
+              </div>
+            </div>
+
+            {/* Language */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-2">Vocal Language</label>
+              <select value={voiceLang} onChange={e => setVoiceLang(e.target.value)}
+                className="w-full sm:w-auto px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white text-gray-900">
+                {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
+              </select>
+            </div>
+
+            {vocalError && <p className="text-sm text-red-500">{vocalError}</p>}
+
+            <button onClick={handleAddVocals} disabled={addingVocals}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full font-semibold hover:shadow-lg disabled:opacity-50 transition-all">
+              {addingVocals ? <><Loader2 size={16} className="animate-spin" /> Generating Vocals...</> : <><Mic size={16} /> Add Vocals (50 credits)</>}
+            </button>
+          </div>
+        )}
+
+        {/* ─── Vocal Result ─── */}
+        {vocalResult && (
+          <div className="bg-green-50 rounded-xl border border-green-200 p-4">
+            <h4 className="font-semibold text-green-700 flex items-center gap-2 mb-2">
+              <CheckCircle2 size={16} /> Vocals Added! ({vocalResult.vocalLines} lines, {vocalResult.voice === 'cloned' ? 'cloned voice' : vocalResult.voice})
+            </h4>
+            <audio src={vocalResult.audioUrl} controls className="w-full" />
+          </div>
+        )}
+
+        {/* ─── Shoot Music Video ─── */}
+        {!videoResult && (
+          <div className="bg-white rounded-xl border border-purple-200 p-5 space-y-3">
+            <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+              <Video size={18} className="text-purple-500" /> Shoot a Music Video
+            </h4>
+            <p className="text-sm text-gray-500">AI generates {duration === 'full' ? '8' : '4'} cinematic scenes and merges them with your song as the soundtrack.</p>
+            {videoError && <p className="text-sm text-red-500">{videoError}</p>}
+            <button onClick={handleShootVideo} disabled={shootingVideo}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold hover:shadow-lg disabled:opacity-50 transition-all">
+              {shootingVideo ? <><Loader2 size={16} className="animate-spin" /> Generating Scenes...</> : <><Video size={16} /> Shoot Music Video ({(duration === 'full' ? 8 : 4) * 100} credits)</>}
+            </button>
+          </div>
+        )}
+
+        {/* ─── Video Scenes Progress ─── */}
+        {videoResult && (
+          <div className="bg-purple-50 rounded-xl border border-purple-200 p-4 space-y-3">
+            <h4 className="font-semibold text-purple-700 flex items-center gap-2">
+              <Video size={16} /> Music Video — {videoScenes.length} Scenes Generating
+            </h4>
+            <p className="text-sm text-gray-500">Scenes are rendering. Go to <strong>AI Video</strong> tab → use merge with your audio URL to combine them into a full music video.</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {videoScenes.map((s, i) => (
+                <div key={i} className={`p-3 rounded-lg text-center text-xs font-medium ${s.status === 'generating' ? 'bg-yellow-100 text-yellow-700' : s.status === 'failed' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
+                  Scene {s.sceneNumber} · {s.status === 'generating' ? '⏳ Rendering' : s.status === 'failed' ? '❌ Failed' : '✅ Done'}
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <a href={currentAudio} download className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700">
+                <Download size={14} /> Download Audio
+              </a>
+            </div>
+          </div>
+        )}
+
         <ShareToCybev show={showShare} onClose={() => setShowShare(false)} 
-          mediaUrl={result?.url || result?.audioUrl} mediaType="audio" title={idea} />
+          mediaUrl={currentAudio} mediaType="audio" title={idea} />
       </div>
     );
   }
