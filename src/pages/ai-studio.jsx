@@ -3514,6 +3514,14 @@ export default function AIStudio() {
   const [balance, setBalance] = useState(0);
   const [loadingBalance, setLoadingBalance] = useState(true);
 
+  // Read ?tab= query param to pre-select tool
+  useEffect(() => {
+    const tab = router.query?.tab;
+    if (tab && ['video', 'movie', 'music', 'graphics', 'dub', 'character'].includes(tab)) {
+      setActiveTool(tab);
+    }
+  }, [router.query?.tab]);
+
   useEffect(() => {
     const fetchBalance = async () => {
       try {
