@@ -15,12 +15,13 @@ import {
   Calendar, Shield, Users, Eye, Download, Upload
 } from 'lucide-react';
 
-const PLAN_ICONS = { free: Star, pro: Zap, business: Crown, enterprise: Shield };
+const PLAN_ICONS = { free: Star, starter: Zap, pro: Crown, business: Shield, superuser: Sparkles };
 const PLAN_COLORS = {
   free: { bg: 'bg-gray-50', border: 'border-gray-200', accent: 'text-gray-600', btn: 'bg-gray-200 text-gray-700' },
+  starter: { bg: 'bg-blue-50', border: 'border-blue-300', accent: 'text-blue-600', btn: 'bg-blue-600 text-white hover:bg-blue-700' },
   pro: { bg: 'bg-purple-50', border: 'border-purple-300', accent: 'text-purple-600', btn: 'bg-purple-600 text-white hover:bg-purple-700' },
   business: { bg: 'bg-amber-50', border: 'border-amber-300', accent: 'text-amber-600', btn: 'bg-amber-500 text-white hover:bg-amber-600' },
-  enterprise: { bg: 'bg-indigo-50', border: 'border-indigo-300', accent: 'text-indigo-600', btn: 'bg-indigo-600 text-white hover:bg-indigo-700' }
+  superuser: { bg: 'bg-gradient-to-br from-purple-50 to-pink-50', border: 'border-purple-400', accent: 'text-purple-700', btn: 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700' }
 };
 
 export default function WalletPage() {
@@ -39,7 +40,8 @@ export default function WalletPage() {
   const [fundAmount, setFundAmount] = useState('');
   const [buyAmount, setBuyAmount] = useState('');
   const [processing, setProcessing] = useState(false);
-  const [fundProvider, setFundProvider] = useState('flutterwave'); // 'flutterwave' or 'espees'
+  const [fundProvider, setFundProvider] = useState('flutterwave');
+  const [subscribingPlan, setSubscribingPlan] = useState(null); // per-plan processing // 'flutterwave' or 'espees'
 
   // Auto-detect local currency from timezone
   const detectCurrency = () => {
@@ -123,7 +125,7 @@ export default function WalletPage() {
 
   const handleSubscribe = async (plan) => {
     try {
-      setProcessing(true);
+      setSubscribingPlan(plan);
       const { data } = await api.post('/api/wallet/subscribe', { plan, currency: fundCurrency });
       if (data.needsPayment && data.paymentLink) {
         window.location.href = data.paymentLink;
@@ -134,7 +136,7 @@ export default function WalletPage() {
         alert(data.error || 'Failed');
       }
     } catch (err) { alert(err?.response?.data?.error || 'Subscription failed'); }
-    finally { setProcessing(false); }
+    finally { setSubscribingPlan(null); }
   };
 
   const canClaimDaily = () => {
@@ -262,10 +264,11 @@ export default function WalletPage() {
                     const priceLabel = fundCurrency === 'USD' 
                       ? `$${plan.price}` 
                       : `${localPrice.toLocaleString()} ${fundCurrency} (~$${plan.price})`;
+                    const isSubscribing = subscribingPlan === key;
                     return (
-                      <button onClick={() => handleSubscribe(key)} disabled={processing}
-                        className={`w-full py-2.5 rounded-xl font-medium text-sm transition-colors ${colors.btn}`}>
-                        {processing ? 'Processing...' : `Subscribe — ${priceLabel}/mo`}
+                      <button onClick={() => handleSubscribe(key)} disabled={!!subscribingPlan}
+                        className={`w-full py-2.5 rounded-xl font-medium text-sm transition-colors ${colors.btn} disabled:opacity-50`}>
+                        {isSubscribing ? 'Processing...' : `Subscribe — ${priceLabel}/mo`}
                       </button>
                     );
                   })()}
@@ -275,6 +278,19 @@ export default function WalletPage() {
                 </div>
               );
             })}
+
+            {/* Managed Campaign — Contact Us */}
+            <div className="rounded-2xl p-5 border-2 border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-blue-50 flex flex-col items-center justify-center text-center">
+              <Users size={28} className="text-blue-500 mb-2" />
+              <h3 className="font-bold text-lg text-gray-900 mb-1">Need Us to Manage Everything?</h3>
+              <p className="text-sm text-gray-500 mb-3">Our team manages your campaigns, content, socials, and growth — so you can focus on what matters.</p>
+              <a href="mailto:hello@cybev.io?subject=Managed%20Campaign%20Inquiry" 
+                className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-medium text-sm hover:bg-blue-700 transition-colors">
+                Contact Us
+              </a>
+              <p className="text-xs text-gray-400 mt-2">Custom pricing based on your needs</p>
+            </div>
+
           </div>
         )}
 
@@ -299,6 +315,28 @@ export default function WalletPage() {
               </div>
             </div>
 
+            {/* Smart Upgrade Banner — only for free users */}
+            {(!subscription?.plan || subscription?.plan === 'free') && (
+              <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-5 text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                <div className="relative">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles size={20} />
+                    <h3 className="font-bold text-lg">Unlock the Full Power of CYBEV</h3>
+                  </div>
+                  <p className="text-purple-100 text-sm mb-3">Start your 7-day free trial — make unlimited AI videos, movies, music, and grow your audience 10x faster.</p>
+                  <div className="flex gap-2">
+                    <button onClick={() => setActiveTab('plans')} className="px-4 py-2 bg-white text-purple-600 rounded-lg text-sm font-bold hover:bg-purple-50 transition-colors">
+                      Start Free Trial
+                    </button>
+                    <button onClick={() => setActiveTab('plans')} className="px-4 py-2 bg-white/20 text-white rounded-lg text-sm font-medium hover:bg-white/30 transition-colors">
+                      See Plans
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Quick Plans Overview */}
             {plans && Object.keys(plans).length > 0 && (
               <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -309,7 +347,7 @@ export default function WalletPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {Object.entries(plans).map(([key, p]) => {
                     const isCurrent = (subscription?.plan || 'free') === key;
-                    const colors = key === 'free' ? 'bg-gray-50 border-gray-200' : key === 'starter' ? 'bg-blue-50 border-blue-200' : key === 'pro' ? 'bg-purple-50 border-purple-200' : 'bg-amber-50 border-amber-200';
+                    const colors = key === 'free' ? 'bg-gray-50 border-gray-200' : key === 'starter' ? 'bg-blue-50 border-blue-200' : key === 'pro' ? 'bg-purple-50 border-purple-200' : key === 'superuser' ? 'bg-purple-50 border-purple-300' : 'bg-amber-50 border-amber-200';
                     return (
                       <div key={key} className={`rounded-xl p-3 border-2 text-center ${isCurrent ? 'border-green-500 bg-green-50' : colors}`}>
                         <p className="text-xs font-bold uppercase text-gray-500">{p.name}</p>
