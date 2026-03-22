@@ -424,15 +424,25 @@ export default function StudioPage() {
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Creator Studio</h1>
                 <p className="text-gray-600">Build websites, write blogs, and grow your audience</p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-2 md:gap-3">
+                <Link href="/watch-party">
+                  <button className="inline-flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 bg-red-500 text-white rounded-xl font-semibold shadow-lg hover:bg-red-600 transition-colors text-sm md:text-base">
+                    <Film className="w-4 h-4 md:w-5 md:h-5" />Watch Party
+                  </button>
+                </Link>
+                <Link href="/ai-studio">
+                  <button className="inline-flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold shadow-lg hover:from-purple-700 hover:to-pink-700 transition-all text-sm md:text-base">
+                    <Sparkles className="w-4 h-4 md:w-5 md:h-5" />AI Studio
+                  </button>
+                </Link>
                 <Link href="/blog/create">
-                  <button className="inline-flex items-center gap-2 px-5 py-3 bg-blue-600 text-white rounded-xl font-semibold shadow-lg hover:bg-blue-700 transition-colors">
-                    <Edit className="w-5 h-5" />Write Article
+                  <button className="inline-flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 bg-blue-600 text-white rounded-xl font-semibold shadow-lg hover:bg-blue-700 transition-colors text-sm md:text-base">
+                    <Edit className="w-4 h-4 md:w-5 md:h-5" />Write Article
                   </button>
                 </Link>
                 <Link href="/studio/sites/new">
-                  <button className="inline-flex items-center gap-2 px-5 py-3 bg-purple-600 text-white rounded-xl font-semibold shadow-lg hover:bg-purple-700 transition-colors">
-                    <Plus className="w-5 h-5" />Create Website
+                  <button className="inline-flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 bg-purple-600 text-white rounded-xl font-semibold shadow-lg hover:bg-purple-700 transition-colors text-sm md:text-base">
+                    <Plus className="w-4 h-4 md:w-5 md:h-5" />Create Website
                   </button>
                 </Link>
               </div>
