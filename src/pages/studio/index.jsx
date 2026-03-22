@@ -559,6 +559,66 @@ export default function StudioPage() {
           </div>
 
           {/* ============================================ */}
+          {/* AI STUDIO - Create with AI                   */}
+          {/* ============================================ */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-purple-600" />
+                AI Studio
+              </h2>
+              <Link href="/ai-studio" className="text-purple-600 text-sm font-semibold hover:underline flex items-center gap-1">
+                Open Studio <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            {/* Desktop grid / Mobile vertical list */}
+            <div className="flex flex-col gap-3 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:gap-4">
+              {[
+                { title: 'Make Videos with AI', desc: 'Script → scene-by-scene video', icon: Film, href: '/ai-studio?tab=video', color: '#f97316', bg: '#fff7ed', badge: '🎬' },
+                { title: 'Make Movies with AI', desc: 'Full movies, series & episodes', icon: Tv, href: '/ai-studio?tab=movie', color: '#ef4444', bg: '#fef2f2', badge: '🍿' },
+                { title: 'Make Music with AI', desc: 'Compose songs & instrumentals', icon: Music, href: '/ai-studio?tab=music', color: '#8b5cf6', bg: '#f5f3ff', badge: '🎵' },
+                { title: 'Make Graphics with AI', desc: 'Create stunning visuals & art', icon: ImageIcon, href: '/ai-studio?tab=graphics', color: '#06b6d4', bg: '#ecfeff', badge: '🎨' },
+                { title: 'Dub Videos with AI', desc: 'Translate & re-voice any video', icon: Globe, href: '/ai-studio?tab=dub', color: '#10b981', bg: '#ecfdf5', badge: '🌍' },
+                { title: 'AI Character Studio', desc: 'Bring photos to life as video', icon: Users, href: '/ai-studio?tab=character', color: '#ec4899', bg: '#fdf2f8', badge: '🧑‍🎤' },
+              ].map(a => (
+                <Link key={a.title} href={a.href}>
+                  {/* Desktop card */}
+                  <div className="hidden md:block bg-white rounded-2xl p-5 border border-gray-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110" style={{ backgroundColor: a.bg }}>
+                        <a.icon className="w-6 h-6" style={{ color: a.color }} />
+                      </div>
+                      <span className="text-lg">{a.badge}</span>
+                    </div>
+                    <h3 className="font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors">{a.title}</h3>
+                    <p className="text-sm text-gray-500">{a.desc}</p>
+                  </div>
+                  {/* Mobile card */}
+                  <div className="md:hidden bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden active:bg-gray-50 transition-colors cursor-pointer">
+                    <div className="h-2 w-full" style={{ backgroundColor: a.color }} />
+                    <div className="p-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: a.bg }}>
+                          <a.icon className="w-7 h-7" style={{ color: a.color }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <h3 className="font-bold text-gray-900 text-base">{a.title}</h3>
+                            <span className="text-lg">{a.badge}</span>
+                          </div>
+                          <p className="text-sm text-gray-500">{a.desc}</p>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* ============================================ */}
           {/* NEW: Church Quick Create Organization Section */}
           {/* ============================================ */}
           <div className="mb-8">
