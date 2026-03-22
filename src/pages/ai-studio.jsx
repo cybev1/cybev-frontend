@@ -335,6 +335,148 @@ function VoiceoverPanel({ voice, setVoice, addVoiceover, setAddVoiceover }) {
 
 
 // ═══════════════════════════════════════════
+// SHARE TO CYBEV — Reusable modal for posting content
+// ═══════════════════════════════════════════
+function ShareToCybev({ show, onClose, mediaUrl, mediaType = 'video', title = '', thumbnailUrl = '' }) {
+  const router = useRouter();
+  const [caption, setCaption] = useState(title);
+  const [posting, setPosting] = useState(false);
+  const [shared, setShared] = useState(false);
+
+  if (!show) return null;
+
+  const postAsVlog = async () => {
+    if (!mediaUrl) return alert('No media to share');
+    setPosting(true);
+    try {
+      const { data } = await api.post('/api/vlogs', {
+        videoUrl: mediaUrl,
+        thumbnailUrl: thumbnailUrl || '',
+        caption: caption || title || 'Created with AI Studio',
+        visibility: 'public',
+        isStory: false,
+        hashtags: ['#AIStudio', '#CYBEV', '#AICreator']
+      });
+      if (data.success || data.vlog) {
+        setShared(true);
+        setTimeout(() => { onClose(); router.push(`/vlog/${data.vlog?._id || ''}`); }, 1500);
+      }
+    } catch (err) { alert(err?.response?.data?.error || 'Failed to post'); }
+    finally { setPosting(false); }
+  };
+
+  const postAsBlog = async () => {
+    if (!mediaUrl) return alert('No media to share');
+    setPosting(true);
+    try {
+      const videoEmbed = mediaType === 'video'
+        ? `<video controls src="${mediaUrl}" style="width:100%;border-radius:12px;margin:16px 0"></video>`
+        : mediaType === 'audio'
+          ? `<audio controls src="${mediaUrl}" style="width:100%;margin:16px 0"></audio>`
+          : `<img src="${mediaUrl}" style="width:100%;border-radius:12px;margin:16px 0" />`;
+
+      const { data } = await api.post('/api/blogs', {
+        title: caption || title || 'AI Studio Creation',
+        content: `${videoEmbed}<p>${caption || ''}</p><p><em>Created with CYBEV AI Studio</em></p>`,
+        excerpt: caption || title || 'Made with CYBEV AI Studio',
+        featuredImage: thumbnailUrl || '',
+        category: 'entertainment',
+        tags: ['AI Studio', 'AI Creator', 'CYBEV'],
+        status: 'published'
+      });
+      if (data.ok || data.blog) {
+        setShared(true);
+        setTimeout(() => { onClose(); router.push(`/blog/${data.blog?._id || ''}`); }, 1500);
+      }
+    } catch (err) { alert(err?.response?.data?.error || 'Failed to post'); }
+    finally { setPosting(false); }
+  };
+
+  const shareExternal = (platform) => {
+    const url = encodeURIComponent(mediaUrl);
+    const text = encodeURIComponent(caption || title || 'Check out what I made with CYBEV AI Studio!');
+    const links = {
+      whatsapp: `https://wa.me/?text=${text}%20${url}`,
+      twitter: `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+      telegram: `https://t.me/share/url?url=${url}&text=${text}`,
+      copy: null
+    };
+    if (platform === 'copy') {
+      navigator.clipboard.writeText(mediaUrl);
+      alert('Link copied!');
+      return;
+    }
+    window.open(links[platform], '_blank', 'width=600,height=400');
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+        {shared ? (
+          <div className="text-center py-8">
+            <CheckCircle2 size={48} className="text-green-500 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-gray-900">Posted to CYBEV!</h3>
+            <p className="text-sm text-gray-500">Redirecting...</p>
+          </div>
+        ) : (
+          <>
+            <h2 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
+              <Share2 size={20} className="text-purple-600" /> Share Your Creation
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">Post to CYBEV or share on social media</p>
+
+            {/* Caption */}
+            <textarea value={caption} onChange={e => setCaption(e.target.value)} maxLength={500}
+              placeholder="Write a caption..." rows={2}
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm mb-4 outline-none focus:ring-2 focus:ring-purple-500 resize-none" />
+
+            {/* Post to CYBEV */}
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {mediaType === 'video' && (
+                <button onClick={postAsVlog} disabled={posting}
+                  className="flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold text-sm hover:shadow-lg disabled:opacity-50">
+                  {posting ? <Loader2 size={16} className="animate-spin" /> : <Video size={16} />}
+                  Post as Vlog
+                </button>
+              )}
+              <button onClick={postAsBlog} disabled={posting}
+                className="flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:shadow-lg disabled:opacity-50">
+                {posting ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
+                Post as Article
+              </button>
+            </div>
+
+            {/* Social Share */}
+            <p className="text-xs font-semibold text-gray-400 mb-2">Share externally</p>
+            <div className="flex gap-2 mb-3">
+              {[
+                { id: 'whatsapp', label: '💬 WhatsApp', color: 'bg-green-500 hover:bg-green-600' },
+                { id: 'twitter', label: '𝕏 Twitter', color: 'bg-black hover:bg-gray-800' },
+                { id: 'facebook', label: '📘 Facebook', color: 'bg-blue-600 hover:bg-blue-700' },
+                { id: 'telegram', label: '✈️ Telegram', color: 'bg-blue-400 hover:bg-blue-500' },
+              ].map(p => (
+                <button key={p.id} onClick={() => shareExternal(p.id)}
+                  className={`flex-1 py-2 ${p.color} text-white rounded-lg text-[10px] font-semibold transition-colors`}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => shareExternal('copy')}
+              className="w-full py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-200 flex items-center justify-center gap-2">
+              <Copy size={14} /> Copy Link
+            </button>
+
+            <button onClick={onClose} className="w-full mt-3 py-2 text-gray-400 text-sm">Cancel</button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+// ═══════════════════════════════════════════
 // VIDEO MAKER — with Script Writer
 // ═══════════════════════════════════════════
 function VideoMaker({ balance, creditGate }) {
@@ -353,6 +495,7 @@ function VideoMaker({ balance, creditGate }) {
   const [sceneResults, setSceneResults] = useState([]);
   const [merging, setMerging] = useState(false);
   const [mergedUrl, setMergedUrl] = useState(null);
+  const [showShare, setShowShare] = useState(false);
   const [mergeError, setMergeError] = useState('');
   const [showAllScenes, setShowAllScenes] = useState(false);
   const [voice, setVoice] = useState('onyx-narrator');
@@ -954,7 +1097,7 @@ function VideoMaker({ balance, creditGate }) {
               >
                 <Download size={15} /> Download Full Video
               </a>
-              <button className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
+              <button onClick={() => setShowShare(true)} className="flex items-center gap-1.5 px-4 py-2.5 bg-purple-600 text-white rounded-full text-sm font-medium hover:bg-purple-700">
                 <Share2 size={14} /> Post to CYBEV
               </button>
             </div>
@@ -1095,7 +1238,7 @@ function VideoMaker({ balance, creditGate }) {
               >
                 <Download size={15} /> Download Full Video
               </a>
-              <button className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
+              <button onClick={() => setShowShare(true)} className="flex items-center gap-1.5 px-4 py-2.5 bg-purple-600 text-white rounded-full text-sm font-medium hover:bg-purple-700">
                 <Share2 size={14} /> Post to CYBEV
               </button>
             </div>
@@ -1234,6 +1377,8 @@ function SceneCard({ scene, index, onUpdate, onRemove, canRemove }) {
           </div>
         </div>
       )}
+      <ShareToCybev show={showShare} onClose={() => setShowShare(false)} 
+        mediaUrl={mergedUrl} mediaType="video" title={idea} thumbnailUrl={thumbnails?.[0] || ''} />
     </div>
   );
 }
@@ -1254,6 +1399,7 @@ function MusicComposer({ balance, creditGate }) {
   const [genStatus, setGenStatus] = useState(null);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState(null);
+  const [showShare, setShowShare] = useState(false);
   const pollRef = useRef(null);
 
   const costs = { short: 50, full: 150 };
@@ -1538,7 +1684,7 @@ function MusicComposer({ balance, creditGate }) {
                 <a href={result.audioUrl} download className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700">
                   <Download size={14} /> Download
                 </a>
-                <button className="flex items-center gap-1.5 px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
+                <button onClick={() => setShowShare(true)} className="flex items-center gap-1.5 px-4 py-2 bg-purple-600 text-white rounded-full text-sm font-medium hover:bg-purple-700">
                   <Share2 size={14} /> Share
                 </button>
                 <button onClick={() => { setStep(0); setResult(null); setScript(null); setGenStatus(null); }}
@@ -1550,6 +1696,8 @@ function MusicComposer({ balance, creditGate }) {
             </div>
           </div>
         </div>
+        <ShareToCybev show={showShare} onClose={() => setShowShare(false)} 
+          mediaUrl={result?.url || result?.audioUrl} mediaType="audio" title={idea} />
       </div>
     );
   }
@@ -1572,6 +1720,7 @@ function GraphicsGenerator({ balance, creditGate }) {
   const [scriptError, setScriptError] = useState('');
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState(null);
+  const [showShare, setShowShare] = useState(false);
 
   const cost = count > 1 ? 80 : quality === 'hd' ? 50 : 20;
 
@@ -1848,6 +1997,8 @@ function GraphicsGenerator({ balance, creditGate }) {
             <Plus size={14} /> Create Another
           </button>
         </div>
+        <ShareToCybev show={showShare} onClose={() => setShowShare(false)} 
+          mediaUrl={result?.images?.[0]?.url} mediaType="image" title={idea} thumbnailUrl={result?.images?.[0]?.url} />
       </div>
     );
   }
@@ -1888,6 +2039,7 @@ function MovieMaker({ balance, creditGate }) {
   const [genProgress, setGenProgress] = useState(null);
   const [merging, setMerging] = useState(false);
   const [scriptLoading, setScriptLoading] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const epPollRef = useRef(null);
 
   // Load projects
@@ -2889,12 +3041,14 @@ function MovieMaker({ balance, creditGate }) {
               <a href={ep.mergedVideoUrl} download className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white rounded-full text-sm font-medium hover:bg-green-700">
                 <Download size={14} /> Download
               </a>
-              <button className="flex items-center gap-1.5 px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
+              <button onClick={() => setShowShare(true)} className="flex items-center gap-1.5 px-4 py-2 bg-purple-600 text-white rounded-full text-sm font-medium hover:bg-purple-700">
                 <Share2 size={14} /> Post to CYBEV
               </button>
             </div>
           </div>
         )}
+        <ShareToCybev show={showShare} onClose={() => setShowShare(false)}
+          mediaUrl={ep.mergedVideoUrl} mediaType="video" title={`${p.title} - ${ep.title}`} thumbnailUrl={ep.thumbnails?.[0] || ''} />
 
         {/* ─── SCENE LIST with edit/delete ─── */}
         {ep.scenes?.length > 0 && (
@@ -3007,6 +3161,7 @@ function DubStudio({ balance, creditGate }) {
   const [processing, setProcessing] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  const [showShare, setShowShare] = useState(false);
 
   const LANGUAGES = [
     { code: 'en', label: 'English (keep original)' }, { code: 'es', label: 'Spanish' }, { code: 'fr', label: 'French' },
@@ -3254,10 +3409,12 @@ function DubStudio({ balance, creditGate }) {
           <a href={result.dubbedUrl} download className="flex items-center gap-1.5 px-5 py-2.5 bg-emerald-600 text-white rounded-full text-sm font-semibold hover:bg-emerald-700">
             <Download size={14} /> Download
           </a>
-          <button className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
+          <button onClick={() => setShowShare(true)} className="flex items-center gap-1.5 px-4 py-2.5 bg-purple-600 text-white rounded-full text-sm font-medium hover:bg-purple-700">
             <Share2 size={14} /> Post to CYBEV
           </button>
         </div>
+        <ShareToCybev show={showShare} onClose={() => setShowShare(false)}
+          mediaUrl={result?.dubbedUrl} mediaType="video" title="AI Dubbed Video" />
       </div>
     );
   }
@@ -3281,6 +3438,7 @@ function CharacterGenerator({ balance, creditGate }) {
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  const [showShare, setShowShare] = useState(false);
   const pollRef = useRef(null);
 
   const CHAR_STYLES = ['Realistic', 'Cinematic', 'Anime', '3D Animation', 'Comic Book', 'Watercolor', 'Professional', 'Fantasy'];
@@ -3511,10 +3669,12 @@ function CharacterGenerator({ balance, creditGate }) {
           <a href={result.videoUrl} download className="flex items-center gap-1.5 px-5 py-2.5 bg-rose-600 text-white rounded-full text-sm font-semibold hover:bg-rose-700">
             <Download size={14} /> Download
           </a>
-          <button className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-300">
+          <button onClick={() => setShowShare(true)} className="flex items-center gap-1.5 px-4 py-2.5 bg-purple-600 text-white rounded-full text-sm font-medium hover:bg-purple-700">
             <Share2 size={14} /> Post to CYBEV
           </button>
         </div>
+        <ShareToCybev show={showShare} onClose={() => setShowShare(false)}
+          mediaUrl={result?.videoUrl} mediaType="video" title={prompt || 'AI Character Video'} />
       </div>
     );
   }
