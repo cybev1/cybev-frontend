@@ -96,35 +96,37 @@ export default function AppLayout({ children }) {
     }
   }, []);
 
-  // Fetch credit balance
+  // Fetch credit balance — cached for 5 min to reduce API calls
   useEffect(() => {
     const fetchBalance = async () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
+
+        // Check cache first — don't re-fetch if recent
+        const cached = localStorage.getItem('cybev_balance_cache');
+        if (cached) {
+          try {
+            const { balance, ts } = JSON.parse(cached);
+            if (Date.now() - ts < 300000) { // 5 min cache
+              setTokenBalance(balance || 0);
+              return;
+            }
+          } catch {}
+        }
+
         const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.cybev.io';
-        // Try wallet endpoint first, fallback to rewards
-        let data;
-        try {
-          const res = await fetch(`${API}/api/wallet`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          data = await res.json();
-          if (data.ok || data.wallet) {
-            setTokenBalance(data.wallet?.credits || data.wallet?.usdBalance || data.balance || 0);
-            return;
-          }
-        } catch {}
-        // Fallback
-        const res2 = await fetch(`${API}/api/rewards/wallet`, {
+        const res = await fetch(`${API}/api/wallet`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        data = await res2.json();
-        if (data.success || data.ok) {
-          setTokenBalance(data.balance || data.wallet?.balance || 0);
+        const data = await res.json();
+        if (data.ok || data.wallet) {
+          const bal = data.wallet?.credits || data.wallet?.usdBalance || data.balance || 0;
+          setTokenBalance(bal);
+          localStorage.setItem('cybev_balance_cache', JSON.stringify({ balance: bal, ts: Date.now() }));
         }
       } catch (err) {
-        console.log('Balance fetch error');
+        // Silent fail
       }
     };
     fetchBalance();
