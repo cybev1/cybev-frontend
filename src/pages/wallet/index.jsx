@@ -258,6 +258,22 @@ export default function WalletPage() {
 
         {/* ─── Plans Tab ─── */}
         {activeTab === 'plans' && (
+          <div className="space-y-4">
+            {/* Currency selector for plans */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm text-gray-500">Pay with:</span>
+              {[
+                { code: 'USD', label: '🇺🇸 USD (Card)', flag: '💳' },
+                { code: 'GHS', label: '🇬🇭 GHS (MoMo/Card)', flag: '📱' },
+                { code: 'NGN', label: '🇳🇬 NGN (MoMo/Card)', flag: '📱' },
+                { code: 'KES', label: '🇰🇪 KES (M-Pesa/Card)', flag: '📱' },
+              ].map(c => (
+                <button key={c.code} onClick={() => setFundCurrency(c.code)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                    fundCurrency === c.code ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}>{c.label}</button>
+              ))}
+            </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {Object.entries(plans).map(([key, plan]) => {
               const Icon = PLAN_ICONS[key] || Star;
@@ -318,6 +334,7 @@ export default function WalletPage() {
               <p className="text-xs text-gray-400 mt-2">Custom pricing based on your needs</p>
             </div>
 
+          </div>
           </div>
         )}
 
