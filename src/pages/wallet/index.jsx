@@ -36,6 +36,7 @@ export default function WalletPage() {
 
   // Modals
   const [showFund, setShowFund] = useState(false);
+  const [pendingPlan, setPendingPlan] = useState(null); // When set, Fund modal acts as subscription payment
   const [showBuyCredits, setShowBuyCredits] = useState(false);
   const [fundAmount, setFundAmount] = useState('');
   const [buyAmount, setBuyAmount] = useState('');
@@ -146,20 +147,38 @@ export default function WalletPage() {
     finally { setProcessing(false); }
   };
 
-  const handleSubscribe = async (plan) => {
+  const handleSubscribe = (plan) => {
+    // Open Fund modal with plan context — user picks currency + payment method
+    const planData = plans[plan];
+    if (!planData) return;
+    const rates = { USD: 1, GHS: 16, NGN: 1600, KES: 155 };
+    const localPrice = Math.ceil(planData.price * (rates[fundCurrency] || 1) * 100) / 100;
+    setPendingPlan({ key: plan, ...planData, localPrice });
+    setFundAmount(String(localPrice));
+    setShowFund(true);
+  };
+
+  const handleSubscribePayment = async () => {
+    if (!pendingPlan) return;
     try {
-      setSubscribingPlan(plan);
-      const { data } = await api.post('/api/wallet/subscribe', { plan, currency: fundCurrency });
+      setProcessing(true);
+      const { data } = await api.post('/api/wallet/subscribe', { 
+        plan: pendingPlan.key, 
+        currency: fundCurrency,
+        provider: fundProvider 
+      });
       if (data.needsPayment && data.paymentLink) {
         window.location.href = data.paymentLink;
       } else if (data.ok) {
-        alert(data.message);
+        alert(data.message || `Subscribed to ${pendingPlan.name}!`);
+        setPendingPlan(null);
+        setShowFund(false);
         fetchWallet();
       } else {
         alert(data.error || 'Failed');
       }
     } catch (err) { alert(err?.response?.data?.error || 'Subscription failed'); }
-    finally { setSubscribingPlan(null); }
+    finally { setProcessing(false); }
   };
 
   const canClaimDaily = () => {
@@ -511,10 +530,19 @@ export default function WalletPage() {
 
       {/* ─── Fund Modal ─── */}
       {showFund && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowFund(false)}>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => { setShowFund(false); setPendingPlan(null); }}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-gray-900 mb-2">Fund Wallet</h2>
-            <p className="text-sm text-gray-500 mb-4">Add funds via card, mobile money (MoMo), bank transfer, or Espees.</p>
+            {pendingPlan ? (
+              <>
+                <h2 className="text-lg font-bold text-gray-900 mb-1">Subscribe to {pendingPlan.name}</h2>
+                <p className="text-sm text-gray-500 mb-4">Choose how you want to pay for your subscription.</p>
+              </>
+            ) : (
+              <>
+                <h2 className="text-lg font-bold text-gray-900 mb-2">Fund Wallet</h2>
+                <p className="text-sm text-gray-500 mb-4">Add funds via card, mobile money (MoMo), bank transfer, or Espees.</p>
+              </>
+            )}
 
             {/* Payment Gateway Selector */}
             <div className="flex gap-2 mb-4">
@@ -541,7 +569,15 @@ export default function WalletPage() {
                 { code: 'USD', flag: '🇺🇸' },
                 { code: 'KES', flag: '🇰🇪' },
               ].map(c => (
-                <button key={c.code} onClick={() => { setFundCurrency(c.code); setFundAmount(''); }}
+                <button key={c.code} onClick={() => { 
+                  setFundCurrency(c.code); 
+                  if (pendingPlan) {
+                    const rates = { USD: 1, GHS: 16, NGN: 1600, KES: 155 };
+                    setFundAmount(String(Math.ceil(pendingPlan.price * (rates[c.code] || 1) * 100) / 100));
+                  } else {
+                    setFundAmount(''); 
+                  }
+                }}
                   className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition-colors ${
                     fundCurrency === c.code ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                   }`}>
@@ -551,7 +587,8 @@ export default function WalletPage() {
             </div>
             )} {/* end flutterwave currency selector */}
 
-            {/* Quick Amounts */}
+            {/* Quick Amounts — hide for subscription (price is fixed) */}
+            {!pendingPlan && (
             <div className="flex gap-2 mb-4">
               {fundProvider === 'espees' ? (
                 [5, 10, 25, 50, 100].map(amt => (
@@ -577,11 +614,32 @@ export default function WalletPage() {
                 ))
               )}
             </div>
+            )}
 
+            {/* Subscription Plan Summary */}
+            {pendingPlan && (
+              <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold text-purple-900">{pendingPlan.name} Plan</p>
+                    <p className="text-xs text-purple-600">{pendingPlan.monthlyCredits?.toLocaleString()} credits/month</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-purple-900">
+                      {fundCurrency === 'USD' ? '$' : ''}{fundAmount} {fundCurrency}
+                    </p>
+                    {fundCurrency !== 'USD' && <p className="text-xs text-purple-500">~${pendingPlan.price} USD</p>}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!pendingPlan && (
             <input type="number" min="1" step="0.01" placeholder={fundProvider === 'espees' ? 'Enter USD amount...' : `Enter ${fundCurrency} amount...`}
               value={fundAmount} onChange={e => setFundAmount(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl mb-2 outline-none focus:ring-2 focus:ring-green-500" />
-            {fundProvider !== 'espees' && fundAmount && fundCurrency !== 'USD' && (
+            )}
+            {!pendingPlan && fundProvider !== 'espees' && fundAmount && fundCurrency !== 'USD' && (
               <p className="text-xs text-gray-500 mb-2 text-center">
                 ≈ ${(parseFloat(fundAmount) / (fundCurrency === 'GHS' ? 16 : fundCurrency === 'NGN' ? 1600 : fundCurrency === 'KES' ? 155 : 1)).toFixed(2)} USD
               </p>
@@ -590,12 +648,14 @@ export default function WalletPage() {
             {fundProvider !== 'espees' && fundCurrency === 'GHS' && <p className="text-xs text-green-600 mb-3 text-center font-medium">📱 MoMo • 💳 Card • 🏦 Bank Transfer</p>}
             {fundProvider !== 'espees' && fundCurrency === 'NGN' && <p className="text-xs text-green-600 mb-3 text-center font-medium">💳 Card • 🏦 Bank Transfer • USSD</p>}
             <div className="flex gap-3">
-              <button onClick={() => setShowFund(false)} className="flex-1 py-3 text-gray-600 font-medium">Cancel</button>
-              <button onClick={handleFund} disabled={processing || !fundAmount}
-                className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium disabled:opacity-50 transition-colors">
-                {processing ? 'Processing...' : fundProvider === 'espees' 
-                  ? `Pay $${fundAmount || '0'} with Espees` 
-                  : `Pay ${fundCurrency === 'USD' ? '$' : ''}${fundAmount || '0'} ${fundCurrency}`}
+              <button onClick={() => { setShowFund(false); setPendingPlan(null); }} className="flex-1 py-3 text-gray-600 font-medium">Cancel</button>
+              <button onClick={pendingPlan ? handleSubscribePayment : handleFund} disabled={processing || !fundAmount}
+                className={`flex-1 py-3 ${pendingPlan ? 'bg-purple-600 hover:bg-purple-700' : 'bg-green-600 hover:bg-green-700'} text-white rounded-xl font-medium disabled:opacity-50 transition-colors`}>
+                {processing ? 'Processing...' : pendingPlan 
+                  ? `Subscribe — ${fundCurrency === 'USD' ? '$' : ''}${fundAmount} ${fundCurrency}`
+                  : fundProvider === 'espees' 
+                    ? `Pay $${fundAmount || '0'} with Espees` 
+                    : `Pay ${fundCurrency === 'USD' ? '$' : ''}${fundAmount || '0'} ${fundCurrency}`}
               </button>
             </div>
           </div>
