@@ -378,22 +378,18 @@ function PostComposer({ user, onPostCreated }) {
           </button>
         </div>
         
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-          <button onClick={() => router.push('/live/go-live')} className="flex-1 flex items-center justify-center gap-1.5 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-xs sm:text-sm font-medium">
-            <Radio className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
-            Live video
+        <div className="flex items-center justify-around mt-3 pt-3 border-t border-gray-100">
+          <button onClick={() => router.push('/live/go-live')} className="flex items-center gap-1.5 py-2 px-3 hover:bg-red-50 rounded-lg text-gray-600 text-xs font-medium">
+            <Radio className="w-4 h-4 text-red-500" />
+            Live
           </button>
-          <button onClick={() => router.push('/watch-party?create=true')} className="flex-1 flex items-center justify-center gap-1.5 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-xs sm:text-sm font-medium">
-            <Tv className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
-            Watch Party
+          <button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 py-2 px-3 hover:bg-green-50 rounded-lg text-gray-600 text-xs font-medium">
+            <ImageIcon className="w-4 h-4 text-green-500" />
+            Photo/Video
           </button>
-          <button onClick={() => router.push('/studio/ai-blog')} className="flex-1 flex items-center justify-center gap-1.5 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-xs sm:text-sm font-medium">
-            <Wand2 className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
+          <button onClick={() => router.push('/studio/ai-blog')} className="flex items-center gap-1.5 py-2 px-3 hover:bg-purple-50 rounded-lg text-gray-600 text-xs font-medium">
+            <Wand2 className="w-4 h-4 text-purple-500" />
             Write with AI
-          </button>
-          <button onClick={() => router.push('/studio/sites/new')} className="flex-1 flex items-center justify-center gap-1.5 py-2 hover:bg-gray-50 rounded-lg text-gray-600 text-xs sm:text-sm font-medium">
-            <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
-            AI Website
           </button>
         </div>
       </div>
@@ -406,6 +402,45 @@ function PostComposer({ user, onPostCreated }) {
         onPostCreated={onPostCreated}
       />
     </>
+  );
+}
+
+// ==========================================
+// QUICK ACTIONS — Mobile-first scrollable feature buttons
+// Replaces Vlogs section — gives users instant access to all features
+// ==========================================
+function QuickActions() {
+  const router = useRouter();
+
+  const actions = [
+    { icon: '🎬', label: 'AI Video', path: '/ai-studio?tab=video', color: 'from-red-500 to-pink-500' },
+    { icon: '🎵', label: 'AI Music', path: '/ai-studio?tab=music', color: 'from-blue-500 to-cyan-500' },
+    { icon: '🎨', label: 'AI Graphics', path: '/ai-studio?tab=graphics', color: 'from-purple-500 to-pink-500' },
+    { icon: '🎬', label: 'AI Movie', path: '/ai-studio?tab=movie', color: 'from-amber-500 to-orange-500' },
+    { icon: '📺', label: 'Watch Party', path: '/watch-party?create=true', color: 'from-orange-500 to-red-500' },
+    { icon: '📹', label: 'Create Vlog', path: '/studio/create-vlog', color: 'from-pink-500 to-rose-500' },
+    { icon: '🌐', label: 'AI Website', path: '/studio/sites/new', color: 'from-blue-600 to-indigo-600' },
+    { icon: '📝', label: 'Auto-Blog', path: '/studio/auto-blog', color: 'from-green-500 to-emerald-500' },
+    { icon: '⛪', label: 'Church', path: '/church', color: 'from-indigo-500 to-purple-500' },
+    { icon: '📊', label: 'SEO', path: '/studio/seo', color: 'from-teal-500 to-cyan-500' },
+    { icon: '📧', label: 'Campaigns', path: '/studio/email', color: 'from-violet-500 to-purple-500' },
+    { icon: '💰', label: 'Wallet', path: '/wallet', color: 'from-green-600 to-emerald-600' },
+  ];
+
+  return (
+    <div className="mb-4">
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+        {actions.map((a, i) => (
+          <button key={i} onClick={() => router.push(a.path)}
+            className="flex flex-col items-center gap-1.5 flex-shrink-0">
+            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${a.color} flex items-center justify-center shadow-sm hover:shadow-md transition-shadow`}>
+              <span className="text-xl">{a.icon}</span>
+            </div>
+            <span className="text-[10px] font-medium text-gray-600 whitespace-nowrap">{a.label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -1281,7 +1316,7 @@ export default function Feed() {
 
         <div className="max-w-screen-sm mx-auto px-4 py-4 pb-20 md:pb-4">
           <PostComposer user={user} onPostCreated={() => fetchFeed()} />
-          <VlogSection user={user} />
+          <QuickActions />
 
           {loading ? (
             <div className="flex justify-center py-12">
