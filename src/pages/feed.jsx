@@ -447,31 +447,15 @@ function VlogSection({ user }) {
     try {
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      
-      // Fetch actual vlogs directly (not grouped stories)
-      const response = await api.get('/api/vlogs?limit=10', { headers });
-      console.log('Vlogs response:', response.data);
-      
+      const response = await api.get('/api/vlogs?limit=10', { headers, timeout: 10000 });
       if (response.data?.vlogs) {
         setVlogs(response.data.vlogs);
       } else if (response.data?.success && Array.isArray(response.data.data)) {
         setVlogs(response.data.data);
       }
     } catch (error) {
-      console.log('Vlogs fetch error:', error);
-      // Fallback: try feed endpoint
-      try {
-        const token = localStorage.getItem('token');
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        const feedResponse = await api.get('/api/vlogs/feed', { headers });
-        if (feedResponse.data?.vlogs) {
-          setVlogs(feedResponse.data.vlogs);
-        }
-      } catch (e) {
-        console.log('Feed fallback also failed');
-      }
+      console.log('Vlogs fetch error:', error.message);
     }
-    setLoading(false);
   };
 
   // Gradient colors for backgrounds when no thumbnail
@@ -1257,7 +1241,7 @@ export default function Feed() {
       
       let feedData = [];
       
-      const res = await api.get('/api/feed?tab=latest&limit=20', { headers });
+      const res = await api.get('/api/feed?tab=latest&limit=20', { headers, timeout: 60000 });
       feedData = res.data.feed || res.data.posts || res.data.items || [];
       
       // Filter out stale/ended livestream posts and soft-deleted posts
