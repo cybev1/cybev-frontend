@@ -227,7 +227,7 @@ export default function WalletPage() {
             <p className="text-3xl font-bold">{credits.toLocaleString()}</p>
             <p className="text-purple-200 text-xs mt-1">1 USD = {rates.creditRate || 100} credits</p>
             <div className="flex flex-wrap gap-2 mt-4">
-              <button onClick={() => setShowBuyCredits(true)}
+              <button onClick={() => setShowFund(true)}
                 className="flex items-center gap-1.5 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-full text-sm font-medium transition-colors">
                 <Plus size={14} /> Buy
               </button>
